@@ -60,7 +60,7 @@ Every template is frontmatter-validated before any write — a broken guide (mis
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification
 - **Preflight** — superpowers dependency check that runs before every command does anything else
-- **Graph** — optional Graphify integration: setup-time install offer, runtime freshness check, and the SUMMARY.md synthesis prompt
+- **Graph** — optional Graphify integration: setup-time install offer, runtime freshness check, and the SUMMARY.html synthesis prompt
 - **Workflow** — the ten-phase development loop used by `/code` and `/quick` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across three focused files (base phases, investigation flow, agent selection)
 - **Rules** — how to create rule files for a repo (including path-scoped rules)
 - **Skills** — how to create skills using Anthropic's `SKILL.md` directory format
@@ -107,11 +107,11 @@ graphify claude install          # appends CLAUDE.md section + installs the Glob
 
 Say `n` and `/setup-claude` skips it silently. Re-run `/setup-claude` later and the offer fires again.
 
-**SUMMARY.md auto-synthesis.** After the four commands succeed, `/setup-claude` synthesises `graphify-out/SUMMARY.md` automatically — a human-readable (~80-line) interpretation of Graphify's machine-formatted `GRAPH_REPORT.md` (~400 lines), with god nodes, surprising connections marked real or false-positive, plain-language community labels, and CLI query examples. Costs a one-time ~5–15k tokens, no second prompt — your yes to Graphify covers it.
+**SUMMARY.html auto-synthesis.** After the four commands succeed, `/setup-claude` synthesises `graphify-out/SUMMARY.html` automatically — a human-readable, browser-renderable interpretation of Graphify's machine-formatted `GRAPH_REPORT.md` (~400 lines), with god nodes, surprising connections marked real or false-positive, plain-language community labels, and CLI query examples. Self-contained HTML with embedded CSS — no external assets, opens cleanly offline. Costs a one-time ~5–15k tokens, no second prompt — your yes to Graphify covers it.
 
 **Auto-freshness on subsequent runs.** Once Graphify is installed, the kit checks whether the graph is in sync with your recent code changes before each graph-consulting command. The check fires on `/code` full flow, `/investigate`, and `/setup-claude` Update flow.
 
-If the graph is more than 7 days behind your latest source-file commit (or 50+ commits behind), the kit prints a one-line warning and offers to re-run `graphify .` and re-synthesise SUMMARY.md. Decline and the command continues with the stale graph; accept and the kit refreshes both files (no second prompt — your accept covers both).
+If the graph is more than 7 days behind your latest source-file commit (or 50+ commits behind), the kit prints a one-line warning and offers to re-run `graphify .` and re-synthesise SUMMARY.html. Decline and the command continues with the stale graph; accept and the kit refreshes both files (no second prompt — your accept covers both).
 
 The check auto-skips on `/quick`, `/code` trivial, and repos without Graphify installed — zero overhead in those cases.
 
@@ -189,7 +189,7 @@ Don't use for: bug fixes where the root cause isn't already understood (use `/co
 ```
 /investigate "users see 500 when uploading >10MB files"
 ```
-Read-only research. No branches, no PRs, no code changes. Produces a findings report (summary, reproduction, root cause, affected scope, suggested next step) written to `.claude/investigations/investigation-<timestamp>.md` and printed in chat.
+Read-only research. No branches, no PRs, no code changes. Produces a findings report (summary, reproduction, root cause, affected scope, suggested next step) written as a self-contained HTML file to `.claude/investigations/investigation-<timestamp>.html` and printed in chat.
 
 ---
 

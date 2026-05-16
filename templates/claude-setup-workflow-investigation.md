@@ -43,6 +43,6 @@ This file is loaded by `/investigate`.
    - **Root cause** — what's actually happening (or best hypothesis)
    - **Affected scope** — which versions, environments, users
    - **Suggested next step** — fix approach, deferral rationale, or further investigation needed
-2. **Write the report to a file:** `.claude/investigations/investigation-<YYYY-MM-DD-HHMM>.md`. Create the `.claude/investigations/` directory if it doesn't exist.
+2. **Write the report to a file:** `.claude/investigations/investigation-<YYYY-MM-DD-HHMM>.html`. The HTML structure is defined in `investigate.md` (Findings report — required HTML structure). Create the `.claude/investigations/` directory if it doesn't exist.
 3. Print the report in chat as well
 4. **Hand off:** end with — *"Investigation complete. Want me to fix this? Run `/code` to start the fix."*
