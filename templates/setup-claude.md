@@ -43,7 +43,7 @@ Check whether `.claude/` and `CLAUDE.md` already exist in the repo.
 5. Create agent files → `.claude/agents/` — always more than one coding agent
 6. Create command files → `.claude/commands/` if needed
 7. Create `CLAUDE.md` in the repo root last
-8. **Graphify offer (after `CLAUDE.md` is written, before the verify step)** — follow `{{INSTALL_PATH}}/claude-setup-graph.md`: check language fit from step 1, skip if under the 70% threshold or if `graphify` is already on `PATH`; otherwise print the "Why it matters" block, show the four install commands, ask y/n, run them via Bash on yes, then synthesise `graphify-out/SUMMARY.md` per `{{INSTALL_PATH}}/claude-setup-graph-summary.md` (no second prompt — the yes covers it). The guide's ordering rule means this always runs AFTER step 7 so the kit's `CLAUDE.md` write precedes Graphify's append.
+8. **Graphify offer (after `CLAUDE.md` is written, before the verify step)** — follow `{{INSTALL_PATH}}/claude-setup-graph.md`: check language fit from step 1, skip silently if under the 70% threshold. Otherwise branch on machine + repo state: **Branch A** (CLI not on `PATH`) runs full install + index; **Branch B** (CLI on `PATH` but no `graphify-out/graph.json` in this repo) runs index-only — `graphify .` + `graphify claude install` + SUMMARY.md synthesis; **Branch C** (CLI on `PATH` and graph already present) runs the freshness check. All branches use the show-commands-then-ask pattern. **Do not short-circuit on "graphify already on PATH" — a fresh repo still needs Branch B.** The guide's ordering rule means this always runs AFTER step 7 so the kit's `CLAUDE.md` write precedes Graphify's append.
 9. Run the verify step
 
 **Fresh Setup — monorepo:**
@@ -52,7 +52,7 @@ Check whether `.claude/` and `CLAUDE.md` already exist in the repo.
 3. At root: create shared rules, global agents (`git`, `code-reviewer`), and root `CLAUDE.md`
 4. For each app: create app-specific rules, skills, specialist agents, and per-app `CLAUDE.md`
 5. Create commands at root or per-app level as appropriate
-6. **Graphify offer — once, at the root** (not per-app). Apply the language-fit check to the full repo's non-trivial source. Follow `{{INSTALL_PATH}}/claude-setup-graph.md`. Run AFTER all root and per-app `CLAUDE.md` files are written.
+6. **Graphify offer — once, at the root** (not per-app). Apply the language-fit check to the full repo's non-trivial source. Follow `{{INSTALL_PATH}}/claude-setup-graph.md` — it branches on whether the CLI is on `PATH` and whether `graphify-out/graph.json` exists at the repo root. Run AFTER all root and per-app `CLAUDE.md` files are written.
 7. Run the verify step for root and each app
 
 **Update Existing Setup:**
@@ -67,5 +67,5 @@ Check whether `.claude/` and `CLAUDE.md` already exist in the repo.
 6. Do not overwrite user-owned files wholesale — edit to fill gaps and preserve what is correct
 7. Every file you create or refresh gets a fresh marker using the current kit version and timestamp from `meta.json`
 8. Update `CLAUDE.md` Project References table to reflect actual state of `.claude/`
-9. **Graphify offer or freshness (Update flow)** — if `graphify` is **not yet** on `PATH` and the repo meets the 70% language-fit threshold, follow `{{INSTALL_PATH}}/claude-setup-graph.md` and offer the install (re-fires on every Update run for users who declined previously). If `graphify` **is** already installed, instead run the freshness check from `claude-setup-graph.md`'s Runtime section — refresh the graph and re-synthesise `graphify-out/SUMMARY.md` if stale.
+9. **Graphify offer or freshness (Update flow)** — follow `{{INSTALL_PATH}}/claude-setup-graph.md`: skip silently if under the 70% language-fit threshold. Otherwise the guide branches automatically: **Branch A** (CLI not on `PATH`) offers full install; **Branch B** (CLI on `PATH`, no graph in this repo) offers index-only; **Branch C** (CLI on `PATH`, graph exists) runs the freshness check and offers a re-index if stale. Branches A and B re-fire on every Update run for users who declined previously.
 10. Run the verify step

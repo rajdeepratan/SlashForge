@@ -19,19 +19,30 @@ This applies even when the user said "sure" to the offer in principle — the y/
 
 ---
 
-## When to Offer (language-fit gate)
+## When to Offer (language-fit gate, then branch on state)
 
-Offer only when ALL of these hold:
+**Hard preconditions** — skip silently if either fails:
 
 - The repo is being set up via `/setup-claude` (fresh or Update flow)
-- `graphify` is not already on `PATH` (`command -v graphify` returns empty)
 - **≥ 70% of non-trivial source files** are in Graphify-supported languages: Python, JavaScript, TypeScript, Go, Rust, Java, C, C++, Ruby, C#, Kotlin, Scala, PHP, Swift, Lua, Zig, PowerShell, Elixir, Objective-C, Julia, Verilog, SystemVerilog, Vue, Svelte, Dart
 
 If the repo is mostly YAML / shell / config / templates / a language not in the list above, **skip silently** — no offer, no prompt. Graphify adds no value where it can't parse.
 
+**Once preconditions pass, branch on machine + repo state:**
+
+| `graphify` on `PATH`? (`command -v graphify`) | `graphify-out/graph.json` in this repo? | Action |
+|---|---|---|
+| No | — | **Branch A — Full install + index** (CLI install, then index this repo) |
+| Yes | No | **Branch B — Index this repo only** (CLI already installed globally; this repo just needs indexing) |
+| Yes | Yes | **Branch C — Freshness check** (see Runtime section below) |
+
+> **Critical:** never short-circuit when the CLI is on `PATH` but the repo has no graph yet. That is Branch B, not "skip." A fresh repo on a Graphify-installed machine still needs `graphify .` + `graphify claude install` + `SUMMARY.md` synthesis — only the CLI-install step is unnecessary.
+
 ---
 
 ## Why It Matters (show verbatim to the user when offering)
+
+Use this block for both Branch A and Branch B. Drop the `uv`/Python cost bullet from Branch B since the CLI is already installed.
 
 > **Why Graphify saves tokens on this workflow:**
 >
@@ -41,16 +52,16 @@ If the repo is mostly YAML / shell / config / templates / a language not in the 
 >
 > **Costs:**
 >
-> - **Python 3.10+ and `uv` (or `pipx`/`pip`)** installed on your machine
+> - **Python 3.10+ and `uv` (or `pipx`/`pip`)** installed on your machine *(Branch A only — skip this line on Branch B)*
 > - Initial indexing takes a few seconds on small repos, several minutes on large monorepos
-> - One-time **~5–15k tokens** to synthesise `graphify-out/SUMMARY.md` (the human-readable version of the graph report) right after install
+> - One-time **~5–15k tokens** to synthesise `graphify-out/SUMMARY.md` (the human-readable version of the graph report) right after indexing
 > - The graph must be kept fresh — run `graphify watch .` in a terminal tab, or re-run `graphify .` after major refactors, to avoid Claude citing relationships that no longer exist
 
 ---
 
-## Install Flow
+## Branch A — Full install + index (CLI not on `PATH`)
 
-1. **Print the "Why it matters" block** above.
+1. **Print the "Why it matters" block** above (full version).
 2. **Show the exact four commands** that will run, so the user sees what they're authorising:
    ```bash
    uv tool install graphifyy        # installs the CLI (note: double-y package name)
@@ -62,7 +73,30 @@ If the repo is mostly YAML / shell / config / templates / a language not in the 
 3. **Ask explicitly:** *"Install and index with these commands? (y/n)"* — no default-to-yes, no shortcut flag.
 4. **On yes:** run the four commands in order via Bash, stopping on any failure and surfacing the error verbatim. The user still sees each Bash call through the normal permission-prompt flow unless they've pre-allowed shell commands.
 5. **On yes — after step 4 succeeds:** synthesise `graphify-out/SUMMARY.md` from `graphify-out/GRAPH_REPORT.md` per `claude-setup-graph-summary.md`. **No second prompt** — the user's yes to Graphify covers this. ~5–15k tokens, one-time.
-6. **On no:** skip silently. Do not re-ask during this session. On the next `/setup-claude` re-run (Update flow), the offer fires again.
+6. **On no:** skip silently. Do not re-ask during this session. On the next `/setup-claude` re-run, the offer fires again.
+
+---
+
+## Branch B — Index this repo only (CLI on `PATH`, no graph in this repo)
+
+Common case for users who already have `graphify` installed globally and are setting up a new repo for the first time. **Do not skip — the per-repo index and SUMMARY.md are still missing.**
+
+1. **Print the "Why it matters" block** above, dropping the `uv`/Python cost bullet (the CLI is already installed). You can prepend one short line: *"`graphify` is already on your `PATH`, so this is index-only — no CLI install needed."*
+2. **Show the exact two commands** that will run:
+   ```bash
+   graphify .                       # indexes this repo — seconds to minutes
+   graphify claude install          # appends CLAUDE.md section + installs Glob/Grep PreToolUse hook
+   ```
+3. **Ask explicitly:** *"Index this repo with these commands? (y/n)"* — no default-to-yes, no shortcut flag.
+4. **On yes:** run the two commands in order via Bash, stopping on any failure and surfacing the error verbatim.
+5. **On yes — after step 4 succeeds:** synthesise `graphify-out/SUMMARY.md` from `graphify-out/GRAPH_REPORT.md` per `claude-setup-graph-summary.md`. **No second prompt.** ~5–15k tokens, one-time.
+6. **On no:** skip silently. Do not re-ask during this session. On the next `/setup-claude` re-run, the offer fires again.
+
+---
+
+## Branch C — Freshness check (CLI on `PATH`, graph already in this repo)
+
+The graph exists; just verify it's not stale. Follow the **Runtime: Freshness Check** section below — same logic that runs on every non-trivial command. On stale, offer to re-index; on fresh, pass silently.
 
 ---
 
@@ -76,11 +110,13 @@ If Graphify runs first, the kit's subsequent `CLAUDE.md` write overwrites Graphi
 
 ---
 
-## After a Successful Install
+## After a Successful Install / Index
 
-Tell the user, verbatim:
+Tell the user, verbatim (drop "installed and" on Branch B since the CLI was already there):
 
 > *"Graphify is installed and this repo is indexed. I've also synthesised `graphify-out/SUMMARY.md` — the human-readable version of the graph report (read it once to anchor your mental model). Open a separate terminal tab and run `graphify watch .` to keep the graph in sync with file changes — without it, the graph goes stale and agents may cite relationships that no longer exist. The Claude Code Glob/Grep hook is now active; agents will see graph context automatically on the next command."*
+
+Branch B variant: *"This repo is now indexed. I've also synthesised `graphify-out/SUMMARY.md`..."* (rest identical).
 
 ---
 
