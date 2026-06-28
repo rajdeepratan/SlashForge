@@ -3,6 +3,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const {
   parseFrontmatter,
@@ -16,6 +17,7 @@ const {
 } = require('../bin/install.js');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
+const BIN = path.join(__dirname, '..', 'bin', 'install.js');
 
 function tmp() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'csk-test-'));
@@ -111,4 +113,65 @@ test('uninstallFiles removes installed files and is idempotent', () => {
   }
   const again = uninstallFiles(target, {});
   assert.deepEqual(again, []);
+});
+
+// ---------------------------------------------------------------------------
+// CLI integration tests (drive the actual binary via child_process)
+// ---------------------------------------------------------------------------
+
+test('CLI --project --yes install writes guide files, command files, and meta.json with mode=project', () => {
+  const tmpRepo = tmp();
+  execFileSync('node', [BIN, '--project', '--yes'], { cwd: tmpRepo });
+
+  const guidesDir = path.join(tmpRepo, '.claude', 'setup', 'claude-setup');
+  const commandsDir = path.join(tmpRepo, '.claude', 'commands');
+
+  assert.ok(fs.existsSync(guidesDir), 'guidesDir should exist after install');
+  for (const g of GUIDE_FILES) {
+    assert.ok(fs.existsSync(path.join(guidesDir, g)), `guide file ${g} should be installed`);
+  }
+  for (const c of COMMAND_FILES) {
+    assert.ok(fs.existsSync(path.join(commandsDir, c)), `command file ${c} should be installed`);
+  }
+  const meta = JSON.parse(fs.readFileSync(path.join(guidesDir, 'meta.json'), 'utf8'));
+  assert.equal(meta.mode, 'project');
+});
+
+test('CLI uninstall --project --yes round-trip removes guides dir and command files', () => {
+  const tmpRepo = tmp();
+  execFileSync('node', [BIN, '--project', '--yes'], { cwd: tmpRepo });
+
+  const guidesDir = path.join(tmpRepo, '.claude', 'setup', 'claude-setup');
+  const commandsDir = path.join(tmpRepo, '.claude', 'commands');
+
+  assert.ok(fs.existsSync(guidesDir), 'guidesDir should exist after install');
+
+  execFileSync('node', [BIN, 'uninstall', '--project', '--yes'], { cwd: tmpRepo });
+
+  assert.ok(!fs.existsSync(guidesDir), 'guidesDir should not exist after uninstall');
+  for (const c of COMMAND_FILES) {
+    assert.ok(!fs.existsSync(path.join(commandsDir, c)), `command file ${c} should be removed`);
+  }
+});
+
+test('CLI status --project exits 0 and reports installed state', () => {
+  const tmpRepo = tmp();
+  execFileSync('node', [BIN, '--project', '--yes'], { cwd: tmpRepo });
+
+  const stdout = execFileSync('node', [BIN, 'status', '--project'], { cwd: tmpRepo, encoding: 'utf8' });
+
+  assert.ok(stdout.includes('claude-setup-kit status'), 'status output should include "claude-setup-kit status"');
+});
+
+test('CLI uninstall --project --yes is a graceful no-op when nothing is installed', () => {
+  const tmpRepo = tmp();
+  const stdout = execFileSync('node', [BIN, 'uninstall', '--project', '--yes'], {
+    cwd: tmpRepo,
+    encoding: 'utf8',
+  });
+
+  assert.ok(
+    stdout.includes('not installed at this location'),
+    '"not installed at this location" message expected in: ' + stdout,
+  );
 });
