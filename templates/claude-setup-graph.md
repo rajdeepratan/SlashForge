@@ -59,21 +59,41 @@ Use this block for both Branch A and Branch B. Drop the `uv`/Python cost bullet 
 
 ---
 
+## Phase mapping — each branch is split into Offer / Provision / Hook-in
+
+`/setup-claude` runs in phases (see its Fresh and Update flows). The Graphify branches map onto those phases so the user makes one decision up front and is never interrupted again, while the single step that mutates `CLAUDE.md` still runs last:
+
+| Half | Setup phase | What it does | Touches `CLAUDE.md` / `settings.json`? |
+|---|---|---|---|
+| **Offer** | Phase 1 (Decide) | Show "Why it matters" + the exact commands, ask y/n. Run nothing. | No |
+| **Provision** | Phase 2 (Provision) | On yes: CLI install (Branch A only) + `graphify .` index. | No |
+| **Hook-in** | Phase 4 (after kit writes `CLAUDE.md`) | `graphify claude install` (append + hook) + SUMMARY.html. | **Yes — must be last** |
+
+Splitting the offer from the work is what lets the kit batch all consent up front; splitting `graphify claude install` (Hook-in) from `graphify .` (Provision) is what preserves the **kit's `CLAUDE.md` FIRST** ordering below — only the append waits for last, not the whole install.
+
+---
+
 ## Branch A — Full install + index (CLI not on `PATH`)
 
+### Offer (Decide phase — run nothing)
 1. **Print the "Why it matters" block** above (full version).
-2. **Show the exact four commands** that will run, so the user sees what they're authorising:
+2. **Show the exact four commands** that will run, so the user sees what they're authorising — note that the first three run now (Provision) and the fourth runs last (Hook-in), after the kit writes `CLAUDE.md`:
    ```bash
-   uv tool install graphifyy        # installs the CLI (note: double-y package name)
-   graphify install                 # Graphify's own first-run setup
-   graphify .                       # indexes this repo — seconds to minutes
-   graphify claude install          # appends CLAUDE.md section + installs Glob/Grep PreToolUse hook
+   uv tool install graphifyy        # [Provision] installs the CLI (note: double-y package name)
+   graphify install                 # [Provision] Graphify's own first-run setup
+   graphify .                       # [Provision] indexes this repo — seconds to minutes
+   graphify claude install          # [Hook-in, runs LAST] appends CLAUDE.md section + installs Glob/Grep PreToolUse hook
    ```
    If `uv` is not available on the user's system, fall back to `pipx install graphifyy` or `pip install graphifyy` — mention both alternatives before asking.
-3. **Ask explicitly:** *"Install and index with these commands? (y/n)"* — no default-to-yes, no shortcut flag.
-4. **On yes:** run the four commands in order via Bash, stopping on any failure and surfacing the error verbatim. The user still sees each Bash call through the normal permission-prompt flow unless they've pre-allowed shell commands.
-5. **On yes — after step 4 succeeds:** synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `claude-setup-graph-summary.md`. **No second prompt** — the user's yes to Graphify covers this. ~5–15k tokens, one-time.
-6. **On no:** skip silently. Do not re-ask during this session. On the next `/setup-claude` re-run, the offer fires again.
+3. **Ask explicitly:** *"Install and index with these commands? (y/n)"* — no default-to-yes, no shortcut flag. Capture the answer; do not run anything yet.
+4. **On no:** skip silently. Do not re-ask during this session. On the next `/setup-claude` re-run, the offer fires again.
+
+### Provision (Provision phase — on yes)
+5. Run the **first three** commands in order via Bash, stopping on any failure and surfacing the error verbatim. The user still sees each Bash call through the normal permission-prompt flow unless they've pre-allowed shell commands. **Do not run `graphify claude install` here** — it appends to `CLAUDE.md` and must wait until the kit has written `CLAUDE.md`.
+
+### Hook-in (last, after the kit's `CLAUDE.md` is written)
+6. Run `graphify claude install` via Bash — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
+7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `claude-setup-graph-summary.md`. **No second prompt** — the user's yes to Graphify covers this. ~5–15k tokens, one-time.
 
 ---
 
@@ -81,16 +101,22 @@ Use this block for both Branch A and Branch B. Drop the `uv`/Python cost bullet 
 
 Common case for users who already have `graphify` installed globally and are setting up a new repo for the first time. **Do not skip — the per-repo index and SUMMARY.html are still missing.**
 
+### Offer (Decide phase — run nothing)
 1. **Print the "Why it matters" block** above, dropping the `uv`/Python cost bullet (the CLI is already installed). You can prepend one short line: *"`graphify` is already on your `PATH`, so this is index-only — no CLI install needed."*
-2. **Show the exact two commands** that will run:
+2. **Show the exact two commands** that will run — the first runs now (Provision), the second runs last (Hook-in), after the kit writes `CLAUDE.md`:
    ```bash
-   graphify .                       # indexes this repo — seconds to minutes
-   graphify claude install          # appends CLAUDE.md section + installs Glob/Grep PreToolUse hook
+   graphify .                       # [Provision] indexes this repo — seconds to minutes
+   graphify claude install          # [Hook-in, runs LAST] appends CLAUDE.md section + installs Glob/Grep PreToolUse hook
    ```
-3. **Ask explicitly:** *"Index this repo with these commands? (y/n)"* — no default-to-yes, no shortcut flag.
-4. **On yes:** run the two commands in order via Bash, stopping on any failure and surfacing the error verbatim.
-5. **On yes — after step 4 succeeds:** synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `claude-setup-graph-summary.md`. **No second prompt.** ~5–15k tokens, one-time.
-6. **On no:** skip silently. Do not re-ask during this session. On the next `/setup-claude` re-run, the offer fires again.
+3. **Ask explicitly:** *"Index this repo with these commands? (y/n)"* — no default-to-yes, no shortcut flag. Capture the answer; do not run anything yet.
+4. **On no:** skip silently. Do not re-ask during this session. On the next `/setup-claude` re-run, the offer fires again.
+
+### Provision (Provision phase — on yes)
+5. Run **`graphify .`** via Bash, stopping on any failure and surfacing the error verbatim. **Do not run `graphify claude install` here** — defer it to Hook-in.
+
+### Hook-in (last, after the kit's `CLAUDE.md` is written)
+6. Run `graphify claude install` via Bash — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
+7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `claude-setup-graph-summary.md`. **No second prompt.** ~5–15k tokens, one-time.
 
 ---
 
@@ -102,11 +128,13 @@ The graph exists; just verify it's not stale. Follow the **Runtime: Freshness Ch
 
 ## Critical Ordering — kit's CLAUDE.md FIRST
 
-`graphify claude install` appends a section to `CLAUDE.md` and writes a PreToolUse hook to `.claude/settings.json` — both files `/setup-claude` itself manages. The rule:
+`graphify claude install` (the **Hook-in** step) appends a section to `CLAUDE.md` and writes a PreToolUse hook to `.claude/settings.json` — both files `/setup-claude` itself manages. The rule:
 
 > **`/setup-claude` writes its own `CLAUDE.md` and `settings.json` FIRST, then `graphify claude install` runs LAST.**
 
-If Graphify runs first, the kit's subsequent `CLAUDE.md` write overwrites Graphify's appended section. By running Graphify last, Graphify's additions sit in a marker-less section that the kit's `generated_by` marker system treats as user-edited — safe from future kit re-runs.
+If the append runs first, the kit's subsequent `CLAUDE.md` write overwrites Graphify's appended section. By running it last, Graphify's additions sit in a marker-less section that the kit's `generated_by` marker system treats as user-edited — safe from future kit re-runs.
+
+**Only the Hook-in waits for last — not the whole install.** The CLI install and `graphify .` index (the **Provision** step) touch neither `CLAUDE.md` nor `.claude/`, so they run earlier in Phase 2 right after the user consents. This is what keeps the experience uninterrupted: all decisions in Phase 1, the heavy install/index work in Phase 2, and a single intentional append in Phase 4. Nothing the kit writes ever gets regenerated — the last Graphify step is an append by design, not a rewrite.
 
 ---
 
