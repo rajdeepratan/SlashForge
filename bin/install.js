@@ -204,8 +204,8 @@ function readMeta(metaFile) {
 // CLI commands
 // ---------------------------------------------------------------------------
 
-function printStatus() {
-  const target = resolveTarget();
+function printStatus({ project = false } = {}) {
+  const target = resolveTarget({ project });
   if (!fs.existsSync(target.guidesDir)) {
     console.log('claude-setup-kit: not installed.');
     console.log(`Run \`npx ${pkg.name}\` to install v${pkg.version}.`);
@@ -242,8 +242,8 @@ function printStatus() {
   }
 }
 
-async function install({ dryRun, assumeYes }) {
-  const target = resolveTarget();
+async function install({ dryRun, assumeYes, project = false }) {
+  const target = resolveTarget({ project });
 
   validateTemplates(GUIDE_FILES, TEMPLATES_DIR);
   validateTemplates(COMMAND_FILES, TEMPLATES_DIR);
@@ -323,6 +323,7 @@ function printHelp() {
   console.log('  status       Show installed version and files without changing anything');
   console.log('');
   console.log('Options:');
+  console.log('  --project    Install into ./.claude/ of the current repo (project mode)');
   console.log('  --dry-run    Print planned file writes without touching the filesystem');
   console.log('  --yes, -y    Non-interactive mode — auto-confirm the update prompt');
   console.log('               (also enabled by CLAUDE_SETUP_KIT_YES=1 or when stdin is not a TTY)');
@@ -338,8 +339,10 @@ async function main() {
     return;
   }
 
+  const project = args.includes('--project');
+
   if (args[0] === 'status') {
-    printStatus();
+    printStatus({ project });
     closeRl();
     return;
   }
@@ -351,7 +354,7 @@ async function main() {
     process.env.CLAUDE_SETUP_KIT_YES === '1' ||
     !process.stdin.isTTY;
   try {
-    await install({ dryRun, assumeYes });
+    await install({ dryRun, assumeYes, project });
   } finally {
     closeRl();
   }
