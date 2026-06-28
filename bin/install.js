@@ -315,12 +315,33 @@ async function install({ dryRun, assumeYes, project = false }) {
   console.log('  • /investigate [symptom] — read-only research, produces a findings report');
 }
 
+async function uninstall({ project, assumeYes }) {
+  const target = resolveTarget({ project });
+  const installed = fs.existsSync(target.guidesDir) ||
+    COMMAND_FILES.some((c) => fs.existsSync(path.join(target.commandsDir, c)));
+  if (!installed) {
+    console.log('claude-setup-kit is not installed at this location. Nothing to remove.');
+    return;
+  }
+  if (!assumeYes) {
+    const answer = await prompt(`Remove claude-setup-kit guides + commands from ${target.guidesDir} and ${target.commandsDir}? (y/n): `);
+    if (answer.toLowerCase() !== 'y') {
+      console.log('Skipped. No changes made.');
+      return;
+    }
+  }
+  const removed = uninstallFiles(target, {});
+  console.log('\n✓ Uninstalled claude-setup-kit');
+  for (const p of removed) console.log(`  removed ${p}`);
+}
+
 function printHelp() {
   console.log(`Usage: ${pkg.name} [command] [options]`);
   console.log('');
   console.log('Commands:');
   console.log('  (default)    Install or update the kit');
   console.log('  status       Show installed version and files without changing anything');
+  console.log('  uninstall    Remove the kit\'s guides and commands (use --project for ./.claude)');
   console.log('');
   console.log('Options:');
   console.log('  --project    Install into ./.claude/ of the current repo (project mode)');
@@ -353,6 +374,13 @@ async function main() {
     args.includes('-y') ||
     process.env.CLAUDE_SETUP_KIT_YES === '1' ||
     !process.stdin.isTTY;
+
+  if (args[0] === 'uninstall') {
+    await uninstall({ project, assumeYes });
+    closeRl();
+    return;
+  }
+
   try {
     await install({ dryRun, assumeYes, project });
   } finally {
