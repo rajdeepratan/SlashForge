@@ -1,5 +1,10 @@
 # claude-setup-kit
 
+[![npm version](https://img.shields.io/npm/v/claude-setup-kit.svg)](https://www.npmjs.com/package/claude-setup-kit)
+[![CI](https://github.com/rajdeepratan/claude-setup-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/rajdeepratan/claude-setup-kit/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/claude-setup-kit.svg)](LICENSE)
+[![node](https://img.shields.io/node/v/claude-setup-kit.svg)](package.json)
+
 Install Claude Code setup guides and four slash commands on any machine — `/setup-claude` to scaffold a repo, `/code` for freeform development, `/quick` for lean small-change work, and `/investigate` for read-only research.
 
 ---
@@ -39,9 +44,13 @@ claude-setup-kit --dry-run   # Print planned file writes without touching the fi
 claude-setup-kit --yes       # Non-interactive — auto-confirm the update prompt
 claude-setup-kit status      # Show installed version, guide count, and available update
 claude-setup-kit --help      # Full usage
+claude-setup-kit --project    # Install into ./.claude/ in the current repo (committable, no global install needed)
+claude-setup-kit uninstall    # Remove the kit's guides + commands (add --project for ./.claude)
 ```
 
 `--yes` / `-y` is also enabled by `CLAUDE_SETUP_KIT_YES=1` or when stdin is not a TTY — safe to use in CI, devcontainers, or anywhere the install shouldn't block on an interactive prompt.
+
+`--project` vendors both the guide files and the four command files into the repo's `./.claude/` with repo-relative paths — commit it and teammates get the commands with no global install. `uninstall` reverses either install (pass `--project` to target the repo copy).
 
 Every template is frontmatter-validated before any write — a broken guide (missing fences, missing `name` / `description`) will fail the install cleanly rather than half-write it.
 

@@ -2,6 +2,9 @@
   "name": "claude-setup-kit",
   "version": "1.4.0",
   "description": "Install Claude Code setup guides and four slash commands — /setup-claude, /code, /quick, /investigate — for any repo",
+  "scripts": {
+    "test": "node --test"
+  },
   "bin": {
     "claude-setup-kit": "./bin/install.js"
   },
