@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -26,4 +27,7 @@ jobs:
             echo "Release $tag already exists — skipping."
           else
             gh release create "$tag" --generate-notes --title "$tag"
+            # A release created by GITHUB_TOKEN does not trigger other
+            # workflows, so dispatch the publish workflow explicitly.
+            gh workflow run publish.yml -f tag="$tag"
           fi

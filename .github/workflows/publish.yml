@@ -3,6 +3,11 @@ name: Publish to npm
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish (e.g. v1.5.0)'
+        required: true
 
 jobs:
   publish-npm:
@@ -10,8 +15,12 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -23,7 +32,7 @@ jobs:
         run: npm test
 
       - name: Set version from release tag
-        run: npm version ${GITHUB_REF_NAME#v} --no-git-tag-version --allow-same-version
+        run: npm version "${TAG#v}" --no-git-tag-version --allow-same-version
 
       - name: Publish to npm
         run: npm publish --provenance --access public

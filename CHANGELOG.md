@@ -6,6 +6,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- Auto-release now publishes to npm. A release created by `GITHUB_TOKEN` does not trigger other workflows, so `publish.yml` never fired; `auto-release.yml` now dispatches it explicitly via `workflow_dispatch`.
+
 ## [1.5.0] - 2026-07-02
 
 ### Added
