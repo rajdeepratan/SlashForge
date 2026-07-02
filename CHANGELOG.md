@@ -6,6 +6,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-07-02
+
 ### Added
 - Test suite (`node:test`) and a CI workflow running on push/PR across Node 18/20/22.
 - Auto-release workflow: a version bump merged to `main` creates the matching tag + GitHub Release, which triggers publishing.
