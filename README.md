@@ -4,6 +4,7 @@
 [![CI](https://github.com/rajdeepratan/claude-setup-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/rajdeepratan/claude-setup-kit/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/claude-setup-kit.svg)](LICENSE)
 [![node](https://img.shields.io/node/v/claude-setup-kit.svg)](package.json)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/rajdeepratan)
 
 Install Claude Code setup guides and four slash commands on any machine — `/setup-claude` to scaffold a repo, `/code` for freeform development, `/quick` for lean small-change work, and `/investigate` for read-only research.
 
@@ -241,6 +242,16 @@ npx claude-setup-kit
 - Marker missing or edited → treated as user-owned; edits to fill gaps only, never overwritten
 
 Remove or edit the marker on any file you want the kit to leave alone.
+
+---
+
+## Support
+
+If this kit saves you time, consider supporting the work:
+
+<a href="https://buymeacoffee.com/rajdeepratan"><img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buymeacoffee&logoColor=black" alt="Buy Me A Coffee"></a>
+
+☕ [buymeacoffee.com/rajdeepratan](https://buymeacoffee.com/rajdeepratan)
 
 ---
 
