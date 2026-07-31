@@ -1,0 +1,39 @@
+/*
+ * SlashForge brand palette applied over the lucode-starlight (shadcn) theme.
+ * Ink #201E1D · Ember #EC3013 · Reversed ink #F3F2F2 — see assets/README.md.
+ * Ember is the single accent; it is never recoloured.
+ */
+
+:root {
+  --sf-ember: #ec3013;
+  --sf-ink: #201e1d;
+  --sf-paper: #f3f2f2;
+}
+
+/* Light mode — Ember on paper. */
+:root[data-theme='light'] {
+  --sl-color-accent-low: #fde3de;
+  --sl-color-accent: var(--sf-ember);
+  --sl-color-accent-high: #8f1c0b;
+  --sl-color-text-accent: var(--sf-ember);
+}
+
+/* Dark mode — Ember needs to stay legible on Ink, so lift the low end. */
+:root[data-theme='dark'] {
+  --sl-color-accent-low: #4a1108;
+  --sl-color-accent: var(--sf-ember);
+  --sl-color-accent-high: #ff8f7a;
+  --sl-color-text-accent: #ff6a4d;
+}
+
+/* The mark's angle is the identity — keep the header lockup from being
+   squashed by the theme's default logo sizing. */
+.site-title img {
+  height: 1.75rem;
+  width: auto;
+}
+
+/* Command names read as identifiers, not prose. */
+code {
+  font-variant-ligatures: none;
+}

@@ -5,3 +5,7 @@ npm-debug.log*
 .npm/
 coverage/
 packages/
+
+# docs site build artifacts
+docs/dist/
+docs/.astro/
