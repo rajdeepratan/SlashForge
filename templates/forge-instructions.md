@@ -7,7 +7,7 @@ description: Entry point for setting up CLAUDE.md, agents, rules, and skills in 
 
 Reference this file whenever asked to create `CLAUDE.md`, agents, rules, or skills in any repo.
 
-> **Also read:** [`claude-setup-workflow.md`](claude-setup-workflow.md) — required companion file covering the end-to-end intake-to-PR workflow. Read both before proceeding.
+> **Also read:** [`forge-workflow.md`](forge-workflow.md) — required companion file covering the end-to-end intake-to-PR workflow. Read both before proceeding.
 
 ---
 
@@ -76,12 +76,12 @@ Follow this order — each step depends on the previous:
 
 1. Understand the codebase (see Step 1 below)
 2. Ask clarifying questions (see Step 2 below)
-3. Create rule files → see [`claude-setup-rules.md`](claude-setup-rules.md)
-4. Create skill files → see [`claude-setup-skills.md`](claude-setup-skills.md)
-5. Create agent files → see [`claude-setup-agents.md`](claude-setup-agents.md)
-6. Create slash commands → see [`claude-setup-commands.md`](claude-setup-commands.md)
-7. Configure hooks if team wants automated behaviors → see [`claude-setup-hooks.md`](claude-setup-hooks.md)
-8. Create `CLAUDE.md` last → see [`claude-setup-claude-md.md`](claude-setup-claude-md.md)
+3. Create rule files → see [`forge-rules.md`](forge-rules.md)
+4. Create skill files → see [`forge-skills.md`](forge-skills.md)
+5. Create agent files → see [`forge-agents.md`](forge-agents.md)
+6. Create slash commands → see [`forge-commands.md`](forge-commands.md)
+7. Configure hooks if team wants automated behaviors → see [`forge-hooks.md`](forge-hooks.md)
+8. Create `CLAUDE.md` last → see [`forge-claude-md.md`](forge-claude-md.md)
 9. Verify (see Step 9 below)
 
 ---
@@ -105,7 +105,7 @@ Read: manifest files, config files, and representative source files across diffe
 | `.claude/agents/` | Global agents: `git`, `code-reviewer` | Specialist agents: `frontend-developer`, `api-builder`, `debugger`, etc. |
 | `.claude/rules/` | Shared conventions (git, commit style) | App-specific coding standards |
 | `.claude/skills/` | — | App-specific recipes |
-| `.claude/commands/` | Shared commands (e.g. `/setup-claude`) | App-specific commands (e.g. `/run-checks`, `/add-metric`) |
+| `.claude/commands/` | Shared commands (e.g. `/forge:setup`) | App-specific commands (e.g. `/run-checks`, `/add-metric`) |
 
 ---
 

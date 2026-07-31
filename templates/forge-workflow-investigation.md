@@ -1,13 +1,13 @@
 ---
 name: Claude Development Workflow — Investigation Flow
-description: Read-only investigation flow used by /investigate — reproduction, root-cause analysis, and findings report
+description: Read-only investigation flow used by /forge:investigate — reproduction, root-cause analysis, and findings report
 ---
 
 # Investigation Flow
 
-Short, research-only flow used by `/investigate`. No branching, no PR, no verification phase. Output is a findings report.
+Short, research-only flow used by `/forge:investigate`. No branching, no PR, no verification phase. Output is a findings report.
 
-This file is loaded by `/investigate`.
+This file is loaded by `/forge:investigate`.
 
 ---
 
@@ -27,7 +27,7 @@ This file is loaded by `/investigate`.
 **Superpowers skill (if installed):** `superpowers:systematic-debugging`
 
 1. If superpowers is installed, invoke `superpowers:systematic-debugging`
-2. **If a code graph is available** (`GRAPH_REPORT.md` exists at repo root — Graphify is installed), run the freshness check from `claude-setup-graph.md` Runtime section first, then consult the graph before grep/glob. Investigation is the scenario the graph is built for — blast radius, call paths, affected surface. The `graphify` PreToolUse hook should surface graph context automatically before any Glob/Grep call; if it doesn't, read `GRAPH_REPORT.md` directly.
+2. **If a code graph is available** (`GRAPH_REPORT.md` exists at repo root — Graphify is installed), run the freshness check from `forge-graph.md` Runtime section first, then consult the graph before grep/glob. Investigation is the scenario the graph is built for — blast radius, call paths, affected surface. The `graphify` PreToolUse hook should surface graph context automatically before any Glob/Grep call; if it doesn't, read `GRAPH_REPORT.md` directly.
 3. Reproduce the issue — in code, in a test, or by tracing
 4. Bisect / trace / read the code to find the root cause
 5. **No edits to application code.** Scratch files, temporary test files in a sandboxed location, and logging are fine — but no PR-bound changes
@@ -45,4 +45,4 @@ This file is loaded by `/investigate`.
    - **Suggested next step** — fix approach, deferral rationale, or further investigation needed
 2. **Write the report to a file:** `.claude/investigations/investigation-<YYYY-MM-DD-HHMM>.html`. The HTML structure is defined in `investigate.md` (Findings report — required HTML structure). Create the `.claude/investigations/` directory if it doesn't exist.
 3. Print the report in chat as well
-4. **Hand off:** end with — *"Investigation complete. Want me to fix this? Run `/code` to start the fix."*
+4. **Hand off:** end with — *"Investigation complete. Want me to fix this? Run `/forge:code` to start the fix."*

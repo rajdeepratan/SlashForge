@@ -1,13 +1,13 @@
 ---
 name: Claude Setup — Graphify Integration
-description: Setup-time offer that builds a queryable code graph for the repo, so agents can query the call graph instead of exploring raw files. Saves ~10–30k tokens per non-trivial command run. Runs only inside /setup-claude. Follows show-commands-then-ask pattern — never auto-installs.
+description: Setup-time offer that builds a queryable code graph for the repo, so agents can query the call graph instead of exploring raw files. Saves ~10–30k tokens per non-trivial command run. Runs only inside /forge:setup. Follows show-commands-then-ask pattern — never auto-installs.
 ---
 
 # Graphify Integration (Setup-Time Offer)
 
 Graphify builds an AST-level knowledge graph of a repo — nodes for functions/classes, edges for call graphs and relationships, blast-radius queries, god-node detection. When present in a repo, agents read a pre-built graph summary and/or query the graph directly instead of grepping raw files for scope, dependency, and affected-surface questions.
 
-**This is not a preflight check.** Do not check for Graphify on every command — it is a repo-level dependency, offered once during `/setup-claude`. Once installed, its own `graphify claude install` wires a PreToolUse hook on Glob/Grep that auto-surfaces graph context for every subsequent command, with no extra guide-side enforcement needed.
+**This is not a preflight check.** Do not check for Graphify on every command — it is a repo-level dependency, offered once during `/forge:setup`. Once installed, its own `graphify claude install` wires a PreToolUse hook on Glob/Grep that auto-surfaces graph context for every subsequent command, with no extra guide-side enforcement needed.
 
 ---
 
@@ -23,7 +23,7 @@ This applies even when the user said "sure" to the offer in principle — the y/
 
 **Hard preconditions** — skip silently if either fails:
 
-- The repo is being set up via `/setup-claude` (fresh or Update flow)
+- The repo is being set up via `/forge:setup` (fresh or Update flow)
 - **≥ 70% of non-trivial source files** are in Graphify-supported languages: Python, JavaScript, TypeScript, Go, Rust, Java, C, C++, Ruby, C#, Kotlin, Scala, PHP, Swift, Lua, Zig, PowerShell, Elixir, Objective-C, Julia, Verilog, SystemVerilog, Vue, Svelte, Dart
 
 If the repo is mostly YAML / shell / config / templates / a language not in the list above, **skip silently** — no offer, no prompt. Graphify adds no value where it can't parse.
@@ -46,8 +46,8 @@ Use this block for both Branch A and Branch B. Drop the `uv`/Python cost bullet 
 
 > **Why Graphify saves tokens on this workflow:**
 >
-> - Today, `/code` on a non-trivial change spends ~10–30k tokens on raw file exploration (grep/glob to figure out call graphs, affected surface, dependencies). With Graphify indexed, agents read a summary + do targeted graph queries instead.
-> - `/investigate` is the biggest single win — blast-radius analysis is exactly what the graph is built for. Expect ~15–30k tokens saved per investigation.
+> - Today, `/forge:code` on a non-trivial change spends ~10–30k tokens on raw file exploration (grep/glob to figure out call graphs, affected surface, dependencies). With Graphify indexed, agents read a summary + do targeted graph queries instead.
+> - `/forge:investigate` is the biggest single win — blast-radius analysis is exactly what the graph is built for. Expect ~15–30k tokens saved per investigation.
 > - Phase 2 *Affected surface* stops being a guess and becomes a graph query.
 >
 > **Costs:**
@@ -61,7 +61,7 @@ Use this block for both Branch A and Branch B. Drop the `uv`/Python cost bullet 
 
 ## Phase mapping — each branch is split into Offer / Provision / Hook-in
 
-`/setup-claude` runs in phases (see its Fresh and Update flows). The Graphify branches map onto those phases so the user makes one decision up front and is never interrupted again, while the single step that mutates `CLAUDE.md` still runs last:
+`/forge:setup` runs in phases (see its Fresh and Update flows). The Graphify branches map onto those phases so the user makes one decision up front and is never interrupted again, while the single step that mutates `CLAUDE.md` still runs last:
 
 | Half | Setup phase | What it does | Touches `CLAUDE.md` / `settings.json`? |
 |---|---|---|---|
@@ -86,14 +86,14 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
    ```
    If `uv` is not available on the user's system, fall back to `pipx install graphifyy` or `pip install graphifyy` — mention both alternatives before asking.
 3. **Ask explicitly:** *"Install and index with these commands? (y/n)"* — no default-to-yes, no shortcut flag. Capture the answer; do not run anything yet.
-4. **On no:** skip silently. Do not re-ask during this session. On the next `/setup-claude` re-run, the offer fires again.
+4. **On no:** skip silently. Do not re-ask during this session. On the next `/forge:setup` re-run, the offer fires again.
 
 ### Provision (Provision phase — on yes)
 5. Run the **first three** commands in order via Bash, stopping on any failure and surfacing the error verbatim. The user still sees each Bash call through the normal permission-prompt flow unless they've pre-allowed shell commands. **Do not run `graphify claude install` here** — it appends to `CLAUDE.md` and must wait until the kit has written `CLAUDE.md`.
 
 ### Hook-in (last, after the kit's `CLAUDE.md` is written)
 6. Run `graphify claude install` via Bash — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
-7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `claude-setup-graph-summary.md`. **No second prompt** — the user's yes to Graphify covers this. ~5–15k tokens, one-time.
+7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `forge-graph-summary.md`. **No second prompt** — the user's yes to Graphify covers this. ~5–15k tokens, one-time.
 
 ---
 
@@ -109,14 +109,14 @@ Common case for users who already have `graphify` installed globally and are set
    graphify claude install          # [Hook-in, runs LAST] appends CLAUDE.md section + installs Glob/Grep PreToolUse hook
    ```
 3. **Ask explicitly:** *"Index this repo with these commands? (y/n)"* — no default-to-yes, no shortcut flag. Capture the answer; do not run anything yet.
-4. **On no:** skip silently. Do not re-ask during this session. On the next `/setup-claude` re-run, the offer fires again.
+4. **On no:** skip silently. Do not re-ask during this session. On the next `/forge:setup` re-run, the offer fires again.
 
 ### Provision (Provision phase — on yes)
 5. Run **`graphify .`** via Bash, stopping on any failure and surfacing the error verbatim. **Do not run `graphify claude install` here** — defer it to Hook-in.
 
 ### Hook-in (last, after the kit's `CLAUDE.md` is written)
 6. Run `graphify claude install` via Bash — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
-7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `claude-setup-graph-summary.md`. **No second prompt.** ~5–15k tokens, one-time.
+7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `forge-graph-summary.md`. **No second prompt.** ~5–15k tokens, one-time.
 
 ---
 
@@ -128,9 +128,9 @@ The graph exists; just verify it's not stale. Follow the **Runtime: Freshness Ch
 
 ## Critical Ordering — kit's CLAUDE.md FIRST
 
-`graphify claude install` (the **Hook-in** step) appends a section to `CLAUDE.md` and writes a PreToolUse hook to `.claude/settings.json` — both files `/setup-claude` itself manages. The rule:
+`graphify claude install` (the **Hook-in** step) appends a section to `CLAUDE.md` and writes a PreToolUse hook to `.claude/settings.json` — both files `/forge:setup` itself manages. The rule:
 
-> **`/setup-claude` writes its own `CLAUDE.md` and `settings.json` FIRST, then `graphify claude install` runs LAST.**
+> **`/forge:setup` writes its own `CLAUDE.md` and `settings.json` FIRST, then `graphify claude install` runs LAST.**
 
 If the append runs first, the kit's subsequent `CLAUDE.md` write overwrites Graphify's appended section. By running it last, Graphify's additions sit in a marker-less section that the kit's `generated_by` marker system treats as user-edited — safe from future kit re-runs.
 
@@ -152,16 +152,16 @@ Branch B variant: *"This repo is now indexed. I've also synthesised `graphify-ou
 
 The PreToolUse hook Graphify installs handles the default case — agents see graph context before any Glob or Grep call. Two phase-specific reinforcements in case the hook misses:
 
-- **`claude-setup-workflow.md` Phase 2 — Affected surface:** *"If `GRAPH_REPORT.md` exists at repo root, consult it for blast-radius of the entry-point symbols rather than guessing from filename proximity."*
-- **`claude-setup-workflow-investigation.md` Phase I2:** *"If a graph is available, consult it first. Investigation is the scenario the graph is built for — blast radius, call paths, god-node identification."*
+- **`forge-workflow.md` Phase 2 — Affected surface:** *"If `GRAPH_REPORT.md` exists at repo root, consult it for blast-radius of the entry-point symbols rather than guessing from filename proximity."*
+- **`forge-workflow-investigation.md` Phase I2:** *"If a graph is available, consult it first. Investigation is the scenario the graph is built for — blast radius, call paths, god-node identification."*
 
-**Skip the graph on trivial / lean paths:** `/code` auto-detected trivial, and `/quick`. The graph-load overhead (~2–5k tokens) exceeds the value on typo-sized work, and the trivial path shouldn't be greping much anyway.
+**Skip the graph on trivial / lean paths:** `/forge:code` auto-detected trivial, and `/forge:code -quick`. The graph-load overhead (~2–5k tokens) exceeds the value on typo-sized work, and the trivial path shouldn't be greping much anyway.
 
 ---
 
 ## Runtime: Freshness Check (auto)
 
-When a command is about to consult the graph, first verify the graph isn't stale relative to recent code changes. This runs in `/code` full flow, `/investigate`, and `/setup-claude` Update flow. **Skip on `/quick` and `/code` trivial auto-detect** — those paths don't consult the graph anyway.
+When a command is about to consult the graph, first verify the graph isn't stale relative to recent code changes. This runs in `/forge:code` full flow, `/forge:investigate`, and `/forge:setup` Update flow. **Skip on `/forge:code -quick` and `/forge:code` trivial auto-detect** — those paths don't consult the graph anyway.
 
 ### Early-exit if no graph
 
@@ -192,7 +192,7 @@ Print exactly:
 
 > *"Graph is N days behind the latest source commit (M commits since last index). Re-run `graphify .` to refresh? (y/n) — declining is fine; the graph will still answer questions but may cite relationships that have changed."*
 
-- **On yes:** run `graphify .` via Bash. Same "show command then run" discipline — the user has already seen what runs because the command is in the prompt. After it succeeds, **re-synthesise SUMMARY.html** by re-following `claude-setup-graph-summary.md` (no second prompt — same authorisation as the install-time SUMMARY.html write).
+- **On yes:** run `graphify .` via Bash. Same "show command then run" discipline — the user has already seen what runs because the command is in the prompt. After it succeeds, **re-synthesise SUMMARY.html** by re-following `forge-graph-summary.md` (no second prompt — same authorisation as the install-time SUMMARY.html write).
 - **On no:** proceed with the stale graph. Do not warn again in this command — the user has seen and decided.
 
 ### Cost summary

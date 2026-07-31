@@ -34,7 +34,7 @@ Always create a `git.md` rule file containing:
 
 ## File Skeleton
 
-Every rule file must start with frontmatter, including the generated-by marker (see `claude-setup-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
+Every rule file must start with frontmatter, including the generated-by marker (see `forge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
 
 ```markdown
 ---

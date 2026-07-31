@@ -1,13 +1,12 @@
 {
   "name": "slashforge",
-  "version": "2.0.0",
-  "description": "Workflow slash commands for AI coding agents — /setup-claude, /code, /quick, /investigate. Currently supports Claude Code.",
+  "version": "3.0.0",
+  "description": "Workflow slash commands for AI coding agents — /forge:setup, /forge:code, /forge:investigate. Currently supports Claude Code.",
   "scripts": {
     "test": "node --test"
   },
   "bin": {
-    "slashforge": "./bin/install.js",
-    "claude-setup-kit": "./bin/install.js"
+    "slashforge": "./bin/install.js"
   },
   "files": [
     "bin/",

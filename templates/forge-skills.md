@@ -50,7 +50,7 @@ The directory name becomes the slash command (`/add-endpoint`). Supporting files
 
 Keep `SKILL.md` under 500 lines. Split reference material into sibling files.
 
-Every `SKILL.md` must include the generated-by marker in its frontmatter — see `claude-setup-instructions.md` § Generated File Markers.
+Every `SKILL.md` must include the generated-by marker in its frontmatter — see `forge-instructions.md` § Generated File Markers.
 
 ---
 

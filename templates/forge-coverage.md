@@ -1,17 +1,17 @@
 ---
 name: Claude Setup — .claude/ Coverage Check
-description: Detection logic for new domains not covered by .claude/ + CLAUDE.md. Fires at Phase 2 (proactive) and inside the code-reviewer agent at Phase 7 (safety net). Suggests creating agents/rules/skills/CLAUDE.md updates so .claude/ grows alongside the codebase. Auto-skipped on /quick, /code trivial, and /investigate.
+description: Detection logic for new domains not covered by .claude/ + CLAUDE.md. Fires at Phase 2 (proactive) and inside the code-reviewer agent at Phase 7 (safety net). Suggests creating agents/rules/skills/CLAUDE.md updates so .claude/ grows alongside the codebase. Auto-skipped on /forge:code -quick, /forge:code trivial, and /forge:investigate.
 ---
 
 # .claude/ Coverage Check
 
-When a feature introduces a new domain — a new framework, layer, language, or pattern the repo hasn't had before — the kit's `.claude/` infrastructure won't grow to cover it unless someone re-runs `/setup-claude`. This check catches the gap during normal development so the user can either add coverage now or defer it explicitly.
+When a feature introduces a new domain — a new framework, layer, language, or pattern the repo hasn't had before — the kit's `.claude/` infrastructure won't grow to cover it unless someone re-runs `/forge:setup`. This check catches the gap during normal development so the user can either add coverage now or defer it explicitly.
 
 ## When it fires
 
-- **Phase 2 of `/code`** — proactive, before the plan is written
+- **Phase 2 of `/forge:code`** — proactive, before the plan is written
 - **Phase 7 (inside the `code-reviewer` agent)** — reactive safety net, on the diff
-- **Auto-skipped on:** `/quick`, `/code` trivial auto-detect, `/investigate` (read-only research, doesn't modify code)
+- **Auto-skipped on:** `/forge:code -quick`, `/forge:code` trivial auto-detect, `/forge:investigate` (read-only research, doesn't modify code)
 
 ## What "coverage" means — the matrix
 
@@ -58,32 +58,32 @@ If gaps detected, present BEFORE writing the plan:
 >
 > *Add these to the plan as Phase 2.5 `.claude/` updates so they ship in this PR? (y/n)"*
 
-- **On yes:** plan grows a section "Phase 2.5 — `.claude/` updates" listing each file. Those updates are implemented in Phase 5 alongside the feature code, using the templates in `claude-setup-agents.md`, `claude-setup-rules.md`, etc. All new files get `generated_by` markers.
+- **On yes:** plan grows a section "Phase 2.5 — `.claude/` updates" listing each file. Those updates are implemented in Phase 5 alongside the feature code, using the templates in `forge-agents.md`, `forge-rules.md`, etc. All new files get `generated_by` markers.
 - **On no:** proceed without coverage. Phase 7's safety-net check will still surface the gap as a review note.
 
 ## Phase 7 — safety-net output
 
 The `code-reviewer` agent inspects the implemented diff for the same gaps. If gaps remain (because the user said no at Phase 2, or a new gap surfaced during implementation), the review report includes:
 
-> *"**Coverage gap:** PR introduces [domain X] but `.claude/` doesn't cover it. Suggest adding [agent X / rule X / CLAUDE.md update] either before merge (extend this PR) or as a follow-up `/setup-claude` run."*
+> *"**Coverage gap:** PR introduces [domain X] but `.claude/` doesn't cover it. Suggest adding [agent X / rule X / CLAUDE.md update] either before merge (extend this PR) or as a follow-up `/forge:setup` run."*
 
 This is a **note, not a block.** The PR can still merge with the gap; the user is informed.
 
 ## What this is NOT
 
-- **Not a replacement for `/setup-claude`.** Coverage check is feature-scoped — it adds what THIS feature needs. `/setup-claude` re-explores the whole repo.
+- **Not a replacement for `/forge:setup`.** Coverage check is feature-scoped — it adds what THIS feature needs. `/forge:setup` re-explores the whole repo.
 - **Not a hard gate.** The Phase 7 note doesn't block the PR.
 - **Not auto-applied.** Always asks before creating new `.claude/` files. Capability ≠ consent (same principle as Graphify install).
-- **Not for `/quick` / `/investigate` / `/code` trivial.** Lean and read-only paths skip this entirely.
+- **Not for `/forge:code -quick` / `/forge:investigate` / `/forge:code` trivial.** Lean and read-only paths skip this entirely.
 
 ## Token cost summary
 
 | State | Tokens added per command |
 |---|---|
-| `/quick`, `/code` trivial, `/investigate` | 0 (skipped) |
+| `/forge:code -quick`, `/forge:code` trivial, `/forge:investigate` | 0 (skipped) |
 | Coverage gaps not detected | ~100–300 (matrix scan + Phase 2 result) |
 | Coverage gaps detected, user declines | ~300–600 (matrix scan + warning + y/n) |
 | Coverage gaps detected, user accepts | ~300–600 + ~3–8k for new file generation in Phase 5 |
 | Phase 7 safety-net detection | ~100–300 (inside the existing `code-reviewer` agent pass) |
 
-Steady state on a feature that doesn't introduce new domains: ~100–300 tokens. Well within `/code` full-flow's 100–250k budget.
+Steady state on a feature that doesn't introduce new domains: ~100–300 tokens. Well within `/forge:code` full-flow's 100–250k budget.

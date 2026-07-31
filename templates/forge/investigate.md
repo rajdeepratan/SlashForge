@@ -1,21 +1,21 @@
 ---
-name: /investigate
+name: /forge:investigate
 description: Research-only flow — reproduce and root-cause a bug or suspected issue. Produces a findings report. No branch, no PR, no code changes.
 preflight: superpowers
 ---
 
-**Preflight:** before reading anything else, open `{{INSTALL_PATH}}/claude-setup-preflight.md` and run the **Superpowers Check**.
+**Preflight:** before reading anything else, open `{{INSTALL_PATH}}/forge-preflight.md` and run the **Superpowers Check**.
 
 Then read the following files in full:
 
-- {{INSTALL_PATH}}/claude-setup-workflow-investigation.md
-- {{INSTALL_PATH}}/claude-setup-workflow-agents.md
+- {{INSTALL_PATH}}/forge-workflow-investigation.md
+- {{INSTALL_PATH}}/forge-workflow-agents.md
 
 This command is **read-only**. Do not edit application code. Do not create branches. Do not open PRs. The deliverable is a findings report.
 
 ## Entry
 
-The user invoked `/investigate` — the argument (if any) may be:
+The user invoked `/forge:investigate` — the argument (if any) may be:
 - A free-form symptom description
 - A bug report or issue reference
 - Nothing → ask: **"What's the symptom you want me to investigate?"**
@@ -87,7 +87,7 @@ The findings report is a self-contained HTML document with inline `<style>`, no 
 
 <h2>Root cause</h2>
 <p>What's actually happening, or best hypothesis if not fully nailed down. Link code references as
-   <code>path/to/file.ts:42</code> inside <code>&lt;code&gt;</code> tags.</p>
+   <code>path/to/file.ts:42</forge:code> inside <code>&lt;code&gt;</forge:code> tags.</p>
 
 <h2>Affected scope</h2>
 <ul>
@@ -112,6 +112,6 @@ Write the report to a file AND print the same content (or a plain-text equivalen
 ## Hand-off
 
 End with:
-> *"Investigation complete. Want me to fix this? Run `/code` to start the fix."*
+> *"Investigation complete. Want me to fix this? Run `/forge:code` to start the fix."*
 
-Follow `{{INSTALL_PATH}}/claude-setup-workflow-investigation.md` as the source of truth.
+Follow `{{INSTALL_PATH}}/forge-workflow-investigation.md` as the source of truth.

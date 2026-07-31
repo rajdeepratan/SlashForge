@@ -86,7 +86,7 @@ If superpowers is not installed, skip the skill and proceed with the workflow as
 
 ## File Skeleton
 
-Every agent file must start with frontmatter, including the generated-by marker (see `claude-setup-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
+Every agent file must start with frontmatter, including the generated-by marker (see `forge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
 
 ```markdown
 ---
@@ -142,7 +142,7 @@ Every `code-reviewer` agent created must include these checks — they are non-n
 - Code quality and conventions match `.claude/rules/`
 - No leftover debug code, dead code, or temporary hacks
 - No breaking changes to public APIs, exported functions, or shared interfaces — if found, **flag explicitly to the user before continuing**
-- **`.claude/` coverage** — if the diff introduces a new domain not covered by existing agents/rules/`CLAUDE.md`, raise it as a review note per `claude-setup-coverage.md` Phase 7 section. This is a note, not a block — flag the gap, suggest the addition, but don't fail the review on its absence
+- **`.claude/` coverage** — if the diff introduces a new domain not covered by existing agents/rules/`CLAUDE.md`, raise it as a review note per `forge-coverage.md` Phase 7 section. This is a note, not a block — flag the gap, suggest the addition, but don't fail the review on its absence
 
 If the review fails → return to the implementing agent with specific, actionable feedback. If it fails 3 times in a row → stop and escalate to the user.
 
