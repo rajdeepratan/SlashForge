@@ -45,6 +45,18 @@
  * layout already caps its content, so this is scoped to a wrapper we add
  * ourselves in index.mdx rather than to a shared theme selector.
  */
+/*
+ * Platform-support line inside the hero tagline. Starlight's hero has no slot
+ * between the tagline and the action buttons, so it rides along in the tagline
+ * and is de-emphasised here to read as a footnote rather than part of the pitch.
+ */
+.sf-support {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  opacity: 0.75;
+}
+
 .sf-splash {
   max-width: 56rem;
   margin-inline: auto;
