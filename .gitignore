@@ -5,3 +5,10 @@ npm-debug.log*
 .npm/
 coverage/
 packages/
+
+# docs site build artifacts
+docs/dist/
+docs/.astro/
+
+# generated from /CHANGELOG.md at build time — never edit or commit
+docs/src/content/docs/changelog.md

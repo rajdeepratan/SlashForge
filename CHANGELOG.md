@@ -6,6 +6,32 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-07-31
+
+### Changed
+- **BREAKING:** commands are renamed and namespaced under `/forge:`.
+
+  | v2 | v3 |
+  | --- | --- |
+  | `/setup-claude` | `/forge:setup` |
+  | `/code` | `/forge:code` |
+  | `/quick` | `/forge:code -quick` |
+  | `/investigate` | `/forge:investigate` |
+
+  `/setup-claude` was tied to a single vendor, which does not survive the planned Cursor and Codex support. The `forge/` namespace also stops `/code` colliding with commands users already have.
+- **BREAKING:** `/quick` is no longer a separate command. It is now lean **mode** on `/forge:code`, selected with `-quick`. The two were never separate workflows — `/quick` was always a set of overrides on the same ten phases — so they are now one command and one override guide.
+- **BREAKING:** guide files renamed `claude-setup-*.md` → `forge-*.md`, and the install directory moved from `~/.claude/setup/claude-setup/` to `~/.claude/setup/slashforge/`.
+- Command files now install into `~/.claude/commands/forge/`, which is what produces the `/forge:` prefix.
+
+### Added
+- `forge-workflow-quick.md` — the lean-mode overrides, extracted from the old `quick.md`. Loaded only when `-quick` is passed, so full mode is unaffected by it.
+- Install now reports any v2 files left on disk after an upgrade, rather than silently orphaning them. It does not delete them.
+- `uninstall` and `status` recognise the v2 layout, so an upgraded install can still be cleaned up.
+
+### Removed
+- **BREAKING:** the `claude-setup-kit` binary alias, deprecated in v2.0.0.
+- **BREAKING:** the `CLAUDE_SETUP_KIT_YES` env var, deprecated in v2.0.0. Use `SLASHFORGE_YES`.
+
 ## [2.0.0] - 2026-07-31
 
 ### Changed

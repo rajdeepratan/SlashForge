@@ -1,0 +1,23 @@
+{
+  "name": "slashforge-docs",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "sync:changelog": "node scripts/sync-changelog.mjs",
+    "predev": "npm run sync:changelog",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "prebuild": "npm run sync:changelog",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.39.0",
+    "astro": "^6.0.1",
+    "lucode-starlight": "^0.2.0",
+    "sharp": "^0.34.2"
+  }
+}

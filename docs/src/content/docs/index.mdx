@@ -1,0 +1,41 @@
+---
+title: SlashForge
+description: Workflow slash commands for AI coding agents — /forge:setup, /forge:code, /forge:investigate.
+template: splash
+hero:
+  tagline: |
+    Workflow slash commands for AI coding agents. Guardrails, not autocomplete.
+    <span class="sf-support">Currently supports <strong>Claude Code</strong>. Cursor and Codex targets are planned.</span>
+  actions:
+    - text: Get started
+      link: guides/introduction/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/rajdeepratan/SlashForge
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<div class="sf-splash">
+
+## Three commands
+
+<CardGrid>
+  <Card title="/forge:setup" icon="setting">
+    One-time repo setup. Explores the codebase, asks clarifying questions, then
+    generates `CLAUDE.md`, rules, skills, agents, commands, and hooks tailored
+    to it.
+  </Card>
+  <Card title="/forge:code" icon="rocket">
+    End-to-end development. Ten phases from plan to merged PR, with mandatory
+    stop-and-confirm gates. Add `-quick` for lean mode on small changes.
+  </Card>
+  <Card title="/forge:investigate" icon="magnifier">
+    Read-only research. Reproduces and root-causes a bug, then writes a findings
+    report. Never touches your code.
+  </Card>
+</CardGrid>
+
+</div>

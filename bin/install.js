@@ -11,24 +11,43 @@ const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
 const PLUGINS_CACHE_DIR = path.join(os.homedir(), '.claude', 'plugins', 'cache');
 
 const GUIDE_FILES = [
-  'claude-setup-instructions.md',
-  'claude-setup-preflight.md',
-  'claude-setup-graph.md',
-  'claude-setup-graph-summary.md',
-  'claude-setup-coverage.md',
-  'claude-setup-workflow.md',
-  'claude-setup-workflow-investigation.md',
-  'claude-setup-workflow-agents.md',
-  'claude-setup-rules.md',
-  'claude-setup-skills.md',
-  'claude-setup-agents.md',
-  'claude-setup-commands.md',
-  'claude-setup-hooks.md',
-  'claude-setup-claude-md.md',
-  'claude-setup-memory.md',
+  'forge-instructions.md',
+  'forge-preflight.md',
+  'forge-graph.md',
+  'forge-graph-summary.md',
+  'forge-coverage.md',
+  'forge-workflow.md',
+  'forge-workflow-investigation.md',
+  'forge-workflow-agents.md',
+  'forge-workflow-quick.md',
+  'forge-rules.md',
+  'forge-skills.md',
+  'forge-agents.md',
+  'forge-commands.md',
+  'forge-hooks.md',
+  'forge-claude-md.md',
+  'forge-memory.md',
 ];
 
-const COMMAND_FILES = ['setup-claude.md', 'code.md', 'quick.md', 'investigate.md'];
+const COMMAND_FILES = [
+  path.join('forge', 'setup.md'),
+  path.join('forge', 'code.md'),
+  path.join('forge', 'investigate.md'),
+];
+
+// Namespace directory the command files live in, under the commands dir.
+const COMMAND_NAMESPACE = 'forge';
+
+// v2 layout. Nothing writes these anymore — they exist so `uninstall` and
+// `status` can still find and clean up an install made by slashforge < 3.0.0.
+// Without them an upgrade would orphan the old files in ~/.claude/ forever.
+const LEGACY_GUIDES_DIRNAME = 'claude-setup';
+const LEGACY_COMMAND_FILES = [
+  'setup-claude.md',
+  'code.md',
+  'quick.md',
+  'investigate.md',
+];
 
 // ---------------------------------------------------------------------------
 // Lazy readline (only opened when the CLI actually needs interactive input)
@@ -118,21 +137,29 @@ function renderTemplate(content, { installPath, version, pkgName }) {
     .replace(/\{\{KIT_PACKAGE\}\}/g, pkgName);
 }
 
+// 'forge/setup.md' -> '/forge:setup'. A command file's path under the commands
+// dir determines how it is invoked; a subdirectory becomes a `:` namespace.
+function commandName(file) {
+  return '/' + file.replace(/\.md$/, '').split(path.sep).join(':');
+}
+
 function resolveTarget({ project = false, homeDir = os.homedir(), cwd = process.cwd() } = {}) {
   if (project) {
     const base = path.join(cwd, '.claude');
-    const guidesDir = path.join(base, 'setup', 'claude-setup');
+    const guidesDir = path.join(base, 'setup', 'slashforge');
     return {
       guidesDir,
+      legacyGuidesDir: path.join(base, 'setup', LEGACY_GUIDES_DIRNAME),
       commandsDir: path.join(base, 'commands'),
       metaFile: path.join(guidesDir, 'meta.json'),
-      installPath: '.claude/setup/claude-setup',
+      installPath: '.claude/setup/slashforge',
       mode: 'project',
     };
   }
-  const guidesDir = path.join(homeDir, '.claude', 'setup', 'claude-setup');
+  const guidesDir = path.join(homeDir, '.claude', 'setup', 'slashforge');
   return {
     guidesDir,
+    legacyGuidesDir: path.join(homeDir, '.claude', 'setup', LEGACY_GUIDES_DIRNAME),
     commandsDir: path.join(homeDir, '.claude', 'commands'),
     metaFile: path.join(guidesDir, 'meta.json'),
     installPath: guidesDir.split(path.sep).join('/'),
@@ -164,6 +191,9 @@ function installFiles(target, {
       pkgName,
     });
     const dest = path.join(target.commandsDir, c);
+    // Command files live in a namespace subdirectory (forge/), which is what
+    // produces the /forge:name invocation form.
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, rendered);
     written.push(dest);
   }
@@ -172,7 +202,7 @@ function installFiles(target, {
     version,
     installed_at: new Date().toISOString(),
     mode: target.mode,
-    commands: commandFiles.map((c) => c.replace(/\.md$/, '')),
+    commands: commandFiles.map(commandName),
   }, null, 2) + '\n';
   fs.writeFileSync(target.metaFile, meta);
   written.push(target.metaFile);
@@ -181,13 +211,24 @@ function installFiles(target, {
 
 function uninstallFiles(target, { guideFiles = GUIDE_FILES, commandFiles = COMMAND_FILES } = {}) {
   const removed = [];
-  for (const c of commandFiles) {
+  // Current layout plus the v2 flat command files, so upgrading from < 3.0.0
+  // and then uninstalling does not leave the old files behind.
+  for (const c of [...commandFiles, ...LEGACY_COMMAND_FILES]) {
     const p = path.join(target.commandsDir, c);
     if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
   }
-  if (fs.existsSync(target.guidesDir)) {
-    fs.rmSync(target.guidesDir, { recursive: true, force: true });
-    removed.push(target.guidesDir);
+  // Prune the namespace dir once emptied, but never touch it if the user has
+  // put their own commands in there.
+  const nsDir = path.join(target.commandsDir, COMMAND_NAMESPACE);
+  if (fs.existsSync(nsDir) && fs.readdirSync(nsDir).length === 0) {
+    fs.rmdirSync(nsDir);
+    removed.push(nsDir);
+  }
+  for (const dir of [target.guidesDir, target.legacyGuidesDir]) {
+    if (dir && fs.existsSync(dir)) {
+      fs.rmSync(dir, { recursive: true, force: true });
+      removed.push(dir);
+    }
   }
   return removed;
 }
@@ -230,11 +271,13 @@ function printStatus({ project = false } = {}) {
   console.log(`  Guide files:               ${installed.length} (${target.guidesDir})`);
   for (const f of installed) console.log(`    • ${f}`);
 
-  const commands = fs.existsSync(target.commandsDir)
-    ? fs.readdirSync(target.commandsDir).filter((f) => COMMAND_FILES.includes(f)).sort()
-    : [];
+  // Command files sit in a namespace subdirectory, so probe each expected path
+  // rather than listing the commands dir.
+  const commands = COMMAND_FILES
+    .filter((c) => fs.existsSync(path.join(target.commandsDir, c)))
+    .sort();
   console.log(`  Installed commands:        ${commands.length}`);
-  for (const f of commands) console.log(`    • /${f.replace(/\.md$/, '')}`);
+  for (const f of commands) console.log(`    • ${commandName(f)}`);
 
   if (!isSuperpowersInstalled()) {
     console.log(`\n⚠  superpowers plugin not detected.`);
@@ -303,22 +346,46 @@ async function install({ dryRun, assumeYes, project = false }) {
     console.log(`✓ Command: ${path.join(target.commandsDir, cmd)}`);
   }
 
+  reportLegacyLeftovers(target);
+
   if (!isSuperpowersInstalled()) {
     console.log('\n⚠  superpowers plugin not detected.');
     console.log('   For the best experience, install it: https://github.com/obra/superpowers');
   }
 
   console.log('\nDone! Open Claude Code in any repo:');
-  console.log('  • /setup-claude — one-time repo setup');
-  console.log('  • /code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
-  console.log('  • /quick — lean workflow for small changes (skips brainstorming + agent review, ~40–70k tokens)');
-  console.log('  • /investigate [symptom] — read-only research, produces a findings report');
+  console.log('  • /forge:setup — one-time repo setup');
+  console.log('  • /forge:code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
+  console.log('  • /forge:code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
+  console.log('  • /forge:investigate [symptom] — read-only research, produces a findings report');
+}
+
+// After an upgrade from < 3.0.0 the v2 files are still on disk. We deliberately
+// do not delete them during install — that would be removing files the user
+// never asked us to touch — so point at them instead and let the user decide.
+function reportLegacyLeftovers(target) {
+  const stale = [];
+  if (target.legacyGuidesDir && fs.existsSync(target.legacyGuidesDir)) {
+    stale.push(target.legacyGuidesDir);
+  }
+  for (const c of LEGACY_COMMAND_FILES) {
+    const p = path.join(target.commandsDir, c);
+    if (fs.existsSync(p)) stale.push(p);
+  }
+  if (stale.length === 0) return;
+
+  console.log('\n⚠  Files from slashforge v2 are still present:');
+  for (const p of stale) console.log(`     ${p}`);
+  console.log('   They are no longer used. Safe to delete once you have moved to /forge:* commands.');
 }
 
 async function uninstall({ project, assumeYes }) {
   const target = resolveTarget({ project });
+  // Also detect a v2 install so `uninstall` can clean up after an upgrade.
   const installed = fs.existsSync(target.guidesDir) ||
-    COMMAND_FILES.some((c) => fs.existsSync(path.join(target.commandsDir, c)));
+    fs.existsSync(target.legacyGuidesDir) ||
+    [...COMMAND_FILES, ...LEGACY_COMMAND_FILES]
+      .some((c) => fs.existsSync(path.join(target.commandsDir, c)));
   if (!installed) {
     console.log('slashforge is not installed at this location. Nothing to remove.');
     return;
@@ -373,7 +440,6 @@ async function main() {
     args.includes('--yes') ||
     args.includes('-y') ||
     process.env.SLASHFORGE_YES === '1' ||
-    process.env.CLAUDE_SETUP_KIT_YES === '1' ||
     !process.stdin.isTTY;
 
   if (args[0] === 'uninstall') {
@@ -408,6 +474,8 @@ module.exports = {
   resolveTarget,
   installFiles,
   uninstallFiles,
+  commandName,
   GUIDE_FILES,
   COMMAND_FILES,
+  LEGACY_COMMAND_FILES,
 };

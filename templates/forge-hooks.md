@@ -124,5 +124,5 @@ Keep hook scripts in `.claude/hooks/` and reference them via `$CLAUDE_PROJECT_DI
 ## Scope of This Guide
 
 - Focus on hooks teams commonly want for repo setup — not an exhaustive event reference
-- If a team needs a hook the kit's examples don't cover, read [Anthropic's hooks docs](https://code.claude.com/docs/en/hooks) for the full event list and JSON schemas
+- If a team needs a hook the kit's examples don't cover, read [Anthropic's hooks docs](https://forge:code.claude.com/docs/en/hooks) for the full event list and JSON schemas
 - Hooks are deterministic — use them for enforcement, not for "nudging" Claude

@@ -40,7 +40,7 @@ Command name = filename (or directory name). `run-checks` becomes `/run-checks`.
 
 ## Frontmatter for Commands
 
-Every command file must include the generated-by marker (see `claude-setup-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
+Every command file must include the generated-by marker (see `forge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
 
 ```yaml
 ---

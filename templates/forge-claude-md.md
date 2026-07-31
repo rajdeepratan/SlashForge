@@ -11,7 +11,7 @@ Create this **last** — after all rules, skills, and agents exist — so the re
 
 **Location:** `./CLAUDE.md` (repo root) or `./.claude/CLAUDE.md` — both are valid per Anthropic's spec. Prefer the repo root so humans discover it too.
 
-**Generated-by marker (required).** `CLAUDE.md` does not use YAML frontmatter, so place the marker as an HTML comment on the very first line, followed by a blank line, then the normal content. See `claude-setup-instructions.md` § Generated File Markers for details — read `meta.json` for the version and timestamp.
+**Generated-by marker (required).** `CLAUDE.md` does not use YAML frontmatter, so place the marker as an HTML comment on the very first line, followed by a blank line, then the normal content. See `forge-instructions.md` § Generated File Markers for details — read `meta.json` for the version and timestamp.
 
 ```markdown
 <!-- generated_by: [package]@[version] generated_at: [ISO 8601 timestamp] -->
@@ -39,14 +39,14 @@ Create this **last** — after all rules, skills, and agents exist — so the re
 
 ## Agent Orchestration Table
 
-Maps natural language intent to the right entry point. For whole-task requests, route to a slash command (`/code`, `/quick`, `/investigate`) — the command handles the full workflow. For mid-task intents that arise inside an active workflow, route directly to the agent that owns that step.
+Maps natural language intent to the right entry point. For whole-task requests, route to a slash command (`/forge:code`, `/forge:code -quick`, `/forge:investigate`) — the command handles the full workflow. For mid-task intents that arise inside an active workflow, route directly to the agent that owns that step.
 
 ```markdown
 | When the user says... | Invoke |
 |---|---|
-| "investigate", "does this bug exist?", "reproduce this", "root-cause" | `/investigate` |
-| "build", "add a feature", "change X", "fix Y" | `/code` |
-| "small change", "tiny fix", "one-liner" | `/quick` |
+| "investigate", "does this bug exist?", "reproduce this", "root-cause" | `/forge:investigate` |
+| "build", "add a feature", "change X", "fix Y" | `/forge:code` |
+| "small change", "tiny fix", "one-liner" | `/forge:code -quick` |
 | "review", "check the code" (mid-task) | `code-reviewer` agent |
 | "push", "create a PR", "branch" (mid-task) | `git` agent |
 | "write tests", "add coverage" (mid-task) | `test-writer` agent |
@@ -109,9 +109,9 @@ Each app's `CLAUDE.md` is a complete, self-contained entry point for that app. I
 ```markdown
 | When the user says... | Invoke |
 |---|---|
-| "investigate", "reproduce this", "root-cause" | `/investigate` |
-| "build", "add a feature", "change X", "fix Y" | `/code` |
-| "small change", "tiny fix", "one-liner" | `/quick` |
+| "investigate", "reproduce this", "root-cause" | `/forge:investigate` |
+| "build", "add a feature", "change X", "fix Y" | `/forge:code` |
+| "small change", "tiny fix", "one-liner" | `/forge:code -quick` |
 | "fix a bug", "debug" (mid-task) | `frontend-developer` or `debugger` as appropriate |
 | "write tests" (mid-task) | `test-writer` |
 | anything else | `developer` |
