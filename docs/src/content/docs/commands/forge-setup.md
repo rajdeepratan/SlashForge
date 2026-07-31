@@ -41,6 +41,12 @@ what happens:
 
 Remove or edit the marker on any file you want left alone permanently.
 
+## Monorepos
+
+In a monorepo it creates a root `CLAUDE.md` with shared rules and global agents,
+then a separate `CLAUDE.md` per app with app-specific rules, skills, and
+specialist agents.
+
 ## Graphify
 
 During exploration, `/forge:setup` checks language fit for
@@ -57,5 +63,5 @@ browser-readable interpretation of the machine-formatted graph report.
 ## What it does not do
 
 It does not write application code, create branches, or open PRs. It only
-produces configuration. Use [`/forge:code`](/SlashForge/commands/forge-code/)
+produces configuration. Use [`/forge:code`](../forge-code/)
 for development work.

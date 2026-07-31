@@ -90,6 +90,43 @@ New abstractions, work spanning multiple layers, ambiguous requirements, or bug
 fixes where the root cause is not already understood — use full mode so
 systematic debugging runs in Phase 5.
 
+## Auto-classification
+
+Phase 1 classifies the task as **trivial** or **full** against an explicit
+checklist: two files or fewer, no new abstraction, dependency, or public API,
+and no force-full keywords like `refactor` or `migrate`.
+
+It announces the call — *"Treating this as trivial: single-file string change.
+Say 'full flow' to override."* — and proceeds. Trivial tasks skip brainstorming
+and use a lean plan; full tasks run everything.
+
+Override in your reply with `full flow` or `quick`. Phases 3–10 run normally on
+both paths, so every gate and the Phase 6 verification stay in place.
+
+## Auto-coverage check
+
+On non-trivial features, the workflow checks whether the change introduces a new
+domain — framework, layer, language, pattern — that `.claude/` does not yet
+cover. If there is no specialist agent, no scoped rule, and no mention in
+`CLAUDE.md`'s tech stack, it fires twice:
+
+1. **Phase 2 (proactive)** — before the plan is written: *"This feature
+   introduces [domain X]. `.claude/` is missing [agent / rule / CLAUDE.md
+   update]. Add these to the plan so they ship in this PR?"* Accept and the new
+   files are drafted in Phase 5 alongside the feature code.
+2. **Phase 7 (safety net)** — the `code-reviewer` agent re-checks the diff. If
+   gaps remain, it raises a **note**, not a block. The PR can still merge.
+
+Skipped on `-quick`, on trivial auto-detect, and on `/forge:investigate`.
+
+**Cost:** ~100–300 tokens when no gaps are found; ~300–600 when gaps surface and
+you decline; ~3–8k when you accept and files are generated.
+
+**Why it exists:** without it, every new domain silently widens the gap between
+what the repo does and what `.claude/` knows. Agents stay generic, rules stop
+matching, `CLAUDE.md` drifts. This closes the loop incrementally instead of
+relying on you to remember to re-run `/forge:setup`.
+
 ## Superpowers skills per phase
 
 When [superpowers](https://github.com/obra/superpowers) is installed:

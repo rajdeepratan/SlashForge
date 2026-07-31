@@ -242,7 +242,7 @@ Claude Code ships with a built-in `/init` command. The two are complementary, no
 | Creates | `CLAUDE.md` only (or + skills/hooks with `CLAUDE_CODE_NEW_INIT=1`) | Full `.claude/` — rules, skills, agents, commands, hooks, plus `CLAUDE.md` |
 | Approach | Discovers and suggests — opinion-light | Opinionated — enforces multi-agent layout, 200-line cap, global vs specialist split |
 | Agents | None | Mandatory: `developer`, `code-reviewer`, `git`, plus specialists |
-| Workflow | None | Four commands: `/forge:setup` (setup), `/forge:code` (full flow), `/forge:code -quick` (lean flow), `/forge:investigate` (read-only research) |
+| Workflow | None | Three commands: `/forge:setup` (setup), `/forge:code` (full flow, `-quick` for lean), `/forge:investigate` (read-only research) |
 | Monorepo | Single-repo focused | Root + per-app `CLAUDE.md` flow |
 | Existing setup | Suggests improvements to `CLAUDE.md` | Full Update flow — reads everything in `.claude/` and fills gaps |
 
@@ -262,7 +262,7 @@ Re-run the install command to update your guide files to the latest version:
 
 ```bash
 npx slashforge
-# → "slashforge is already installed. Update to v1.0.x? (y/n)"
+# → "slashforge is already installed. Update to v3.0.x? (y/n)"
 ```
 
 **Safe re-runs of `/forge:setup`.** Every file `/forge:setup` creates in a repo's `.claude/` and the root `CLAUDE.md` now carries a `generated_by` marker (YAML frontmatter for `.claude/` files, an HTML comment for `CLAUDE.md`). On re-run, the Update flow uses the marker to tell kit-generated files from files you've edited:

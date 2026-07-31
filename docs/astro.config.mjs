@@ -58,7 +58,21 @@ export default defineConfig({
           items: [
             { label: 'Introduction', slug: 'guides/introduction' },
             { label: 'Installation', slug: 'guides/installation' },
-            { label: 'Migrating to v3', slug: 'guides/migrating-to-v3' },
+            { label: '/forge:setup vs /init', slug: 'guides/vs-init' },
+          ],
+        },
+        {
+          label: 'Integrations',
+          items: [
+            { label: 'Superpowers preflight', slug: 'guides/superpowers' },
+            { label: 'Graphify', slug: 'guides/graphify' },
+          ],
+        },
+        {
+          label: 'Migrating',
+          items: [
+            { label: 'From claude-setup-kit', slug: 'guides/migrating-from-claude-setup-kit' },
+            { label: 'v2 to v3', slug: 'guides/migrating-to-v3' },
           ],
         },
         {

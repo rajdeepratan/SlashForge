@@ -72,6 +72,19 @@ slashforge status
 Reports the installed version, the guide files present, the commands
 registered, and whether superpowers was detected.
 
+## Updating
+
+Re-run the install command to pull the latest guide files:
+
+```bash
+npx slashforge
+# → "slashforge is already installed. Update to v3.0.x? (y/n)"
+```
+
+Worth doing when either optional integration changes upstream — if superpowers
+renames a skill, or Graphify changes its install commands, the guide files need
+to catch up.
+
 ## Uninstalling
 
 ```bash
