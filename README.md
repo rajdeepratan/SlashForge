@@ -258,6 +258,14 @@ Remove or edit the marker on any file you want the kit to leave alone.
 
 ---
 
+## Author
+
+<img src="assets/png/rajdeepratan.png" width="72" alt="Rajdeep Ratan">
+
+**Rajdeep Ratan** — [GitHub](https://github.com/rajdeepratan) · [npm](https://www.npmjs.com/~rajdeepratan)
+
+---
+
 ## Support
 
 If this kit saves you time, consider supporting the work:
