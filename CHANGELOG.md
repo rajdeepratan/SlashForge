@@ -10,7 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 - **BREAKING:** the package is now published as `slashforge` (previously `claude-setup-kit`). Install with `npx slashforge`. Renamed ahead of planned Cursor and Codex support, so the name is not tied to a single vendor.
-- Repository moved to `github.com/rajdeepratan/slashforge`; the old URL permanently redirects.
+- Repository moved to `github.com/rajdeepratan/SlashForge`; the old URL permanently redirects.
 - Non-interactive mode is now enabled by `SLASHFORGE_YES=1`.
 - Expanded npm keywords and GitHub topics for discoverability.
 

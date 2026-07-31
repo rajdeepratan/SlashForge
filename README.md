@@ -1,7 +1,7 @@
 # slashforge
 
 [![npm version](https://img.shields.io/npm/v/slashforge.svg)](https://www.npmjs.com/package/slashforge)
-[![CI](https://github.com/rajdeepratan/slashforge/actions/workflows/ci.yml/badge.svg)](https://github.com/rajdeepratan/slashforge/actions/workflows/ci.yml)
+[![CI](https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml/badge.svg)](https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/slashforge.svg)](LICENSE)
 [![node](https://img.shields.io/node/v/slashforge.svg)](package.json)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/rajdeepratan)
