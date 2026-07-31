@@ -12,6 +12,7 @@
 <a href="https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml"><img src="https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 <a href="LICENSE"><img src="https://img.shields.io/npm/l/slashforge.svg?color=EC3013&labelColor=201E1D" alt="license"></a>
 <a href="package.json"><img src="https://img.shields.io/node/v/slashforge.svg?color=EC3013&labelColor=201E1D" alt="node"></a>
+<a href="https://github.com/sponsors/rajdeepratan"><img src="https://img.shields.io/badge/Sponsor-EC3013.svg?labelColor=201E1D&logo=githubsponsors&logoColor=white" alt="Sponsor"></a>
 <a href="https://buymeacoffee.com/rajdeepratan"><img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-EC3013.svg?labelColor=201E1D&logo=buymeacoffee&logoColor=white" alt="Buy Me A Coffee"></a>
 </p>
 
