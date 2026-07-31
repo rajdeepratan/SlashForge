@@ -1,12 +1,23 @@
-# SlashForge
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/svg/slashforge-mark-dark.svg">
+    <img src="assets/svg/slashforge-mark.svg" alt="SlashForge" height="88">
+  </picture>
+</p>
 
-[![npm version](https://img.shields.io/npm/v/slashforge.svg)](https://www.npmjs.com/package/slashforge)
-[![CI](https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml/badge.svg)](https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml)
-[![license](https://img.shields.io/npm/l/slashforge.svg)](LICENSE)
-[![node](https://img.shields.io/node/v/slashforge.svg)](package.json)
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/rajdeepratan)
+<h1 align="center">SlashForge</h1>
 
-**Workflow slash commands for AI coding agents.** Installs four commands on any machine — `/setup-claude` to scaffold a repo, `/code` for freeform development, `/quick` for lean small-change work, and `/investigate` for read-only research.
+<p align="center"><strong>Workflow slash commands for AI coding agents.</strong></p>
+
+<p align="center">
+<a href="https://www.npmjs.com/package/slashforge"><img src="https://img.shields.io/npm/v/slashforge.svg?color=EC3013&labelColor=201E1D" alt="npm version"></a>
+<a href="https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml"><img src="https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+<a href="LICENSE"><img src="https://img.shields.io/npm/l/slashforge.svg?color=EC3013&labelColor=201E1D" alt="license"></a>
+<a href="package.json"><img src="https://img.shields.io/node/v/slashforge.svg?color=EC3013&labelColor=201E1D" alt="node"></a>
+<a href="https://buymeacoffee.com/rajdeepratan"><img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-EC3013.svg?labelColor=201E1D&logo=buymeacoffee&logoColor=white" alt="Buy Me A Coffee"></a>
+</p>
+
+Installs four commands on any machine — `/setup-claude` to scaffold a repo, `/code` for freeform development, `/quick` for lean small-change work, and `/investigate` for read-only research.
 
 Currently supports **Claude Code**. Cursor and Codex targets are planned.
 
