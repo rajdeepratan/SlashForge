@@ -266,16 +266,6 @@ Remove or edit the marker on any file you want the kit to leave alone.
 
 ---
 
-## Support
-
-If this kit saves you time, consider supporting the work:
-
-<a href="https://buymeacoffee.com/rajdeepratan"><img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buymeacoffee&logoColor=black" alt="Buy Me A Coffee"></a>
-
-☕ [buymeacoffee.com/rajdeepratan](https://buymeacoffee.com/rajdeepratan)
-
----
-
 ## License
 
 [MIT](LICENSE) © Rajdeep Ratan
