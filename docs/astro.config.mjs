@@ -27,6 +27,17 @@ export default defineConfig({
         replacesTitle: true,
       },
       favicon: '/favicon.svg',
+      head: [
+        {
+          // Opens the header's external links (GitHub, npm, Sponsor, Buy me a
+          // coffee) in a new tab. Done here rather than in config because the
+          // theme renders social icons through its own component and only
+          // spreads `attrs` on some nav links, so neither is reachable.
+          // Re-runs on astro:page-load for client-side navigations.
+          tag: 'script',
+          content: `(function(){function m(){document.querySelectorAll('header a[href^="http"]').forEach(function(a){if(a.hostname&&a.hostname!==location.hostname){a.target='_blank';a.rel=(a.rel?a.rel+' ':'')+'noopener';}});}document.addEventListener('DOMContentLoaded',m);document.addEventListener('astro:page-load',m);m();})();`,
+        },
+      ],
       customCss: ['./src/styles/theme.css'],
       editLink: {
         baseUrl: 'https://github.com/rajdeepratan/SlashForge/edit/main/docs',
@@ -37,6 +48,15 @@ export default defineConfig({
           navLinks: [
             { label: 'Docs', link: '/guides/introduction/' },
             { label: 'Commands', link: '/commands/forge-setup/' },
+            {
+              // Rendered as the Buy Me a Coffee logo via a CSS mask keyed on
+              // the href — see theme.css. The theme renders nav links twice
+              // (desktop + mobile) and only spreads `attrs` on one of them, so
+              // an attribute selector is used instead of a class. The label
+              // stays in the DOM at font-size 0 for screen readers.
+              label: 'Buy me a coffee',
+              link: 'https://buymeacoffee.com/rajdeepratan',
+            },
           ],
         }),
       ],
