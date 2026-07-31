@@ -69,24 +69,23 @@ code {
 }
 
 /*
- * Buy Me a Coffee nav link.
+ * Buy Me a Coffee link, rendered as its own logo.
  *
- * Starlight ships no coffee icon, and the theme's Header imports its own
- * SocialIcons directly rather than through Starlight's override system, so the
- * icon row on the right cannot be extended without forking the theme. The
- * theme does spread `attrs` onto nav anchors, so the link goes in the nav bar
- * and the label is replaced with the logo via a CSS mask — which keeps it
- * monochrome and inheriting the theme's colour like every other icon.
+ * Starlight's social config only accepts built-in icon names and ships no
+ * coffee icon, so the entry uses 'heart' as a carrier and the real logo is
+ * painted here with a CSS mask keyed on the href. The carrier <svg> is hidden.
  *
  * A mask + data URI is used rather than an <img> so no file path is involved:
  * the docs base path is configurable, and a hardcoded /SlashForge/... would
- * break the moment hosting changes.
+ * break the moment hosting changes. The mask also inherits currentColor, so it
+ * matches the neighbouring icons in both light and dark mode.
  */
 header a[href*="buymeacoffee.com"] {
-  font-size: 0 !important;
-  line-height: 0;
-  display: inline-flex !important;
-  align-items: center;
+  font-size: 0;
+}
+
+header a[href*="buymeacoffee.com"] svg {
+  display: none;
 }
 
 header a[href*="buymeacoffee.com"]::before {

@@ -48,15 +48,6 @@ export default defineConfig({
           navLinks: [
             { label: 'Docs', link: '/guides/introduction/' },
             { label: 'Commands', link: '/commands/forge-setup/' },
-            {
-              // Rendered as the Buy Me a Coffee logo via a CSS mask keyed on
-              // the href — see theme.css. The theme renders nav links twice
-              // (desktop + mobile) and only spreads `attrs` on one of them, so
-              // an attribute selector is used instead of a class. The label
-              // stays in the DOM at font-size 0 for screen readers.
-              label: 'Buy me a coffee',
-              link: 'https://buymeacoffee.com/rajdeepratan',
-            },
           ],
         }),
       ],
@@ -78,6 +69,15 @@ export default defineConfig({
           icon: 'heart',
           label: 'Sponsor',
           href: 'https://github.com/sponsors/rajdeepratan',
+        },
+        {
+          // Starlight has no coffee icon, and this list only accepts built-in
+          // names — so 'heart' is a carrier that theme.css masks over with the
+          // Buy Me a Coffee logo, keyed on the href. Without the CSS this
+          // degrades to a second heart rather than a broken icon.
+          icon: 'heart',
+          label: 'Buy me a coffee',
+          href: 'https://buymeacoffee.com/rajdeepratan',
         },
       ],
       sidebar: [
