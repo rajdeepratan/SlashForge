@@ -37,6 +37,8 @@ export default defineConfig({
           navLinks: [
             { label: 'Docs', link: '/guides/introduction/' },
             { label: 'Commands', link: '/commands/forge-setup/' },
+            { label: 'Sponsor', link: 'https://github.com/sponsors/rajdeepratan' },
+            { label: 'Buy me a coffee', link: 'https://buymeacoffee.com/rajdeepratan' },
           ],
         }),
       ],
