@@ -1,12 +1,16 @@
-# claude-setup-kit
+# slashforge
 
-[![npm version](https://img.shields.io/npm/v/claude-setup-kit.svg)](https://www.npmjs.com/package/claude-setup-kit)
-[![CI](https://github.com/rajdeepratan/claude-setup-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/rajdeepratan/claude-setup-kit/actions/workflows/ci.yml)
-[![license](https://img.shields.io/npm/l/claude-setup-kit.svg)](LICENSE)
-[![node](https://img.shields.io/node/v/claude-setup-kit.svg)](package.json)
+[![npm version](https://img.shields.io/npm/v/slashforge.svg)](https://www.npmjs.com/package/slashforge)
+[![CI](https://github.com/rajdeepratan/slashforge/actions/workflows/ci.yml/badge.svg)](https://github.com/rajdeepratan/slashforge/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/slashforge.svg)](LICENSE)
+[![node](https://img.shields.io/node/v/slashforge.svg)](package.json)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/rajdeepratan)
 
-Install Claude Code setup guides and four slash commands on any machine — `/setup-claude` to scaffold a repo, `/code` for freeform development, `/quick` for lean small-change work, and `/investigate` for read-only research.
+**Workflow slash commands for AI coding agents.** Installs four commands on any machine — `/setup-claude` to scaffold a repo, `/code` for freeform development, `/quick` for lean small-change work, and `/investigate` for read-only research.
+
+Currently supports **Claude Code**. Cursor and Codex targets are planned.
+
+> **Renamed in v2.0.0.** This package was previously published as `claude-setup-kit`. The old package is deprecated — switch to `npx slashforge`. The `claude-setup-kit` binary and `CLAUDE_SETUP_KIT_YES` env var still work but will be removed in v3.
 
 ---
 
@@ -27,13 +31,13 @@ Installs a collection of guide files plus four slash commands that cover the ful
 
 **One-time run (recommended):**
 ```bash
-npx claude-setup-kit
+npx slashforge
 ```
 
 **Or install globally:**
 ```bash
-npm install -g claude-setup-kit
-claude-setup-kit
+npm install -g slashforge
+slashforge
 ```
 
 Running it again on a machine that already has it installed will prompt you to update to the latest version.
@@ -41,15 +45,15 @@ Running it again on a machine that already has it installed will prompt you to u
 ### Installer flags and subcommands
 
 ```bash
-claude-setup-kit --dry-run   # Print planned file writes without touching the filesystem
-claude-setup-kit --yes       # Non-interactive — auto-confirm the update prompt
-claude-setup-kit status      # Show installed version, guide count, and available update
-claude-setup-kit --help      # Full usage
-claude-setup-kit --project    # Install into ./.claude/ in the current repo (committable, no global install needed)
-claude-setup-kit uninstall    # Remove the kit's guides + commands (add --project for ./.claude)
+slashforge --dry-run   # Print planned file writes without touching the filesystem
+slashforge --yes       # Non-interactive — auto-confirm the update prompt
+slashforge status      # Show installed version, guide count, and available update
+slashforge --help      # Full usage
+slashforge --project    # Install into ./.claude/ in the current repo (committable, no global install needed)
+slashforge uninstall    # Remove the kit's guides + commands (add --project for ./.claude)
 ```
 
-`--yes` / `-y` is also enabled by `CLAUDE_SETUP_KIT_YES=1` or when stdin is not a TTY — safe to use in CI, devcontainers, or anywhere the install shouldn't block on an interactive prompt.
+`--yes` / `-y` is also enabled by `SLASHFORGE_YES=1` (or the deprecated `CLAUDE_SETUP_KIT_YES=1`) or when stdin is not a TTY — safe to use in CI, devcontainers, or anywhere the install shouldn't block on an interactive prompt.
 
 `--project` vendors both the guide files and the four command files into the repo's `./.claude/` with repo-relative paths — commit it and teammates get the commands with no global install. `uninstall` reverses either install (pass `--project` to target the repo copy).
 
@@ -94,7 +98,7 @@ If the `superpowers` plugin is missing, the command **stops and explains why it 
 ```
 Without it, phases skip their skill invocations (brainstorming, writing-plans, TDD, systematic-debugging, verification, receiving-code-review). For bug fixes this means no enforced red→green regression test.
 
-If the upstream superpowers project renames a skill, re-run `npx claude-setup-kit` to pull updated guide files.
+If the upstream superpowers project renames a skill, re-run `npx slashforge` to pull updated guide files.
 
 **Graphify is a second optional integration but is not a preflight check** — it's a one-time setup-time offer inside `/setup-claude`, not re-checked per command. See the Graphify section below.
 
@@ -139,7 +143,7 @@ The check auto-skips on `/quick`, `/code` trivial, and repos without Graphify in
 - **Proactive:** run `graphify watch .` in a separate terminal tab — the graph updates incrementally as files change. Free, continuous, recommended.
 - **Reactive (safety net):** the kit's auto-freshness check above catches stale graphs at the start of any graph-consulting command and offers to refresh. Bounds your staleness window to 7 days / 50 commits if you forget watch.
 
-**Upstream notes.** Graphify is pre-1.0 (v0.5.0 as of 2026-04-23). If install commands change upstream, re-run `npx claude-setup-kit` to pull updated guide content. The PyPI package is named `graphifyy` (double-y) — other `graphify*` packages are unaffiliated.
+**Upstream notes.** Graphify is pre-1.0 (v0.5.0 as of 2026-04-23). If install commands change upstream, re-run `npx slashforge` to pull updated guide content. The PyPI package is named `graphifyy` (double-y) — other `graphify*` packages are unaffiliated.
 
 ---
 
@@ -231,8 +235,8 @@ Claude Code ships with a built-in `/init` command. The two are complementary, no
 Re-run the install command to update your guide files to the latest version:
 
 ```bash
-npx claude-setup-kit
-# → "claude-setup-kit is already installed. Update to v1.0.x? (y/n)"
+npx slashforge
+# → "slashforge is already installed. Update to v1.0.x? (y/n)"
 ```
 
 **Safe re-runs of `/setup-claude`.** Every file `/setup-claude` creates in a repo's `.claude/` and the root `CLAUDE.md` now carries a `generated_by` marker (YAML frontmatter for `.claude/` files, an HTML comment for `CLAUDE.md`). On re-run, the Update flow uses the marker to tell kit-generated files from files you've edited:

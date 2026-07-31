@@ -207,13 +207,13 @@ function readMeta(metaFile) {
 function printStatus({ project = false } = {}) {
   const target = resolveTarget({ project });
   if (!fs.existsSync(target.guidesDir)) {
-    console.log('claude-setup-kit: not installed.');
+    console.log('slashforge: not installed.');
     console.log(`Run \`npx ${pkg.name}\` to install v${pkg.version}.`);
     return;
   }
 
   const meta = readMeta(target.metaFile);
-  console.log(`\nclaude-setup-kit status`);
+  console.log(`\nslashforge status`);
   console.log(`  Package version (current): v${pkg.version}`);
   if (meta) {
     const marker = meta.version !== pkg.version ? '  ← update available' : '';
@@ -252,9 +252,9 @@ async function install({ dryRun, assumeYes, project = false }) {
 
   if (!dryRun && alreadyInstalled) {
     if (assumeYes) {
-      console.log(`claude-setup-kit is already installed. Updating to v${pkg.version} (--yes).`);
+      console.log(`slashforge is already installed. Updating to v${pkg.version} (--yes).`);
     } else {
-      const answer = await prompt(`claude-setup-kit is already installed. Update to v${pkg.version}? (y/n): `);
+      const answer = await prompt(`slashforge is already installed. Update to v${pkg.version}? (y/n): `);
       if (answer.toLowerCase() !== 'y') {
         console.log('Skipped. No changes made.');
         return;
@@ -320,18 +320,18 @@ async function uninstall({ project, assumeYes }) {
   const installed = fs.existsSync(target.guidesDir) ||
     COMMAND_FILES.some((c) => fs.existsSync(path.join(target.commandsDir, c)));
   if (!installed) {
-    console.log('claude-setup-kit is not installed at this location. Nothing to remove.');
+    console.log('slashforge is not installed at this location. Nothing to remove.');
     return;
   }
   if (!assumeYes) {
-    const answer = await prompt(`Remove claude-setup-kit guides + commands from ${target.guidesDir} and ${target.commandsDir}? (y/n): `);
+    const answer = await prompt(`Remove slashforge guides + commands from ${target.guidesDir} and ${target.commandsDir}? (y/n): `);
     if (answer.toLowerCase() !== 'y') {
       console.log('Skipped. No changes made.');
       return;
     }
   }
   const removed = uninstallFiles(target, {});
-  console.log('\n✓ Uninstalled claude-setup-kit');
+  console.log('\n✓ Uninstalled slashforge');
   for (const p of removed) console.log(`  removed ${p}`);
 }
 
@@ -347,7 +347,7 @@ function printHelp() {
   console.log('  --project    Install into ./.claude/ of the current repo (project mode)');
   console.log('  --dry-run    Print planned file writes without touching the filesystem');
   console.log('  --yes, -y    Non-interactive mode — auto-confirm the update prompt');
-  console.log('               (also enabled by CLAUDE_SETUP_KIT_YES=1 or when stdin is not a TTY)');
+  console.log('               (also enabled by SLASHFORGE_YES=1 or when stdin is not a TTY)');
   console.log('  --help, -h   Show this help');
 }
 
@@ -372,6 +372,7 @@ async function main() {
   const assumeYes =
     args.includes('--yes') ||
     args.includes('-y') ||
+    process.env.SLASHFORGE_YES === '1' ||
     process.env.CLAUDE_SETUP_KIT_YES === '1' ||
     !process.stdin.isTTY;
 

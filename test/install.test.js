@@ -160,7 +160,7 @@ test('CLI status --project exits 0 and reports installed state', () => {
 
   const stdout = execFileSync('node', [BIN, 'status', '--project'], { cwd: tmpRepo, encoding: 'utf8' });
 
-  assert.ok(stdout.includes('claude-setup-kit status'), 'status output should include "claude-setup-kit status"');
+  assert.ok(stdout.includes('slashforge status'), 'status output should include "slashforge status"');
 });
 
 test('CLI uninstall --project --yes is a graceful no-op when nothing is installed', () => {
