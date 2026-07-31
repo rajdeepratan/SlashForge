@@ -6,6 +6,18 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-07-31
+
+### Changed
+- **BREAKING:** the package is now published as `slashforge` (previously `claude-setup-kit`). Install with `npx slashforge`. Renamed ahead of planned Cursor and Codex support, so the name is not tied to a single vendor.
+- Repository moved to `github.com/rajdeepratan/slashforge`; the old URL permanently redirects.
+- Non-interactive mode is now enabled by `SLASHFORGE_YES=1`.
+- Expanded npm keywords and GitHub topics for discoverability.
+
+### Deprecated
+- The `claude-setup-kit` npm package. Use `slashforge` instead.
+- The `claude-setup-kit` bin alias and `CLAUDE_SETUP_KIT_YES=1` env var. Both still work so existing scripts and CI do not break, and are scheduled for removal in v3.0.0.
+
 ### Fixed
 - Auto-release now publishes to npm. A release created by `GITHUB_TOKEN` does not trigger other workflows, so `publish.yml` never fired; `auto-release.yml` now dispatches it explicitly via `workflow_dispatch`.
 
