@@ -36,12 +36,44 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
   </Card>
 </CardGrid>
 
+## Why gates, not autocomplete
+
+An agent that goes from prompt to a large diff leaves you auditing it line by
+line. `/forge:code` stops and waits for you at four points:
+
+- **Phase 3** — your approval of the plan, before any code is written
+- **Phase 4** — the branch decision: same branch, or a new one
+- **Phase 8** — the PR target and reviewers, before anything is pushed
+- **Phase 10** — branch cleanup after merge
+
+Between those, Phase 6 runs lint, tests, and build. Nothing reaches a PR
+unverified — "it's done" means it was checked, not asserted.
+
+That is the whole idea: you stay the decision-maker, and the agent does the work
+between your decisions.
+
 ## Install
 
 ```bash
 npx slashforge
 ```
 
-Currently supports **Claude Code**. Cursor and Codex targets are planned.
+Then, in any repo:
+
+```
+/forge:setup     # once per repo — generates CLAUDE.md and .claude/
+/forge:code      # per change — add -quick for small ones
+```
+
+Full walkthrough in [Installation](guides/installation/). Currently supports
+**Claude Code**; Cursor and Codex targets are planned.
+
+---
+
+**Upgrading from v2?** Every command was renamed in v3.0.0 — `/code` is now
+`/forge:code`, and `/quick` is now `/forge:code -quick`. See
+[Migrating to v3](guides/migrating-to-v3/), or
+[Migrating from claude-setup-kit](guides/migrating-from-claude-setup-kit/) if
+you are on the original package name.
 
 </div>
