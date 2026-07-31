@@ -26,11 +26,29 @@
   --sl-color-text-accent: #ff6a4d;
 }
 
-/* The mark's angle is the identity — keep the header lockup from being
-   squashed by the theme's default logo sizing. */
+/*
+ * The theme caps logos at 32x32 (`.logo { max-height: 32px; max-width: 32px }`)
+ * because it assumes a square icon mark. Our lockup is ~3.83:1, so max-width
+ * was crushing it to 32px wide — a third of its correct width. Setting
+ * `width: auto` alone does not help; max-width has to be released explicitly.
+ */
 .site-title img {
   height: 1.75rem;
   width: auto;
+  max-width: none;
+  max-height: none;
+}
+
+/*
+ * Splash pages have no sidebar, so the theme leaves the markdown body
+ * full-bleed — content ran to the viewport edge with no gutter. The docs
+ * layout already caps its content, so this is scoped to a wrapper we add
+ * ourselves in index.mdx rather than to a shared theme selector.
+ */
+.sf-splash {
+  max-width: 56rem;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
 }
 
 /* Command names read as identifiers, not prose. */
