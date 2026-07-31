@@ -37,8 +37,6 @@ export default defineConfig({
           navLinks: [
             { label: 'Docs', link: '/guides/introduction/' },
             { label: 'Commands', link: '/commands/forge-setup/' },
-            { label: 'Sponsor', link: 'https://github.com/sponsors/rajdeepratan' },
-            { label: 'Buy me a coffee', link: 'https://buymeacoffee.com/rajdeepratan' },
           ],
         }),
       ],
@@ -52,6 +50,14 @@ export default defineConfig({
           icon: 'npm',
           label: 'npm',
           href: 'https://www.npmjs.com/package/slashforge',
+        },
+        {
+          // GitHub Sponsors' own mark is a heart. Starlight ships no
+          // Buy Me a Coffee icon, so that link stays on the repo and README
+          // rather than being given a misleading stand-in here.
+          icon: 'heart',
+          label: 'Sponsor',
+          href: 'https://github.com/sponsors/rajdeepratan',
         },
       ],
       sidebar: [
