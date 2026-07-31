@@ -53,12 +53,22 @@ export default defineConfig({
         },
       ],
       sidebar: [
+        // Order follows a new user's path: what it is, how to install it, the
+        // commands themselves, then optional extras. Migration guides are last
+        // — they only matter to people who are already users.
         {
           label: 'Guides',
           items: [
             { label: 'Introduction', slug: 'guides/introduction' },
             { label: 'Installation', slug: 'guides/installation' },
-            { label: '/forge:setup vs /init', slug: 'guides/vs-init' },
+          ],
+        },
+        {
+          label: 'Commands',
+          items: [
+            { label: '/forge:setup', slug: 'commands/forge-setup' },
+            { label: '/forge:code', slug: 'commands/forge-code' },
+            { label: '/forge:investigate', slug: 'commands/forge-investigate' },
           ],
         },
         {
@@ -69,18 +79,16 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Reference',
+          items: [
+            { label: '/forge:setup vs /init', slug: 'guides/vs-init' },
+          ],
+        },
+        {
           label: 'Migrating',
           items: [
             { label: 'From claude-setup-kit', slug: 'guides/migrating-from-claude-setup-kit' },
             { label: 'v2 to v3', slug: 'guides/migrating-to-v3' },
-          ],
-        },
-        {
-          label: 'Commands',
-          items: [
-            { label: '/forge:setup', slug: 'commands/forge-setup' },
-            { label: '/forge:code', slug: 'commands/forge-code' },
-            { label: '/forge:investigate', slug: 'commands/forge-investigate' },
           ],
         },
       ],

@@ -71,3 +71,11 @@ degrade to following the written phase instructions.
 
 Claude Code today. Cursor and Codex are planned — the rename to the vendor-neutral
 `/forge:` namespace in v3.0.0 was groundwork for exactly that.
+
+## Next
+
+**[Installation](../installation/)** — requirements, first run, and the setup
+sequence end to end.
+
+Already installed? Go straight to [`/forge:setup`](../../commands/forge-setup/).
+
