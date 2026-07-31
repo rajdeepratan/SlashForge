@@ -1,11 +1,12 @@
 {
-  "name": "claude-setup-kit",
-  "version": "1.5.0",
-  "description": "Install Claude Code setup guides and four slash commands — /setup-claude, /code, /quick, /investigate — for any repo",
+  "name": "slashforge",
+  "version": "2.0.0",
+  "description": "Workflow slash commands for AI coding agents — /setup-claude, /code, /quick, /investigate. Currently supports Claude Code.",
   "scripts": {
     "test": "node --test"
   },
   "bin": {
+    "slashforge": "./bin/install.js",
     "claude-setup-kit": "./bin/install.js"
   },
   "files": [
@@ -13,12 +14,17 @@
     "templates/"
   ],
   "keywords": [
+    "slash-commands",
     "claude",
     "claude-code",
     "anthropic",
     "ai",
+    "ai-coding-assistant",
     "setup",
     "agents",
+    "workflow",
+    "code-review",
+    "cli",
     "developer-tools"
   ],
   "engines": {
@@ -26,7 +32,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rajdeepratan/claude-setup-kit"
+    "url": "https://github.com/rajdeepratan/slashforge"
   },
   "license": "MIT",
   "publishConfig": {

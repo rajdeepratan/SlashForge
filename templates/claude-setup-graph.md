@@ -212,5 +212,5 @@ Steady-state cost on a healthy repo (graph fresh, watch running): negligible. Bi
 
 - **Stale-graph correctness risk.** A graph that's 2 weeks old in an actively-refactored repo will make Claude cite relationships that no longer exist. `graphify watch` is not optional — it's the mitigation. Tell the user this explicitly.
 - **Language coverage is partial.** Non-supported files (YAML, shell, config) are not in the graph. Claude still greps those; the graph just covers the code surface it supports.
-- **Graphify is pre-1.0 (v0.5.0).** Interfaces may shift upstream. If `graphify` commands change, re-run `npx claude-setup-kit` to pull updated guide content.
+- **Graphify is pre-1.0 (v0.5.0).** Interfaces may shift upstream. If `graphify` commands change, re-run `npx slashforge` to pull updated guide content.
 - **Never add a `--yes` / auto-install flag to this offer.** Principle: the user sees what's being installed on their machine.
