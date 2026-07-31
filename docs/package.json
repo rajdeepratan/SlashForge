@@ -5,8 +5,11 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "sync:changelog": "node scripts/sync-changelog.mjs",
+    "predev": "npm run sync:changelog",
     "dev": "astro dev",
     "start": "astro dev",
+    "prebuild": "npm run sync:changelog",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"

@@ -69,3 +69,12 @@ version: Ember `#EC3013`, Ink `#201E1D`, and the ember is never recoloured.
 
 `docs/` is outside the `files` allowlist in the root `package.json`, so none of
 this reaches the published package.
+
+## Changelog page
+
+`src/content/docs/changelog.md` is **generated** from the repo root
+`CHANGELOG.md` by `scripts/sync-changelog.mjs`, which runs automatically via the
+`predev` and `prebuild` npm scripts.
+
+Do not edit it — edit `/CHANGELOG.md`. The generated file is gitignored, so
+there is never a second copy in git to drift out of sync.

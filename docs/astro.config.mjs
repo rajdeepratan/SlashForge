@@ -91,6 +91,8 @@ export default defineConfig({
             { label: 'v2 to v3', slug: 'guides/migrating-to-v3' },
           ],
         },
+        // Generated from /CHANGELOG.md by scripts/sync-changelog.mjs.
+        { label: 'Changelog', slug: 'changelog' },
       ],
     }),
   ],
