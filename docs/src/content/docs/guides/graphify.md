@@ -49,6 +49,12 @@ the offer fires again.
 `/forge:investigate` is the biggest single win: blast radius is exactly what the
 graph is built to answer.
 
+Read those absolutes in proportion. On `/forge:code`, 10–25k off a 100–250k
+baseline is roughly **4–10%** — real, but it does not change the order of
+magnitude of a run. On `/forge:investigate` the same kind of saving comes off a
+much smaller total, so the proportional win is far larger. That is the reason to
+install Graphify: sharper investigations, not dramatically cheaper features.
+
 ## SUMMARY.html
 
 After the four commands succeed, `/forge:setup` synthesises

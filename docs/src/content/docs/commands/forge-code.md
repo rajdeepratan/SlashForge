@@ -38,7 +38,19 @@ without your answer:
 | 9 | PR feedback | Handles reviewer comments |
 | 10 | **Cleanup** | You approve branch deletion |
 
-Typical cost: **100–250k tokens** per feature.
+**Typical cost**
+
+| Setup | Per feature |
+| --- | --- |
+| Without Graphify | **100–250k tokens** |
+| With Graphify indexed | **~75–225k tokens** (−10 to −25k) |
+
+The range is driven by the size of the feature, not by Graphify — a single-module
+change lands near the bottom, a multi-layer feature near the top. Graphify shaves
+roughly 4–10% off; it does not change the order of magnitude.
+
+If you want a materially cheaper run, that lever is
+[`-quick`](#lean-mode), not the graph.
 
 ## Lean mode
 
@@ -50,7 +62,9 @@ For small, well-scoped changes where the full ceremony is overkill: single-file
 fixes, copy changes, config tweaks, renames, refactors touching two files or
 fewer.
 
-Typical cost: **40–70k tokens**.
+Typical cost: **40–70k tokens** — a far bigger saving than Graphify offers,
+because it removes whole phases rather than making exploration cheaper. Lean
+mode skips the graph entirely, so this figure is the same either way.
 
 ### What changes
 
