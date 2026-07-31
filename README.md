@@ -1,4 +1,4 @@
-# slashforge
+# SlashForge
 
 [![npm version](https://img.shields.io/npm/v/slashforge.svg)](https://www.npmjs.com/package/slashforge)
 [![CI](https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml/badge.svg)](https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml)
