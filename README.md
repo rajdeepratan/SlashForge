@@ -1,11 +1,9 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/svg/slashforge-mark-dark.svg">
-    <img src="assets/svg/slashforge-mark.svg" alt="SlashForge" height="88">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/svg/slashforge-lockup-outlined-dark.svg">
+    <img src="assets/svg/slashforge-lockup-outlined.svg" alt="SlashForge" height="60">
   </picture>
 </p>
-
-<h1 align="center">SlashForge</h1>
 
 <p align="center"><strong>Workflow slash commands for AI coding agents.</strong></p>
 
