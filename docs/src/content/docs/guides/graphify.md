@@ -22,6 +22,24 @@ Vue, Svelte, Dart.
 This is a **setup-time offer, not a per-command check**. Once installed,
 Graphify's own PreToolUse hook on Glob/Grep surfaces graph context automatically.
 
+## Prerequisites
+
+Graphify is a Python CLI. You need **Python 3.10+** and one of `uv`, `pipx`, or
+`pip` — nothing more. Its dependencies (`networkx`, `numpy`, `rapidfuzz`, and a
+tree-sitter grammar per supported language) come down with the package.
+
+A few features live behind optional extras, which the plain install skips:
+
+| Extra | Install | What it unlocks |
+| --- | --- | --- |
+| `watch` | `uv tool install "graphifyy[watch]"` | `graphify watch .` — the proactive freshness loop below |
+| `svg` | `graphifyy[svg]` | SVG/image export of the graph |
+| `leiden` | `graphifyy[leiden]` | Leiden community detection (Python < 3.13) |
+
+Only `watch` matters for the workflow this kit describes. Add it at install
+time, or re-run the install command later with the extra — nothing is lost by
+deciding afterwards.
+
 ## Ask first, never auto-install
 
 Every install step is a shell command Claude could run itself. It doesn't. You
@@ -72,7 +90,8 @@ A stale graph is worse than none — it answers confidently and wrongly. Two
 defences:
 
 **Proactive.** Run `graphify watch .` in a separate terminal tab. The graph
-updates incrementally as files change. Free, continuous, recommended.
+updates incrementally as files change. Free, continuous, recommended — needs the
+`watch` extra, see [Prerequisites](#prerequisites).
 
 **Reactive.** The kit checks graph freshness before each graph-consulting
 command. If the graph is more than **7 days** behind your latest source commit,

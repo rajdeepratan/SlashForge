@@ -21,6 +21,39 @@ That is all SlashForge itself requires. There are two optional integrations, and
 You do not need to prepare anything. Install SlashForge, run a command, and it
 will walk you through the rest.
 
+### If you say yes to Graphify
+
+Graphify is a Python CLI, so accepting the offer needs one more thing on your
+machine:
+
+- **Python 3.10+**
+- **`uv`** — or `pipx`, or plain `pip`. Any of the three works; `uv` is what
+  `/slashforge:setup` suggests first.
+
+Nothing else. Graphify's own dependencies — `networkx`, `numpy`, `rapidfuzz`,
+and the tree-sitter grammar for each supported language — are resolved by the
+installer. There is no requirements file to manage and no virtualenv to create
+yourself; `uv tool install` and `pipx install` both put `graphifyy` in its own
+isolated environment.
+
+```bash
+python3 --version                 # need 3.10 or newer
+uv --version                      # or: pipx --version
+```
+
+If `uv` is missing, install it with `curl -LsSf https://astral.sh/uv/install.sh | sh`
+(macOS/Linux), or use `pipx`/`pip` instead — no reason to add a tool you don't
+already want.
+
+One caveat worth knowing up front: `graphify watch .`, the recommended way to
+[keep the graph fresh](/slashforge/guides/graphify/), needs the `watch` extra,
+which the plain install does not include. If you expect to use it, install with
+`uv tool install "graphifyy[watch]"` instead.
+
+Say no to the Graphify offer and none of this applies: SlashForge itself never
+touches Python. See [Graphify](/slashforge/guides/graphify/) for what the
+integration buys you.
+
 ## Quick start
 
 ```bash
