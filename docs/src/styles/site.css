@@ -347,8 +347,15 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   border-top: 2px solid var(--rule);
   margin-top: 48px;
 }
-.pager a { background: var(--bg); padding: 20px 22px 20px 0; display: block; }
-.pager a:last-child { padding: 20px 0 20px 22px; }
+/* Even padding on all four sides. The original left the outer edge at 0, which
+   put the text hard against the hover fill; the cell keeps its exact width
+   because `box-sizing: border-box` means padding is drawn inside it, so the
+   fill still stops precisely under the rule above. */
+.pager a {
+  background: var(--bg);
+  padding: 20px 22px;
+  display: block;
+}
 .pager a:hover { background: var(--surface); }
 .pager small {
   display: block;

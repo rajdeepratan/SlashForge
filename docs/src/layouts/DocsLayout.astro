@@ -33,7 +33,7 @@ const updated = lastModified(isGenerated ? '../CHANGELOG.md' : filePath);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const href = (s: string) => `${base}/${s}/`;
 
-const { prev, next } = neighbours(slug);
+const { prev, next } = neighbours(slug, base);
 const kicker = groupOf(slug);
 
 // Only h2 goes in the rail. h3 would double its length on the longer pages for
@@ -74,26 +74,30 @@ const toc = headings.filter((h) => h.depth === 2);
 
       <slot />
 
-      {
-        (prev || next) && (
-          <div class="pager">
-            {prev ? (
-              <a href={href(prev.slug)}>
-                <small>Previous</small>
-                <strong>{prev.label}</strong>
-              </a>
-            ) : (
-              <span />
-            )}
-            {next && (
-              <a href={href(next.slug)}>
-                <small>Next</small>
-                <strong>{next.label}</strong>
-              </a>
-            )}
-          </div>
-        )
-      }
+      <div class="pager">
+        {
+          prev ? (
+            <a href={prev.href}>
+              <small>Previous</small>
+              <strong>{prev.label}</strong>
+            </a>
+          ) : (
+            /* Holds the first column open so a lone Next stays on the right.
+               Deliberately unstyled: the pager's own hairline background shows
+               through, filling the empty half grey — the same way the last
+               page's missing Next already renders. */
+            <span />
+          )
+        }
+        {
+          next && (
+            <a href={next.href}>
+              <small>Next</small>
+              <strong>{next.label}</strong>
+            </a>
+          )
+        }
+      </div>
     </main>
 
     <aside class="toc">
