@@ -6,6 +6,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.0.1] - 2026-08-01
+
+### Added
+- `homepage` field pointing at the documentation site. Without it npm falls back to `<repository>#readme`, so the package page linked to the GitHub README rather than the docs.
+
 ## [4.0.0] - 2026-08-01
 
 ### Changed
