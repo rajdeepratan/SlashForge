@@ -3,11 +3,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "astro",
-  "redirects": [
+  "rewrites": [
     {
-      "source": "/",
-      "destination": "/SlashForge/",
-      "permanent": false
+      "source": "/SlashForge/:path*",
+      "destination": "/:path*"
     }
   ]
 }
