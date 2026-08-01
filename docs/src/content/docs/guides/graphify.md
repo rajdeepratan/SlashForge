@@ -7,7 +7,7 @@ description: Optional AST-level knowledge graph so agents query the call graph a
 knowledge graph engine. Indexed against your repo, agents query the call graph,
 blast radius, and dependency surface directly instead of grepping raw files.
 
-It is entirely optional.
+> It is entirely optional.
 
 ## When it is offered
 

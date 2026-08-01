@@ -1,7 +1,10 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
-import lucode from 'lucode-starlight';
+import sitemap from '@astrojs/sitemap';
+import remarkDirective from 'remark-directive';
+import { remarkCallouts } from './src/plugins/remark-callouts.mjs';
+import { remarkChangelog } from './src/plugins/remark-changelog.mjs';
+import { rehypeCodeFrame } from './src/plugins/rehype-code-frame.mjs';
 
 // Hosting is not settled yet. Both values are env-overridable so the same build
 // works for any hosting target without editing this file.
@@ -18,6 +21,25 @@ export default defineConfig({
   site,
   base,
 
+  // Every URL this site has previously served that no longer exists, pointed at
+  // where its content went. The site is live at www.rajdeepratan.com/slashforge,
+  // so these are real published URLs — a rename without a redirect is a 404 for
+  // anyone holding a link.
+  //
+  // Astro applies `base` to the source route (it decides where the file is
+  // emitted) but writes the destination into the meta refresh verbatim, so the
+  // target has to carry `base` itself.
+  redirects: {
+    // Three migration guides merged into one page.
+    '/guides/migrating-to-v4/': `${base}/reference/migrating/`,
+    '/guides/migrating-to-v3/': `${base}/reference/migrating/`,
+    '/guides/migrating-from-claude-setup-kit/': `${base}/reference/migrating/`,
+    // Merged page then moved from guides/ to reference/, to match its group.
+    '/guides/migrating/': `${base}/reference/migrating/`,
+    // Retitled: the page is now as much about plan mode as about /init.
+    '/guides/vs-init/': `${base}/guides/plan-mode-and-init/`,
+  },
+
   // Emit into dist/<base>/ so the built paths match the served URLs exactly.
   // Astro's `base` only rewrites URLs inside the HTML — it does not nest the
   // output — so on a host that serves dist/ at the domain root (Vercel), every
@@ -25,140 +47,20 @@ export default defineConfig({
   // rewrite rule, and works the same on any static host.
   outDir: `./dist${base}`,
 
-  integrations: [
-    starlight({
-      title: 'SlashForge',
-      description:
-        'Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate.',
-      logo: {
-        // The lockup draws its wordmark in Ink, which disappears on a dark
-        // background — so ship both variants rather than one.
-        light: './src/assets/lockup-light.svg',
-        dark: './src/assets/lockup-dark.svg',
-        alt: 'SlashForge',
-        replacesTitle: true,
-      },
-      favicon: '/favicon.svg',
-      head: [
-        {
-          // Opens external links in a new tab, so a click never navigates the
-          // reader out of the docs. Scoped to the whole document rather than
-          // the header: the hero's "View on GitHub" button and in-content links
-          // are not reachable through config either — the theme renders social
-          // icons via its own component and only spreads `attrs` on some nav
-          // links. Re-runs on astro:page-load for client-side navigations.
-          tag: 'script',
-          content: `(function(){function m(){document.querySelectorAll('a[href^="http"]').forEach(function(a){if(a.hostname&&a.hostname!==location.hostname){a.target='_blank';a.rel=(a.rel?a.rel+' ':'')+'noopener';}});}document.addEventListener('DOMContentLoaded',m);document.addEventListener('astro:page-load',m);m();})();`,
-        },
-        // Starlight sets twitter:card to summary_large_image but does not emit
-        // an image, so shared links rendered as a blank card. Uses the same
-        // 1280x640 asset as the GitHub social preview.
-        {
-          tag: 'meta',
-          attrs: { property: 'og:image', content: `${site}${base}/og.png` },
-        },
-        {
-          tag: 'meta',
-          attrs: { property: 'og:image:width', content: '1280' },
-        },
-        {
-          tag: 'meta',
-          attrs: { property: 'og:image:height', content: '640' },
-        },
-        {
-          tag: 'meta',
-          attrs: { property: 'og:image:alt', content: 'SlashForge' },
-        },
-        {
-          tag: 'meta',
-          attrs: { name: 'twitter:image', content: `${site}${base}/og.png` },
-        },
-      ],
-      customCss: ['./src/styles/theme.css'],
-      editLink: {
-        baseUrl: 'https://github.com/rajdeepratan/SlashForge/edit/main/docs',
-      },
-      lastUpdated: true,
-      plugins: [
-        lucode({
-          navLinks: [
-            { label: 'Docs', link: '/guides/introduction/' },
-            { label: 'Commands', link: '/commands/slashforge-setup/' },
-          ],
-        }),
-      ],
-      social: [
-        {
-          icon: 'github',
-          label: 'GitHub',
-          href: 'https://github.com/rajdeepratan/SlashForge',
-        },
-        {
-          icon: 'npm',
-          label: 'npm',
-          href: 'https://www.npmjs.com/package/slashforge',
-        },
-        {
-          // GitHub Sponsors' own mark is a heart. Starlight ships no
-          // Buy Me a Coffee icon, so that link stays on the repo and README
-          // rather than being given a misleading stand-in here.
-          icon: 'heart',
-          label: 'Sponsor',
-          href: 'https://github.com/sponsors/rajdeepratan',
-        },
-        {
-          // Starlight has no coffee icon, and this list only accepts built-in
-          // names — so 'heart' is a carrier that theme.css masks over with the
-          // Buy Me a Coffee logo, keyed on the href. Without the CSS this
-          // degrades to a second heart rather than a broken icon.
-          icon: 'heart',
-          label: 'Buy me a coffee',
-          href: 'https://buymeacoffee.com/rajdeepratan',
-        },
-      ],
-      sidebar: [
-        // Order follows a new user's path: what it is, how to install it, the
-        // commands themselves, then optional extras. Migration guides are last
-        // — they only matter to people who are already users.
-        {
-          label: 'Guides',
-          items: [
-            { label: 'Introduction', slug: 'guides/introduction' },
-            { label: 'Installation', slug: 'guides/installation' },
-          ],
-        },
-        {
-          label: 'Commands',
-          items: [
-            { label: '/slashforge:setup', slug: 'commands/slashforge-setup' },
-            { label: '/slashforge:code', slug: 'commands/slashforge-code' },
-            { label: '/slashforge:investigate', slug: 'commands/slashforge-investigate' },
-          ],
-        },
-        {
-          label: 'Integrations',
-          items: [
-            { label: 'Superpowers preflight', slug: 'guides/superpowers' },
-            { label: 'Graphify', slug: 'guides/graphify' },
-          ],
-        },
-        {
-          label: 'Reference',
-          items: [
-            { label: '/slashforge:setup vs /init', slug: 'guides/vs-init' },
-          ],
-        },
-        {
-          label: 'Migrating',
-          items: [
-            { label: 'From claude-setup-kit', slug: 'guides/migrating-from-claude-setup-kit' },
-            { label: 'v2 to v3', slug: 'guides/migrating-to-v3' },
-            { label: 'v3 to v4', slug: 'guides/migrating-to-v4' },
-          ],
-        },
-        // Generated from /CHANGELOG.md by scripts/sync-changelog.mjs.
-        { label: 'Changelog', slug: 'changelog' },
-      ],
-    }),
-  ],
+  integrations: [sitemap()],
+
+  markdown: {
+    // Shiki, built into Astro. Expressive Code went with Starlight; the design
+    // does not ask for tab bars or line highlighting, so plain Shiki plus the
+    // frame plugin below covers it.
+    shikiConfig: {
+      themes: { light: 'github-light', dark: 'github-dark' },
+      wrap: false,
+    },
+    // remark-directive parses the `:::note` syntax; remarkCallouts turns it
+    // into the design's callout markup. Order matters — the parser has to run
+    // first or there are no directive nodes to transform.
+    remarkPlugins: [remarkDirective, remarkCallouts, remarkChangelog],
+    rehypePlugins: [rehypeCodeFrame],
+  },
 });

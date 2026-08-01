@@ -1,0 +1,32 @@
+---
+/*
+ * Every documentation page. Replaces Starlight's routing: one static path per
+ * collection entry, rendered into the docs shell.
+ *
+ * `render()` returns the compiled body plus the heading list, which is what
+ * feeds the on-this-page rail — the same data Starlight derived internally.
+ */
+import { getCollection, render } from 'astro:content';
+import DocsLayout from '../layouts/DocsLayout.astro';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('docs');
+  return pages.map((page) => ({
+    params: { slug: page.id },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const { Content, headings } = await render(page);
+---
+
+<DocsLayout
+  title={page.data.title}
+  description={page.data.description}
+  slug={page.id}
+  headings={headings}
+  filePath={page.filePath}
+>
+  <Content />
+</DocsLayout>

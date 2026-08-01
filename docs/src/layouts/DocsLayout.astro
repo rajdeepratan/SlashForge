@@ -1,0 +1,124 @@
+---
+/*
+ * The documentation page: sidebar, content column, on-this-page rail, pager.
+ * This is the reference `docs.html` shell with the three lists driven by data
+ * — the sidebar and pager from `src/nav.ts`, the rail from the headings the
+ * markdown renderer extracted.
+ */
+import Base from './Base.astro';
+import { NAV, groupOf, neighbours } from '../nav';
+import { lastModified } from '../lastModified';
+
+interface Props {
+  title: string;
+  description?: string;
+  slug: string;
+  headings: { depth: number; slug: string; text: string }[];
+  /** Repo-relative path of the source markdown, for the edit link and date. */
+  filePath?: string;
+}
+
+const { title, description, slug, headings, filePath } = Astro.props;
+
+const EDIT_BASE = 'https://github.com/rajdeepratan/SlashForge/edit/main/docs/';
+// The changelog is generated from /CHANGELOG.md, so editing the copy under
+// docs/ would be overwritten on the next build — point at the real source.
+const isGenerated = slug === 'changelog';
+const editUrl = isGenerated
+  ? 'https://github.com/rajdeepratan/SlashForge/edit/main/CHANGELOG.md'
+  : filePath
+    ? EDIT_BASE + filePath
+    : undefined;
+const updated = lastModified(isGenerated ? '../CHANGELOG.md' : filePath);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const href = (s: string) => `${base}/${s}/`;
+
+const { prev, next } = neighbours(slug);
+const kicker = groupOf(slug);
+
+// Only h2 goes in the rail. h3 would double its length on the longer pages for
+// very little navigational value, and the reference shows one flat list.
+const toc = headings.filter((h) => h.depth === 2);
+---
+
+<Base {title} {description}>
+  <button class="menu-toggle" type="button" slot="menu-toggle" data-menu-toggle aria-expanded="false">
+    Menu
+  </button>
+
+  <div class="shell">
+    <aside class="sidebar" data-sidebar>
+      {
+        NAV.map((group) => (
+          <div class="sb-group">
+            <p>{group.label}</p>
+            <ul>
+              {group.items.map((item) => (
+                <li>
+                  <a href={href(item.slug)} aria-current={item.slug === slug ? 'page' : undefined}>
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </aside>
+
+    <main class="main">
+      {kicker && <div class="kicker">{kicker}</div>}
+      <h1>{title}</h1>
+      {description && <p class="lede">{description}</p>}
+      <hr class="rule" />
+
+      <slot />
+
+      {
+        (prev || next) && (
+          <div class="pager">
+            {prev ? (
+              <a href={href(prev.slug)}>
+                <small>Previous</small>
+                <strong>{prev.label}</strong>
+              </a>
+            ) : (
+              <span />
+            )}
+            {next && (
+              <a href={href(next.slug)}>
+                <small>Next</small>
+                <strong>{next.label}</strong>
+              </a>
+            )}
+          </div>
+        )
+      }
+    </main>
+
+    <aside class="toc">
+      {
+        toc.length > 0 && (
+          <>
+            <p>On this page</p>
+            <ul>
+              {toc.map((h) => (
+                <li>
+                  <a href={`#${h.slug}`}>{h.text}</a>
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+
+      <hr class="toc__hr" />
+      {editUrl && (
+        <a class="toc__edit" href={editUrl} target="_blank" rel="noopener">
+          Edit this page
+        </a>
+      )}
+      <div class="toc__updated">Updated {updated}</div>
+    </aside>
+  </div>
+</Base>

@@ -4,11 +4,11 @@ description: What SlashForge is, what it installs, and who it is for.
 ---
 
 SlashForge installs workflow slash commands into AI coding agents. The commands
-impose a disciplined development process — plan, confirm, branch, implement,
-verify, review, PR — rather than letting an agent freewheel from prompt to
-patch.
+impose a disciplined development process — ten phases from intake to a merged
+PR, with four points where the agent stops and waits for you — rather than
+letting it freewheel from prompt to patch.
 
-It is guardrails, not autocomplete.
+> It is guardrails, not autocomplete.
 
 ## What gets installed
 
@@ -17,16 +17,34 @@ Two things land on your machine:
 | What | Where |
 | --- | --- |
 | Guide files | `~/.claude/setup/slashforge/` |
-| Commands | `~/.claude/commands/forge/` |
+| Commands | `~/.claude/commands/slashforge/` |
 
 The commands are thin. They point at the guide files, which carry the actual
 workflow. That separation is why a command can change modes — `-quick` simply
 loads one extra guide.
 
-Commands live in a `forge/` subdirectory, which is what produces the `/slashforge:`
-prefix and keeps them from colliding with commands you already have.
+Commands live in a `slashforge/` subdirectory, which is what produces the
+`/slashforge:` prefix and keeps them from colliding with commands you already
+have.
+
+## The vocabulary
+
+`/slashforge:setup` generates five kinds of file into your repo. They are Claude
+Code concepts rather than SlashForge inventions, but you will see the words
+constantly, so:
+
+| Term | What it is |
+| --- | --- |
+| `CLAUDE.md` | The root instruction file the agent reads first — architecture, conventions, and where to route a given kind of request |
+| `rules/` | Conventions the agent must follow. Short, imperative, always in context |
+| `skills/` | Repo-specific procedures — how to add a migration, how to ship a component |
+| `agents/` | Specialist sub-agents invoked for one job, such as code review or git operations |
+| `commands/` | Repo-specific slash commands, on top of the three SlashForge installs |
+| `hooks/` | Automated behaviours that fire on an event, without being asked |
 
 ## The three commands
+
+Each command owns one job, and nothing overlaps.
 
 ### `/slashforge:setup`
 
@@ -58,6 +76,34 @@ diff produces something you have to audit line by line.
 Phase 6 runs lint, tests, and build before anything reaches a PR — so
 "it's done" means it was verified, not asserted.
 
+Want to see it rather than read about it?
+**[What a run looks like](/slashforge/guides/example-run/)** walks one pass from
+prompt to gate.
+
+## What a run costs
+
+Stated up front, because it is the first thing worth knowing before committing
+to a workflow this heavy.
+
+| Mode | Per feature |
+| --- | --- |
+| Full run | 100–250k tokens |
+| Full run, with Graphify indexed | ~75–225k tokens |
+| `-quick` | ~40–70k tokens |
+
+The range is driven by the size of the feature, not by the tooling — a
+single-module change lands near the bottom, a multi-layer feature near the top.
+[Graphify](/slashforge/guides/graphify/) shaves roughly 4–10% off; it does not
+change the order of magnitude. If you want a materially cheaper run, the lever
+is `-quick`.
+
+:::caution[Honest limit]
+SlashForge is deliberately heavy. If what you want is a prompt turned into a
+patch as fast as possible, this is the wrong tool. See
+[Plan mode and /init](/slashforge/guides/plan-mode-and-init/) for where the
+lighter option is the right call.
+:::
+
 ## Superpowers
 
 SlashForge integrates with the [superpowers](https://github.com/obra/superpowers)
@@ -65,17 +111,12 @@ plugin when installed, invoking a specific skill per phase — brainstorming for
 intake, test-driven-development for implementation, and so on.
 
 If superpowers is not installed, the workflow still runs. The skill steps
-degrade to following the written phase instructions.
+degrade to following the written phase instructions. See
+[Superpowers preflight](/slashforge/guides/superpowers/) for what each phase
+uses it for and what you lose without it.
 
 ## Supported tools
 
 Claude Code today. Cursor and Codex are planned — the rename to the vendor-neutral
 `/slashforge:` namespace in v3.0.0 was groundwork for exactly that.
-
-## Next
-
-**[Installation](/slashforge/guides/installation/)** — requirements, first run, and the setup
-sequence end to end.
-
-Already installed? Go straight to [`/slashforge:setup`](/slashforge/commands/slashforge-setup/).
 

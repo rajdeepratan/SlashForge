@@ -1,0 +1,57 @@
+---
+/*
+ * Everything inside <head>, shared by both layouts.
+ *
+ * Starlight used to generate all of this. The pieces worth keeping were the
+ * canonical URL, the og:image block (Starlight declared a large-image Twitter
+ * card but never emitted an image, so shares rendered blank), and the inline
+ * theme script that prevents a flash of the wrong theme.
+ */
+interface Props {
+  title: string;
+  description?: string;
+  /** Set on the home page, where the title already carries the pitch. */
+  rawTitle?: boolean;
+}
+
+const { title, description, rawTitle = false } = Astro.props;
+
+const site = Astro.site?.origin ?? '';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const ogImage = `${site}${base}/og.png`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{rawTitle ? title : `${title} — SlashForge`}</title>
+{description && <meta name="description" content={description} />}
+<link rel="canonical" href={canonical} />
+<link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
+<meta name="generator" content={Astro.generator} />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content={title} />
+{description && <meta property="og:description" content={description} />}
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1280" />
+<meta property="og:image:height" content="640" />
+<meta property="og:image:alt" content="SlashForge" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content={ogImage} />
+
+{/* Inlined and render-blocking on purpose: it has to set the theme before the
+    first paint, or the page flashes light before switching to dark. */}
+<script is:inline>
+	(() => {
+		let theme = null;
+		try {
+			theme = localStorage.getItem('sf-theme');
+		} catch {}
+		if (!theme) {
+			theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+		}
+		document.documentElement.dataset.theme = theme;
+	})();
+</script>
