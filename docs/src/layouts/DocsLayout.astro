@@ -41,7 +41,7 @@ const kicker = groupOf(slug);
 const toc = headings.filter((h) => h.depth === 2);
 ---
 
-<Base {title} {description}>
+<Base {title} {description} section={kicker} {updated}>
   <button class="menu-toggle" type="button" slot="menu-toggle" data-menu-toggle aria-expanded="false">
     Menu
   </button>
