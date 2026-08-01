@@ -2,7 +2,20 @@
 title: SlashForge
 description: Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate.
 template: splash
+# Starlight renders "<page title> | <site title>", which on the home page gave
+# the duplicated "SlashForge | SlashForge". Overridden so the tag carries the
+# value proposition instead of repeating the name.
+head:
+  - tag: title
+    content: SlashForge — workflow slash commands for AI coding agents
 hero:
+  # The lockup replaces the text title visually. The <h1> is kept in the DOM and
+  # hidden with CSS rather than removed, so the page still has a heading for
+  # screen readers and search engines.
+  image:
+    light: ../../assets/lockup-light.svg
+    dark: ../../assets/lockup-dark.svg
+    alt: SlashForge
   tagline: |
     Workflow slash commands for AI coding agents. Guardrails, not autocomplete.
     <span class="sf-support">Currently supports <strong>Claude Code</strong>. Cursor and Codex targets are planned.</span>

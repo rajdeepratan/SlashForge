@@ -49,6 +49,29 @@ export default defineConfig({
           tag: 'script',
           content: `(function(){function m(){document.querySelectorAll('header a[href^="http"]').forEach(function(a){if(a.hostname&&a.hostname!==location.hostname){a.target='_blank';a.rel=(a.rel?a.rel+' ':'')+'noopener';}});}document.addEventListener('DOMContentLoaded',m);document.addEventListener('astro:page-load',m);m();})();`,
         },
+        // Starlight sets twitter:card to summary_large_image but does not emit
+        // an image, so shared links rendered as a blank card. Uses the same
+        // 1280x640 asset as the GitHub social preview.
+        {
+          tag: 'meta',
+          attrs: { property: 'og:image', content: `${site}${base}/og.png` },
+        },
+        {
+          tag: 'meta',
+          attrs: { property: 'og:image:width', content: '1280' },
+        },
+        {
+          tag: 'meta',
+          attrs: { property: 'og:image:height', content: '640' },
+        },
+        {
+          tag: 'meta',
+          attrs: { property: 'og:image:alt', content: 'SlashForge' },
+        },
+        {
+          tag: 'meta',
+          attrs: { name: 'twitter:image', content: `${site}${base}/og.png` },
+        },
       ],
       customCss: ['./src/styles/theme.css'],
       editLink: {
