@@ -105,7 +105,7 @@ Read: manifest files, config files, and representative source files across diffe
 | `.claude/agents/` | Global agents: `git`, `code-reviewer` | Specialist agents: `frontend-developer`, `api-builder`, `debugger`, etc. |
 | `.claude/rules/` | Shared conventions (git, commit style) | App-specific coding standards |
 | `.claude/skills/` | — | App-specific recipes |
-| `.claude/commands/` | Shared commands (e.g. `/forge:setup`) | App-specific commands (e.g. `/run-checks`, `/add-metric`) |
+| `.claude/commands/` | Shared commands (e.g. `/slashforge:setup`) | App-specific commands (e.g. `/run-checks`, `/add-metric`) |
 
 ---
 

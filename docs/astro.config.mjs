@@ -29,7 +29,7 @@ export default defineConfig({
     starlight({
       title: 'SlashForge',
       description:
-        'Workflow slash commands for AI coding agents — /forge:setup, /forge:code, /forge:investigate.',
+        'Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate.',
       logo: {
         // The lockup draws its wordmark in Ink, which disappears on a dark
         // background — so ship both variants rather than one.
@@ -59,7 +59,7 @@ export default defineConfig({
         lucode({
           navLinks: [
             { label: 'Docs', link: '/guides/introduction/' },
-            { label: 'Commands', link: '/commands/forge-setup/' },
+            { label: 'Commands', link: '/commands/slashforge-setup/' },
           ],
         }),
       ],
@@ -106,9 +106,9 @@ export default defineConfig({
         {
           label: 'Commands',
           items: [
-            { label: '/forge:setup', slug: 'commands/forge-setup' },
-            { label: '/forge:code', slug: 'commands/forge-code' },
-            { label: '/forge:investigate', slug: 'commands/forge-investigate' },
+            { label: '/slashforge:setup', slug: 'commands/slashforge-setup' },
+            { label: '/slashforge:code', slug: 'commands/slashforge-code' },
+            { label: '/slashforge:investigate', slug: 'commands/slashforge-investigate' },
           ],
         },
         {
@@ -121,7 +121,7 @@ export default defineConfig({
         {
           label: 'Reference',
           items: [
-            { label: '/forge:setup vs /init', slug: 'guides/vs-init' },
+            { label: '/slashforge:setup vs /init', slug: 'guides/vs-init' },
           ],
         },
         {
@@ -129,6 +129,7 @@ export default defineConfig({
           items: [
             { label: 'From claude-setup-kit', slug: 'guides/migrating-from-claude-setup-kit' },
             { label: 'v2 to v3', slug: 'guides/migrating-to-v3' },
+            { label: 'v3 to v4', slug: 'guides/migrating-to-v4' },
           ],
         },
         // Generated from /CHANGELOG.md by scripts/sync-changelog.mjs.

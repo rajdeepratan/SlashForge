@@ -1,11 +1,11 @@
 ---
-title: /forge:investigate
+title: /slashforge:investigate
 description: Read-only research — reproduce and root-cause a bug, then produce a findings report.
 ---
 
 ```
-/forge:investigate
-/forge:investigate [symptom]
+/slashforge:investigate
+/slashforge:investigate [symptom]
 ```
 
 Read-only research. Reproduces a suspected bug, finds the root cause, and writes
@@ -23,7 +23,7 @@ it might do to your working tree.
 - You need the reasoning written down for someone else
 
 If you already know the cause and want it fixed, use
-[`/forge:code`](../forge-code/) instead — its Phase 5 runs
+[`/slashforge:code`](../forge-code/) instead — its Phase 5 runs
 systematic debugging as part of shipping the fix.
 
 ## What it produces
@@ -50,8 +50,8 @@ The argument is optional and freeform — a symptom, an error message, a failing
 test name, or a description:
 
 ```
-/forge:investigate the auth middleware drops the session on refresh
-/forge:investigate TypeError: cannot read property 'id' of undefined
+/slashforge:investigate the auth middleware drops the session on refresh
+/slashforge:investigate TypeError: cannot read property 'id' of undefined
 ```
 
 Without one, it asks what you are seeing.

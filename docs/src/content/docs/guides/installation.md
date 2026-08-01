@@ -16,7 +16,7 @@ That is all SlashForge itself requires. There are two optional integrations, and
 | | Required? | When you deal with it |
 | --- | --- | --- |
 | [superpowers](../superpowers/) | No, but strongly recommended | The first command you run offers to install it |
-| [Graphify](../graphify/) | No, fully optional | `/forge:setup` offers it mid-run, on supported languages only |
+| [Graphify](../graphify/) | No, fully optional | `/slashforge:setup` offers it mid-run, on supported languages only |
 
 You do not need to prepare anything. Install SlashForge, run a command, and it
 will walk you through the rest.
@@ -28,8 +28,8 @@ npx slashforge
 ```
 
 That installs the guide files and the three commands into `~/.claude/`. Open
-Claude Code in any repo and type `/` — you should see `/forge:setup`,
-`/forge:code`, and `/forge:investigate`.
+Claude Code in any repo and type `/` — you should see `/slashforge:setup`,
+`/slashforge:code`, and `/slashforge:investigate`.
 
 ## Your first run
 
@@ -55,7 +55,7 @@ it will tell you about. See [Superpowers preflight](../superpowers/).
 **3. Set up the repo.** Open Claude Code in your project and run:
 
 ```
-/forge:setup
+/slashforge:setup
 ```
 
 It explores the codebase, asks you questions in batches, and generates
@@ -66,14 +66,14 @@ silently, and you can accept later by re-running.
 **4. Do some work.**
 
 ```
-/forge:code
+/slashforge:code
 ```
 
 It asks what you want to build, then walks the ten phases, stopping at four
 points for your approval. For a small change, add `-quick`.
 
-That's the whole loop. `/forge:setup` once per repo, `/forge:code` per change,
-and [`/forge:investigate`](../../commands/forge-investigate/) when you need to
+That's the whole loop. `/slashforge:setup` once per repo, `/slashforge:code` per change,
+and [`/slashforge:investigate`](../../commands/slashforge-investigate/) when you need to
 understand a bug before touching it.
 
 ## Global install

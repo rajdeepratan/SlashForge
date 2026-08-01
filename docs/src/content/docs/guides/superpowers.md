@@ -54,5 +54,5 @@ npx slashforge
 
 [Graphify](../graphify/) is the other optional integration, but
 it works differently — it is a **one-time setup-time offer** inside
-`/forge:setup`, not a per-command check. Once installed, its own hook surfaces
+`/slashforge:setup`, not a per-command check. Once installed, its own hook surfaces
 graph context automatically.

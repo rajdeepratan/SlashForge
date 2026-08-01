@@ -27,7 +27,7 @@ npx slashforge
 | Release | Change |
 | --- | --- |
 | **v2.0.0** | Package renamed `claude-setup-kit` → `slashforge` |
-| **v3.0.0** | Commands renamed and namespaced under `/forge:` |
+| **v3.0.0** | Commands renamed and namespaced under `/slashforge:` |
 
 Skipping straight to v3 means both land at once.
 
@@ -38,19 +38,19 @@ cosmetic, the command names are muscle memory:
 
 | You are typing | Now type |
 | --- | --- |
-| `/setup-claude` | `/forge:setup` |
-| `/code` | `/forge:code` |
-| `/quick` | `/forge:code -quick` |
-| `/investigate` | `/forge:investigate` |
+| `/setup-claude` | `/slashforge:setup` |
+| `/code` | `/slashforge:code` |
+| `/quick` | `/slashforge:code -quick` |
+| `/investigate` | `/slashforge:investigate` |
 
-`/quick` is no longer a command — it is a mode of `/forge:code`. Full detail in
+`/quick` is no longer a command — it is a mode of `/slashforge:code`. Full detail in
 [Migrating to v3](../migrating-to-v3/).
 
 ## Why the rename happened
 
 `claude-setup-kit` tied the project to one vendor. Cursor and Codex support is
 planned, and a name built around a single tool does not survive that. The same
-reasoning drove `/setup-claude` → `/forge:setup` one release later.
+reasoning drove `/setup-claude` → `/slashforge:setup` one release later.
 
 ## Cleaning up old files
 

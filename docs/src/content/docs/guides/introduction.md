@@ -23,18 +23,18 @@ The commands are thin. They point at the guide files, which carry the actual
 workflow. That separation is why a command can change modes — `-quick` simply
 loads one extra guide.
 
-Commands live in a `forge/` subdirectory, which is what produces the `/forge:`
+Commands live in a `forge/` subdirectory, which is what produces the `/slashforge:`
 prefix and keeps them from colliding with commands you already have.
 
 ## The three commands
 
-### `/forge:setup`
+### `/slashforge:setup`
 
 One-time repo setup. Explores the codebase, asks clarifying questions in
 batches, then creates `CLAUDE.md` plus tailored rules, skills, agents,
 commands, and hooks in `.claude/`. Handles fresh repos and partial setups.
 
-### `/forge:code`
+### `/slashforge:code`
 
 The full ten-phase development workflow, ending in a merged PR. Four points
 stop and wait for you: plan confirmation, branch decision, PR target, and
@@ -44,7 +44,7 @@ Pass `-quick` for lean mode on small changes — it skips brainstorming, uses a
 two-section plan, and swaps the agent code review for an inline checklist. Every
 user gate and the lint/test/build verification stay.
 
-### `/forge:investigate`
+### `/slashforge:investigate`
 
 Read-only research. Reproduces a bug, finds the root cause, and writes a report
 to `.claude/investigations/`. No branch, no PR, no code changes.
@@ -70,12 +70,12 @@ degrade to following the written phase instructions.
 ## Supported tools
 
 Claude Code today. Cursor and Codex are planned — the rename to the vendor-neutral
-`/forge:` namespace in v3.0.0 was groundwork for exactly that.
+`/slashforge:` namespace in v3.0.0 was groundwork for exactly that.
 
 ## Next
 
 **[Installation](../installation/)** — requirements, first run, and the setup
 sequence end to end.
 
-Already installed? Go straight to [`/forge:setup`](../../commands/forge-setup/).
+Already installed? Go straight to [`/slashforge:setup`](../../commands/slashforge-setup/).
 

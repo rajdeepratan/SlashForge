@@ -30,23 +30,31 @@ const GUIDE_FILES = [
 ];
 
 const COMMAND_FILES = [
-  path.join('forge', 'setup.md'),
-  path.join('forge', 'code.md'),
-  path.join('forge', 'investigate.md'),
+  path.join('slashforge', 'setup.md'),
+  path.join('slashforge', 'code.md'),
+  path.join('slashforge', 'investigate.md'),
 ];
 
 // Namespace directory the command files live in, under the commands dir.
-const COMMAND_NAMESPACE = 'forge';
+const COMMAND_NAMESPACE = 'slashforge';
+
+// v3 used a `forge` namespace. Kept so uninstall can clear it after an upgrade.
+const LEGACY_COMMAND_NAMESPACE = 'forge';
 
 // v2 layout. Nothing writes these anymore — they exist so `uninstall` and
 // `status` can still find and clean up an install made by slashforge < 3.0.0.
 // Without them an upgrade would orphan the old files in ~/.claude/ forever.
 const LEGACY_GUIDES_DIRNAME = 'claude-setup';
 const LEGACY_COMMAND_FILES = [
+  // v2 layout: flat command files.
   'setup-claude.md',
   'code.md',
   'quick.md',
   'investigate.md',
+  // v3 layout: `forge` namespace.
+  path.join('forge', 'setup.md'),
+  path.join('forge', 'code.md'),
+  path.join('forge', 'investigate.md'),
 ];
 
 // ---------------------------------------------------------------------------
@@ -137,7 +145,7 @@ function renderTemplate(content, { installPath, version, pkgName }) {
     .replace(/\{\{KIT_PACKAGE\}\}/g, pkgName);
 }
 
-// 'forge/setup.md' -> '/forge:setup'. A command file's path under the commands
+// 'forge/setup.md' -> '/slashforge:setup'. A command file's path under the commands
 // dir determines how it is invoked; a subdirectory becomes a `:` namespace.
 function commandName(file) {
   return '/' + file.replace(/\.md$/, '').split(path.sep).join(':');
@@ -192,7 +200,7 @@ function installFiles(target, {
     });
     const dest = path.join(target.commandsDir, c);
     // Command files live in a namespace subdirectory (forge/), which is what
-    // produces the /forge:name invocation form.
+    // produces the /slashforge:name invocation form.
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, rendered);
     written.push(dest);
@@ -219,10 +227,12 @@ function uninstallFiles(target, { guideFiles = GUIDE_FILES, commandFiles = COMMA
   }
   // Prune the namespace dir once emptied, but never touch it if the user has
   // put their own commands in there.
-  const nsDir = path.join(target.commandsDir, COMMAND_NAMESPACE);
-  if (fs.existsSync(nsDir) && fs.readdirSync(nsDir).length === 0) {
-    fs.rmdirSync(nsDir);
-    removed.push(nsDir);
+  for (const ns of [COMMAND_NAMESPACE, LEGACY_COMMAND_NAMESPACE]) {
+    const nsDir = path.join(target.commandsDir, ns);
+    if (fs.existsSync(nsDir) && fs.readdirSync(nsDir).length === 0) {
+      fs.rmdirSync(nsDir);
+      removed.push(nsDir);
+    }
   }
   for (const dir of [target.guidesDir, target.legacyGuidesDir]) {
     if (dir && fs.existsSync(dir)) {
@@ -354,10 +364,10 @@ async function install({ dryRun, assumeYes, project = false }) {
   }
 
   console.log('\nDone! Open Claude Code in any repo:');
-  console.log('  • /forge:setup — one-time repo setup');
-  console.log('  • /forge:code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
-  console.log('  • /forge:code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
-  console.log('  • /forge:investigate [symptom] — read-only research, produces a findings report');
+  console.log('  • /slashforge:setup — one-time repo setup');
+  console.log('  • /slashforge:code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
+  console.log('  • /slashforge:code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
+  console.log('  • /slashforge:investigate [symptom] — read-only research, produces a findings report');
 }
 
 // After an upgrade from < 3.0.0 the v2 files are still on disk. We deliberately
@@ -376,7 +386,7 @@ function reportLegacyLeftovers(target) {
 
   console.log('\n⚠  Files from slashforge v2 are still present:');
   for (const p of stale) console.log(`     ${p}`);
-  console.log('   They are no longer used. Safe to delete once you have moved to /forge:* commands.');
+  console.log('   They are no longer used. Safe to delete once you have moved to /slashforge:* commands.');
 }
 
 async function uninstall({ project, assumeYes }) {

@@ -1,13 +1,13 @@
 ---
 name: Claude Development Workflow — Investigation Flow
-description: Read-only investigation flow used by /forge:investigate — reproduction, root-cause analysis, and findings report
+description: Read-only investigation flow used by /slashforge:investigate — reproduction, root-cause analysis, and findings report
 ---
 
 # Investigation Flow
 
-Short, research-only flow used by `/forge:investigate`. No branching, no PR, no verification phase. Output is a findings report.
+Short, research-only flow used by `/slashforge:investigate`. No branching, no PR, no verification phase. Output is a findings report.
 
-This file is loaded by `/forge:investigate`.
+This file is loaded by `/slashforge:investigate`.
 
 ---
 
@@ -45,4 +45,4 @@ This file is loaded by `/forge:investigate`.
    - **Suggested next step** — fix approach, deferral rationale, or further investigation needed
 2. **Write the report to a file:** `.claude/investigations/investigation-<YYYY-MM-DD-HHMM>.html`. The HTML structure is defined in `investigate.md` (Findings report — required HTML structure). Create the `.claude/investigations/` directory if it doesn't exist.
 3. Print the report in chat as well
-4. **Hand off:** end with — *"Investigation complete. Want me to fix this? Run `/forge:code` to start the fix."*
+4. **Hand off:** end with — *"Investigation complete. Want me to fix this? Run `/slashforge:code` to start the fix."*

@@ -1,13 +1,13 @@
 ---
 name: Claude Development Workflow
-description: End-to-end workflow invoked by /forge:code and /forge:investigate — requirements gathering, planning, change implementation, and research flows. Integrates superpowers skills when installed.
+description: End-to-end workflow invoked by /slashforge:code and /slashforge:investigate — requirements gathering, planning, change implementation, and research flows. Integrates superpowers skills when installed.
 ---
 
 # Claude Development Workflow
 
-Ten-phase change-shipping flow used by `/forge:code` (full and trivial paths) and `/forge:code -quick`. Companion files:
+Ten-phase change-shipping flow used by `/slashforge:code` (full and trivial paths) and `/slashforge:code -quick`. Companion files:
 
-- `forge-workflow-investigation.md` — Investigation Flow I1–I3 (loaded by `/forge:investigate` only — it does not load this file)
+- `forge-workflow-investigation.md` — Investigation Flow I1–I3 (loaded by `/slashforge:investigate` only — it does not load this file)
 - `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
 
 Every phase with a named superpowers skill MUST invoke that skill via the `Skill` tool when superpowers is installed — do not paraphrase. When it is not installed, follow the written steps directly. The flow runs without user intervention **except for four mandatory gates**: plan confirmation (Phase 3), branch decision (Phase 4), PR target + reviewers (Phase 8), and branch cleanup after merge (Phase 10).
@@ -35,7 +35,7 @@ Every phase with a named superpowers skill MUST invoke that skill via the `Skill
 
 **Superpowers skill (if installed):** `superpowers:writing-plans`
 
-1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/forge:code -quick` and `/forge:code` trivial. Then, if superpowers is installed, invoke `superpowers:writing-plans` to produce a structured plan.
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge:code -quick` and `/slashforge:code` trivial. Then, if superpowers is installed, invoke `superpowers:writing-plans` to produce a structured plan.
 2. **Full plan format** (default): cover every section, omitting only those that genuinely do not apply:
    - **Changes** — files/modules to be added, modified, or removed
    - **Affected surface** — public APIs, exported functions, shared interfaces, DB schemas, migrations
@@ -43,7 +43,7 @@ Every phase with a named superpowers skill MUST invoke that skill via the `Skill
    - **Breaking changes** — called out explicitly
    - **Risks & edge cases** — what could go wrong, what needs extra care
    - **Test strategy** — what will be tested and how
-3. **Lean plan format** (used only when Phase 1 classified the task as trivial, or when the user invoked `/forge:code -quick`): write **Changes** and **Test strategy** only. Include any other section only if it genuinely applies. Do not write "N/A" — a missing section *is* the N/A.
+3. **Lean plan format** (used only when Phase 1 classified the task as trivial, or when the user invoked `/slashforge:code -quick`): write **Changes** and **Test strategy** only. Include any other section only if it genuinely applies. Do not write "N/A" — a missing section *is* the N/A.
 4. Present the plan to the user in full — do not truncate
 
 ---
@@ -84,7 +84,7 @@ Every phase with a named superpowers skill MUST invoke that skill via the `Skill
 | Everything else that is testable (features, tasks, refactors) | `superpowers:test-driven-development` |
 | Genuinely not testable (docs, config, infra-only tweaks) | No Phase 5 skill — state *why* TDD was skipped, then implement |
 
-When uncertain, pick `superpowers:test-driven-development` and note the reasoning. `/forge:code -quick` always lands in row 3 or 4 — never systematic-debugging, never subagent-driven.
+When uncertain, pick `superpowers:test-driven-development` and note the reasoning. `/slashforge:code -quick` always lands in row 3 or 4 — never systematic-debugging, never subagent-driven.
 
 1. Select the appropriate specialist coding agent based on the task type (see Agent Selection Table in `forge-workflow-agents.md`). If no suitable agent exists, create it on the fly and notify the user: *"I created a `[name]` agent to handle this — saved to `.claude/agents/[name].md`"*
 2. Invoke the selected Phase 5 skill (or state why no skill applies), then implement.

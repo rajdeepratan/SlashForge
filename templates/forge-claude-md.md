@@ -39,14 +39,14 @@ Create this **last** — after all rules, skills, and agents exist — so the re
 
 ## Agent Orchestration Table
 
-Maps natural language intent to the right entry point. For whole-task requests, route to a slash command (`/forge:code`, `/forge:code -quick`, `/forge:investigate`) — the command handles the full workflow. For mid-task intents that arise inside an active workflow, route directly to the agent that owns that step.
+Maps natural language intent to the right entry point. For whole-task requests, route to a slash command (`/slashforge:code`, `/slashforge:code -quick`, `/slashforge:investigate`) — the command handles the full workflow. For mid-task intents that arise inside an active workflow, route directly to the agent that owns that step.
 
 ```markdown
 | When the user says... | Invoke |
 |---|---|
-| "investigate", "does this bug exist?", "reproduce this", "root-cause" | `/forge:investigate` |
-| "build", "add a feature", "change X", "fix Y" | `/forge:code` |
-| "small change", "tiny fix", "one-liner" | `/forge:code -quick` |
+| "investigate", "does this bug exist?", "reproduce this", "root-cause" | `/slashforge:investigate` |
+| "build", "add a feature", "change X", "fix Y" | `/slashforge:code` |
+| "small change", "tiny fix", "one-liner" | `/slashforge:code -quick` |
 | "review", "check the code" (mid-task) | `code-reviewer` agent |
 | "push", "create a PR", "branch" (mid-task) | `git` agent |
 | "write tests", "add coverage" (mid-task) | `test-writer` agent |
@@ -109,9 +109,9 @@ Each app's `CLAUDE.md` is a complete, self-contained entry point for that app. I
 ```markdown
 | When the user says... | Invoke |
 |---|---|
-| "investigate", "reproduce this", "root-cause" | `/forge:investigate` |
-| "build", "add a feature", "change X", "fix Y" | `/forge:code` |
-| "small change", "tiny fix", "one-liner" | `/forge:code -quick` |
+| "investigate", "reproduce this", "root-cause" | `/slashforge:investigate` |
+| "build", "add a feature", "change X", "fix Y" | `/slashforge:code` |
+| "small change", "tiny fix", "one-liner" | `/slashforge:code -quick` |
 | "fix a bug", "debug" (mid-task) | `frontend-developer` or `debugger` as appropriate |
 | "write tests" (mid-task) | `test-writer` |
 | anything else | `developer` |

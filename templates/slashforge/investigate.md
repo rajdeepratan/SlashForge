@@ -1,5 +1,5 @@
 ---
-name: /forge:investigate
+name: /slashforge:investigate
 description: Research-only flow — reproduce and root-cause a bug or suspected issue. Produces a findings report. No branch, no PR, no code changes.
 preflight: superpowers
 ---
@@ -15,7 +15,7 @@ This command is **read-only**. Do not edit application code. Do not create branc
 
 ## Entry
 
-The user invoked `/forge:investigate` — the argument (if any) may be:
+The user invoked `/slashforge:investigate` — the argument (if any) may be:
 - A free-form symptom description
 - A bug report or issue reference
 - Nothing → ask: **"What's the symptom you want me to investigate?"**
@@ -87,7 +87,7 @@ The findings report is a self-contained HTML document with inline `<style>`, no 
 
 <h2>Root cause</h2>
 <p>What's actually happening, or best hypothesis if not fully nailed down. Link code references as
-   <code>path/to/file.ts:42</forge:code> inside <code>&lt;code&gt;</forge:code> tags.</p>
+   <code>path/to/file.ts:42</slashforge:code> inside <code>&lt;code&gt;</slashforge:code> tags.</p>
 
 <h2>Affected scope</h2>
 <ul>
@@ -112,6 +112,6 @@ Write the report to a file AND print the same content (or a plain-text equivalen
 ## Hand-off
 
 End with:
-> *"Investigation complete. Want me to fix this? Run `/forge:code` to start the fix."*
+> *"Investigation complete. Want me to fix this? Run `/slashforge:code` to start the fix."*
 
 Follow `{{INSTALL_PATH}}/forge-workflow-investigation.md` as the source of truth.

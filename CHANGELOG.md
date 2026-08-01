@@ -6,6 +6,28 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-08-01
+
+### Changed
+- **BREAKING:** the command namespace moved from `/forge:` to `/slashforge:`.
+
+  | v3 | v4 |
+  | --- | --- |
+  | `/forge:setup` | `/slashforge:setup` |
+  | `/forge:code` | `/slashforge:code` |
+  | `/forge:code -quick` | `/slashforge:code -quick` |
+  | `/forge:investigate` | `/slashforge:investigate` |
+
+  `forge` is a common word and was liable to collide with other tools' commands — the exact problem namespacing was introduced to solve in v3.0.0. `slashforge` matches the package name.
+- Command files now install into `~/.claude/commands/slashforge/` instead of `~/.claude/commands/forge/`.
+
+### Added
+- `uninstall` and `status` recognise the v3 `forge/` namespace alongside the v2 layout, so an upgrade can still be cleaned up rather than orphaned.
+- Migration guide for v3 → v4 in the docs.
+
+### Unchanged
+- The three commands, the ten phases, every user gate, and the `-quick` mode all behave exactly as in v3.0.0. Guide filenames and the guides directory are untouched.
+
 ## [3.0.0] - 2026-07-31
 
 ### Changed

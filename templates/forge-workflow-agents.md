@@ -5,7 +5,7 @@ description: Agent selection table, mandatory multiple-agent rule, and self-suff
 
 # Agent Selection & Self-Sufficiency
 
-This file is loaded alongside `forge-workflow.md` by every workflow command (`/forge:code`, `/forge:code -quick`, `/forge:investigate`). It covers which agent handles which task type, and the rules that keep the workflow running without unnecessary user prompts.
+This file is loaded alongside `forge-workflow.md` by every workflow command (`/slashforge:code`, `/slashforge:code -quick`, `/slashforge:investigate`). It covers which agent handles which task type, and the rules that keep the workflow running without unnecessary user prompts.
 
 ---
 
@@ -42,5 +42,5 @@ The `developer` agent is the last resort — invoke specialist agents first when
 
 - Claude selects agents based on task type — never ask the user which agent to use
 - If a needed agent is missing, create it silently and notify the user after
-- The change-shipping loop (`/forge:code`, `/forge:code -quick`) runs without user intervention except for the four mandatory gates: **plan confirmation** (Phase 3), **branch decision** (Phase 4), **PR target + reviewers** (Phase 8), and **branch cleanup** (Phase 10)
+- The change-shipping loop (`/slashforge:code`, `/slashforge:code -quick`) runs without user intervention except for the four mandatory gates: **plan confirmation** (Phase 3), **branch decision** (Phase 4), **PR target + reviewers** (Phase 8), and **branch cleanup** (Phase 10)
 - Every phase with a named superpowers skill MUST invoke that skill via the `Skill` tool (if superpowers is installed) before acting — do not paraphrase from memory
