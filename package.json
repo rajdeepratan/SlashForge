@@ -1,7 +1,8 @@
 {
   "name": "slashforge",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate. Currently supports Claude Code.",
+  "homepage": "https://www.rajdeepratan.com/slashforge/",
   "scripts": {
     "test": "node --test"
   },
