@@ -52,7 +52,7 @@ npx slashforge
 
 ## Graphify is not a preflight
 
-[Graphify](../graphify/) is the other optional integration, but
+[Graphify](/slashforge/guides/graphify/) is the other optional integration, but
 it works differently — it is a **one-time setup-time offer** inside
 `/slashforge:setup`, not a per-command check. Once installed, its own hook surfaces
 graph context automatically.

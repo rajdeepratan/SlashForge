@@ -43,6 +43,8 @@ function resolves(href) {
 let broken = 0;
 for (const page of pages) {
   const html = readFileSync(page, 'utf8');
+
+  // Absolute internal links.
   const hrefs = new Set(
     [...html.matchAll(/(?:href|src)="(\/[^"]*)"/g)].map((m) => m[1])
   );
@@ -53,6 +55,23 @@ for (const page of pages) {
       );
       broken++;
     }
+  }
+
+  // Relative links are rejected outright rather than resolved. A browser
+  // resolves them against the *current URL*, so the same link works at
+  // /page/ and breaks at /page — and the proxy serves these pages without a
+  // trailing slash. This shipped a 404 on the home page's main call to
+  // action, so treat any relative internal link as a bug.
+  const relatives = new Set(
+    [...html.matchAll(/href="(?!https?:|\/\/|\/|#|mailto:|tel:)([^"]+)"/g)].map(
+      (m) => m[1]
+    )
+  );
+  for (const href of relatives) {
+    console.error(
+      `::error file=docs/${relative('.', page)}::relative internal link "${href}" — use a base-prefixed absolute path, it resolves differently with and without a trailing slash`
+    );
+    broken++;
   }
 }
 

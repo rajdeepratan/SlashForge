@@ -41,13 +41,14 @@ export default defineConfig({
       favicon: '/favicon.svg',
       head: [
         {
-          // Opens the header's external links (GitHub, npm, Sponsor, Buy me a
-          // coffee) in a new tab. Done here rather than in config because the
-          // theme renders social icons through its own component and only
-          // spreads `attrs` on some nav links, so neither is reachable.
-          // Re-runs on astro:page-load for client-side navigations.
+          // Opens external links in a new tab, so a click never navigates the
+          // reader out of the docs. Scoped to the whole document rather than
+          // the header: the hero's "View on GitHub" button and in-content links
+          // are not reachable through config either — the theme renders social
+          // icons via its own component and only spreads `attrs` on some nav
+          // links. Re-runs on astro:page-load for client-side navigations.
           tag: 'script',
-          content: `(function(){function m(){document.querySelectorAll('header a[href^="http"]').forEach(function(a){if(a.hostname&&a.hostname!==location.hostname){a.target='_blank';a.rel=(a.rel?a.rel+' ':'')+'noopener';}});}document.addEventListener('DOMContentLoaded',m);document.addEventListener('astro:page-load',m);m();})();`,
+          content: `(function(){function m(){document.querySelectorAll('a[href^="http"]').forEach(function(a){if(a.hostname&&a.hostname!==location.hostname){a.target='_blank';a.rel=(a.rel?a.rel+' ':'')+'noopener';}});}document.addEventListener('DOMContentLoaded',m);document.addEventListener('astro:page-load',m);m();})();`,
         },
         // Starlight sets twitter:card to summary_large_image but does not emit
         // an image, so shared links rendered as a blank card. Uses the same

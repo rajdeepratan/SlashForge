@@ -63,5 +63,5 @@ browser-readable interpretation of the machine-formatted graph report.
 ## What it does not do
 
 It does not write application code, create branches, or open PRs. It only
-produces configuration. Use [`/slashforge:code`](../forge-code/)
+produces configuration. Use [`/slashforge:code`](/slashforge/commands/slashforge-code/)
 for development work.
