@@ -76,7 +76,7 @@ code {
  * painted here with a CSS mask keyed on the href. The carrier <svg> is hidden.
  *
  * A mask + data URI is used rather than an <img> so no file path is involved:
- * the docs base path is configurable, and a hardcoded /SlashForge/... would
+ * the docs base path is configurable, and a hardcoded /slashforge/... would
  * break the moment hosting changes. The mask also inherits currentColor, so it
  * matches the neighbouring icons in both light and dark mode.
  */

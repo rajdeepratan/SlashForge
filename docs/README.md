@@ -8,10 +8,10 @@ with [lucode-starlight](https://github.com/lucas-labs/lucode-starlight-theme).
 ```bash
 cd docs
 npm install
-npm run dev       # http://localhost:4321/SlashForge/
+npm run dev       # http://localhost:4321/slashforge/
 ```
 
-**Note the `/SlashForge` path** — the site is built with a base path, so plain
+**Note the `/slashforge` path** — the site is built with a base path, so plain
 `localhost:4321` will 404.
 
 ```bash
@@ -28,16 +28,16 @@ injects CSS through Vite and can render unstyled on a cold first paint.
 whichever hosting target is chosen:
 
 ```bash
-DOCS_SITE=https://rajdeepratan.com DOCS_BASE_PATH=/SlashForge npm run build
+DOCS_SITE=https://rajdeepratan.com DOCS_BASE_PATH=/slashforge npm run build
 ```
 
 | Variable | Default |
 | --- | --- |
 | `DOCS_SITE` | `https://rajdeepratan.github.io` |
-| `DOCS_BASE_PATH` | `/SlashForge` |
+| `DOCS_BASE_PATH` | `/slashforge` |
 
 Because the base path is configurable, **write internal links as relative**
-(`../installation/`), never as `/SlashForge/...`. Hardcoding the base breaks
+(`../installation/`), never as `/slashforge/...`. Hardcoding the base breaks
 every cross-link the moment hosting changes.
 
 ## Adding a page
@@ -86,23 +86,23 @@ settings come from `vercel.json`.
 
 ### Why `vercel.json` has a rewrite
 
-Astro's `base: '/SlashForge'` rewrites the URLs *inside* the generated HTML, but
+Astro's `base: '/slashforge'` rewrites the URLs *inside* the generated HTML, but
 it does **not** nest the build output — `dist/` contains `index.html`,
-`guides/`, `commands/` at its top level, with no `SlashForge/` directory.
+`guides/`, `commands/` at its top level, with no `slashforge/` directory.
 
 GitHub Pages serves a project repo under `/<repo>/` itself, so `base` alone
 lines up there. Vercel serves `dist/` at the domain root, so every
-`/SlashForge/...` URL in the HTML would hit nothing and render Starlight's 404.
+`/slashforge/...` URL in the HTML would hit nothing and render Starlight's 404.
 The rewrite maps the prefix back onto the filesystem:
 
 ```json
-{ "source": "/SlashForge/:path*", "destination": "/:path*" }
+{ "source": "/slashforge/:path*", "destination": "/:path*" }
 ```
 
 Remove that rewrite only if you also remove `base`, and vice versa — they are a
 pair.
 
-### Serving it from rajdeepratan.com/SlashForge
+### Serving it from rajdeepratan.com/slashforge
 
 The apex domain is a separate Vercel project (the Next.js personal site), so it
 proxies through with a rewrite in **that** repo's `vercel.json`:
@@ -111,11 +111,22 @@ proxies through with a rewrite in **that** repo's `vercel.json`:
 {
   "rewrites": [
     {
-      "source": "/SlashForge/:path*",
-      "destination": "https://slash-forge.vercel.app/SlashForge/:path*"
+      "source": "/slashforge/:path*",
+      "destination": "https://slash-forge.vercel.app/slashforge/:path*"
     }
   ]
 }
 ```
 
 The prefix is preserved on both hops; the docs project strips it internally.
+
+### Both casings
+
+`/slashforge` is canonical. `/SlashForge` **301s** to it — URL paths are
+case-sensitive, so serving both would be duplicate content and split any SEO
+value between two URLs.
+
+The redirect lives in `docs/vercel.json` so it also works on the bare deployment
+URL. On the apex domain, add the same redirect to the personal site's
+`vercel.json` so the bounce happens on `rajdeepratan.com` rather than exposing
+the Vercel deployment URL to the browser.
