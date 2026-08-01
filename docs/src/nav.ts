@@ -64,8 +64,30 @@ export function groupOf(slug: string): string {
   return FLAT.find((i) => i.slug === slug)?.group ?? '';
 }
 
-/** Previous and next in reading order. `undefined` at either end. */
-export function neighbours(slug: string) {
+export type Neighbour = { label: string; href: string };
+
+/**
+ * Previous and next in reading order.
+ *
+ * The reading order is a line, not a loop, and it does not run off either end.
+ * The prototype gives the first page a Previous of "Home" and wraps the last
+ * page's Next back to the Introduction; both are dropped. The pager is for
+ * moving through the sequence, so at the ends there is simply nothing to point
+ * at — a cell naming a page outside the sequence, or one already read, is
+ * noise rather than navigation.
+ */
+export function neighbours(
+  slug: string,
+  base: string
+): { prev?: Neighbour; next?: Neighbour } {
+  const link = (item: NavItem): Neighbour => ({
+    label: item.label,
+    href: `${base}/${item.slug}/`,
+  });
   const i = FLAT.findIndex((x) => x.slug === slug);
-  return { prev: i > 0 ? FLAT[i - 1] : undefined, next: i >= 0 ? FLAT[i + 1] : undefined };
+
+  return {
+    prev: i > 0 ? link(FLAT[i - 1]) : undefined,
+    next: i >= 0 && i < FLAT.length - 1 ? link(FLAT[i + 1]) : undefined,
+  };
 }
