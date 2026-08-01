@@ -34,7 +34,18 @@ jobs:
       - name: Set version from release tag
         run: npm version "${TAG#v}" --no-git-tag-version --allow-same-version
 
+      # Authenticates via OIDC trusted publishing — no token. NODE_AUTH_TOKEN is
+      # deliberately absent: if it is set, npm uses that token instead of
+      # falling back to OIDC, which is what made this fail with EOTP under the
+      # account's auth-and-writes 2FA setting.
+      - name: Verify npm supports OIDC trusted publishing
+        run: |
+          NPM_V="$(npm -v)"
+          echo "npm $NPM_V"
+          npx --yes semver@7 -r '>=11.5.1' "$NPM_V" >/dev/null || {
+            echo "::error::npm >= 11.5.1 is required for OIDC trusted publishing (got $NPM_V)"
+            exit 1
+          }
+
       - name: Publish to npm
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
