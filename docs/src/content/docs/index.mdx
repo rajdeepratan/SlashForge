@@ -1,6 +1,6 @@
 ---
 title: SlashForge
-description: Workflow slash commands for AI coding agents — /forge:setup, /forge:code, /forge:investigate.
+description: Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate.
 template: splash
 hero:
   tagline: |
@@ -23,16 +23,16 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 ## Three commands
 
 <CardGrid>
-  <Card title="/forge:setup" icon="setting">
+  <Card title="/slashforge:setup" icon="setting">
     One-time repo setup. Explores the codebase, asks clarifying questions, then
     generates `CLAUDE.md`, rules, skills, agents, commands, and hooks tailored
     to it.
   </Card>
-  <Card title="/forge:code" icon="rocket">
+  <Card title="/slashforge:code" icon="rocket">
     End-to-end development. Ten phases from plan to merged PR, with mandatory
     stop-and-confirm gates. Add `-quick` for lean mode on small changes.
   </Card>
-  <Card title="/forge:investigate" icon="magnifier">
+  <Card title="/slashforge:investigate" icon="magnifier">
     Read-only research. Reproduces and root-causes a bug, then writes a findings
     report. Never touches your code.
   </Card>

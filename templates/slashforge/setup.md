@@ -1,5 +1,5 @@
 ---
-name: /forge:setup
+name: /slashforge:setup
 description: One-time repo setup — explore the codebase, ask clarifying questions, and create CLAUDE.md plus tailored rules, skills, agents, commands, and hooks in .claude/. Handles both fresh repos and partial setups.
 preflight: superpowers
 ---

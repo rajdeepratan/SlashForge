@@ -1,11 +1,11 @@
 ---
-title: /forge:code
+title: /slashforge:code
 description: End-to-end development workflow — plan, confirm, branch, implement, verify, review, PR. Add -quick for lean mode.
 ---
 
 ```
-/forge:code
-/forge:code -quick
+/slashforge:code
+/slashforge:code -quick
 ```
 
 The full development workflow, from an idea to a merged PR. Ten phases, run in
@@ -55,7 +55,7 @@ If you want a materially cheaper run, that lever is
 ## Lean mode
 
 ```
-/forge:code -quick
+/slashforge:code -quick
 ```
 
 For small, well-scoped changes where the full ceremony is overkill: single-file
@@ -131,7 +131,7 @@ cover. If there is no specialist agent, no scoped rule, and no mention in
 2. **Phase 7 (safety net)** — the `code-reviewer` agent re-checks the diff. If
    gaps remain, it raises a **note**, not a block. The PR can still merge.
 
-Skipped on `-quick`, on trivial auto-detect, and on `/forge:investigate`.
+Skipped on `-quick`, on trivial auto-detect, and on `/slashforge:investigate`.
 
 **Cost:** ~100–300 tokens when no gaps are found; ~300–600 when gaps surface and
 you decline; ~3–8k when you accept and files are generated.
@@ -139,7 +139,7 @@ you decline; ~3–8k when you accept and files are generated.
 **Why it exists:** without it, every new domain silently widens the gap between
 what the repo does and what `.claude/` knows. Agents stay generic, rules stop
 matching, `CLAUDE.md` drifts. This closes the loop incrementally instead of
-relying on you to remember to re-run `/forge:setup`.
+relying on you to remember to re-run `/slashforge:setup`.
 
 ## Superpowers skills per phase
 

@@ -1,17 +1,17 @@
 ---
 name: Claude Setup — .claude/ Coverage Check
-description: Detection logic for new domains not covered by .claude/ + CLAUDE.md. Fires at Phase 2 (proactive) and inside the code-reviewer agent at Phase 7 (safety net). Suggests creating agents/rules/skills/CLAUDE.md updates so .claude/ grows alongside the codebase. Auto-skipped on /forge:code -quick, /forge:code trivial, and /forge:investigate.
+description: Detection logic for new domains not covered by .claude/ + CLAUDE.md. Fires at Phase 2 (proactive) and inside the code-reviewer agent at Phase 7 (safety net). Suggests creating agents/rules/skills/CLAUDE.md updates so .claude/ grows alongside the codebase. Auto-skipped on /slashforge:code -quick, /slashforge:code trivial, and /slashforge:investigate.
 ---
 
 # .claude/ Coverage Check
 
-When a feature introduces a new domain — a new framework, layer, language, or pattern the repo hasn't had before — the kit's `.claude/` infrastructure won't grow to cover it unless someone re-runs `/forge:setup`. This check catches the gap during normal development so the user can either add coverage now or defer it explicitly.
+When a feature introduces a new domain — a new framework, layer, language, or pattern the repo hasn't had before — the kit's `.claude/` infrastructure won't grow to cover it unless someone re-runs `/slashforge:setup`. This check catches the gap during normal development so the user can either add coverage now or defer it explicitly.
 
 ## When it fires
 
-- **Phase 2 of `/forge:code`** — proactive, before the plan is written
+- **Phase 2 of `/slashforge:code`** — proactive, before the plan is written
 - **Phase 7 (inside the `code-reviewer` agent)** — reactive safety net, on the diff
-- **Auto-skipped on:** `/forge:code -quick`, `/forge:code` trivial auto-detect, `/forge:investigate` (read-only research, doesn't modify code)
+- **Auto-skipped on:** `/slashforge:code -quick`, `/slashforge:code` trivial auto-detect, `/slashforge:investigate` (read-only research, doesn't modify code)
 
 ## What "coverage" means — the matrix
 
@@ -65,25 +65,25 @@ If gaps detected, present BEFORE writing the plan:
 
 The `code-reviewer` agent inspects the implemented diff for the same gaps. If gaps remain (because the user said no at Phase 2, or a new gap surfaced during implementation), the review report includes:
 
-> *"**Coverage gap:** PR introduces [domain X] but `.claude/` doesn't cover it. Suggest adding [agent X / rule X / CLAUDE.md update] either before merge (extend this PR) or as a follow-up `/forge:setup` run."*
+> *"**Coverage gap:** PR introduces [domain X] but `.claude/` doesn't cover it. Suggest adding [agent X / rule X / CLAUDE.md update] either before merge (extend this PR) or as a follow-up `/slashforge:setup` run."*
 
 This is a **note, not a block.** The PR can still merge with the gap; the user is informed.
 
 ## What this is NOT
 
-- **Not a replacement for `/forge:setup`.** Coverage check is feature-scoped — it adds what THIS feature needs. `/forge:setup` re-explores the whole repo.
+- **Not a replacement for `/slashforge:setup`.** Coverage check is feature-scoped — it adds what THIS feature needs. `/slashforge:setup` re-explores the whole repo.
 - **Not a hard gate.** The Phase 7 note doesn't block the PR.
 - **Not auto-applied.** Always asks before creating new `.claude/` files. Capability ≠ consent (same principle as Graphify install).
-- **Not for `/forge:code -quick` / `/forge:investigate` / `/forge:code` trivial.** Lean and read-only paths skip this entirely.
+- **Not for `/slashforge:code -quick` / `/slashforge:investigate` / `/slashforge:code` trivial.** Lean and read-only paths skip this entirely.
 
 ## Token cost summary
 
 | State | Tokens added per command |
 |---|---|
-| `/forge:code -quick`, `/forge:code` trivial, `/forge:investigate` | 0 (skipped) |
+| `/slashforge:code -quick`, `/slashforge:code` trivial, `/slashforge:investigate` | 0 (skipped) |
 | Coverage gaps not detected | ~100–300 (matrix scan + Phase 2 result) |
 | Coverage gaps detected, user declines | ~300–600 (matrix scan + warning + y/n) |
 | Coverage gaps detected, user accepts | ~300–600 + ~3–8k for new file generation in Phase 5 |
 | Phase 7 safety-net detection | ~100–300 (inside the existing `code-reviewer` agent pass) |
 
-Steady state on a feature that doesn't introduce new domains: ~100–300 tokens. Well within `/forge:code` full-flow's 100–250k budget.
+Steady state on a feature that doesn't introduce new domains: ~100–300 tokens. Well within `/slashforge:code` full-flow's 100–250k budget.

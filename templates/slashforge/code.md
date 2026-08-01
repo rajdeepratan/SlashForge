@@ -1,5 +1,5 @@
 ---
-name: /forge:code
+name: /slashforge:code
 description: End-to-end development workflow — gather requirements, plan, confirm, branch, implement, verify, review, push, PR. Pass `-quick` for lean mode on small changes (skips brainstorming, minimal plan, inline self-review instead of the agent review). Uses superpowers skills at each phase when installed.
 preflight: superpowers
 ---

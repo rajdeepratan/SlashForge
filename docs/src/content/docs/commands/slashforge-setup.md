@@ -1,10 +1,10 @@
 ---
-title: /forge:setup
+title: /slashforge:setup
 description: One-time repo setup — generates CLAUDE.md plus tailored rules, skills, agents, commands, and hooks.
 ---
 
 ```
-/forge:setup
+/slashforge:setup
 ```
 
 One-time setup for a repository. Explores the codebase, asks clarifying
@@ -49,7 +49,7 @@ specialist agents.
 
 ## Graphify
 
-During exploration, `/forge:setup` checks language fit for
+During exploration, `/slashforge:setup` checks language fit for
 [Graphify](https://github.com/rajdeepratan/graphify). If at least 70% of
 non-trivial source files are in a supported language, it offers to install and
 index. On YAML, shell, or config-only repos it skips silently.
@@ -63,5 +63,5 @@ browser-readable interpretation of the machine-formatted graph report.
 ## What it does not do
 
 It does not write application code, create branches, or open PRs. It only
-produces configuration. Use [`/forge:code`](../forge-code/)
+produces configuration. Use [`/slashforge:code`](../forge-code/)
 for development work.

@@ -1,15 +1,15 @@
 ---
 name: Lean Mode Overrides
-description: Overrides applied on top of the standard workflow when /forge:code is invoked with -quick. Skips brainstorming, uses a minimal plan, and replaces the agent-driven Phase 7 review with an inline self-review checklist. Every user gate and Phase 6 verification is preserved.
+description: Overrides applied on top of the standard workflow when /slashforge:code is invoked with -quick. Skips brainstorming, uses a minimal plan, and replaces the agent-driven Phase 7 review with an inline self-review checklist. Every user gate and Phase 6 verification is preserved.
 ---
 
-Read only when `/forge:code` was invoked with `-quick`. Apply these overrides on
+Read only when `/slashforge:code` was invoked with `-quick`. Apply these overrides on
 top of `forge-workflow.md` and `forge-workflow-agents.md`. Do not skip any phase
 that is not listed in the table below — especially not the user gates.
 
 ## What lean mode is for
 
-Small, well-scoped changes where the full `/forge:code` ceremony is overkill:
+Small, well-scoped changes where the full `/slashforge:code` ceremony is overkill:
 single-file fixes, copy changes, config tweaks, renames, minor refactors
 touching ≤ 2 files.
 
@@ -17,7 +17,7 @@ touching ≤ 2 files.
 requirements, bug fixes where the root cause isn't already understood (use full
 mode so `superpowers:systematic-debugging` runs in Phase 5).
 
-Lean mode **does not auto-escalate**. If you're unsure, use full `/forge:code` —
+Lean mode **does not auto-escalate**. If you're unsure, use full `/slashforge:code` —
 its fast path already handles trivial tasks without the ceremony.
 
 **Code graph (Graphify) in lean mode:** skip it. If Graphify is installed and its
@@ -66,12 +66,12 @@ Before handing off to Phase 8, check every item against the staged diff:
 
 If **any** item fails → return to Phase 5 and fix. If **2 or more** items fail on
 the same task → stop and tell the user: *"This change isn't as small as lean mode
-assumed. Recommend restarting with `/forge:code` (no `-quick`) so the full plan +
+assumed. Recommend restarting with `/slashforge:code` (no `-quick`) so the full plan +
 code-reviewer pass runs."*
 
 ## When to bail out of lean mode mid-run
 
-Stop and recommend the user restart with full `/forge:code` if **any** of the
+Stop and recommend the user restart with full `/slashforge:code` if **any** of the
 following becomes true after Phase 2:
 
 - The plan reveals more than 2 files, or a new module / new abstraction / new dependency

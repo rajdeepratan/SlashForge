@@ -96,7 +96,7 @@ test('installFiles project renders repo-relative installPath into commands', () 
   const repo = tmp();
   const target = resolveTarget({ project: true, cwd: repo, homeDir: repo });
   installFiles(target, {});
-  const body = fs.readFileSync(path.join(target.commandsDir, 'forge', 'setup.md'), 'utf8');
+  const body = fs.readFileSync(path.join(target.commandsDir, 'slashforge', 'setup.md'), 'utf8');
   assert.ok(body.includes('.claude/setup/slashforge'));
   assert.ok(!body.includes('{{'));
   const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
@@ -179,29 +179,29 @@ test('CLI uninstall --project --yes is a graceful no-op when nothing is installe
 });
 
 test('commandName maps a namespaced file to its slash invocation', () => {
-  assert.equal(commandName(path.join('forge', 'setup.md')), '/forge:setup');
-  assert.equal(commandName(path.join('forge', 'code.md')), '/forge:code');
+  assert.equal(commandName(path.join('slashforge', 'setup.md')), '/slashforge:setup');
+  assert.equal(commandName(path.join('slashforge', 'code.md')), '/slashforge:code');
   assert.equal(commandName('investigate.md'), '/investigate');
 });
 
-test('commands install into the forge namespace directory', () => {
+test('commands install into the slashforge namespace directory', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home });
   installFiles(target, {});
-  const nsDir = path.join(target.commandsDir, 'forge');
-  assert.ok(fs.existsSync(nsDir), 'forge/ namespace dir should exist');
+  const nsDir = path.join(target.commandsDir, 'slashforge');
+  assert.ok(fs.existsSync(nsDir), 'slashforge/ namespace dir should exist');
   assert.ok(fs.existsSync(path.join(nsDir, 'setup.md')));
   assert.ok(fs.existsSync(path.join(nsDir, 'code.md')));
   assert.ok(fs.existsSync(path.join(nsDir, 'investigate.md')));
   const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
-  assert.deepEqual(meta.commands, ['/forge:setup', '/forge:code', '/forge:investigate']);
+  assert.deepEqual(meta.commands, ['/slashforge:setup', '/slashforge:code', '/slashforge:investigate']);
 });
 
-test('/forge:code dispatches lean mode and ships the override guide', () => {
+test('/slashforge:code dispatches lean mode and ships the override guide', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home });
   installFiles(target, {});
-  const body = fs.readFileSync(path.join(target.commandsDir, 'forge', 'code.md'), 'utf8');
+  const body = fs.readFileSync(path.join(target.commandsDir, 'slashforge', 'code.md'), 'utf8');
   assert.ok(body.includes('-quick'), 'code command should document the -quick flag');
   assert.ok(body.includes('forge-workflow-quick.md'), 'should point at the lean override guide');
   assert.ok(
@@ -218,7 +218,9 @@ test('uninstall cleans up a v2 install (legacy commands and guides dir)', () => 
   fs.mkdirSync(target.legacyGuidesDir, { recursive: true });
   fs.writeFileSync(path.join(target.legacyGuidesDir, 'claude-setup-workflow.md'), 'old');
   for (const c of LEGACY_COMMAND_FILES) {
-    fs.writeFileSync(path.join(target.commandsDir, c), 'old');
+    const p = path.join(target.commandsDir, c);
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, 'old');
   }
 
   uninstallFiles(target, {});
@@ -232,15 +234,15 @@ test('uninstall cleans up a v2 install (legacy commands and guides dir)', () => 
   assert.ok(!fs.existsSync(target.legacyGuidesDir), 'legacy guides dir should be removed');
 });
 
-test('uninstall leaves user-owned files in the forge namespace alone', () => {
+test('uninstall leaves user-owned files in the slashforge namespace alone', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home });
   installFiles(target, {});
-  const mine = path.join(target.commandsDir, 'forge', 'mine.md');
+  const mine = path.join(target.commandsDir, 'slashforge', 'mine.md');
   fs.writeFileSync(mine, 'user command');
 
   uninstallFiles(target, {});
 
-  assert.ok(fs.existsSync(mine), 'a user command in forge/ must survive uninstall');
-  assert.ok(!fs.existsSync(path.join(target.commandsDir, 'forge', 'code.md')));
+  assert.ok(fs.existsSync(mine), 'a user command in slashforge/ must survive uninstall');
+  assert.ok(!fs.existsSync(path.join(target.commandsDir, 'slashforge', 'code.md')));
 });
