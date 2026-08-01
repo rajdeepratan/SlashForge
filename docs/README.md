@@ -130,3 +130,19 @@ The redirect lives in `docs/vercel.json` so it also works on the bare deployment
 URL. On the apex domain, add the same redirect to the personal site's
 `vercel.json` so the bounce happens on `rajdeepratan.com` rather than exposing
 the Vercel deployment URL to the browser.
+
+### Why `outDir` is nested
+
+The build emits into `dist/<base>/` (`outDir: './dist' + base`), so
+`/slashforge/...` exists **on disk** and needs no host rewrite rule.
+
+Astro's `base` only rewrites URLs inside the generated HTML — it does not nest
+the output. GitHub Pages happens to serve a project repo under `/<repo>/`, which
+masks this; any host serving `dist/` at the domain root (Vercel, Netlify, S3,
+nginx) would 404 on every URL instead.
+
+Nesting `outDir` makes the layout match the URLs on every host. `postbuild` then
+writes a small `dist/index.html` redirecting `/` to the base path, since the
+nesting leaves the output root without an index.
+
+Change `base` and both follow automatically — they read the same value.

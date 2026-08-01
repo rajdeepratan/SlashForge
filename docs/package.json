@@ -12,7 +12,8 @@
     "prebuild": "npm run sync:changelog",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "postbuild": "node scripts/root-redirect.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.41.6",
