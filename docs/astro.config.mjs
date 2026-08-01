@@ -18,6 +18,13 @@ export default defineConfig({
   site,
   base,
 
+  // Emit into dist/<base>/ so the built paths match the served URLs exactly.
+  // Astro's `base` only rewrites URLs inside the HTML — it does not nest the
+  // output — so on a host that serves dist/ at the domain root (Vercel), every
+  // /slashforge/... URL would 404. Nesting outDir removes the need for a
+  // rewrite rule, and works the same on any static host.
+  outDir: `./dist${base}`,
+
   integrations: [
     starlight({
       title: 'SlashForge',
