@@ -11,7 +11,7 @@ import lucode from 'lucode-starlight';
 // `site` feeds canonical URLs and the sitemap, so it must be the public origin
 // the docs are actually served from — not the Vercel deployment URL, which is
 // only ever reached through a rewrite from the apex domain.
-const site = process.env.DOCS_SITE ?? 'https://rajdeepratan.com';
+const site = process.env.DOCS_SITE ?? 'https://www.rajdeepratan.com';
 const base = process.env.DOCS_BASE_PATH ?? '/slashforge';
 
 export default defineConfig({

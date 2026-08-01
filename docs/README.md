@@ -146,3 +146,9 @@ writes a small `dist/index.html` redirecting `/` to the base path, since the
 nesting leaves the output root without an index.
 
 Change `base` and both follow automatically — they read the same value.
+
+### Canonical host
+
+`site` is `https://www.rajdeepratan.com` — the **www** host, not the apex. The
+apex 307s to www, so canonical URLs and the sitemap must name the host that
+actually serves, or every canonical points at a redirect.
