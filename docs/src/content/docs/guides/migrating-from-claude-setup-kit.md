@@ -44,7 +44,7 @@ cosmetic, the command names are muscle memory:
 | `/investigate` | `/slashforge:investigate` |
 
 `/quick` is no longer a command — it is a mode of `/slashforge:code`. Full detail in
-[Migrating to v3](../migrating-to-v3/).
+[Migrating to v3](/slashforge/guides/migrating-to-v3/).
 
 ## Why the rename happened
 
@@ -84,5 +84,5 @@ Both were kept working through v2 as deprecations, then removed on schedule.
 
 ## Next
 
-- [Installation](../installation/) — flags, project mode, CI usage
-- [Migrating to v3](../migrating-to-v3/) — the full command reference
+- [Installation](/slashforge/guides/installation/) — flags, project mode, CI usage
+- [Migrating to v3](/slashforge/guides/migrating-to-v3/) — the full command reference

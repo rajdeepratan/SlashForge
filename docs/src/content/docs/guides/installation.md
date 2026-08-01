@@ -15,8 +15,8 @@ That is all SlashForge itself requires. There are two optional integrations, and
 
 | | Required? | When you deal with it |
 | --- | --- | --- |
-| [superpowers](../superpowers/) | No, but strongly recommended | The first command you run offers to install it |
-| [Graphify](../graphify/) | No, fully optional | `/slashforge:setup` offers it mid-run, on supported languages only |
+| [superpowers](/slashforge/guides/superpowers/) | No, but strongly recommended | The first command you run offers to install it |
+| [Graphify](/slashforge/guides/graphify/) | No, fully optional | `/slashforge:setup` offers it mid-run, on supported languages only |
 
 You do not need to prepare anything. Install SlashForge, run a command, and it
 will walk you through the rest.
@@ -50,7 +50,7 @@ workflow leans on it at almost every phase:
 
 If you skip it, your first command will stop, explain what you lose, and offer
 to install it then. Nothing breaks either way — it just runs in a degraded mode
-it will tell you about. See [Superpowers preflight](../superpowers/).
+it will tell you about. See [Superpowers preflight](/slashforge/guides/superpowers/).
 
 **3. Set up the repo.** Open Claude Code in your project and run:
 
@@ -73,7 +73,7 @@ It asks what you want to build, then walks the ten phases, stopping at four
 points for your approval. For a small change, add `-quick`.
 
 That's the whole loop. `/slashforge:setup` once per repo, `/slashforge:code` per change,
-and [`/slashforge:investigate`](../../commands/slashforge-investigate/) when you need to
+and [`/slashforge:investigate`](/slashforge/commands/slashforge-investigate/) when you need to
 understand a bug before touching it.
 
 ## Global install

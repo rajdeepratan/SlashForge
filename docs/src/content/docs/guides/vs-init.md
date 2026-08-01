@@ -35,4 +35,4 @@ fills gaps rather than overwriting.
 
 Files `/slashforge:setup` did not generate carry no `generated_by` marker, so they
 are treated as yours: edited to fill gaps, never overwritten. See
-[`/slashforge:setup`](../../commands/slashforge-setup/) for how the markers work.
+[`/slashforge:setup`](/slashforge/commands/slashforge-setup/) for how the markers work.

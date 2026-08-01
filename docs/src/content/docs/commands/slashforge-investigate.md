@@ -23,7 +23,7 @@ it might do to your working tree.
 - You need the reasoning written down for someone else
 
 If you already know the cause and want it fixed, use
-[`/slashforge:code`](../forge-code/) instead — its Phase 5 runs
+[`/slashforge:code`](/slashforge/commands/slashforge-code/) instead — its Phase 5 runs
 systematic debugging as part of shipping the fix.
 
 ## What it produces

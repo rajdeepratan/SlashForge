@@ -59,9 +59,9 @@ are removed.
 
 Do both hops at once — there is nothing worth stopping at in between:
 
-- [Migrating from claude-setup-kit](../migrating-from-claude-setup-kit/) if you
+- [Migrating from claude-setup-kit](/slashforge/guides/migrating-from-claude-setup-kit/) if you
   are still on the original package name
-- [Migrating to v3](../migrating-to-v3/) for the `/quick` → `-quick` change and
+- [Migrating to v3](/slashforge/guides/migrating-to-v3/) for the `/quick` → `-quick` change and
   the removed v2 aliases
 
 Then apply the table above.

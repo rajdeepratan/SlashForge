@@ -21,7 +21,10 @@ hero:
     <span class="sf-support">Currently supports <strong>Claude Code</strong>. Cursor and Codex targets are planned.</span>
   actions:
     - text: Get started
-      link: guides/introduction/
+      # Must include the base path. Starlight emits hero action links verbatim,
+      # and a relative link resolves against the current URL — which the proxy
+      # serves without a trailing slash, dropping a segment and 404ing.
+      link: /slashforge/guides/introduction/
       icon: right-arrow
     - text: View on GitHub
       link: https://github.com/rajdeepratan/SlashForge

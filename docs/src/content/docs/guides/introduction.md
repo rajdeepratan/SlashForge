@@ -74,8 +74,8 @@ Claude Code today. Cursor and Codex are planned — the rename to the vendor-neu
 
 ## Next
 
-**[Installation](../installation/)** — requirements, first run, and the setup
+**[Installation](/slashforge/guides/installation/)** — requirements, first run, and the setup
 sequence end to end.
 
-Already installed? Go straight to [`/slashforge:setup`](../../commands/slashforge-setup/).
+Already installed? Go straight to [`/slashforge:setup`](/slashforge/commands/slashforge-setup/).
 
