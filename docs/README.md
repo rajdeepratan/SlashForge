@@ -78,3 +78,44 @@ this reaches the published package.
 
 Do not edit it — edit `/CHANGELOG.md`. The generated file is gitignored, so
 there is never a second copy in git to drift out of sync.
+
+## Hosting on Vercel
+
+Deployed as its own Vercel project with **Root Directory = `docs`**. Build
+settings come from `vercel.json`.
+
+### Why `vercel.json` has a rewrite
+
+Astro's `base: '/SlashForge'` rewrites the URLs *inside* the generated HTML, but
+it does **not** nest the build output — `dist/` contains `index.html`,
+`guides/`, `commands/` at its top level, with no `SlashForge/` directory.
+
+GitHub Pages serves a project repo under `/<repo>/` itself, so `base` alone
+lines up there. Vercel serves `dist/` at the domain root, so every
+`/SlashForge/...` URL in the HTML would hit nothing and render Starlight's 404.
+The rewrite maps the prefix back onto the filesystem:
+
+```json
+{ "source": "/SlashForge/:path*", "destination": "/:path*" }
+```
+
+Remove that rewrite only if you also remove `base`, and vice versa — they are a
+pair.
+
+### Serving it from rajdeepratan.com/SlashForge
+
+The apex domain is a separate Vercel project (the Next.js personal site), so it
+proxies through with a rewrite in **that** repo's `vercel.json`:
+
+```json
+{
+  "rewrites": [
+    {
+      "source": "/SlashForge/:path*",
+      "destination": "https://slash-forge.vercel.app/SlashForge/:path*"
+    }
+  ]
+}
+```
+
+The prefix is preserved on both hops; the docs project strips it internally.
