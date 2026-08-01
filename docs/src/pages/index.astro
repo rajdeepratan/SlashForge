@@ -1,0 +1,192 @@
+---
+/*
+ * The home page — the reference `index.html` body, with its repeated blocks
+ * lifted into data.
+ *
+ * This is a plain Astro route rather than a content entry, which is the whole
+ * point: the bands are full-bleed, and under Starlight the page rendered six
+ * wrappers deep inside a width-capped `sl-container`, so the ember poster
+ * physically could not reach the viewport edges.
+ */
+import Base from '../layouts/Base.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// Kept in sync with the phases on /slashforge:code. This is the shape of a run,
+// not a transcript of one — the annotated page says so explicitly.
+const DEMO: [string, string][] = [
+  ['t-cmd', '$ /slashforge:code'],
+  ['t-you', '> add rate limiting to the public API'],
+  ['t-out', ''],
+  ['t-phase', 'PHASE 2 · PLAN'],
+  ['t-out', '  rateLimit.ts   new — token bucket, Redis-backed'],
+  ['t-out', '  server.ts      mount before route handlers'],
+  ['t-out', '  RISKS          a Redis outage would fail open'],
+  ['t-out', '  TESTS          refill · boundary at 100 · per-key isolation'],
+  ['t-out', ''],
+  ['t-phase', 'PHASE 3 · CONFIRM — stops and waits for you'],
+  ['t-you', '> proceed'],
+  ['t-out', ''],
+  ['t-phase', 'PHASE 6 · VERIFY'],
+  ['t-ok', '  lint ✓    tests ✓    build ✓'],
+  ['t-out', ''],
+  ['t-phase', 'PHASE 8 · PR opened against main'],
+  ['t-out', '  Nothing shipped that was not planned, gated, and verified.'],
+];
+
+const commands = [
+  {
+    name: '/slashforge:setup',
+    desc: 'One-time repo setup. Explores the codebase, asks clarifying questions, then generates CLAUDE.md, rules, skills, agents, commands, and hooks tailored to it.',
+  },
+  {
+    name: '/slashforge:code',
+    desc: 'End-to-end development. Ten phases from plan to merged PR, with mandatory stop-and-confirm gates. Add -quick for lean mode on small changes.',
+  },
+  {
+    name: '/slashforge:investigate',
+    desc: 'Read-only research. Reproduces and root-causes a bug, then writes a findings report. Never touches your code.',
+  },
+];
+
+const costs = [
+  {
+    label: 'Full run',
+    value: '100–250k',
+    note: 'Ten phases, four gates, agent code review. A multi-layer feature lands near the top.',
+  },
+  {
+    label: 'With Graphify',
+    value: '75–225k',
+    note: 'The graph shaves roughly 4–10%. It does not change the order of magnitude.',
+  },
+  {
+    label: 'Lean mode',
+    value: '-quick',
+    note: 'Skips brainstorming and the review agent. Every user gate and all verification stay.',
+  },
+];
+---
+
+<Base
+  title="SlashForge — workflow slash commands for AI coding agents"
+  description="Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate."
+  rawTitle
+>
+  <main>
+    <section class="hero">
+      <div class="band hero__grid">
+        <div>
+          <div class="hero__lockup">
+            <svg width="72" height="72" viewBox="0 0 64 64" aria-hidden="true"
+              ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="currentColor"></path><path
+                d="M16 8 H26 L21 18 H11 Z"
+                fill="#EC3013"></path></svg
+            >
+            <b>SlashForge</b>
+          </div>
+          <p class="hero__line">Workflow slash commands for AI coding agents.</p>
+          <p class="hero__line hero__line--accent">Guardrails, not autocomplete.</p>
+          <div class="actions">
+            <a class="btn btn--primary" href={`${base}/guides/introduction/`}>
+              Get started <span aria-hidden="true">→</span>
+            </a>
+            <a
+              class="btn btn--ghost"
+              href="https://github.com/rajdeepratan/SlashForge"
+              target="_blank"
+              rel="noopener"
+            >
+              View on GitHub
+            </a>
+          </div>
+        </div>
+
+        <div class="rail">
+          <div class="label">Install</div>
+          <div class="rail__cmd"><i>$ </i>npx slashforge</div>
+          <hr class="rail__hr" />
+          <p class="rail__note">
+            Supports <strong>Claude Code</strong> today. Cursor and Codex targets are planned.
+          </p>
+          <div class="rail__facts"><span>Node 18+</span><span>MIT</span><span>v4.0.1</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="replay" data-replay>
+      <div class="band">
+        <div class="replay__head">
+          <h2>One run, start to finish</h2>
+          <div class="replay__controls">
+            <a class="replay__link" href={`${base}/guides/example-run/`}>Read it annotated →</a>
+            <button class="replay__btn" type="button" data-replay-btn>Replay</button>
+          </div>
+        </div>
+        <div class="term">
+          <div class="term__bar">
+            <svg width="12" height="12" viewBox="0 0 64 64" aria-hidden="true"
+              ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="#EC3013"></path></svg
+            >
+            <span>claude code — feat/rate-limiting</span>
+            <span class="term__status" data-replay-status>complete</span>
+          </div>
+          <div class="term__body" data-replay-body>
+            {DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--ruled">
+      <div class="band">
+        <div class="section__head">
+          <h2>Three commands</h2>
+          <span class="label">Each owns one job</span>
+        </div>
+        <div class="cells">
+          {
+            commands.map((c) => (
+              <div class="cell">
+                <code>{c.name}</code>
+                <p>{c.desc}</p>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="band">
+        <div class="section__head">
+          <h2>What it costs</h2>
+          <span class="label">Tokens per feature</span>
+        </div>
+        <div class="cells">
+          {
+            costs.map((c) => (
+              <div class="cell">
+                <div class="label">{c.label}</div>
+                <div class="cell__value">{c.value}</div>
+                <p>{c.note}</p>
+              </div>
+            ))
+          }
+        </div>
+        <p class="caveat">
+          The range is driven by the size of the feature, not by the tooling. SlashForge is
+          deliberately heavy — if you want a prompt turned into a patch as fast as possible, this is
+          the wrong tool.
+        </p>
+      </div>
+    </section>
+
+    <section class="poster">
+      <div class="band">
+        <p>It stops people shipping sloppy work.</p>
+        <a href={`${base}/guides/introduction/`}>Read the introduction <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
+</Base>

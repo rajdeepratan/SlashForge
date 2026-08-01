@@ -1,0 +1,880 @@
+/* ==========================================================================
+   SlashForge docs — reference implementation
+   Framework-free. This file plus the two HTML pages beside it ARE the design.
+   Palette: Ink #201E1D · Ember #EC3013 · Paper #F3F2F2
+   ========================================================================== */
+
+/* Self-hosted rather than the reference's Google Fonts @import: the docs build
+   runs in CI and on Vercel, and a render-blocking request to a third-party
+   origin is both a layout-shift and an availability risk. Same faces, same
+   weights — the variable builds cover 400-700. */
+@import '@fontsource-variable/archivo';
+@import '@fontsource-variable/jetbrains-mono';
+
+:root {
+  --ember: #ec3013;
+  --ember-hover: #c4270e;
+
+  --bg: #f3f2f2;
+  --surface: #ffffff;
+  --text: #201e1d;
+  --muted: #5c5654;
+  --rule: #201e1d;
+  --hairline: #d6d2d0;
+  --accent-text: #b52309;
+  --code-bg: #eae7e5;
+  --sel-bg: #fde3de;
+
+  --nav-h: 68px;
+  --font: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+  --mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, monospace;
+}
+
+[data-theme='dark'] {
+  --bg: #171615;
+  --surface: #201e1d;
+  --text: #f3f2f2;
+  --muted: #a09a97;
+  --rule: #f3f2f2;
+  --hairline: #38352f;
+  --accent-text: #ff6a4d;
+  --code-bg: #221f1e;
+  --sel-bg: #3a140c;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+::selection { background: var(--ember); color: #f3f2f2; }
+
+:is(a, button, summary, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 2px;
+}
+
+/* Nothing is round. Nothing floats. */
+:is(button, input, dialog, pre, table, img, code) { border-radius: 0; }
+
+/* ---------- Header ---------- */
+
+.hdr {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 28px;
+  height: var(--nav-h);
+  padding: 0 32px;
+  border-bottom: 2px solid var(--rule);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.brand { display: flex; align-items: center; gap: 11px; justify-self: start; }
+.brand svg { display: block; }
+.brand span { font-size: 21px; font-weight: 700; letter-spacing: -0.025em; }
+
+.topnav { display: flex; align-items: center; gap: 26px; font-size: 14.5px; font-weight: 500; }
+.topnav a { color: var(--muted); }
+.topnav a:hover { color: var(--text); }
+.topnav a[aria-current='true'] { color: var(--accent-text); font-weight: 600; }
+
+.hdr__right { display: flex; align-items: center; gap: 14px; }
+
+/* The search control is a bordered field with a key chip — not an icon button. */
+.search-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 180px;
+  padding: 7px 11px;
+  border: 2px solid var(--hairline);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.search-btn:hover { border-color: var(--rule); color: var(--text); }
+.search-btn span:first-of-type { flex: 1; text-align: left; }
+.kbd {
+  font-family: var(--mono);
+  font-size: 11px;
+  border: 1px solid var(--hairline);
+  padding: 1px 5px;
+}
+
+.socials {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding-left: 14px;
+  border-left: 2px solid var(--hairline);
+}
+.socials a { color: var(--muted); display: flex; }
+.socials a:hover { color: var(--text); }
+
+/* The theme control is a bordered text button, not a select. */
+.theme-btn {
+  border: 2px solid var(--rule);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.theme-btn:hover { background: var(--ember); border-color: var(--ember); color: #f3f2f2; }
+
+/* ---------- Docs shell ---------- */
+
+.shell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 232px;
+  align-items: start;
+}
+
+.sidebar {
+  border-right: 2px solid var(--hairline);
+  padding: 30px 24px 80px 32px;
+  position: sticky;
+  top: var(--nav-h);
+  max-height: calc(100vh - var(--nav-h));
+  overflow-y: auto;
+}
+
+.sb-group { margin-bottom: 26px; }
+.sb-group > p {
+  margin: 0 0 8px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--hairline);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.sb-group ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.sb-group a {
+  display: block;
+  font-size: 14.5px;
+  line-height: 1.3;
+  padding: 7px 10px;
+  margin-left: -10px;
+  color: var(--muted);
+}
+.sb-group a:hover { color: var(--text); }
+.sb-group a[aria-current='page'] {
+  background: var(--ember);
+  color: #f3f2f2;
+  font-weight: 600;
+}
+
+.main { padding: 52px clamp(28px, 4vw, 64px) 96px; max-width: 800px; min-width: 0; }
+
+.kicker {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.main h1 {
+  font-size: clamp(34px, 4.2vw, 52px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+  margin: 14px 0 0;
+  overflow-wrap: break-word;
+}
+
+.main p.lede {
+  font-size: 20px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 18px 0 0;
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.rule { height: 2px; background: var(--rule); margin: 34px 0 38px; border: 0; }
+
+.main h2 {
+  font-size: 29px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin: 40px 0 18px;
+  padding-top: 14px;
+  border-top: 2px solid var(--hairline);
+  overflow-wrap: break-word;
+}
+
+.main h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; margin: 34px 0 12px; }
+
+/* Scoped to unclassed top-level paragraphs so `.lede` and `.pull` are not
+   outranked — a plain `.main p` is (0,1,1) and silently beats a (0,1,0) class.
+   The child combinator matters too: it keeps this off paragraphs nested inside
+   a blockquote, callout or release row, each of which sets its own size. */
+.main > p:not([class]) { font-size: 17px; line-height: 1.75; margin: 0 0 20px; max-width: 68ch; text-wrap: pretty; }
+
+/* The pull quote — the one-line argument on each page. */
+.main p.pull {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  border-left: 4px solid var(--ember);
+  padding-left: 18px;
+  margin: 8px 0 34px;
+  max-width: 46ch;
+}
+
+.main :not(pre) > code {
+  font-family: var(--mono);
+  font-size: 15px;
+  background: var(--code-bg);
+  padding: 1px 5px;
+}
+
+/* Tables: uppercase header over a 2px rule, hairlines between rows, no fill. */
+table { width: 100%; border-collapse: collapse; margin: 0 0 32px; font-size: 15.5px; }
+th {
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 2px solid var(--rule);
+  padding: 0 14px 10px 0;
+}
+td {
+  border-bottom: 1px solid var(--hairline);
+  padding: 13px 14px 13px 0;
+  line-height: 1.6;
+  vertical-align: top;
+}
+td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap; }
+
+/* Code blocks carry a labelled bar. */
+.code {
+  border: 2px solid var(--rule);
+  background: var(--code-bg);
+  margin: 0 0 30px;
+}
+.code__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  border-bottom: 2px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.code pre {
+  margin: 0;
+  padding: 18px 16px;
+  font-family: var(--mono);
+  font-size: 14.5px;
+  line-height: 1.85;
+  overflow-x: auto;
+}
+
+/* Callouts: an ember frame with a solid ember label. Never a tinted panel. */
+.note {
+  border: 2px solid var(--ember);
+  padding: 18px 20px;
+  margin: 0 0 32px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.note__label {
+  background: var(--ember);
+  color: #f3f2f2;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+}
+.note p { margin: 0; font-size: 15.5px; line-height: 1.7; max-width: 62ch; }
+
+/* Numbered steps: hairlined cells in one ruled frame. */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--hairline);
+  border: 2px solid var(--rule);
+  margin: 0 0 32px;
+}
+.steps > div {
+  background: var(--surface);
+  padding: 18px 22px;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 18px;
+  align-items: baseline;
+}
+.steps b { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--ember); }
+.steps span { font-size: 15.5px; line-height: 1.65; }
+
+/* Prev/next */
+.pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: var(--hairline);
+  border-top: 2px solid var(--rule);
+  margin-top: 48px;
+}
+.pager a { background: var(--bg); padding: 20px 22px 20px 0; display: block; }
+.pager a:last-child { padding: 20px 0 20px 22px; }
+.pager a:hover { background: var(--surface); }
+.pager small {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.pager a:last-child small { color: var(--accent-text); }
+.pager strong { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+
+/* On this page */
+.toc { padding: 56px 32px 80px 0; position: sticky; top: var(--nav-h); }
+.toc > p {
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--hairline);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.toc ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; }
+/* `display: block` is load-bearing. Vertical padding on an inline element does
+   not affect layout, so without it the 7px above and below collapses and the
+   entries sit ~18px apart (their line box) instead of the intended ~32px. The
+   sidebar's `.sb-group a` already carries it; this one was missing because the
+   reference markup makes these anchors direct flex children, which blockifies
+   them — ours are wrapped in <li>, so they need it stated. */
+.toc a { display: block; font-size: 13.5px; line-height: 1.35; padding: 7px 0; color: var(--muted); }
+.toc a:hover { color: var(--text); }
+.toc a[aria-current='true'] { color: var(--accent-text); font-weight: 600; }
+
+.foot {
+  border-top: 2px solid var(--rule);
+  padding: 26px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--muted);
+}
+.foot span:last-child { font-family: var(--mono); }
+
+/* ---------- Home ---------- */
+
+.band { max-width: 1080px; margin-inline: auto; padding-inline: 32px; }
+
+.hero { padding: 56px 0 0; }
+.hero__grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 72px; align-items: start; }
+.hero__lockup { display: flex; align-items: center; gap: 20px; }
+.hero__lockup svg { flex: none; }
+.hero__lockup b { font-size: 60px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+.hero__line { font-size: 24px; line-height: 1.45; letter-spacing: -0.015em; margin: 26px 0 0; max-width: 24ch; }
+.hero__line--accent { color: var(--accent-text); font-weight: 600; margin-top: 4px; }
+
+.actions { display: flex; gap: 2px; margin-top: 32px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 15px 24px;
+}
+.btn--primary { background: var(--ember); color: #f3f2f2; }
+.btn--primary:hover { background: var(--ember-hover); }
+.btn--ghost { border: 2px solid var(--rule); padding: 13px 22px; }
+.btn--ghost:hover { background: var(--surface); }
+
+.rail { border-left: 2px solid var(--hairline); padding-left: 28px; }
+.label { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.rail__cmd {
+  font-family: var(--mono);
+  font-size: 14.5px;
+  border: 2px solid var(--rule);
+  background: var(--code-bg);
+  padding: 13px 14px;
+  margin-top: 16px;
+}
+.rail__cmd i { color: var(--muted); font-style: normal; }
+.rail__hr { height: 2px; background: var(--hairline); margin: 22px 0; border: 0; }
+.rail__note { font-size: 13.5px; line-height: 1.65; color: var(--muted); margin: 0; }
+.rail__note strong { color: var(--text); font-weight: 600; }
+.rail__facts { display: flex; gap: 22px; margin-top: 20px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+
+/* Terminal — ink on ink in both themes. It is a picture of a terminal, not a
+   surface of the page, so it does not invert. */
+.replay { padding: 40px 0 72px; border-bottom: 2px solid var(--rule); }
+.replay__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.replay__head h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.025em; margin: 0; }
+.replay__controls { display: flex; align-items: center; gap: 18px; }
+.replay__link { font-size: 13.5px; font-weight: 600; color: var(--accent-text); }
+.replay__btn {
+  background: transparent;
+  border: 2px solid var(--rule);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.replay__btn:hover { background: var(--ember); border-color: var(--ember); color: #f3f2f2; }
+
+.term { border: 2px solid var(--rule); background: #171615; }
+.term__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--rule);
+  background: #201e1d;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a09a97;
+}
+.term__status { margin-left: auto; text-transform: none; letter-spacing: 0; }
+.term__body {
+  padding: 20px 20px 24px;
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.7;
+  min-height: calc(18 * 1.7em + 44px);
+  overflow-x: auto;
+}
+.term__body div { white-space: pre-wrap; min-height: 1.7em; }
+.t-cmd { color: #ec3013; }
+.t-you { color: #f3f2f2; font-weight: 500; }
+.t-phase { color: #ff6a4d; font-weight: 500; }
+.t-out { color: #a09a97; }
+.t-ok { color: #f3f2f2; font-weight: 500; }
+
+/* Cell grids */
+.section { padding-block: 72px; }
+.section--ruled { border-bottom: 2px solid var(--rule); }
+.section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+.section__head h2 { font-size: clamp(28px, 4vw, 34px); font-weight: 700; letter-spacing: -0.03em; margin: 0; }
+
+.cells {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--hairline);
+  border: 2px solid var(--rule);
+}
+.cell { background: var(--surface); padding: 28px 24px 30px; display: flex; flex-direction: column; gap: 14px; }
+.cell code { font-family: var(--mono); font-size: 16px; font-weight: 500; letter-spacing: -0.02em; background: transparent; padding: 0; }
+.cell p { margin: 0; font-size: 15px; line-height: 1.65; color: var(--muted); max-width: none; }
+.cell__value { font-family: var(--mono); font-size: 27px; font-weight: 500; letter-spacing: -0.03em; }
+.caveat { font-size: 16px; line-height: 1.7; color: var(--muted); margin: 22px 0 0; max-width: 68ch; }
+
+/* Poster close — the one place ember runs as a field. */
+.poster { background: var(--ember); color: #f3f2f2; padding-block: 76px; }
+.poster p { font-size: clamp(36px, 6vw, 54px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.08; margin: 0; max-width: 20ch; }
+.poster a {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 36px;
+  background: #f3f2f2;
+  color: #201e1d;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 15px 24px;
+}
+
+/* ---------- Search modal ---------- */
+
+.modal { position: fixed; inset: 0; background: rgba(20, 17, 16, 0.55); z-index: 40; display: flex; justify-content: center; padding-top: 84px; }
+.modal[hidden] { display: none; }
+.modal__panel {
+  width: 660px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 148px);
+  background: var(--bg);
+  border: 2px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+}
+.modal__top { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 2px solid var(--rule); }
+.modal__top input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-family: var(--font);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+.modal__list { overflow-y: auto; flex: 1; }
+.modal__group { font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); padding: 14px 18px 8px; }
+.hit {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 14px;
+  align-items: baseline;
+  padding: 13px 18px;
+  border-top: 1px solid var(--hairline);
+}
+.hit[aria-selected='true'] { background: var(--sel-bg); }
+.hit b { font-size: 15.5px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; }
+.hit p { margin: 3px 0 0; font-size: 13.5px; line-height: 1.55; color: var(--muted); }
+.hit em { font-family: var(--mono); font-size: 11px; font-style: normal; color: var(--muted); }
+.modal__foot {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 11px 18px;
+  border-top: 2px solid var(--rule);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.modal__foot span { display: flex; align-items: center; gap: 7px; }
+.modal__foot .count { margin-left: auto; font-family: var(--mono); }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1180px) {
+  .shell { grid-template-columns: 240px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { display: none; }
+  .topnav { display: none; }
+  .hero__grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .rail { border-left: 0; border-top: 2px solid var(--hairline); padding-left: 0; padding-top: 28px; }
+  .cells { grid-template-columns: minmax(0, 1fr); }
+  .search-btn { min-width: 0; }
+  .search-btn span:first-of-type, .kbd { display: none; }
+}
+
+/* ==========================================================================
+   Additions for the real site
+   --------------------------------------------------------------------------
+   Everything above is the reference stylesheet, unchanged. The reference is two
+   hand-written HTML pages; these are the cases that only appear once markdown
+   is generating the body — inline links, lists, blockquotes, syntax
+   highlighting — plus the handful of controls the static pages faked.
+   ========================================================================== */
+
+/* The reference sets `a { color: inherit }` globally, which is right for nav
+   and cards but would make a link inside a paragraph invisible. Body links take
+   the accent; the ramp step, not pure ember, because this is body-size text. */
+.main p a,
+.main li a,
+.main td a,
+.note a {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  text-underline-offset: 3px;
+  font-weight: 500;
+}
+
+.main p a:hover,
+.main li a:hover,
+.main td a:hover,
+.note a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Lists — markdown emits these; the reference had none. Matched to the body
+   measure and rhythm. */
+.main :is(ul, ol) {
+  font-size: 17px;
+  line-height: 1.75;
+  margin: 0 0 20px;
+  padding-left: 1.25rem;
+  max-width: 68ch;
+}
+
+.main li { margin-bottom: 0.375rem; }
+.main li::marker { color: var(--muted); }
+.main :is(ul, ol) :is(ul, ol) { margin: 0.375rem 0 0; }
+
+/* Markdown `>` produces a blockquote; the design's pull quote is `.pull`. The
+   one-line argument on each page is written as a blockquote, so they are the
+   same thing. */
+.main blockquote {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  border-left: 4px solid var(--ember);
+  padding-left: 18px;
+  margin: 8px 0 34px;
+  max-width: 46ch;
+}
+
+.main blockquote p {
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0;
+  max-width: none;
+}
+
+.main strong { font-weight: 600; }
+
+/* Anchored headings must clear the sticky header when jumped to. */
+.main :is(h2, h3, h4) { scroll-margin-top: calc(var(--nav-h) + 24px); }
+
+/* A `---` in markdown is a soft divider and takes the hairline. Scoped away
+   from classed rules: the page's `<hr class="rule">` under the lede is ink, and
+   a bare `.main hr` is (0,1,1) — it would silently outrank `.rule` at (0,1,0)
+   and grey it out. Same trap as `.lede` versus `.main p`. */
+.main hr:not([class]) {
+  height: 2px;
+  background: var(--hairline);
+  border: 0;
+  margin: 34px 0;
+}
+
+/* The Copy control in the code bar. The reference draws it as static text; here
+   it is a real button, so it needs to look like the text it replaced. */
+/* The Copy control. Note it is set in Archivo at 11px/600/0.1em — not the mono
+   11.5px/0.08em of the language label beside it. The two are deliberately
+   different in the design: the label names the code, the control is UI. */
+.code__copy {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.code__copy:hover { color: var(--text); }
+.code__copy[data-copied] { color: var(--ember); }
+
+/* Shiki emits both themes inline and switches on a CSS variable, so the code
+   colours follow the theme toggle without a second stylesheet. */
+[data-theme='dark'] .astro-code,
+[data-theme='dark'] .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: transparent !important;
+}
+
+.code pre.astro-code { background: transparent !important; }
+
+/* ---------- Search results (Pagefind) ---------- */
+
+/* The modal chrome is the reference's. These are the rows Pagefind injects. */
+.modal__empty {
+  padding: 44px 18px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.modal__empty b {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 17px;
+  color: var(--text);
+}
+
+/* ---------- Mobile ---------- */
+
+/* Below the sidebar breakpoint the sidebar is hidden, so its links move into a
+   disclosure under the header rather than disappearing. */
+.menu-toggle {
+  display: none;
+  border: 2px solid var(--rule);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .menu-toggle { display: block; }
+  .sidebar.is-open {
+    display: block;
+    position: static;
+    max-height: none;
+    border-right: 0;
+    border-bottom: 2px solid var(--hairline);
+    padding: 24px 32px;
+  }
+  .main { padding: 36px 32px 72px; }
+  .foot { padding: 26px 32px; flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+/* ---------- Changelog releases ----------
+   Built by `remark-changelog.mjs` from the Keep a Changelog source. The version
+   stays an <h2> so the on-this-page rail still finds it, so its default heading
+   rule has to be undone here. */
+
+.release {
+  border-top: 2px solid var(--rule);
+  padding: 22px 0 8px;
+  margin: 0 0 12px;
+}
+
+.release.is-first { border-top: 0; padding-top: 0; }
+
+.release__head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.main .release__head h2 {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin: 0;
+  padding: 0;
+  border-top: 0;
+}
+
+.release__date {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.release__tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border: 1px solid var(--hairline);
+  color: var(--muted);
+}
+
+/* A breaking release is the one thing on this page worth an ember field. */
+.release__tag.is-breaking {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: #f3f2f2;
+}
+
+.release__row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 18px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--hairline);
+  align-items: baseline;
+}
+
+.release__kind {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.release__body { font-size: 15.5px; line-height: 1.65; }
+.release__body > :last-child { margin-bottom: 0; }
+.release__body p { font-size: inherit; line-height: inherit; margin: 12px 0 0; }
+.release__body table { margin: 14px 0 4px; }
+
+@media (max-width: 640px) {
+  .release__row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+}
+
+/* Anchor jumps glide rather than teleport, so a click that only moves the page
+   a little is still visibly a movement. Suppressed for anyone who has asked for
+   less motion, where an instant jump is the correct behaviour. */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+/* The rail's footer: a divider, an edit link, and the date the page last
+   changed in git. Values from the reference. */
+.toc__hr {
+  height: 2px;
+  background: var(--hairline);
+  border: 0;
+  margin: 22px 0 14px;
+}
+
+.toc__edit {
+  display: block;
+  padding: 4px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.toc__edit:hover { color: var(--text); }
+
+.toc__updated {
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}

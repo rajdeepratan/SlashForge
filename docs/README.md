@@ -1,7 +1,12 @@
 # SlashForge docs site
 
-[Astro](https://astro.build) + [Starlight](https://starlight.astro.build), themed
-with [lucode-starlight](https://github.com/lucas-labs/lucode-starlight-theme).
+[Astro](https://astro.build) + [Starlight](https://starlight.astro.build), with a
+custom SlashForge theme — no third-party theme plugin.
+
+The site previously ran `lucode-starlight`. It was removed: that plugin replaces
+17 Starlight components with rounded, shadcn-flavoured markup, which no amount of
+recolouring could reconcile with a flat, ruled, zero-radius identity. The theme
+now lives entirely in `src/styles/theme.css` and styles Starlight's own DOM.
 
 ## Running it
 
@@ -22,6 +27,9 @@ npm run preview   # serve dist/ — what actually deploys
 Judge layout and styling against `npm run preview`, not `npm run dev`. Dev
 injects CSS through Vite and can render unstyled on a cold first paint.
 
+**Search only works in a production build.** Pagefind indexes at build time, so
+`⌘K` returns nothing in dev — check it with `build` + `preview`.
+
 ## Base path and hosting
 
 `site` and `base` are environment-overridable, so the same source builds for
@@ -33,7 +41,7 @@ DOCS_SITE=https://rajdeepratan.com DOCS_BASE_PATH=/slashforge npm run build
 
 | Variable | Default |
 | --- | --- |
-| `DOCS_SITE` | `https://rajdeepratan.github.io` |
+| `DOCS_SITE` | `https://www.rajdeepratan.com` |
 | `DOCS_BASE_PATH` | `/slashforge` |
 
 Because the base path is configurable, **write internal links as relative**
@@ -53,12 +61,36 @@ every cross-link the moment hosting changes.
 src/
 ├─ content/docs/
 │  ├─ index.mdx          landing page (splash template)
-│  ├─ guides/            introduction, installation, migration, integrations
-│  └─ commands/          one page per command
+│  ├─ guides/            introduction, plan mode vs /init, example run,
+│  │                     trust, installation, integrations
+│  ├─ commands/          one page per command
+│  └─ reference/         CLI, troubleshooting, migrating
+├─ components/
+│  ├─ Home.astro         the landing page: hero, terminal replay, cells, poster
+│  └─ SiteTitle.astro    brand + top-bar nav (overrides Starlight's SiteTitle)
 ├─ content.config.ts     Starlight collection — required, build fails without it
-├─ styles/theme.css      brand palette over the theme
+├─ styles/theme.css      the whole theme
 └─ assets/               logo lockups (light + dark)
 ```
+
+## The theme
+
+One file: `src/styles/theme.css`. It is organised as palette tokens → type →
+structure → chrome → home page, and it is worth reading top to bottom before
+changing anything, because most of it is tokens rather than selectors.
+
+Two conventions that are easy to break:
+
+- **Ember `#EC3013` is never recoloured**, but it clears 4.5:1 on neither ground
+  at body size. Text uses a ramp step — `--sf-ember-ink` on light,
+  `--sf-ember-lift` on dark. Pure ember is for rules, fills, and large type only.
+- **Zero radius, no shadows, no gradients.** If a corner turns up round, some
+  component hardcodes its own radius; add it to the reset block rather than
+  patching the component.
+
+Selectors like `.starlight-aside`, `starlight-toc` and `.sl-markdown-content` are
+the class names Starlight itself renders. They cannot be renamed — the CSS has to
+match the DOM the framework emits.
 
 ## Branding
 
@@ -92,7 +124,7 @@ it does **not** nest the build output — `dist/` contains `index.html`,
 
 GitHub Pages serves a project repo under `/<repo>/` itself, so `base` alone
 lines up there. Vercel serves `dist/` at the domain root, so every
-`/slashforge/...` URL in the HTML would hit nothing and render Starlight's 404.
+`/slashforge/...` URL in the HTML would hit nothing and render the 404 page.
 The rewrite maps the prefix back onto the filesystem:
 
 ```json

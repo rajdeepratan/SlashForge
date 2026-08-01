@@ -1,0 +1,44 @@
+---
+/*
+ * The page shell both layouts share: head, header, footer, search modal, and
+ * the one stylesheet. Everything page-specific goes through the default slot.
+ */
+import Head from '../components/Head.astro';
+import Header from '../components/Header.astro';
+import SearchModal from '../components/SearchModal.astro';
+import '../styles/site.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  rawTitle?: boolean;
+}
+
+const { title, description, rawTitle } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <Head {title} {description} {rawTitle} />
+  </head>
+  <body>
+    <Header>
+      <slot name="menu-toggle" slot="menu-toggle" />
+    </Header>
+
+    <slot />
+
+    <div class="foot">
+      <span>MIT licensed. Built by hand.</span>
+      <span>v4.0.1</span>
+    </div>
+
+    <SearchModal />
+
+    <script>
+      import '../scripts/site.js';
+      import '../scripts/search.ts';
+    </script>
+  </body>
+</html>

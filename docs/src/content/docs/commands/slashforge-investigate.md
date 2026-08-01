@@ -11,9 +11,10 @@ description: Read-only research — reproduce and root-cause a bug, then produce
 Read-only research. Reproduces a suspected bug, finds the root cause, and writes
 a findings report.
 
-**It changes no code.** No branch, no commits, no PR. That constraint is the
-feature — you can point it at something suspicious without worrying about what
-it might do to your working tree.
+> **It changes no code. No branch, no commits, no PR.**
+
+That constraint is the feature — you can point it at something suspicious
+without worrying about what it might do to your working tree.
 
 ## When to use it
 
