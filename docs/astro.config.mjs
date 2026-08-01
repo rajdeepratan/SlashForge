@@ -5,6 +5,7 @@ import remarkDirective from 'remark-directive';
 import { remarkCallouts } from './src/plugins/remark-callouts.mjs';
 import { remarkChangelog } from './src/plugins/remark-changelog.mjs';
 import { rehypeCodeFrame } from './src/plugins/rehype-code-frame.mjs';
+import { rehypeTableWrap } from './src/plugins/rehype-table-wrap.mjs';
 
 // Hosting is not settled yet. Both values are env-overridable so the same build
 // works for any hosting target without editing this file.
@@ -49,6 +50,17 @@ export default defineConfig({
 
   integrations: [sitemap()],
 
+  vite: {
+    build: {
+      // Astro's CSS minifier rewrites `(max-width: 640px)` into the Level 4
+      // range syntax `(width <= 640px)`, which Safari only understands from
+      // 16.4. On an older iPhone every media query in the stylesheet would be
+      // dropped — the site would render with no responsive rules whatsoever.
+      // Pinning the target keeps the classic syntax in the output.
+      cssTarget: ['safari13', 'chrome80', 'firefox78', 'edge88'],
+    },
+  },
+
   markdown: {
     // Shiki, built into Astro. Expressive Code went with Starlight; the design
     // does not ask for tab bars or line highlighting, so plain Shiki plus the
@@ -61,6 +73,6 @@ export default defineConfig({
     // into the design's callout markup. Order matters — the parser has to run
     // first or there are no directive nodes to transform.
     remarkPlugins: [remarkDirective, remarkCallouts, remarkChangelog],
-    rehypePlugins: [rehypeCodeFrame],
+    rehypePlugins: [rehypeCodeFrame, rehypeTableWrap],
   },
 });

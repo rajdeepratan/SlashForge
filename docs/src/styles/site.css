@@ -885,3 +885,81 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   font-size: 12px;
   color: var(--muted);
 }
+
+/* ==========================================================================
+   Mobile
+   --------------------------------------------------------------------------
+   The reference is two desktop pages, so it stops at the 900px breakpoint that
+   drops the sidebar. Below that the header, the hero wordmark, tables and the
+   two-column blocks all overflow a phone. Measured against 375px, which after
+   gutters leaves ~311px of usable width.
+   ========================================================================== */
+
+/* Tables scroll inside their own box rather than pushing the page sideways.
+   See src/plugins/rehype-table-wrap.mjs for the wrapper. */
+.table-wrap {
+  overflow-x: auto;
+  margin: 0 0 32px;
+  /* The table's own bottom margin would otherwise sit inside the scroll box. */
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-wrap table { margin-bottom: 0; }
+
+@media (max-width: 640px) {
+  /* The header is a fixed-height grid of five controls. At this width brand +
+     search + socials + menu + theme measures ~440px against ~343px available,
+     so the social row goes; GitHub is still linked from the home hero. */
+  .hdr {
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .socials { display: none; }
+
+  .brand span { font-size: 18px; }
+
+  /* 60px "SlashForge" plus a 72px mark is ~392px — wider than the viewport. */
+  .hero__lockup { gap: 14px; }
+  .hero__lockup svg { width: 48px; height: 48px; }
+  .hero__lockup b { font-size: clamp(34px, 11vw, 60px); }
+
+  .band { padding-inline: 20px; }
+  .main { padding: 32px 20px 64px; }
+  .sidebar.is-open { padding: 24px 20px; }
+  .foot { padding: 22px 20px; }
+
+  /* The label block is ~140px wide, which leaves too little beside it. */
+  .note {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 16px 18px;
+  }
+
+  .note__label { justify-self: start; }
+
+  /* Two cells at ~155px each wrap every label onto three lines. */
+  .pager { grid-template-columns: minmax(0, 1fr); }
+  .pager a:last-child { border-top: 2px solid var(--hairline); }
+
+  .hero__line { font-size: 20px; max-width: none; }
+  .replay__head h2 { font-size: 21px; }
+  .steps > div { grid-template-columns: 32px 1fr; gap: 12px; padding: 16px; }
+  .modal { padding-top: 56px; }
+  .modal__foot { gap: 12px; flex-wrap: wrap; }
+  .rail__facts { gap: 16px; }
+}
+
+/* Long unbroken strings — URLs, package names — must not push the page out. */
+.main :is(p, li, td, h1, h2, h3) { overflow-wrap: break-word; }
+
+/* Small phones. The header budget runs out just under 375px: brand + search +
+   menu + theme needs ~337px, and a 360px screen only offers ~328px after
+   gutters. The wordmark is the one part that can go — the mark still reads as
+   the brand and still links home. */
+@media (max-width: 374px) {
+  .brand span { display: none; }
+  .main { padding: 28px 16px 56px; }
+  .band { padding-inline: 16px; }
+  .foot { padding: 20px 16px; }
+}
