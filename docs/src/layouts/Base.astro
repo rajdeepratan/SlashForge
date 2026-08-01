@@ -12,15 +12,18 @@ interface Props {
   title: string;
   description?: string;
   rawTitle?: boolean;
+  /** Passed through to the page's structured data. */
+  section?: string;
+  updated?: string;
 }
 
-const { title, description, rawTitle } = Astro.props;
+const { title, description, rawTitle, section, updated } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <Head {title} {description} {rawTitle} />
+    <Head {title} {description} {rawTitle} {section} {updated} />
   </head>
   <body>
     <Header>

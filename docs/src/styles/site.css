@@ -411,7 +411,10 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 .hero__grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 72px; align-items: start; }
 .hero__lockup { display: flex; align-items: center; gap: 20px; }
 .hero__lockup svg { flex: none; }
-.hero__lockup b { font-size: 60px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+/* The wordmark is the home page's <h1>: the page had no h1 at all, which is
+   the single worst on-page SEO signal to be missing. Styled to look exactly as
+   it did as a <b>, with the heading's default margin removed. */
+.hero__lockup h1 { font-size: 60px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin: 0; }
 .hero__line { font-size: 24px; line-height: 1.45; letter-spacing: -0.015em; margin: 26px 0 0; max-width: 24ch; }
 .hero__line--accent { color: var(--accent-text); font-weight: 600; margin-top: 4px; }
 
@@ -922,7 +925,7 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   /* 60px "SlashForge" plus a 72px mark is ~392px — wider than the viewport. */
   .hero__lockup { gap: 14px; }
   .hero__lockup svg { width: 48px; height: 48px; }
-  .hero__lockup b { font-size: clamp(34px, 11vw, 60px); }
+  .hero__lockup h1 { font-size: clamp(34px, 11vw, 60px); }
 
   .band { padding-inline: 20px; }
   .main { padding: 32px 20px 64px; }
