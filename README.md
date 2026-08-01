@@ -16,6 +16,10 @@
 <a href="https://buymeacoffee.com/rajdeepratan"><img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-EC3013.svg?labelColor=201E1D&logo=buymeacoffee&logoColor=white" alt="Buy Me A Coffee"></a>
 </p>
 
+<p align="center">
+  <strong><a href="https://www.rajdeepratan.com/slashforge/">📖 Documentation</a></strong>
+</p>
+
 Installs three commands on any machine — `/forge:setup` to scaffold a repo, `/forge:code` for freeform development (add `-quick` for lean small-change work), and `/forge:investigate` for read-only research.
 
 Currently supports **Claude Code**. Cursor and Codex targets are planned.
