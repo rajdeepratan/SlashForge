@@ -6,7 +6,10 @@ import lucode from 'lucode-starlight';
 // Hosting is not settled yet. Both values are env-overridable so the same build
 // works for GitHub Pages (rajdeepratan.github.io/SlashForge) and for a proxied
 // custom domain (rajdeepratan.com/SlashForge) without editing this file.
-const site = process.env.DOCS_SITE ?? 'https://rajdeepratan.github.io';
+// `site` feeds canonical URLs and the sitemap, so it must be the public origin
+// the docs are actually served from — not the Vercel deployment URL, which is
+// only ever reached through a rewrite from the apex domain.
+const site = process.env.DOCS_SITE ?? 'https://rajdeepratan.com';
 const base = process.env.DOCS_BASE_PATH ?? '/SlashForge';
 
 export default defineConfig({
