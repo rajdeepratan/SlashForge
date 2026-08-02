@@ -1,6 +1,6 @@
 ---
 title: Skills and the superpowers plugin
-description: SlashForge ships its own discipline skills. The superpowers plugin is optional, and adds two capabilities rather than gating anything.
+description: SlashForge ships its own discipline skills. The superpowers plugin is optional, and adds three capabilities rather than gating anything.
 ---
 
 SlashForge ships **its own discipline skills**. They install with the package, live under the
@@ -8,7 +8,7 @@ SlashForge ships **its own discipline skills**. They install with the package, l
 
 The [superpowers](https://github.com/obra/superpowers) plugin used to be a preflight gate: every
 command stopped, checked for it, and warned about degraded mode if it was missing. That is no
-longer the case. It is now **optional**, and its absence costs two capabilities rather than the
+longer the case. It is now **optional**, and its absence costs three capabilities rather than the
 discipline layer.
 
 ## What ships with SlashForge

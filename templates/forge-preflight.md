@@ -34,8 +34,8 @@ opens by announcing a plugin's absence is noise when nothing is actually lost.
 
 | Result | Effect |
 |---|---|
-| `INSTALLED` | Two optional capabilities become available: `superpowers:using-git-worktrees` (Phase 4, when isolation is warranted) and `superpowers:subagent-driven-development` (Phase 5, only for genuinely parallelisable units). |
-| `MISSING` | Those two are skipped. Phase 4 branches normally without a worktree; Phase 5 uses `slashforge:tdd` instead. Every other phase is unaffected. |
+| `INSTALLED` | Three optional capabilities become available: `superpowers:using-git-worktrees` (Phase 4, when isolation is warranted), `superpowers:subagent-driven-development` (Phase 5, only for genuinely parallelisable units), and `superpowers:requesting-code-review` (Phase 7, to dispatch a reviewer subagent). |
+| `MISSING` | All three are skipped. Phase 4 branches normally without a worktree; Phase 5 uses `slashforge:tdd`; Phase 7 reviews against its own checklist. Every other phase is unaffected. |
 
 Nothing is degraded when it is missing. Do not describe it as degraded, and do not offer to
 install it mid-run. If the user asks, the command is
@@ -49,7 +49,7 @@ behalf.
 An integration is optional when its absence costs a capability rather than a guarantee. Both of
 SlashForge's current integrations qualify:
 
-- **superpowers** — two optional phases, as above.
+- **superpowers** — three optional capabilities, as above.
 - **Graphify** — a one-time offer inside `/slashforge:setup`, not a per-command check.
 
 Neither is ever a precondition for running a command.

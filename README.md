@@ -126,7 +126,7 @@ The disciplines the workflow depends on install with the package, under the `sla
 
 They are adapted from [superpowers](https://github.com/obra/superpowers) under the MIT licence, © 2025 Jesse Vincent, with the notice carried in each skill file.
 
-**The superpowers plugin is optional.** It adds worktree isolation (Phase 4) and subagent-driven execution (Phase 5, parallel units only). Without it those two are skipped and nothing else changes — no gate, no prompt, no degraded mode.
+**The superpowers plugin is optional.** It adds worktree isolation (Phase 4), subagent-driven execution (Phase 5, parallel units only), and reviewer-subagent dispatch (Phase 7). Without it those three are skipped and nothing else changes — no gate, no prompt, no degraded mode.
 
 **Superpowers** — optional, install with:
 ```

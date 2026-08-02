@@ -23,17 +23,17 @@ Start to finish, for a repo that has never used SlashForge.
 npx slashforge
 ```
 
-**2. Install superpowers.** Optional, but do it now — it is one line, and the
-workflow leans on it at almost every phase:
+**2. Install superpowers — optional.** SlashForge ships its own discipline
+skills, so you can skip this entirely. No command stops to ask, and there is no
+degraded mode.
 
 ```
 /plugin install superpowers@claude-plugins-official
 ```
 
-This step is optional. SlashForge ships its own discipline skills, so skipping it
-costs two capabilities — worktree isolation in Phase 4 and subagent-driven
-execution in Phase 5 — and nothing else. No command stops to ask, and there is no
-degraded mode. See [skills and the superpowers
+Skipping it costs three capabilities and nothing else: worktree isolation in
+Phase 4, subagent-driven execution in Phase 5, and reviewer-subagent dispatch in
+Phase 7. See [skills and the superpowers
 plugin](/slashforge/guides/superpowers/).
 
 **3. Set up the repo.** Open Claude Code in your project and run:
