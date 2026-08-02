@@ -19,9 +19,9 @@ By far the most common one. You type `/` in Claude Code and see nothing named
 
 Usually one of two things, and both are working as designed.
 
-- **The superpowers preflight was declined.** The workflow still runs; the skill
-  steps degrade to the written phase instructions. See
-  [Skills](/slashforge/guides/skills/).
+- **`/slashforge:code` classified the task as trivial.** Phase 1 auto-detects
+  small changes and skips brainstorming. Say `full flow` to override. See
+  [Skills](/slashforge/guides/skills/) for what runs at each phase.
 - **`-quick` is doing what it says.** Lean mode skips brainstorming and swaps
   the agent code review for an inline checklist. Every user gate and all
   verification stay.

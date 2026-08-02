@@ -63,9 +63,9 @@ and everyone else on the team, start informed rather than cold. Generated
 configuration that lives only on one machine buys you nothing on the second run.
 
 Phase 1 and Phase 2 write their spec and plan into `.claude/specs/` and
-`.claude/plans/`. Those paths are named explicitly when the skills are invoked —
-left to themselves, superpowers' `brainstorming` and `writing-plans` write to
-`docs/superpowers/`, a directory SlashForge does not own and never asked for.
+`.claude/plans/`. Those paths are baked into SlashForge's own
+[skills](/slashforge/guides/skills/), so nothing writes design documents anywhere
+else in your repo.
 
 The one directory worth considering for `.gitignore` is `investigations/`, if
 you would rather keep findings reports local. It sits at the repo root rather

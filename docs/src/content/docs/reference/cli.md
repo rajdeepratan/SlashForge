@@ -40,7 +40,7 @@ npx slashforge
 
 Re-running on a machine that already has it prompts to update to the latest
 version. Worth doing when either optional integration changes upstream — if
-superpowers renames a skill, or Graphify changes its install commands, the guide
+Graphify changes its install commands, or a workflow phase changes, the guide
 files need to catch up.
 
 ### Project mode
@@ -55,7 +55,7 @@ paths. Commit it and your teammates get the commands with no global install.
 ## status
 
 Reports the installed version, the guide files present, the commands registered,
-and whether superpowers was detected. It changes nothing.
+and whether the optional superpowers plugin was detected. It changes nothing.
 
 ```bash
 npx slashforge status
@@ -75,9 +75,7 @@ slashforge status
     • /slashforge:code
     • /slashforge:investigate
     • /slashforge:setup
-
-⚠  superpowers plugin not detected.
-   For the best experience, install it: https://github.com/obra/superpowers
+  superpowers plugin:        not installed (optional)
 ```
 
 On a machine with nothing installed it says so, rather than reporting an empty

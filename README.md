@@ -107,12 +107,12 @@ Commands live in a `forge/` subdirectory — that is what produces the `/slashfo
 
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification
-- **Preflight** — superpowers dependency check that runs before every command does anything else
+- **Preflight** — capability detection for optional integrations; never gates a command
 - **Graph** — optional Graphify integration: setup-time install offer, runtime freshness check, and the SUMMARY.html synthesis prompt
 - **Workflow** — the ten-phase development loop used by `/slashforge:code` and `/slashforge:code -quick` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across three focused files (base phases, investigation flow, agent selection)
 - **Rules** — how to create rule files for a repo (including path-scoped rules)
 - **Skills** — how to create skills using Anthropic's `SKILL.md` directory format
-- **Agents** — how to create agent files, superpowers skill mappings, monorepo structure
+- **Agents** — how to create agent files, per-agent skill mappings, monorepo structure
 - **Commands** — how to create slash commands (and the commands ↔ skills merger)
 - **Hooks** — how to configure automated behaviors in `settings.json` (events, scopes, common patterns)
 - **CLAUDE.md** — entry point file, `@path` imports, `AGENTS.md` interop
@@ -132,11 +132,9 @@ They are adapted from [superpowers](https://github.com/obra/superpowers) under t
 ```
 /plugin install superpowers@claude-plugins-official
 ```
-Without it, phases skip their skill invocations (brainstorming, writing-plans, TDD, systematic-debugging, verification, receiving-code-review). For bug fixes this means no enforced red→green regression test.
+Without it, those three phases skip an optional step. Every discipline still runs, because SlashForge ships its own.
 
-If the upstream superpowers project renames a skill, re-run `npx slashforge` to pull updated guide files.
-
-**Graphify is a second optional integration but is not a preflight check** — it's a one-time setup-time offer inside `/slashforge:setup`, not re-checked per command. See the Graphify section below.
+**Graphify is the other optional integration**, and works differently — a one-time setup-time offer inside `/slashforge:setup`, not re-checked per command. See the Graphify section below.
 
 ---
 

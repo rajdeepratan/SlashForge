@@ -175,20 +175,23 @@ what the repo does and what `.claude/` knows. Agents stay generic, rules stop
 matching, `CLAUDE.md` drifts. This closes the loop incrementally instead of
 relying on you to remember to re-run `/slashforge:setup`.
 
-## Superpowers skills per phase
+## Skills per phase
 
-When [superpowers](https://github.com/obra/superpowers) is installed:
+These ship with SlashForge and are always available:
 
 | Phase | Skill |
 | --- | --- |
-| 1 | `brainstorming` (full mode only) |
-| 2 | `writing-plans` |
-| 4 | `using-git-worktrees` (when isolation is warranted) |
-| 5 | exactly one of `systematic-debugging`, `subagent-driven-development`, `test-driven-development` |
-| 6 | `verification-before-completion` |
-| 7 | `requesting-code-review` |
-| 8 | `finishing-a-development-branch` |
-| 9 | `receiving-code-review` |
+| 1 | `slashforge:brainstorm` (full mode only) |
+| 2 | `slashforge:plan` |
+| 5 | `slashforge:debug` (bugs) or `slashforge:tdd` (everything else testable) |
+| 6 | `slashforge:verify` |
+| 9 | `slashforge:review-feedback` |
 
-Without superpowers the workflow still runs — these steps degrade to the written
-phase instructions.
+Phases 7, 8 and 10 use no skill — the Phase 7 checklist and SlashForge's own
+branch-completion flow are more specific than a generic one would be.
+
+With [superpowers](https://github.com/obra/superpowers) installed, three optional
+steps become available: `using-git-worktrees` (Phase 4), `subagent-driven-development`
+(Phase 5, parallel units only), and `requesting-code-review` (Phase 7). Without it
+they are skipped and nothing else changes. See
+[Skills](/slashforge/guides/skills/).

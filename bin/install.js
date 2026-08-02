@@ -331,10 +331,10 @@ function printStatus({ project = false } = {}) {
   console.log(`  Installed commands:        ${commands.length}`);
   for (const f of commands) console.log(`    • ${commandName(f)}`);
 
-  if (!isSuperpowersInstalled()) {
-    console.log(`\n⚠  superpowers plugin not detected.`);
-    console.log(`   For the best experience, install it: https://github.com/obra/superpowers`);
-  }
+  // Reported, not warned about. SlashForge ships its own skills, so the plugin's
+  // absence costs three optional capabilities and nothing else — a ⚠ would imply
+  // something is wrong when nothing is.
+  console.log(`  superpowers plugin:        ${isSuperpowersInstalled() ? 'detected' : 'not installed (optional)'}`);
 }
 
 async function install({ dryRun, assumeYes, project = false }) {
@@ -402,10 +402,6 @@ async function install({ dryRun, assumeYes, project = false }) {
 
   reportLegacyLeftovers(target);
 
-  if (!isSuperpowersInstalled()) {
-    console.log('\n⚠  superpowers plugin not detected.');
-    console.log('   For the best experience, install it: https://github.com/obra/superpowers');
-  }
 
   console.log('\nDone! Open Claude Code in any repo:');
   console.log('  • /slashforge:setup — one-time repo setup');
