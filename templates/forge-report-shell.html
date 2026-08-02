@@ -7,10 +7,18 @@
   never regenerated per report — that keeps every report visually identical and
   keeps the boilerplate out of the model's output.
 
-  Two comment markers below are substituted, both as plain text with no escaping
-  applied: the TITLE marker in the head takes "<short-symptom> (<YYYY-MM-DD>)",
-  and the CONTENT marker in the body takes the fragment. Substitute them with
-  function-form replacement so $-sequences in the fragment are not interpreted.
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) takes "<short-symptom> (<YYYY-MM-DD>)" and MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
 
   Keep this file self-contained: no scripting, no external stylesheets, no CDN
   links, no remote fonts or images. It must render identically when opened from

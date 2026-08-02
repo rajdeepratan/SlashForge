@@ -94,15 +94,17 @@ node -e '
 const fs = require("fs");
 const [shell, frag, out, title] = process.argv.slice(1);
 const body = fs.readFileSync(frag, "utf8");
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
-  .replace("<!--TITLE-->",   () => title)
+  .replace("<!--TITLE-->",   () => esc(title))
   .replace("<!--CONTENT-->", () => body));
 ' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$report" "<short-symptom> (<YYYY-MM-DD>)"
 ```
 
-Two details that matter:
+Three details that matter:
 
 - The replacements use **function** form (`() => body`), not a plain string. A string replacement would let `$&` or `$'` sequences inside your fragment be interpreted as substitution patterns and silently corrupt the report.
+- **The title is escaped; the body is not.** The title is plain text taken from the symptom, so `&`, `<` and `>` are escaped — `&` first, or the ampersands introduced by the later replacements get double-escaped. Without this, a symptom containing `</title>` ends the element early and the rest leaks into the document as markup, and entity-shaped text like `&amp;` or `&#65;` is silently decoded into something the symptom never said. The body is genuine HTML and must be spliced verbatim.
 - Delete the scratch fragment afterwards. It is not part of the deliverable.
 
 If the shell is missing (an older install, or a hand-modified `.claude/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.

@@ -6,6 +6,18 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.1.2] - 2026-08-02
+
+### Fixed
+- **The investigation report's title is now HTML-escaped.** The splice step substituted the title marker raw, so a symptom containing `</title>` closed the element early and the remainder leaked into the document as markup — the title truncated at the injection point. Entity-shaped text was also silently decoded: a symptom reading `literal &amp; in symptom` rendered as `literal & in symptom`, and `&#65;` rendered as `A`.
+
+  The title is plain text taken from a user-supplied symptom, so `&`, `<` and `>` are now escaped, `&` first. The body fragment is genuine HTML and is still spliced verbatim — the two markers are deliberately not treated alike, and the shell documents which is which.
+
+  Introduced in v4.1.0 with the report shell. Cosmetic in practice, since it needed an angle-bracket sequence in the symptom to show up.
+
+### Added
+- Two tests covering the splice. They extract the command from `investigate.md` and execute it, rather than re-implementing it — a copy could drift from the template and still pass. One asserts the title round-trips through escaping and cannot break out of its element; the other asserts the body fragment is spliced verbatim, including `$&`-style sequences that function-form replacement protects.
+
 ## [4.1.1] - 2026-08-02
 
 ### Fixed
