@@ -6,10 +6,44 @@ description: End-to-end development workflow — plan, confirm, branch, implemen
 ```
 /slashforge:code
 /slashforge:code -quick
+/slashforge:code [file]
 ```
 
 The full development workflow, from an idea to a merged PR. Ten phases, run in
 order, with four points where it stops and waits for you.
+
+## Argument
+
+The argument is optional. Pass a description, a file, or nothing:
+
+```
+/slashforge:code
+/slashforge:code investigation-2026-08-02-1432.html
+/slashforge:code docs/spec.md
+```
+
+If the argument resolves to a **file**, it is read as the requirements document
+and the usual "what do you want to build?" question is skipped — the document
+already answered it. Anything else is treated as a free-form description, and
+no argument at all means it asks.
+
+The main source of those files is
+[`/slashforge:investigate`](/slashforge/commands/slashforge-investigate/), which
+ends by printing exactly this command with its report filename filled in.
+Pasting it carries the root cause into a fresh session rather than making you
+restate the bug from memory.
+
+Resolution is deliberately forgiving. A **bare filename** resolves against
+`investigations/`, which is the short form the investigate hand-off prints. A
+**full path** works as given, so `docs/spec.md` or any other requirements
+document is equally valid. A leading `@` or `#` is stripped first, so a pasted
+mention still works.
+
+:::note
+A requirements document is an input, not an approval. Phase 1 still classifies
+the task, Phase 2 still writes a plan, and the Phase 3 gate still waits for your
+yes. A report's "suggested next step" is a proposal.
+:::
 
 ## The gates
 

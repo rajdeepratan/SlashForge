@@ -8,12 +8,14 @@ const { execFileSync } = require('child_process');
 const {
   parseFrontmatter,
   validateTemplates,
+  assertTemplatesExist,
   renderTemplate,
   resolveTarget,
   installFiles,
   uninstallFiles,
   commandName,
   GUIDE_FILES,
+  ASSET_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
 } = require('../bin/install.js');
@@ -90,6 +92,51 @@ test('installFiles global writes guides, rendered commands, and meta', () => {
   assert.equal(meta.mode, 'global');
   assert.ok(Array.isArray(meta.commands));
   assert.ok(written.length > GUIDE_FILES.length);
+});
+
+test('asset files install verbatim alongside the guides', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  for (const a of ASSET_FILES) {
+    const dest = path.join(target.guidesDir, a);
+    assert.ok(fs.existsSync(dest), `asset ${a} missing`);
+    assert.equal(
+      fs.readFileSync(dest, 'utf8'),
+      fs.readFileSync(path.join(TEMPLATES_DIR, a), 'utf8'),
+      `asset ${a} was not copied verbatim`,
+    );
+  }
+});
+
+test('the report shell carries both substitution markers and stays self-contained', () => {
+  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-report-shell.html'), 'utf8');
+  assert.ok(shell.includes('<!--TITLE-->'), 'shell missing TITLE marker');
+  assert.ok(shell.includes('<!--CONTENT-->'), 'shell missing CONTENT marker');
+  // The offline guarantee: no scripts, no remote anything.
+  assert.ok(!/<script/i.test(shell), 'shell must not contain <script>');
+  assert.ok(!/https?:\/\//i.test(shell), 'shell must not reference a remote URL');
+  assert.ok(!/<link[^>]+stylesheet/i.test(shell), 'shell must not link an external stylesheet');
+});
+
+test('splicing a fragment into the shell survives $-sequences', () => {
+  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-report-shell.html'), 'utf8');
+  // A fragment containing regex substitution patterns must land verbatim — this
+  // is why the command uses function-form replace rather than a string.
+  const body = "<p>cost: $& and $' and $` and $1</p>";
+  const out = shell
+    .replace('<!--TITLE-->', () => 'symptom (2026-08-02)')
+    .replace('<!--CONTENT-->', () => body);
+  assert.ok(out.includes(body), '$-sequences in the fragment were corrupted');
+  assert.ok(out.includes('<title>Investigation — symptom (2026-08-02)</title>'));
+  assert.ok(!out.includes('<!--CONTENT-->'), 'CONTENT marker not consumed');
+});
+
+test('assertTemplatesExist refuses an install when an asset is missing', () => {
+  assert.throws(
+    () => assertTemplatesExist(['does-not-exist.html'], TEMPLATES_DIR),
+    /Refusing to install/,
+  );
 });
 
 test('installFiles project renders repo-relative installPath into commands', () => {

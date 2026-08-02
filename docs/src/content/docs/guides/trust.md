@@ -10,11 +10,11 @@ git operations in your repo. That deserves a page, not a footnote.
 
 | Path | When |
 | --- | --- |
-| `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow |
+| `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow, plus `forge-report-shell.html` (the investigation report's styling) |
 | `~/.claude/commands/slashforge/` | On install — the three command files |
 | `<repo>/CLAUDE.md` | On `/slashforge:setup`, after you answer its questions |
 | `<repo>/.claude/` | On `/slashforge:setup` — rules, skills, agents, commands, hooks |
-| `<repo>/.claude/investigations/` | On `/slashforge:investigate` — the findings report |
+| `<repo>/investigations/` | On `/slashforge:investigate` — the findings report |
 
 Nothing is written outside those paths. Every generated file carries a
 `generated_by` marker; remove or edit it and that file is treated as yours
@@ -27,6 +27,17 @@ Inside the workflow it runs **your own project commands** — lint, tests, build
 and git operations for the branch and PR phases. It uses the tooling already
 configured in your repo. It does not install a test runner, a linter, or a
 formatter of its own.
+
+One exception worth naming, because it is the only command that reaches outside
+your repo: at the end of `/slashforge:investigate`, it asks your OS to open the
+finished report in your default browser — `open` on macOS, `xdg-open` on Linux,
+`wslview` on WSL, `start` on Windows. Claude Code will prompt you for that
+command the first time, so nothing launches without your say-so.
+
+It is best-effort and deliberately timid. Over SSH, or on a headless Linux box
+with no `$DISPLAY`, it skips the step silently and just tells you the path. A
+failure to open never fails the investigation — the report is written first, and
+opening it is the last thing that happens.
 
 ## What it never does
 
@@ -49,8 +60,11 @@ Commit it.
 and everyone else on the team, start informed rather than cold. Generated
 configuration that lives only on one machine buys you nothing on the second run.
 
-The one directory worth considering for `.gitignore` is
-`.claude/investigations/`, if you would rather keep findings reports local.
+The one directory worth considering for `.gitignore` is `investigations/`, if
+you would rather keep findings reports local. It sits at the repo root rather
+than inside `.claude/` so the reports are visible in Finder and open in a
+browser without a code editor — the trade-off is that it shows up in `git
+status`. SlashForge will not edit your `.gitignore`; adding that line is yours.
 
 :::note
 `npx slashforge uninstall` removes only what it put in `~/.claude/`. A repo's own

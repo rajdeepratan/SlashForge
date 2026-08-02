@@ -28,50 +28,20 @@ The user invoked `/slashforge:investigate` — the argument (if any) may be:
 - **I2 — Investigate (read-only):** invoke `superpowers:systematic-debugging` (if installed); reproduce, bisect, trace, read code. **No edits to application code.**
 - **I3 — Report & Hand-off:** produce findings report, write to file, print in chat
 
-## Findings report — required HTML structure
+## Findings report — body fragment only
 
-The findings report is a self-contained HTML document with inline `<style>`, no external assets, no JavaScript. Use the skeleton below — fill the `<body>` sections with synthesis content. Same five logical sections as before, rendered as HTML.
+The report's shell — doctype, `<head>`, the entire `<style>` block — ships with SlashForge at
+`{{INSTALL_PATH}}/forge-report-shell.html`. **Do not regenerate it.** You write only the body
+fragment; a substitution step splices the two together.
+
+This is deliberate: the CSS is identical in every report, so regenerating it per run wastes
+output tokens and lets reports drift apart visually.
+
+### The fragment
+
+Write **only** these five sections — no `<html>`, no `<head>`, no `<style>`, no `<body>` tags:
 
 ```html
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Investigation — <short-symptom> (<YYYY-MM-DD>)</title>
-<style>
-  :root { color-scheme: light dark; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
-         color: #1f2328; background: #fff; }
-  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
-  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
-  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
-             margin: 1rem 0; font-weight: 500; }
-  .summary.unreproducible { border-left-color: #9a6700; }
-  .summary.intended       { border-left-color: #57606a; }
-  .summary.needs-info     { border-left-color: #0969da; }
-  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
-         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
-  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
-  pre code { background: transparent; padding: 0; }
-  ul, ol { padding-left: 1.25rem; }
-  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
-  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
-  th { background: #f6f8fa; font-weight: 600; }
-  @media (prefers-color-scheme: dark) {
-    body { background: #0d1117; color: #e6edf3; }
-    h2 { border-bottom-color: #30363d; }
-    .summary { background: #161b22; }
-    th, td { border-color: #30363d; }
-    th { background: #161b22; }
-    code, pre { background: #161b22; }
-    a { color: #58a6ff; }
-  }
-</style>
-</head>
-<body>
-
 <h1>Investigation — <short-symptom></h1>
 
 <div class="summary">
@@ -86,8 +56,8 @@ The findings report is a self-contained HTML document with inline `<style>`, no 
 </ol>
 
 <h2>Root cause</h2>
-<p>What's actually happening, or best hypothesis if not fully nailed down. Link code references as
-   <code>path/to/file.ts:42</slashforge:code> inside <code>&lt;code&gt;</slashforge:code> tags.</p>
+<p>What's actually happening, or best hypothesis if not fully nailed down. Wrap code references
+   like <code>path/to/file.ts:42</code> in <code>&lt;code&gt;</code> tags.</p>
 
 <h2>Affected scope</h2>
 <ul>
@@ -98,20 +68,89 @@ The findings report is a self-contained HTML document with inline `<style>`, no 
 
 <h2>Suggested next step</h2>
 <p>Fix approach, deferral rationale, or further investigation needed.</p>
-
-</body>
-</html>
 ```
 
-**Self-contained only.** No `<script>`, no external stylesheets, no CDN links. The file must render identically when opened from disk with no network.
+The shell provides styling for `h1`, `h2`, `.summary` (plus its four state modifiers), `code`,
+`pre`, `ul`/`ol`, and `table`. Use those elements and the report renders correctly in light and
+dark. Do not add inline `style=` attributes and do not introduce new classes — the shell will not
+have styles for them.
+
+**Self-contained only.** No `<script>`, no external stylesheets, no CDN links, no remote fonts or
+images. The finished file must render identically opened from disk with no network.
 
 ## Output
 
-Write the report to a file AND print the same content (or a plain-text equivalent) in chat: `.claude/investigations/investigation-<YYYY-MM-DD-HHMM>.html`. Create `.claude/investigations/` if it doesn't exist.
+Three steps, in order: **write the file**, **open it**, **summarise in chat**.
+
+### 1. Write
+
+Write your body fragment to a scratch file, then splice it into the shipped shell. Create `investigations/` if it doesn't exist — repo root, not inside `.claude/`, because a dot-directory is hidden in Finder and these reports are meant to be opened by a human without a code editor.
+
+```bash
+mkdir -p investigations
+report="investigations/investigation-<YYYY-MM-DD-HHMM>.html"
+
+node -e '
+const fs = require("fs");
+const [shell, frag, out, title] = process.argv.slice(1);
+const body = fs.readFileSync(frag, "utf8");
+fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
+  .replace("<!--TITLE-->",   () => title)
+  .replace("<!--CONTENT-->", () => body));
+' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$report" "<short-symptom> (<YYYY-MM-DD>)"
+```
+
+Two details that matter:
+
+- The replacements use **function** form (`() => body`), not a plain string. A string replacement would let `$&` or `$'` sequences inside your fragment be interpreted as substitution patterns and silently corrupt the report.
+- Delete the scratch fragment afterwards. It is not part of the deliverable.
+
+If the shell is missing (an older install, or a hand-modified `.claude/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+
+### 2. Open it in the user's browser (best-effort)
+
+Run this, substituting the real filename. It is **best-effort**: it must never fail the run, and it must stay silent where no browser exists.
+
+```bash
+report="investigations/investigation-<YYYY-MM-DD-HHMM>.html"
+if [ -z "$SSH_CONNECTION" ]; then
+  case "$(uname -s)" in
+    Darwin) open "$report" 2>/dev/null || true ;;
+    Linux)
+      if grep -qi microsoft /proc/version 2>/dev/null; then
+        wslview "$report" 2>/dev/null || explorer.exe "$(wslpath -w "$report")" 2>/dev/null || true
+      elif [ -n "${DISPLAY}${WAYLAND_DISPLAY}" ]; then
+        xdg-open "$report" >/dev/null 2>&1 || true
+      fi ;;
+    MINGW*|MSYS*|CYGWIN*) start "" "$report" 2>/dev/null || true ;;
+  esac
+fi
+```
+
+The guards matter: `$SSH_CONNECTION` means a remote session (opening a browser there is useless or wrong), and an empty `$DISPLAY`/`$WAYLAND_DISPLAY` means a headless Linux box. In those cases the report is still written — it just is not opened, and you say so in step 3.
+
+### 3. Summarise in chat — never print the HTML
+
+Print **only**:
+
+- the one-line conclusion (confirmed / not reproducible / intended behaviour / needs more info)
+- the root cause in a sentence or two
+- the file path
+- the hand-off line (below)
+
+**Do not print the HTML document, and do not restate the full report in chat.** The file is the report; the chat gets a summary. If the browser could not be opened, add: *"Couldn't open a browser here — open `<path>` to read it."*
 
 ## Hand-off
 
-End with:
-> *"Investigation complete. Want me to fix this? Run `/slashforge:code` to start the fix."*
+End with the report's **actual filename** substituted in — never emit a placeholder like `<path>` or `#FileName`:
+
+> *"Investigation complete → `investigations/investigation-2026-08-02-1432.html`. Want me to fix this? Run `/slashforge:code investigation-2026-08-02-1432.html` to start the fix."*
+
+Two different forms, deliberately:
+
+- **The pointer** (after the arrow) is the full repo-root-relative path — it tells the user where the file lives and is clickable in most terminals.
+- **The command** takes the **bare filename only.** `/slashforge:code` Step 0b resolves it against `investigations/`, so the shorter form is what the user has to type or paste.
+
+No `#` or `@` prefix on either. A bare filename is what Step 0b resolves.
 
 Follow `{{INSTALL_PATH}}/forge-workflow-investigation.md` as the source of truth.
