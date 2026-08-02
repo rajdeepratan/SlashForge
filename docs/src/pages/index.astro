@@ -22,7 +22,7 @@ const DEMO: [string, string][] = [
   ['t-out', '  rateLimit.ts   new — token bucket, Redis-backed'],
   ['t-out', '  server.ts      mount before route handlers'],
   ['t-out', '  RISKS          a Redis outage would fail open'],
-  ['t-out', '  TESTS          refill · boundary at 100 · per-key isolation'],
+  ['t-out', '  TESTS         refill · boundary 100 · per-key isolation'],
   ['t-out', ''],
   ['t-phase', 'PHASE 3 · CONFIRM — stops and waits for you'],
   ['t-you', '> proceed'],
@@ -31,7 +31,7 @@ const DEMO: [string, string][] = [
   ['t-ok', '  lint ✓    tests ✓    build ✓'],
   ['t-out', ''],
   ['t-phase', 'PHASE 8 · PR opened against main'],
-  ['t-out', '  Nothing shipped that was not planned, gated, and verified.'],
+  ['t-out', '  Nothing shipped that was not planned, gated, verified.'],
 ];
 
 const REVIEW_DEMO: [string, string][] = [
@@ -142,49 +142,51 @@ const costs = [
       </div>
     </section>
 
-    <section class="replay" data-replay>
+    <section class="replay">
       <div class="band">
         <div class="replay__head">
-          <h2>One run, start to finish</h2>
-          <div class="replay__controls">
+          <h2>Two runs, start to finish</h2>
+          <span class="label">Ship yours, review theirs</span>
+        </div>
+        <div class="terms">
+          <div class="terms__col" data-replay>
+            <div class="terms__head">
+              <h3>Shipping a feature</h3>
+              <button class="replay__btn" type="button" data-replay-btn>Replay</button>
+            </div>
+            <div class="term">
+              <div class="term__bar">
+                <svg width="12" height="12" viewBox="0 0 64 64" aria-hidden="true"
+                  ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="#EC3013"></path></svg
+                >
+                <span>feat/rate-limiting</span>
+                <span class="term__status" data-replay-status>complete</span>
+              </div>
+              <div class="term__body" data-replay-body>
+                {DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
+              </div>
+            </div>
             <a class="replay__link" href={`${base}/guides/example-run/`}>Read it annotated →</a>
-            <button class="replay__btn" type="button" data-replay-btn>Replay</button>
           </div>
-        </div>
-        <div class="term">
-          <div class="term__bar">
-            <svg width="12" height="12" viewBox="0 0 64 64" aria-hidden="true"
-              ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="#EC3013"></path></svg
-            >
-            <span>claude code — feat/rate-limiting</span>
-            <span class="term__status" data-replay-status>complete</span>
-          </div>
-          <div class="term__body" data-replay-body>
-            {DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <section class="replay section--ruled" data-replay>
-      <div class="band">
-        <div class="replay__head">
-          <h2>Reviewing someone else's work</h2>
-          <div class="replay__controls">
+          <div class="terms__col" data-replay>
+            <div class="terms__head">
+              <h3>Reviewing someone else's</h3>
+              <button class="replay__btn" type="button" data-replay-btn>Replay</button>
+            </div>
+            <div class="term">
+              <div class="term__bar">
+                <svg width="12" height="12" viewBox="0 0 64 64" aria-hidden="true"
+                  ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="#EC3013"></path></svg
+                >
+                <span>reviewing #42</span>
+                <span class="term__status" data-replay-status>complete</span>
+              </div>
+              <div class="term__body" data-replay-body>
+                {REVIEW_DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
+              </div>
+            </div>
             <a class="replay__link" href={`${base}/commands/slashforge-review-pr/`}>How it works →</a>
-            <button class="replay__btn" type="button" data-replay-btn>Replay</button>
-          </div>
-        </div>
-        <div class="term">
-          <div class="term__bar">
-            <svg width="12" height="12" viewBox="0 0 64 64" aria-hidden="true"
-              ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="#EC3013"></path></svg
-            >
-            <span>claude code — reviewing #42</span>
-            <span class="term__status" data-replay-status>complete</span>
-          </div>
-          <div class="term__body" data-replay-body>
-            {REVIEW_DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
           </div>
         </div>
       </div>
