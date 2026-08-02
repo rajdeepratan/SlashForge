@@ -34,6 +34,30 @@ const DEMO: [string, string][] = [
   ['t-out', '  Nothing shipped that was not planned, gated, and verified.'],
 ];
 
+const REVIEW_DEMO: [string, string][] = [
+  ['t-cmd', '$ /slashforge:review-pr'],
+  ['t-out', ''],
+  ['t-phase', 'AWAITING YOUR REVIEW'],
+  ['t-out', '  1. #42  Add retry to upload queue   +180 −24  (6 files)'],
+  ['t-out', '  2. #47  Bump astro to 7.2            +12 −12  (2 files)'],
+  ['t-you', '> 1'],
+  ['t-out', ''],
+  ['t-phase', 'CONTEXT'],
+  ['t-out', '  CI green · 2 existing comments · author is not you'],
+  ['t-out', ''],
+  ['t-phase', 'FINDINGS · against CLAUDE.md and .claude/rules/'],
+  ['t-out', '  blocking    retry.ts:38   no cap, retries forever'],
+  ['t-out', '  should fix  retry.ts:52   swallows the abort signal'],
+  ['t-out', '  nit         retry.ts:12   name says ms, value is s'],
+  ['t-out', ''],
+  ['t-phase', 'GATE · nothing is posted yet'],
+  ['t-out', '  approve · comment · request-changes · edit · cancel'],
+  ['t-you', '> request-changes'],
+  ['t-out', ''],
+  ['t-phase', 'POSTED · 3 line comments on #42'],
+  ['t-out', '  You saw the exact text before it went out.'],
+];
+
 const commands = [
   {
     name: '/slashforge:setup',
@@ -142,7 +166,31 @@ const costs = [
       </div>
     </section>
 
-    <section class="section section--ruled">
+    <section class="replay section--ruled" data-replay>
+      <div class="band">
+        <div class="replay__head">
+          <h2>Reviewing someone else's work</h2>
+          <div class="replay__controls">
+            <a class="replay__link" href={`${base}/commands/slashforge-review-pr/`}>How it works →</a>
+            <button class="replay__btn" type="button" data-replay-btn>Replay</button>
+          </div>
+        </div>
+        <div class="term">
+          <div class="term__bar">
+            <svg width="12" height="12" viewBox="0 0 64 64" aria-hidden="true"
+              ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="#EC3013"></path></svg
+            >
+            <span>claude code — reviewing #42</span>
+            <span class="term__status" data-replay-status>complete</span>
+          </div>
+          <div class="term__body" data-replay-body>
+            {REVIEW_DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
       <div class="band">
         <div class="section__head">
           <h2>Four commands</h2>
