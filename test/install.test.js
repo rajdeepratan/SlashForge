@@ -294,6 +294,80 @@ test('uninstall leaves user-owned files in the slashforge namespace alone', () =
   assert.ok(!fs.existsSync(path.join(target.commandsDir, 'slashforge', 'code.md')));
 });
 
+// The splice command documented in investigate.md is what actually builds every
+// report, so the test runs THAT script rather than a copy of it — a copy could
+// drift from the template and still pass.
+function spliceScriptFromTemplate() {
+  const md = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', 'investigate.md'), 'utf8');
+  const m = md.match(/node -e '\n([\s\S]*?)\n'/);
+  assert.ok(m, 'could not find the node splice script in investigate.md');
+  return m[1];
+}
+
+// The title is plain text from a user-supplied symptom. Substituted raw it can
+// break out of <title> entirely (`</title>` ends the element and the remainder
+// leaks in as markup), and entity-shaped text like `&amp;` or `&#65;` is decoded
+// so the title shows something the symptom never said.
+test('the documented splice escapes the title', () => {
+  const script = spliceScriptFromTemplate();
+  const dir = tmp();
+  const frag = path.join(dir, 'frag.html');
+  const out = path.join(dir, 'out.html');
+  fs.writeFileSync(frag, '<h1>body</h1>');
+
+  const cases = [
+    'x </title><meta http-equiv=refresh> y',
+    'literal &amp; in symptom',
+    'escape &lt;div&gt; shows wrong',
+    'numeric &#65; ref',
+  ];
+
+  for (const title of cases) {
+    execFileSync('node', [
+      '-e', script,
+      path.join(TEMPLATES_DIR, 'forge-report-shell.html'), frag, out, title,
+    ]);
+    const html = fs.readFileSync(out, 'utf8');
+    const inTitle = html.match(/<title>([\s\S]*?)<\/title>/);
+
+    assert.ok(inTitle, `title element destroyed by: ${title}`);
+    assert.ok(
+      !/<meta/i.test(inTitle[1]),
+      `title broke out, leaking markup: ${title}`,
+    );
+    // Round-trip: unescaping what landed must return the original symptom.
+    const decoded = inTitle[1]
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&');
+    assert.ok(
+      decoded.endsWith(title),
+      `title not round-trippable.\n  want ends with: ${title}\n  got: ${decoded}`,
+    );
+  }
+});
+
+test('the documented splice leaves the body fragment as raw HTML', () => {
+  const script = spliceScriptFromTemplate();
+  const dir = tmp();
+  const frag = path.join(dir, 'frag.html');
+  const out = path.join(dir, 'out.html');
+  // The body is HTML and must NOT be escaped — only the title is plain text.
+  // Also guards the $-sequence behaviour that function-form replace protects.
+  const body = '<h1>heading</h1><p>cost: $& and $` and $1</p>';
+  fs.writeFileSync(frag, body);
+
+  execFileSync('node', [
+    '-e', script,
+    path.join(TEMPLATES_DIR, 'forge-report-shell.html'), frag, out, 'plain title',
+  ]);
+
+  const html = fs.readFileSync(out, 'utf8');
+  assert.ok(html.includes(body), 'body fragment must be spliced verbatim as HTML');
+  assert.ok(!html.includes('<!--CONTENT-->'), 'CONTENT marker not consumed');
+  assert.ok(!html.includes('<!--TITLE-->'), 'TITLE marker not consumed');
+});
+
 // A namespace rename done as a bare find-replace rewrites HTML closing tags:
 // `</code>` contains the substring `/code`, so renaming the `/code` command to
 // `/forge:code` turned it into `</forge:code>`. Opening tags have no slash and
