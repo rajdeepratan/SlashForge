@@ -24,6 +24,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
   A line comment can only anchor inside the diff; one outside makes GitHub reject the whole review with a 422. The command moves those findings into the summary body, says which moved, and retries.
 
+  Findings are prose, so they contain quotes, backticks, newlines and backslashes as a matter of course. The documented payload assembly keeps prose in plain-text files and only puts anchors — paths, line numbers, sides — in JSON, letting `JSON.stringify` escape everything by construction. A test runs that assembly script out of the template itself against deliberately hostile text and asserts it round-trips byte for byte.
+
   The review is saved to `docs/slashforge/reviews/<date>-pr-<N>.html` and stays as a local record whether or not anything is posted.
 
 - **SlashForge ships its own discipline skills** — `slashforge:brainstorm` (Phase 1), `slashforge:plan` (Phase 2), `slashforge:debug` and `slashforge:tdd` (Phase 5), `slashforge:verify` (Phase 6), and `slashforge:review-feedback` (Phase 9). Adapted from superpowers under MIT, © 2025 Jesse Vincent; the notice travels in each skill file, since skills install to `~/.claude/` detached from this repo.

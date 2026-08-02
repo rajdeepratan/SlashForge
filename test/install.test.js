@@ -644,3 +644,39 @@ test('review-pr documents its discovery flags and their consequences', () => {
     '--mine must withdraw approve up front, not at the gate',
   );
 });
+
+// Findings are model-written prose: quotes, backticks, newlines and backslashes
+// are normal in them. Interpolating that into JSON by hand corrupts the payload,
+// so the documented assembly keeps prose in plain-text files and lets
+// JSON.stringify escape it. This runs the script out of the template itself — a
+// copy here could drift from the shipped instruction and still pass.
+test('the documented review payload escapes hostile prose', () => {
+  const md = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', 'review-pr.md'), 'utf8');
+  const m = md.match(/node -e '\n(const fs = require\("fs"\), path[\s\S]*?)\n'/);
+  assert.ok(m, 'could not find the payload assembly script in review-pr.md');
+
+  const d = tmp();
+  const body = 'Summary with "quotes", a $var, a `backtick`,\nand a backslash \\ here.\n';
+  const c1 = 'Finding: `code`, "quotes",\na newline, 100% and a \\ backslash.\n';
+  fs.writeFileSync(path.join(d, 'body.txt'), body);
+  fs.writeFileSync(path.join(d, 'c1.txt'), c1);
+  fs.writeFileSync(
+    path.join(d, 'anchors.json'),
+    JSON.stringify([{ path: 'src/x.js', line: 42, side: 'RIGHT', bodyFile: 'c1.txt' }]),
+  );
+
+  const out = path.join(d, 'payload.json');
+  execFileSync('node', ['-e', m[1], d, 'REQUEST_CHANGES', out]);
+
+  const payload = JSON.parse(fs.readFileSync(out, 'utf8'));
+  assert.equal(payload.event, 'REQUEST_CHANGES');
+  assert.equal(payload.body, body, 'summary must round-trip byte for byte');
+  assert.equal(payload.comments[0].body, c1, 'finding must round-trip byte for byte');
+  assert.equal(payload.comments[0].line, 42);
+  assert.equal(payload.comments[0].side, 'RIGHT');
+
+  // An approval carries no line comments.
+  fs.writeFileSync(path.join(d, 'anchors.json'), '[]');
+  execFileSync('node', ['-e', m[1], d, 'APPROVE', out]);
+  assert.deepEqual(JSON.parse(fs.readFileSync(out, 'utf8')).comments, []);
+});

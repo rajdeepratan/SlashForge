@@ -217,36 +217,81 @@ suggestion, and you should say so — but the user picks.
 
 ## Step 6 — Post it
 
-Line comments go through the reviews API, which takes them in one request alongside the body:
+Line comments and the summary go up as **one review**, through the reviews API.
+
+### Build the payload without escaping prose by hand
+
+Findings are prose you wrote. They will contain quotes, apostrophes, backticks, newlines and
+occasionally backslashes. Interpolating that into a JSON string literal by hand is how the payload
+gets corrupted — and a corrupted payload either fails outright or, worse, posts something mangled
+under the user's name.
+
+So **prose never touches JSON syntax.** Write it to plain-text files, keep only anchors in JSON,
+and let `JSON.stringify` do the escaping:
+
+```bash
+d=$(mktemp -d)
+
+# 1. The top-level summary — plain text, nothing to escape.
+cat > "$d/body.txt"    # write the summary here
+
+# 2. One plain-text file per line comment — again, nothing to escape.
+cat > "$d/c1.txt"      # the finding for the first anchor
+cat > "$d/c2.txt"      # ...and so on
+
+# 3. Anchors only: paths, line numbers, sides. No prose, so this is safe to
+#    write as literal JSON.
+cat > "$d/anchors.json" <<'JSON'
+[
+  { "path": "src/x.js", "line": 42, "side": "RIGHT", "bodyFile": "c1.txt" },
+  { "path": "src/y.js", "line": 88, "side": "RIGHT", "bodyFile": "c2.txt" }
+]
+JSON
+
+# 4. Assemble. JSON.stringify escapes every string correctly, by construction.
+node -e '
+const fs = require("fs"), path = require("path");
+const [dir, event, out] = process.argv.slice(1);
+const anchors = JSON.parse(fs.readFileSync(path.join(dir, "anchors.json"), "utf8"));
+fs.writeFileSync(out, JSON.stringify({
+  event,
+  body: fs.readFileSync(path.join(dir, "body.txt"), "utf8"),
+  comments: anchors.map((a) => ({
+    path: a.path,
+    line: a.line,
+    side: a.side || "RIGHT",
+    body: fs.readFileSync(path.join(dir, a.bodyFile), "utf8"),
+  })),
+}));
+' "$d" "<EVENT>" "$d/payload.json"
+```
+
+`<EVENT>` is `APPROVE`, `COMMENT`, or `REQUEST_CHANGES` — taken from the gate, never inferred.
+
+An approval carries no line comments. If the gate chose `APPROVE`, write an empty
+`anchors.json` (`[]`) and let the summary stand alone.
+
+### Send it
 
 ```bash
 repo=$(gh repo view --json nameWithOwner -q .nameWithOwner)
-
-cat > "$payload" <<'JSON'
-{
-  "event": "REQUEST_CHANGES",
-  "body": "<the top-level summary>",
-  "comments": [
-    { "path": "src/x.js", "line": 42, "side": "RIGHT", "body": "<the finding>" }
-  ]
-}
-JSON
-
-gh api "repos/$repo/pulls/<N>/reviews" --input "$payload"
+gh api "repos/$repo/pulls/<N>/reviews" --input "$d/payload.json"
 ```
 
-- `event` is `APPROVE`, `COMMENT`, or `REQUEST_CHANGES` — from the gate, never inferred.
-- `line` must be a line **present in the diff**. A line outside it returns HTTP 422 and rejects
-  the whole review, not just that comment.
-- `side` is `RIGHT` for added or unchanged lines, `LEFT` for removed ones.
+Then `rm -rf "$d"` — the scratch files are not part of the deliverable.
 
-**If the request fails with 422**, do not retry blindly. The usual cause is a line comment
-anchored outside the diff. Drop the offending comments into the top-level body, tell the user
-which ones moved and why, and post again. An approval on the user's own PR also returns 422 —
-that one is not recoverable, so fall back to `COMMENT`.
+### When it fails
 
-Escape the JSON properly. A stray quote or newline in a finding will corrupt the payload; build
-it with `node`/`jq` rather than string-concatenating shell variables.
+- **422 with an out-of-diff line.** `line` must be a line **present in the diff**; one outside it
+  rejects the entire review, not just that comment. Remove those anchors, append their findings to
+  `body.txt` instead, rebuild, and send again. Tell the user which findings moved and why.
+- **422 on an approval of the user's own PR.** GitHub does not allow it. Not recoverable — fall
+  back to `COMMENT`.
+- **Anything else.** Show the actual error. Do not retry blindly, and do not fall back to a
+  different event than the one the user chose.
+
+`side` is `RIGHT` for added or unchanged lines, `LEFT` for removed ones. Getting it wrong on a
+deleted line is another route to a 422.
 
 ## Step 7 — Confirm
 
