@@ -491,8 +491,12 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   margin-bottom: 14px;
 }
 .terms__head h3 { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
-.terms__col .term { width: 100%; }
-.terms__col .term__body { font-size: 13px; padding: 18px 16px 20px; }
+/* Grid stretches the columns, but a terminal keeps its content height — so the
+   shorter run ended above the taller one and the two links sat at different
+   heights. Letting .term grow fills the column and puts both links on the same
+   line, whatever the demos say. */
+.terms__col .term { width: 100%; flex: 1; display: flex; flex-direction: column; }
+.terms__col .term__body { font-size: 13px; padding: 18px 16px 20px; flex: 1; }
 .terms__col .replay__link { margin-top: 14px; }
 
 .term { border: 2px solid var(--rule); background: #171615; }
