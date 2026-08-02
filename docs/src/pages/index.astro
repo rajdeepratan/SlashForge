@@ -64,18 +64,22 @@ const REVIEW_DEMO: [string, string][] = [
 const commands = [
   {
     name: '/slashforge:setup',
+    href: 'commands/slashforge-setup',
     desc: 'One-time repo setup. Explores the codebase, asks clarifying questions, then generates CLAUDE.md, rules, skills, agents, commands, and hooks tailored to it.',
   },
   {
     name: '/slashforge:code',
+    href: 'commands/slashforge-code',
     desc: 'End-to-end development. Ten phases from plan to merged PR, with mandatory stop-and-confirm gates. Add -quick for lean mode on small changes.',
   },
   {
     name: '/slashforge:investigate',
+    href: 'commands/slashforge-investigate',
     desc: 'Read-only research. Reproduces and root-causes a bug, then writes a findings report. Never touches your code.',
   },
   {
     name: '/slashforge:review-pr',
+    href: 'commands/slashforge-review-pr',
     desc: "Reviews a pull request against your repo's own rules and conventions, then posts line-level comments or approves. Never posts without showing you the exact text.",
   },
 ];
@@ -149,7 +153,9 @@ const costs = [
       <div class="band">
         <div class="replay__head">
           <h2>Two runs, start to finish</h2>
-          <span class="label">Ship yours, review theirs</span>
+          <div class="replay__controls">
+            <a class="replay__link" href={`${base}/guides/example-run/`}>Read it annotated →</a>
+          </div>
         </div>
         <div class="terms">
           <div class="terms__col" data-replay>
@@ -169,7 +175,6 @@ const costs = [
                 {DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
               </div>
             </div>
-            <a class="replay__link" href={`${base}/guides/example-run/`}>Read it annotated →</a>
           </div>
 
           <div class="terms__col" data-replay>
@@ -189,7 +194,6 @@ const costs = [
                 {REVIEW_DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
               </div>
             </div>
-            <a class="replay__link" href={`${base}/commands/slashforge-review-pr/`}>How it works →</a>
           </div>
         </div>
       </div>
@@ -204,10 +208,10 @@ const costs = [
         <div class="cells cells--quad">
           {
             commands.map((c) => (
-              <div class="cell">
+              <a class="cell cell--link" href={`${base}/${c.href}/`}>
                 <code>{c.name}</code>
                 <p>{c.desc}</p>
-              </div>
+              </a>
             ))
           }
         </div>

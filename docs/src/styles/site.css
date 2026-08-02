@@ -553,6 +553,11 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
    descriptions wrap to five lines. Two-up gives each cell ~508px. */
 .cells--quad { grid-template-columns: repeat(2, 1fr); }
 .cell { background: var(--surface); padding: 28px 24px 30px; display: flex; flex-direction: column; gap: 14px; }
+/* The command cells are links now, so they need the affordance without turning
+   into a wall of underlined blue. */
+.cell--link { text-decoration: none; color: inherit; transition: background 0.12s ease; }
+.cell--link:hover { background: var(--hairline); }
+.cell--link:hover code { color: var(--accent-text); }
 .cell code { font-family: var(--mono); font-size: 16px; font-weight: 500; letter-spacing: -0.02em; background: transparent; padding: 0; }
 .cell p { margin: 0; font-size: 15px; line-height: 1.65; color: var(--muted); max-width: none; }
 .cell__value { font-family: var(--mono); font-size: 27px; font-weight: 500; letter-spacing: -0.03em; }
