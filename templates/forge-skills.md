@@ -9,9 +9,9 @@ Skills = **step-by-step recipes** Claude can load on demand. Unlike CLAUDE.md (a
 
 Derive tasks from the repo's domain — think "add a new X", "create a Y", "wire up a Z". Examples: `add-endpoint`, `add-migration`, `add-page`, `add-metric`, `add-handler`.
 
-## Check Superpowers First
+## Check What Already Ships
 
-Before creating a new skill, check whether a superpowers skill already covers the task. Run `/help` in Claude Code or check `.claude/plugins/` to see what's installed. Common superpowers skills that teams often duplicate unnecessarily: `systematic-debugging`, `test-driven-development`, `brainstorming`, `writing-plans`. If a superpowers skill covers it — don't create a redundant one.
+Before creating a new skill, check whether SlashForge already ships one. `slashforge:brainstorm`, `slashforge:plan`, `slashforge:debug`, `slashforge:tdd`, `slashforge:verify`, `slashforge:request-review`, `slashforge:review-feedback`, `slashforge:worktree` and `slashforge:parallel` cover the general development disciplines. Skills you write should be about *this repo* — how to add an endpoint here, how to run a migration here — not general practice.
 
 ## What Deserves a Skill
 

@@ -12,7 +12,6 @@ const PLUGINS_CACHE_DIR = path.join(os.homedir(), '.claude', 'plugins', 'cache')
 
 const GUIDE_FILES = [
   'forge-instructions.md',
-  'forge-preflight.md',
   'forge-graph.md',
   'forge-graph-summary.md',
   'forge-coverage.md',
@@ -56,6 +55,18 @@ const SKILL_FILES = [
   path.join('slashforge', 'tdd.md'),
   path.join('slashforge', 'verify.md'),
   path.join('slashforge', 'review-feedback.md'),
+  path.join('slashforge', 'request-review.md'),
+  path.join('slashforge', 'worktree.md'),
+  path.join('slashforge', 'parallel.md'),
+];
+
+// Guide files dropped in a later version. Install overwrites what it ships but
+// does not clear the guides dir, so without this an upgrade leaves the old file
+// sitting there being read by nothing.
+const REMOVED_GUIDE_FILES = [
+  // v4.3.0: superpowers became fully optional, so the only preflight check had
+  // nothing left to detect.
+  'forge-preflight.md',
 ];
 
 // Namespace directory the command files live in, under the commands dir.
@@ -244,6 +255,10 @@ function installFiles(target, {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, rendered);
     written.push(dest);
+  }
+  for (const f of REMOVED_GUIDE_FILES) {
+    const stale = path.join(target.guidesDir, f);
+    if (fs.existsSync(stale)) fs.rmSync(stale);
   }
   const meta = JSON.stringify({
     package: pkgName,
@@ -530,6 +545,7 @@ module.exports = {
   uninstallFiles,
   commandName,
   GUIDE_FILES,
+  REMOVED_GUIDE_FILES,
   ASSET_FILES,
   SKILL_FILES,
   COMMAND_FILES,

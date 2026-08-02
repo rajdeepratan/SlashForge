@@ -1,10 +1,7 @@
 ---
 name: /slashforge:setup
 description: One-time repo setup — explore the codebase, ask clarifying questions, and create CLAUDE.md plus tailored rules, skills, agents, commands, and hooks in .claude/. Handles both fresh repos and partial setups.
-preflight: superpowers
 ---
-
-**Preflight:** before reading anything else, open `{{INSTALL_PATH}}/forge-preflight.md` and run the **Superpowers Check**.
 
 Then read all of the following files in full — together they are your complete guide:
 
@@ -37,7 +34,7 @@ Check whether `.claude/` and `CLAUDE.md` already exist in the repo.
 
 **Fresh Setup — single-app repo:**
 
-Run in five phases. **Collect every user decision in Phase 1**, then run the rest without interrupting the user. The Superpowers gate already ran in preflight — confirm it was resolved there; if for any reason it was not, resolve it now before continuing. Do not write any file until Phase 3.
+Run in five phases. **Collect every user decision in Phase 1**, then run the rest without interrupting the user. Do not write any file until Phase 3.
 
 *Phase 1 — Decide (explore + gather all consent; write nothing yet):*
 1. Explore the repo — tech stack, folder structure, key abstractions, build/test/lint commands

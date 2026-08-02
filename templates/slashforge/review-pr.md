@@ -1,7 +1,6 @@
 ---
 name: /slashforge:review-pr
 description: Review a pull request against this repo's own rules and conventions, then post line-level comments or approve — only after you confirm. Lists PRs awaiting your review; pass --assigned, --mine or --all to change what it looks for.
-preflight: superpowers
 ---
 
 Read `{{INSTALL_PATH}}/forge-workflow-agents.md` in full before starting.
@@ -9,7 +8,7 @@ Read `{{INSTALL_PATH}}/forge-workflow-agents.md` in full before starting.
 This command is **read-only against your repo**. No branches, no commits, no edits to code. The
 only writes are to GitHub, and only after you approve the exact text.
 
-## Preflight
+## Before anything else
 
 `gh` must be installed and authenticated, or nothing here works:
 

@@ -1,10 +1,7 @@
 ---
 name: /slashforge:investigate
 description: Research-only flow — reproduce and root-cause a bug or suspected issue. Produces a findings report. No branch, no PR, no code changes.
-preflight: superpowers
 ---
-
-**Preflight:** before reading anything else, open `{{INSTALL_PATH}}/forge-preflight.md` and run the **Superpowers Check**.
 
 Then read the following files in full:
 

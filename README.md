@@ -108,7 +108,7 @@ Commands live in a `forge/` subdirectory — that is what produces the `/slashfo
 
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification
-- **Preflight** — capability detection for optional integrations; never gates a command
+- **Instructions** — golden rules, creation order, file structure, verification
 - **Graph** — optional Graphify integration: setup-time install offer, runtime freshness check, and the SUMMARY.html synthesis prompt
 - **Workflow** — the ten-phase development loop used by `/slashforge:code` and `/slashforge:code -quick` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across three focused files (base phases, investigation flow, agent selection)
 - **Rules** — how to create rule files for a repo (including path-scoped rules)
@@ -123,13 +123,13 @@ The guide files cover:
 
 ## Skills — SlashForge ships its own
 
-The disciplines the workflow depends on install with the package, under the `slashforge:` namespace: `slashforge:brainstorm` (Phase 1), `slashforge:plan` (Phase 2), `slashforge:debug` and `slashforge:tdd` (Phase 5), `slashforge:verify` (Phase 6), `slashforge:review-feedback` (Phase 9). No plugin and no marketplace — the namespace comes from the commands directory SlashForge already owns.
+Every discipline the workflow uses installs with the package, under the `slashforge:` namespace: `brainstorm` (Phase 1), `plan` (Phase 2), `worktree` (Phase 4), `debug` / `parallel` / `tdd` (Phase 5), `verify` (Phase 6), `request-review` (Phase 7), `review-feedback` (Phase 9). No plugin and no marketplace — the namespace comes from the commands directory SlashForge already owns.
 
 They are adapted from [superpowers](https://github.com/obra/superpowers) under the MIT licence, © 2025 Jesse Vincent, with the notice carried in each skill file.
 
-**The superpowers plugin is optional.** It adds worktree isolation (Phase 4), subagent-driven execution (Phase 5, parallel units only), and reviewer-subagent dispatch (Phase 7). Without it those three are skipped and nothing else changes — no gate, no prompt, no degraded mode.
+**The superpowers plugin is not required at all.** Nothing invokes it, checks for it, or behaves differently when it is present. There is no preflight, no prompt, and no degraded mode.
 
-**Superpowers** — optional, install with:
+**Superpowers** — not required; install only if you want its own library:
 ```
 /plugin install superpowers@claude-plugins-official
 ```

@@ -6,6 +6,22 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.3.0] - 2026-08-02
+
+**SlashForge no longer references the superpowers plugin at all.** Nothing invokes it, checks for it, or behaves differently when it is present. The three capabilities that were still optional in 4.2.0 now ship as SlashForge skills.
+
+### Added
+- **`slashforge:worktree`** (Phase 4) — creates an isolated second checkout when a dev server must stay up on the current branch, or a refactor is risky enough that abandoning it should be `rm -rf`. Carries the two things people forget: a fresh worktree has no installed dependencies, and the test suite should be run *before* the first edit so a later failure is known to be yours.
+- **`slashforge:parallel`** (Phase 5) — dispatches one agent per task with review between each. Deliberately not a port of superpowers' 28 KB version, which is a resumable ledger and workspace framework; SlashForge needs "independent tasks, fresh agent each, check the diff not the summary". Leads with the independence test, because most plans are not parallel and the honest default is sequential.
+- **`slashforge:request-review`** (Phase 7) — gets *your own* work reviewed before it ships, with crafted context rather than your session history. Withholding your reasoning is the point: a reviewer given the justification reviews the justification.
+
+  Three review-shaped names now exist and are deliberately distinct: `slashforge:request-review` for your own work, `slashforge:review-feedback` for comments you received, and the `/slashforge:review-pr` command for someone else's PR.
+
+### Removed
+- **The preflight.** With every discipline shipped, the Superpowers Check had nothing left to detect, so `forge-preflight.md` is gone and no command declares `preflight:` any more. That is one fewer guide file read on every single run.
+- Installer support for clearing dropped guide files (`REMOVED_GUIDE_FILES`). Install overwrites what it ships but never cleared the guides directory, so without this an upgrade would leave `forge-preflight.md` sitting there being read by nothing.
+
+
 ## [4.2.0] - 2026-08-02
 
 **The superpowers plugin is now optional.** SlashForge ships its own discipline skills under the `slashforge:` namespace it already owns — no plugin, no marketplace, no change to `npx slashforge`. Nothing stops, prompts, or warns about degraded mode any more.

@@ -1,6 +1,6 @@
 ---
 name: Claude Development Workflow
-description: End-to-end workflow invoked by /slashforge:code and /slashforge:investigate — requirements gathering, planning, change implementation, and research flows. Integrates superpowers skills when installed.
+description: End-to-end workflow invoked by /slashforge:code and /slashforge:investigate — requirements gathering, planning, change implementation, and research flows. Uses SlashForge's own skills at each phase.
 ---
 
 # Claude Development Workflow
@@ -10,7 +10,7 @@ Ten-phase change-shipping flow used by `/slashforge:code` (full and trivial path
 - `forge-workflow-investigation.md` — Investigation Flow I1–I3 (loaded by `/slashforge:investigate` only — it does not load this file)
 - `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
 
-Every phase with a named skill MUST invoke it via the `Skill` tool — do not paraphrase. SlashForge ships its own skills for most phases, so they are always available; where a phase names a `superpowers:` skill instead, that skill is optional and the phase falls back to its written steps when the plugin is absent. The flow runs without user intervention **except for four mandatory gates**: plan confirmation (Phase 3), branch decision (Phase 4), PR target + reviewers (Phase 8), and branch cleanup after merge (Phase 10).
+Every phase with a named skill MUST invoke it via the `Skill` tool — do not paraphrase. Every skill the workflow names ships with SlashForge, so all of them are always available. There are no optional dependencies. The flow runs without user intervention **except for four mandatory gates**: plan confirmation (Phase 3), branch decision (Phase 4), PR target + reviewers (Phase 8), and branch cleanup after merge (Phase 10).
 
 ---
 
@@ -59,7 +59,7 @@ Every phase with a named skill MUST invoke it via the `Skill` tool — do not pa
 
 ## Phase 4 — Branch Decision (Gate)
 
-**Skill (optional):** `superpowers:using-git-worktrees` (when isolation is warranted, and only if superpowers is installed)
+**Skill:** `slashforge:worktree` (only when isolation is warranted — ordinary feature work does not need it)
 
 1. Ask the user: **"Should I work on the current branch, or create a new one?"**
 2. If **current branch**: verify it is not `main` / `master` / `production` (if it is, warn and require explicit override). Check the working tree is clean; if not, warn: **"There is uncommitted work. Please stash or commit before I continue."** Do not proceed until clean
@@ -68,23 +68,23 @@ Every phase with a named skill MUST invoke it via the `Skill` tool — do not pa
    - Ask: **"Which branch should I create it from?"**
    - Verify the working tree is clean (same check as above)
    - Fetch the latest remote state; if the base branch is behind its remote, warn: **"[branch] is behind its remote by N commit(s). Should I pull the latest before branching?"** Wait for confirmation
-4. For larger changes or risky refactors, if superpowers is installed consider `superpowers:using-git-worktrees` to isolate the workspace
+4. For larger changes or risky refactors — or when a dev server must stay up on the current branch — invoke `slashforge:worktree` to isolate the workspace
 5. Invoke the `git` agent to execute the branching
 
 ---
 
 ## Phase 5 — Implement
 
-**Invoke exactly one superpowers skill (if installed)** based on task shape — do not load multiple:
+**Invoke exactly one skill** based on task shape — do not load multiple:
 
 | Task shape | Skill |
 |---|---|
 | Bug fix (intake established the intent is bug) | `slashforge:debug` — reproduce, root-cause, **write a failing regression test first**, then fix until it passes (red → green) |
-| Feature/task with 2+ truly independent parallelisable units in the plan | `superpowers:subagent-driven-development` (optional; skip if superpowers is absent) — dispatch the units; each subagent uses TDD internally |
+| Feature/task with 2+ truly independent parallelisable units in the plan | `slashforge:parallel` — dispatch the units; each agent works test-first. Most plans are not parallel; the skill's independence test decides |
 | Everything else that is testable (features, tasks, refactors) | `slashforge:tdd` |
 | Genuinely not testable (docs, config, infra-only tweaks) | No Phase 5 skill — state *why* TDD was skipped, then implement |
 
-When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code -quick` always lands in row 3 or 4 — never systematic-debugging, never subagent-driven.
+When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code -quick` always lands in row 3 or 4 — never `slashforge:debug`, never `slashforge:parallel`.
 
 1. Select the appropriate specialist coding agent based on the task type (see Agent Selection Table in `forge-workflow-agents.md`). If no suitable agent exists, create it on the fly and notify the user: *"I created a `[name]` agent to handle this — saved to `.claude/agents/[name].md`"*
 2. Invoke the selected Phase 5 skill (or state why no skill applies), then implement.
@@ -109,9 +109,9 @@ When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code 
 
 ## Phase 7 — Code Review
 
-**Skill:** none — the checklist below is the review standard. If superpowers is installed, `superpowers:requesting-code-review` may be used to dispatch a reviewer subagent.
+**Skill:** `slashforge:request-review`
 
-1. Hand off to the `code-reviewer` agent against the checklist below. If superpowers is installed, `superpowers:requesting-code-review` covers dispatching a reviewer subagent
+1. Invoke `slashforge:request-review`, then hand off to the `code-reviewer` agent against the checklist below
 2. Review must check:
    - Matches the approved plan — no scope creep, no missing pieces
    - No duplicate code, no dead code, no debug leftovers, no hardcoded secrets

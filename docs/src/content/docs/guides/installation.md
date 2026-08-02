@@ -23,18 +23,9 @@ Start to finish, for a repo that has never used SlashForge.
 npx slashforge
 ```
 
-**2. Install superpowers — optional.** SlashForge ships its own discipline
-skills, so you can skip this entirely. No command stops to ask, and there is no
-degraded mode.
-
-```
-/plugin install superpowers@claude-plugins-official
-```
-
-Skipping it costs three capabilities and nothing else: worktree isolation in
-Phase 4, subagent-driven execution in Phase 5, and reviewer-subagent dispatch in
-Phase 7. See [skills and the superpowers
-plugin](/slashforge/guides/skills/).
+**2. Set up the repo.** SlashForge ships every discipline skill the workflow
+uses, so there is no plugin step. See [Skills](/slashforge/guides/skills/) for
+what runs at each phase.
 
 **3. Set up the repo.** Open Claude Code in your project and run:
 
@@ -81,7 +72,7 @@ explicit:
 
 | | Required? | When you deal with it |
 | --- | --- | --- |
-| [superpowers](/slashforge/guides/skills/) | No — SlashForge ships its own skills | Never prompted for. Install it only if you want worktree isolation or subagent execution |
+| [superpowers](/slashforge/guides/skills/) | No — nothing invokes or checks for it | Never prompted for. Install it only if you want its own library |
 | [Graphify](/slashforge/guides/graphify/) | No, fully optional | `/slashforge:setup` offers it mid-run, on supported languages only |
 
 You do not need to prepare anything. Install SlashForge, run a command, and it
