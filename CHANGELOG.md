@@ -14,7 +14,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - **`/slashforge:review-pr`** — reviews a pull request against *this* repo's standards (`CLAUDE.md`, `.claude/rules/`, and the conventions in the surrounding code) and posts line-level comments or an approval.
 
-  With no argument it finds the PRs waiting on you, searching `review-requested:@me` first — that is what "waiting on me" means on GitHub, whereas `assignee` is a different relationship and usually empty. Drafts are skipped, one PR is reviewed without a menu, and no PRs means it says so rather than inventing work.
+  With no argument it searches `review-requested:@me` — that is what "waiting on me" means on GitHub, whereas `assignee` is a different relationship and usually empty — and widens to assignee only if that comes back empty. `--assigned`, `--mine` and `--all` override the default for teams that route reviews by assignment, for self-review, or for the full picture. Under `--mine`, approve is withdrawn when the list is shown rather than at the gate, since GitHub refuses self-approval and that should not be a surprise after the work is done. A PR number skips discovery entirely.
+
+  Drafts are skipped, one PR is reviewed without a menu, and no PRs means it says so — naming which query was empty so you know which flag to try.
 
   Before reading the diff it checks CI status, existing review comments so it does not repeat a point already made, and whether the PR is yours — GitHub refuses to let anyone approve their own pull request, so that option is withdrawn when it applies. Past roughly 1,500 changed lines it says a single pass cannot be thorough and states what it covered.
 

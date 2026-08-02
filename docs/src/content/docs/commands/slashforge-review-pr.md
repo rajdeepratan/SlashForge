@@ -4,8 +4,11 @@ description: Review a pull request against your repo's own rules and conventions
 ---
 
 ```
-/slashforge:review-pr
-/slashforge:review-pr 42
+/slashforge:review-pr              # PRs awaiting your review
+/slashforge:review-pr 42           # that PR, whatever your relationship to it
+/slashforge:review-pr --assigned   # PRs assigned to you
+/slashforge:review-pr --mine       # your own PRs (comment only)
+/slashforge:review-pr --all        # all three, grouped
 ```
 
 Reviews a pull request against **your repo's** standards — `CLAUDE.md`, `.claude/rules/`, and the
@@ -13,7 +16,8 @@ conventions actually in the surrounding code — then posts line-level comments 
 
 > **It never posts anything without your explicit yes.**
 
-With no argument it finds the PRs waiting on you. With a number it goes straight to that PR.
+With no argument it finds the PRs waiting on you. With a number it goes straight to that PR. The
+flags change which relationship it searches — see below.
 
 ## Which PRs it finds
 
@@ -22,6 +26,27 @@ It searches `review-requested:@me` first, because that is what "waiting on me" m
 search comes back empty, the command widens to assignee and tells you it widened.
 
 Drafts are skipped. A draft is explicitly not ready.
+
+### Choosing what it looks for
+
+The three GitHub relationships are genuinely different, and the flags let you pick:
+
+| Flag | Query | Why you would use it |
+| --- | --- | --- |
+| *(none)* | `review-requested:@me`, falling back to `assignee:@me` | The default. Someone asked you to review |
+| `--assigned` | `assignee:@me` only | Your team routes reviews by assigning rather than requesting |
+| `--mine` | `author:@me` | Self-review before you ask anyone else |
+| `--all` | all three, in labelled groups | You want the full picture |
+
+Under `--mine`, **approve is unavailable** — GitHub does not let anyone approve their own pull
+request. The command says so when it lists them, not after you have spent time on a review.
+
+Passing a **PR number** skips discovery entirely, so you can review any PR regardless of your
+relationship to it.
+
+These are SlashForge's flags, not `gh` flags. You never pass `gh` syntax to the command.
+
+### How many it finds
 
 | Situation | What happens |
 | --- | --- |

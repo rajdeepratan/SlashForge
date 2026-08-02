@@ -626,3 +626,21 @@ test('review-pr gates every GitHub write behind an explicit choice', () => {
   assert.ok(/review-requested/.test(body), 'must default to review-requested, not assignee');
   assert.ok(/No open PRs/i.test(body), 'must handle the zero-PR case');
 });
+
+// The discovery flags are SlashForge's own, not gh's. A user pasting gh syntax
+// should not silently get a different query than they asked for.
+test('review-pr documents its discovery flags and their consequences', () => {
+  const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', 'review-pr.md'), 'utf8');
+  for (const flag of ['--assigned', '--mine', '--all']) {
+    assert.ok(body.includes(flag), `must document ${flag}`);
+  }
+  assert.ok(
+    /Do not pass them through to `gh`/.test(body),
+    'must state the flags are not gh flags',
+  );
+  // --mine is the one with a consequence: self-approval is impossible.
+  assert.ok(
+    /approve` is unavailable for every PR in this set/.test(body),
+    '--mine must withdraw approve up front, not at the gate',
+  );
+});

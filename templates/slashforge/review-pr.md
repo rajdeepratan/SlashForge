@@ -1,6 +1,6 @@
 ---
 name: /slashforge:review-pr
-description: Review a pull request against this repo's own rules and conventions, then post line-level comments or approve — only after you confirm. Lists PRs awaiting your review when there is more than one.
+description: Review a pull request against this repo's own rules and conventions, then post line-level comments or approve — only after you confirm. Lists PRs awaiting your review; pass --assigned, --mine or --all to change what it looks for.
 preflight: superpowers
 ---
 
@@ -21,39 +21,80 @@ If not authenticated, stop and tell the user to run `gh auth login`. Do not atte
 
 ## Step 1 — Find the PRs
 
-The argument, if any, is a PR number (`/slashforge:review-pr 42`) — use it directly and skip to
-Step 2.
+Parse the argument first. It is one of four things:
 
-Otherwise list what is waiting on the user. **Review-requested is the default**, because that is
-what "waiting on me" means on GitHub; `assignee` is a different relationship and is usually empty.
+| Argument | Meaning |
+|---|---|
+| a number, e.g. `42` | Review that PR. Skip discovery entirely, go to Step 2 |
+| `--assigned` | Discover by `assignee:@me` only |
+| `--mine` | Discover your own PRs (`author:@me`) |
+| `--all` | Discover all three relationships, grouped and labelled |
+| nothing | Default discovery, below |
+
+These are SlashForge's own flags. Do not pass them through to `gh` — they select which query to
+run, and the queries below are the only ones you run.
+
+### Default discovery
+
+**Review-requested first**, because that is what "waiting on me" means on GitHub. `assignee` is a
+different relationship — it is the same field issues use, meaning "responsible for this" — and
+most teams never set it on PRs.
 
 ```bash
-gh pr list --search "review-requested:@me" --state open --json number,title,author,isDraft,additions,deletions,changedFiles
+gh pr list --search "review-requested:@me" --state open \
+  --json number,title,author,isDraft,additions,deletions,changedFiles
 ```
 
-If that returns nothing, widen once and say you widened:
+If that returns nothing, widen to assignee once, and **say that you widened** so the result is not
+mistaken for a review request:
 
 ```bash
-gh pr list --assignee "@me" --state open --json number,title,author,isDraft,additions,deletions,changedFiles
+gh pr list --assignee "@me" --state open \
+  --json number,title,author,isDraft,additions,deletions,changedFiles
 ```
+
+### The explicit flags
+
+- **`--assigned`** — run only the assignee query. Use this when the team routes reviews by
+  assigning rather than requesting. No fallback and no "widened" notice, since it was asked for.
+- **`--mine`** — run `gh pr list --author "@me"`. This is self-review: GitHub refuses to let
+  anyone approve their own pull request, so **`approve` is unavailable for every PR in this set**.
+  Say that when listing, not at the gate — the user should know before choosing what to spend time
+  on.
+- **`--all`** — run all three and present them in labelled groups, most actionable first:
+
+  ```
+  Awaiting your review
+    1. #42  Add retry to the upload queue        alice   +180 −24  (6 files)
+
+  Assigned to you
+    2. #51  Flaky integration test               carol    +40 −8   (2 files)
+
+  Yours (comment only — GitHub blocks self-approval)
+    3. #55  Bump astro to 7.2                    you      +12 −12  (2 files)
+  ```
+
+  A PR can appear in more than one relationship. List it once, under the most actionable group.
+
+### In every mode
 
 **Skip drafts** unless the user asks for them — a draft is explicitly not ready.
 
-**Zero PRs** → say so plainly and stop: *"No open PRs are waiting on your review in this repo."*
-Do not invent work.
+**Zero PRs** → say so plainly and stop, naming which query came back empty so the user can try
+another flag: *"No open PRs are awaiting your review in this repo. Try `--mine` for your own, or
+`--all` to see everything."* Do not invent work.
 
-**Exactly one** → say which one and go straight to Step 2. Do not make the user choose from a
-list of one.
+**Exactly one** → say which one and go to Step 2. Do not offer a menu of one.
 
-**More than one** → show them as a numbered list with the size, because size determines whether a
-review is meaningful:
+**More than one** → numbered list with author and size. Size determines whether a review can be
+meaningful at all, so it belongs in the list, not buried in Step 2.
 
 ```
 1. #42  Add retry to the upload queue          alice    +180 −24  (6 files)
 2. #47  Bump astro to 7.2                      bob       +12 −12  (2 files)
 ```
 
-Ask which to review. Accept a number from the list or a PR number.
+Ask which to review. Accept a list position or a PR number.
 
 ## Step 2 — Gather context before reading the diff
 
@@ -164,7 +205,7 @@ Then ask, in one question:
 
 > **"Post this review? `approve` · `comment` · `request-changes` · `edit` · `cancel`"**
 
-- **approve** — only if there are no blocking findings, and only if the PR is not the user's own.
+- **approve** — only if there are no blocking findings, and only if the PR is not the user's own. Withdrawn entirely under `--mine`, and whenever Step 2 found the author is the current user.
 - **comment** — leaves the findings without blocking the merge.
 - **request-changes** — blocks the merge until resolved. A stronger act than a comment; never
   choose it on the user's behalf.

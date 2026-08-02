@@ -254,12 +254,15 @@ The command takes the bare filename — `/slashforge:code` resolves it against `
 ---
 
 ```
-/slashforge:review-pr
-/slashforge:review-pr 42
+/slashforge:review-pr              # PRs awaiting your review
+/slashforge:review-pr 42           # that PR, whatever your relationship to it
+/slashforge:review-pr --assigned   # PRs assigned to you
+/slashforge:review-pr --mine       # your own PRs (comment only — GitHub blocks self-approval)
+/slashforge:review-pr --all        # all three, grouped
 ```
 Reviews a pull request against **your repo's** standards — `CLAUDE.md`, `.claude/rules/`, and the conventions actually in the surrounding code — then posts line-level comments or an approval.
 
-With no argument it finds the PRs waiting on you. It searches `review-requested:@me` first, since that is what "waiting on me" means on GitHub; `assignee` is a different relationship and usually empty, so filtering on it would show an empty list. Drafts are skipped, a single PR is reviewed without a menu, and no PRs means it says so rather than inventing work.
+With no argument it searches `review-requested:@me`, since that is what "waiting on me" means on GitHub; `assignee` is a different relationship and usually empty, so filtering on it would show an empty list. It widens to assignee only if the first search comes back empty, and says so. The flags override that: `--assigned` if your team routes reviews by assigning, `--mine` for self-review, `--all` for everything grouped. Drafts are skipped, a single PR is reviewed without a menu, and no PRs means it says so rather than inventing work.
 
 Before reading the diff it checks CI status, existing review comments so it does not repeat a point already made, and whether the PR is yours — GitHub refuses to let anyone approve their own, so that option is withdrawn when it applies. Past roughly 1,500 changed lines it says a single pass cannot be thorough and states which files it covered.
 
