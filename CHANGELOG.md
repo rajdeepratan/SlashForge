@@ -6,6 +6,28 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-08-02
+
+### Changed
+- **Investigation reports now land in `investigations/` at the repo root**, not `.claude/investigations/`. A dot-directory is hidden in Finder and most file explorers, so the reports were effectively unreachable without a code editor — which defeated the point of writing them as HTML. Existing reports under `.claude/investigations/` are left alone; nothing is moved or deleted.
+- **`/slashforge:investigate` opens the finished report in your browser** instead of reprinting it into the chat. Uses `open` / `xdg-open` / `wslview` / `start` per platform, and skips silently over SSH or on a headless Linux box with no `$DISPLAY`. It is best-effort throughout — failing to open a browser never fails the investigation.
+- **Chat gets a summary, not the document.** The old instruction allowed reprinting the entire report — including the CSS — into the terminal, where it rendered as a wall of raw HTML. Chat now receives the conclusion, the root cause, the path, and the hand-off line.
+- The `/slashforge:investigate` hand-off names the report it just wrote, so the fix command can be pasted as-is rather than retyped from memory:
+
+  ```
+  Investigation complete → investigations/investigation-2026-08-02-1432.html
+  Want me to fix this? Run /slashforge:code investigation-2026-08-02-1432.html
+  ```
+
+### Added
+- **`/slashforge:code` accepts a requirements document** as its argument. If the argument resolves to a file it is read as the requirements source and the "what do you want to build?" question is skipped — the document already answered it. A bare filename resolves against `investigations/`; a full path works as given, so any spec or design doc is equally valid. A leading `@` or `#` is stripped, so a pasted mention still works.
+
+  This is what makes an investigation survive into a fresh session: the root cause is carried by the file rather than by your memory of it. Every gate still applies — a report's "suggested next step" is a proposal, and Phase 3 still waits for your approval.
+- **`forge-report-shell.html`**, installed alongside the guide files, holds the report's doctype, `<head>`, and entire `<style>` block. Each investigation now writes only its body fragment and splices it into the shell, so the CSS is never regenerated per run. Reports come out visually identical, restyling every future report is one edit to the shell, and roughly 800 tokens of boilerplate leave each run's output.
+
+  Finished reports remain fully self-contained — the CSS is inlined into every file, so they open from disk, offline, with no dependency on the shell still existing.
+- Installer support for non-markdown assets (`ASSET_FILES`), copied verbatim and exempt from frontmatter validation. A missing asset still refuses the install rather than producing a half-installed kit.
+
 ## [4.0.1] - 2026-08-01
 
 ### Added

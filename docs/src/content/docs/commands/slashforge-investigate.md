@@ -29,7 +29,7 @@ systematic debugging as part of shipping the fix.
 
 ## What it produces
 
-A findings report saved to `.claude/investigations/`, covering:
+A findings report saved to `investigations/`, covering:
 
 - the symptom, and how it was reproduced
 - the root cause, with the evidence supporting it
@@ -38,6 +38,61 @@ A findings report saved to `.claude/investigations/`, covering:
 - what was ruled out, and why
 
 The report is a document, not a patch. Deciding what to do with it is yours.
+
+It is a self-contained HTML file — no external CSS, no JavaScript, no network —
+written to `investigations/investigation-<timestamp>.html`. The folder sits at
+the repo root rather than inside `.claude/` because dot-directories are hidden
+in Finder and most file explorers; these reports are meant to be double-clicked
+by a human, not just read by an agent.
+
+`investigations/` is the one directory worth considering for `.gitignore` if you
+would rather keep findings local. SlashForge will not edit `.gitignore` for you.
+
+When the report is written it is **opened in your default browser** — `open` on
+macOS, `xdg-open` on Linux, `wslview` on WSL, `start` on Windows. Over SSH or on
+a headless machine that step is skipped silently and you just get the path. It is
+best-effort throughout: failing to open a browser never fails the investigation.
+
+Chat gets a short plain-text summary — the conclusion, the root cause, the path —
+never the raw HTML. The file is the report; the transcript gets the gist.
+
+## How the styling works
+
+The report's shell — doctype, `<head>`, and the whole `<style>` block — ships
+with SlashForge as `forge-report-shell.html` and is installed alongside the guide
+files. Each investigation writes only its **body fragment**, which is spliced
+into that shell.
+
+This is why every report looks identical, and why restyling all of them is one
+edit to the shell rather than a hope that the next run copies a new skeleton
+faithfully. It also keeps ~800 tokens of boilerplate out of each run's output.
+
+The finished file is still fully self-contained: the CSS is inlined into every
+report, so it opens from disk, offline, years later, with no dependency on the
+shell still existing.
+
+## Handing off to the fix
+
+The run ends with the report's path, ready to paste:
+
+```
+Investigation complete → investigations/investigation-2026-08-02-1432.html
+Want me to fix this? Run /slashforge:code investigation-2026-08-02-1432.html
+```
+
+The two lines use different forms on purpose. The pointer after the arrow is the
+full path — where the file lives, clickable in most terminals. The command takes
+the **bare filename**, which `/slashforge:code` resolves against
+`investigations/`, so there is less to type or paste.
+
+That handover is the point. `/slashforge:code` reads the report as its
+requirements document, so the root cause survives into a fresh session instead of
+being retyped from memory — see
+[its Argument section](/slashforge/commands/slashforge-code/#argument).
+
+The handover skips the retyping, not the confirmation. Every gate still applies,
+and the report's recommended fix arrives as a proposal that Phase 3 still asks
+you to approve.
 
 ## Reproduce first
 

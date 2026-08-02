@@ -29,6 +29,12 @@ const GUIDE_FILES = [
   'forge-memory.md',
 ];
 
+// Non-markdown files installed verbatim next to the guides. They carry no
+// frontmatter, so they are copied but never frontmatter-validated.
+const ASSET_FILES = [
+  'forge-report-shell.html',
+];
+
 const COMMAND_FILES = [
   path.join('slashforge', 'setup.md'),
   path.join('slashforge', 'code.md'),
@@ -116,6 +122,17 @@ function parseFrontmatter(content, label) {
   return fm;
 }
 
+// Assets carry no frontmatter, so presence is the only thing worth checking.
+// Missing one still refuses the install — a half-installed kit is worse than none.
+function assertTemplatesExist(files, dir) {
+  const missing = files.filter((f) => !fs.existsSync(path.join(dir, f)));
+  if (missing.length) {
+    console.error('\nTemplate validation failed:');
+    for (const f of missing) console.error(`  ✗ missing template: ${path.join(dir, f)}`);
+    throw new Error('Refusing to install with invalid templates.');
+  }
+}
+
 function validateTemplates(files, dir) {
   const errors = [];
   for (const file of files) {
@@ -181,13 +198,15 @@ function installFiles(target, {
   pkgName = pkg.name,
   guideFiles = GUIDE_FILES,
   commandFiles = COMMAND_FILES,
+  assetFiles = ASSET_FILES,
 } = {}) {
   validateTemplates(guideFiles, templatesDir);
   validateTemplates(commandFiles, templatesDir);
+  assertTemplatesExist(assetFiles, templatesDir);
   fs.mkdirSync(target.guidesDir, { recursive: true });
   fs.mkdirSync(target.commandsDir, { recursive: true });
   const written = [];
-  for (const f of guideFiles) {
+  for (const f of [...guideFiles, ...assetFiles]) {
     const dest = path.join(target.guidesDir, f);
     fs.copyFileSync(path.join(templatesDir, f), dest);
     written.push(dest);
@@ -300,6 +319,7 @@ async function install({ dryRun, assumeYes, project = false }) {
 
   validateTemplates(GUIDE_FILES, TEMPLATES_DIR);
   validateTemplates(COMMAND_FILES, TEMPLATES_DIR);
+  assertTemplatesExist(ASSET_FILES, TEMPLATES_DIR);
 
   const alreadyInstalled = fs.existsSync(target.guidesDir);
 
@@ -480,12 +500,14 @@ if (require.main === module) {
 module.exports = {
   parseFrontmatter,
   validateTemplates,
+  assertTemplatesExist,
   renderTemplate,
   resolveTarget,
   installFiles,
   uninstallFiles,
   commandName,
   GUIDE_FILES,
+  ASSET_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
 };

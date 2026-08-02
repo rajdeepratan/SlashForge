@@ -18,6 +18,22 @@ an explicit `-quick` selects it. If the user describes a tiny change without
 passing `-quick`, run full mode; its Phase 1 auto-classification already handles
 trivial work without the ceremony.
 
+## Step 0b — Requirements-document argument
+
+After stripping any `-quick` flag, check whether what remains points at a file. Resolve in this order:
+
+1. **Resolves to an existing file as given** (e.g. `docs/spec.md`, `investigations/investigation-2026-08-02-1432.html`) → read it in full and treat it as the requirements source.
+2. **Bare filename that exists under `investigations/`** (e.g. `investigation-2026-08-02-1432.html`) → read that file. **This is the expected form** — it is exactly what the `/slashforge:investigate` hand-off prints, so treat it as a normal path, not a fallback.
+3. **Neither** → treat the argument as a free-form description. Normal intake.
+
+Strip a leading `@` or `#` before resolving — users paste those out of habit; neither is part of the path.
+
+When a file resolved, **do not ask the entry question below.** The document already answers it. Announce what you loaded and go to Phase 1 with it:
+
+> *"Read `investigations/investigation-2026-08-02-1432.html`. Root cause: [one line from the report]. Suggested fix: [one line]. Fix it as suggested, or something different?"*
+
+The report's "Suggested next step" is a **proposal, not an approved plan.** Phase 1 still runs, Phase 2 still produces a plan, and the Phase 3 gate still waits for you. A hand-off from `/slashforge:investigate` skips the retyping, not the confirmation.
+
 ## Workflow files
 
 Read the following in full — together they are your complete workflow guide:
@@ -29,6 +45,7 @@ You MUST follow every phase in order. Do not skip phases. Do not combine phases.
 
 **Entry (full mode):** Ask the user: **"What do you want to build, fix, or change?"**
 In lean mode, use the entry line from `forge-workflow-quick.md` instead.
+**Skip the entry question entirely if Step 0b resolved a requirements document** — use its confirmation line instead, in either mode.
 
 Then begin Phase 1 — the workflow guide handles the auto-classification (trivial vs full) and decides whether `superpowers:brainstorming` applies. Do not invoke brainstorming unconditionally; let Phase 1 make that call.
 
