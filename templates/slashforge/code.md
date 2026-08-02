@@ -1,10 +1,7 @@
 ---
 name: /slashforge:code
-description: End-to-end development workflow — gather requirements, plan, confirm, branch, implement, verify, review, push, PR. Pass `-quick` for lean mode on small changes (skips brainstorming, minimal plan, inline self-review instead of the agent review). Uses SlashForge's own skills at each phase; the superpowers plugin is optional.
-preflight: superpowers
+description: End-to-end development workflow — gather requirements, plan, confirm, branch, implement, verify, review, push, PR. Pass `-quick` for lean mode on small changes (skips brainstorming, minimal plan, inline self-review instead of the agent review). Uses SlashForge's own skills at each phase — no plugins required.
 ---
-
-**Preflight:** before reading anything else, open `{{INSTALL_PATH}}/forge-preflight.md` and run the **Superpowers Check**.
 
 ## Step 0 — Mode selection (do this first)
 
@@ -57,17 +54,17 @@ The same classification also governs Graphify usage when installed: **full flow*
 3. **Phase 8** — PR target branch and reviewers
 4. **Phase 10** — branch cleanup after merge
 
-**Skills per phase (use the `Skill` tool, do not paraphrase). `slashforge:` skills ship with SlashForge and are always present; `superpowers:` entries are optional:**
+**Skills per phase (use the `Skill` tool, do not paraphrase). All of them ship with SlashForge:**
 - Phase 1 — `slashforge:brainstorm` (full path only — skipped on the trivial auto-detect path, and skipped entirely in lean mode)
 - Phase 2 — `slashforge:plan`
-- Phase 4 — `superpowers:using-git-worktrees` (optional; only if superpowers is installed)
-- Phase 5 — **exactly one** of: `slashforge:debug` (bug) · `superpowers:subagent-driven-development` (parallel units, optional) · `slashforge:tdd` (everything else testable). See Phase 5 table in the workflow file.
+- Phase 4 — `slashforge:worktree` (only when isolation is warranted)
+- Phase 5 — **exactly one** of: `slashforge:debug` (bug) · `slashforge:parallel` (genuinely independent units) · `slashforge:tdd` (everything else testable). See Phase 5 table in the workflow file.
 - Phase 6 — `slashforge:verify`
-- Phase 7 — the `code-reviewer` agent against the Phase 7 checklist
+- Phase 7 — `slashforge:request-review`, then the `code-reviewer` agent against the Phase 7 checklist
 - Phase 8 — the `git` agent (no skill; Phases 8 and 10 are SlashForge's own flow)
 - Phase 9 — `slashforge:review-feedback`
 - Phase 10 — (no skill; `git` agent handles the cleanup)
 
-Superpowers is optional. Its absence costs only the two phases that still name a `superpowers:` skill, and both degrade to their written steps.
+Every skill the workflow names ships with SlashForge. There is nothing to install and nothing that degrades when a plugin is absent.
 
 Follow the workflow file as the source of truth for phase details and success criteria.

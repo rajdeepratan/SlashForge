@@ -183,15 +183,14 @@ These ship with SlashForge and are always available:
 | --- | --- |
 | 1 | `slashforge:brainstorm` (full mode only) |
 | 2 | `slashforge:plan` |
-| 5 | `slashforge:debug` (bugs) or `slashforge:tdd` (everything else testable) |
+| 4 | `slashforge:worktree` (only when isolation is warranted) |
+| 5 | `slashforge:debug` (bugs) · `slashforge:parallel` (independent units) · `slashforge:tdd` (everything else) |
 | 6 | `slashforge:verify` |
+| 7 | `slashforge:request-review` |
 | 9 | `slashforge:review-feedback` |
 
-Phases 7, 8 and 10 use no skill — the Phase 7 checklist and SlashForge's own
-branch-completion flow are more specific than a generic one would be.
+Phases 3, 8 and 10 use no skill — they are user gates and git operations the
+workflow handles directly.
 
-With [superpowers](https://github.com/obra/superpowers) installed, three optional
-steps become available: `using-git-worktrees` (Phase 4), `subagent-driven-development`
-(Phase 5, parallel units only), and `requesting-code-review` (Phase 7). Without it
-they are skipped and nothing else changes. See
-[Skills](/slashforge/guides/skills/).
+Every one of these ships with SlashForge. No plugin is required, and none is
+checked for. See [Skills](/slashforge/guides/skills/).

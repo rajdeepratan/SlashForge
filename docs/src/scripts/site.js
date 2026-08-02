@@ -70,55 +70,57 @@
      Lines are rendered in full in the HTML and trimmed on load, so the content
      is real text: it survives with JS off, it is selectable, and screen readers
      get the finished output rather than a stream of partial words. */
-  var section = document.querySelector('[data-replay]');
-  if (!section) return;
+  /* Each replay runs independently — its own timer, its own observer — so a
+     second terminal further down the page is not driven by the first. */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-replay]'), function (section) {
+    var body = section.querySelector('[data-replay-body]');
+    var status = section.querySelector('[data-replay-status]');
+    var button = section.querySelector('[data-replay-btn]');
+    if (!body) return;
 
-  var body = section.querySelector('[data-replay-body]');
-  var status = section.querySelector('[data-replay-status]');
-  var button = section.querySelector('[data-replay-btn]');
-  var lines = Array.prototype.slice.call(body.children);
+    var lines = Array.prototype.slice.call(body.children);
+    lines.forEach(function (el) { el.dataset.full = el.textContent; });
+    var total = lines.reduce(function (n, el) { return n + el.dataset.full.length + 1; }, 0);
 
-  lines.forEach(function (el) { el.dataset.full = el.textContent; });
-  var total = lines.reduce(function (n, el) { return n + el.dataset.full.length + 1; }, 0);
+    var timer = 0;
 
-  var timer = 0;
-
-  function paint(budget) {
-    var left = budget;
-    lines.forEach(function (el) {
-      var full = el.dataset.full;
-      var shown = Math.max(0, Math.min(full.length, left));
-      var typing = left > 0 && left <= full.length && budget < total;
-      el.textContent = full.slice(0, shown) + (typing ? '▌' : '');
-      left -= full.length + 1;
-    });
-    if (status) status.textContent = budget >= total ? 'complete' : 'running';
-  }
-
-  function play() {
-    clearInterval(timer);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      paint(total);
-      return;
+    function paint(budget) {
+      var left = budget;
+      lines.forEach(function (el) {
+        var full = el.dataset.full;
+        var shown = Math.max(0, Math.min(full.length, left));
+        var typing = left > 0 && left <= full.length && budget < total;
+        el.textContent = full.slice(0, shown) + (typing ? '▌' : '');
+        left -= full.length + 1;
+      });
+      if (status) status.textContent = budget >= total ? 'complete' : 'running';
     }
-    var n = 0;
-    paint(0);
-    timer = setInterval(function () {
-      n += 3;
-      if (n >= total) { clearInterval(timer); paint(total); }
-      else paint(n);
-    }, 26);
-  }
 
-  if (button) button.addEventListener('click', play);
+    function play() {
+      clearInterval(timer);
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        paint(total);
+        return;
+      }
+      var n = 0;
+      paint(0);
+      timer = setInterval(function () {
+        n += 3;
+        if (n >= total) { clearInterval(timer); paint(total); }
+        else paint(n);
+      }, 26);
+    }
 
-  var played = false;
-  var io = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) {
-      if (e.isIntersecting && !played) { played = true; play(); }
-    });
-  }, { threshold: 0.25 });
-  io.observe(section);
+    if (button) button.addEventListener('click', play);
+
+    var played = false;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && !played) { played = true; play(); }
+      });
+    }, { threshold: 0.25 });
+    io.observe(section);
+  });
 })();
 
 /* ==========================================================================

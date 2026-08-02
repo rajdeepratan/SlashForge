@@ -77,10 +77,10 @@ Each agent type must invoke these skills. `slashforge:` skills ship with SlashFo
 |---|---|
 | `developer`, `frontend-developer`, `api-builder` | `slashforge:brainstorm` (new features), `slashforge:plan`, `slashforge:tdd`, `slashforge:verify` (before handoff) |
 | `debugger` | `slashforge:debug`, `slashforge:verify` |
-| `code-reviewer` | none — review against the Phase 7 checklist |
+| `code-reviewer` | `slashforge:request-review` |
 | `test-writer` | `slashforge:tdd`, `slashforge:verify` |
 
-Where a row names an optional `superpowers:` skill and the plugin is absent, skip it and proceed with the workflow as written.
+Every skill named here ships with SlashForge, so there is nothing to check for and nothing to skip.
 
 ---
 
@@ -109,7 +109,7 @@ Read `.claude/rules/` for coding standards and `.claude/skills/` for recipes.
 Skills:
 - [list the relevant skills for this agent type]
 
-Skip any optional skill that is not installed and proceed with the workflow.
+All of these ship with SlashForge and are always available.
 
 ## Workflow
 

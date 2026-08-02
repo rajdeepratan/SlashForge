@@ -476,6 +476,29 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 }
 .replay__btn:hover { background: var(--ember); border-color: var(--ember); color: #f3f2f2; }
 
+/* Two replays side by side. The band leaves ~507px a column, so the body drops
+   to 13px — that fits 59 characters, and the demos are written to stay under it.
+   Any longer and a terminal wraps mid-line, which defeats the alignment the
+   content relies on. */
+.terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.terms__col { display: flex; flex-direction: column; align-items: flex-start; }
+.terms__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 14px;
+}
+.terms__head h3 { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+/* Grid stretches the columns, but a terminal keeps its content height — so the
+   shorter run ended above the taller one and the two links sat at different
+   heights. Letting .term grow fills the column and puts both links on the same
+   line, whatever the demos say. */
+.terms__col .term { width: 100%; flex: 1; display: flex; flex-direction: column; }
+.terms__col .term__body { font-size: 13px; padding: 18px 16px 20px; flex: 1; }
+.terms__col .replay__link { margin-top: 14px; }
+
 .term { border: 2px solid var(--rule); background: #171615; }
 .term__bar {
   display: flex;
@@ -530,6 +553,11 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
    descriptions wrap to five lines. Two-up gives each cell ~508px. */
 .cells--quad { grid-template-columns: repeat(2, 1fr); }
 .cell { background: var(--surface); padding: 28px 24px 30px; display: flex; flex-direction: column; gap: 14px; }
+/* The command cells are links now, so they need the affordance without turning
+   into a wall of underlined blue. */
+.cell--link { text-decoration: none; color: inherit; transition: background 0.12s ease; }
+.cell--link:hover { background: var(--hairline); }
+.cell--link:hover code { color: var(--accent-text); }
 .cell code { font-family: var(--mono); font-size: 16px; font-weight: 500; letter-spacing: -0.02em; background: transparent; padding: 0; }
 .cell p { margin: 0; font-size: 15px; line-height: 1.65; color: var(--muted); max-width: none; }
 .cell__value { font-family: var(--mono); font-size: 27px; font-weight: 500; letter-spacing: -0.03em; }
@@ -615,6 +643,8 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   .hero__grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
   .rail { border-left: 0; border-top: 2px solid var(--hairline); padding-left: 0; padding-top: 28px; }
   .cells, .cells--quad { grid-template-columns: minmax(0, 1fr); }
+  .terms { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .terms__col .term__body { font-size: 14px; }
   .search-btn { min-width: 0; }
   .search-btn span:first-of-type, .kbd { display: none; }
 }

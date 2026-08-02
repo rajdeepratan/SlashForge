@@ -108,7 +108,7 @@ Commands live in a `forge/` subdirectory — that is what produces the `/slashfo
 
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification
-- **Preflight** — capability detection for optional integrations; never gates a command
+- **Instructions** — golden rules, creation order, file structure, verification
 - **Graph** — optional Graphify integration: setup-time install offer, runtime freshness check, and the SUMMARY.html synthesis prompt
 - **Workflow** — the ten-phase development loop used by `/slashforge:code` and `/slashforge:code -quick` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across three focused files (base phases, investigation flow, agent selection)
 - **Rules** — how to create rule files for a repo (including path-scoped rules)
@@ -123,17 +123,31 @@ The guide files cover:
 
 ## Skills — SlashForge ships its own
 
-The disciplines the workflow depends on install with the package, under the `slashforge:` namespace: `slashforge:brainstorm` (Phase 1), `slashforge:plan` (Phase 2), `slashforge:debug` and `slashforge:tdd` (Phase 5), `slashforge:verify` (Phase 6), `slashforge:review-feedback` (Phase 9). No plugin and no marketplace — the namespace comes from the commands directory SlashForge already owns.
+Nine skills install with the package, under the `slashforge:` namespace:
+
+| Phase | Skill |
+| --- | --- |
+| 1 Intake | `slashforge:brainstorm` (full mode only) |
+| 2 Plan | `slashforge:plan` |
+| 4 Branch | `slashforge:worktree` (only when isolation is warranted) |
+| 5 Implement | `slashforge:debug` (bugs) · `slashforge:parallel` (independent units) · `slashforge:tdd` (everything else) |
+| 6 Verify | `slashforge:verify` |
+| 7 Review | `slashforge:request-review` |
+| 9 PR feedback | `slashforge:review-feedback` |
+
+No plugin and no marketplace — the `slashforge:` namespace comes from the commands directory SlashForge already owns.
+
+Three names are deliberately distinct: `slashforge:request-review` reviews **your own** work before it ships, `slashforge:review-feedback` handles comments **you received**, and `/slashforge:review-pr` reviews **someone else's** pull request.
 
 They are adapted from [superpowers](https://github.com/obra/superpowers) under the MIT licence, © 2025 Jesse Vincent, with the notice carried in each skill file.
 
-**The superpowers plugin is optional.** It adds worktree isolation (Phase 4), subagent-driven execution (Phase 5, parallel units only), and reviewer-subagent dispatch (Phase 7). Without it those three are skipped and nothing else changes — no gate, no prompt, no degraded mode.
+**The superpowers plugin is not required at all.** Nothing invokes it, checks for it, or behaves differently when it is present. There is no preflight, no prompt, and no degraded mode.
 
-**Superpowers** — optional, install with:
+**Superpowers** — not required; install only if you want its own library:
 ```
 /plugin install superpowers@claude-plugins-official
 ```
-Without it, those three phases skip an optional step. Every discipline still runs, because SlashForge ships its own.
+It is a good library in its own right and covers ground SlashForge does not. Install it for that, not for SlashForge.
 
 **Graphify is the other optional integration**, and works differently — a one-time setup-time offer inside `/slashforge:setup`, not re-checked per command. See the Graphify section below.
 

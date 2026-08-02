@@ -8,11 +8,9 @@ const readline = require('readline');
 const pkg = require('../package.json');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
-const PLUGINS_CACHE_DIR = path.join(os.homedir(), '.claude', 'plugins', 'cache');
 
 const GUIDE_FILES = [
   'forge-instructions.md',
-  'forge-preflight.md',
   'forge-graph.md',
   'forge-graph-summary.md',
   'forge-coverage.md',
@@ -56,6 +54,18 @@ const SKILL_FILES = [
   path.join('slashforge', 'tdd.md'),
   path.join('slashforge', 'verify.md'),
   path.join('slashforge', 'review-feedback.md'),
+  path.join('slashforge', 'request-review.md'),
+  path.join('slashforge', 'worktree.md'),
+  path.join('slashforge', 'parallel.md'),
+];
+
+// Guide files dropped in a later version. Install overwrites what it ships but
+// does not clear the guides dir, so without this an upgrade leaves the old file
+// sitting there being read by nothing.
+const REMOVED_GUIDE_FILES = [
+  // v4.3.0: superpowers became fully optional, so the only preflight check had
+  // nothing left to detect.
+  'forge-preflight.md',
 ];
 
 // Namespace directory the command files live in, under the commands dir.
@@ -100,17 +110,6 @@ function prompt(question) {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function isSuperpowersInstalled() {
-  if (!fs.existsSync(PLUGINS_CACHE_DIR)) return false;
-  try {
-    const marketplaces = fs.readdirSync(PLUGINS_CACHE_DIR, { withFileTypes: true });
-    return marketplaces.some(
-      (entry) => entry.isDirectory() && fs.existsSync(path.join(PLUGINS_CACHE_DIR, entry.name, 'superpowers')),
-    );
-  } catch {
-    return false;
-  }
-}
 
 function parseFrontmatter(content, label) {
   const lines = content.split(/\r?\n/);
@@ -245,6 +244,10 @@ function installFiles(target, {
     fs.writeFileSync(dest, rendered);
     written.push(dest);
   }
+  for (const f of REMOVED_GUIDE_FILES) {
+    const stale = path.join(target.guidesDir, f);
+    if (fs.existsSync(stale)) fs.rmSync(stale);
+  }
   const meta = JSON.stringify({
     package: pkgName,
     version,
@@ -333,10 +336,6 @@ function printStatus({ project = false } = {}) {
   console.log(`  Installed commands:        ${commands.length}`);
   for (const f of commands) console.log(`    • ${commandName(f)}`);
 
-  // Reported, not warned about. SlashForge ships its own skills, so the plugin's
-  // absence costs three optional capabilities and nothing else — a ⚠ would imply
-  // something is wrong when nothing is.
-  console.log(`  superpowers plugin:        ${isSuperpowersInstalled() ? 'detected' : 'not installed (optional)'}`);
 }
 
 async function install({ dryRun, assumeYes, project = false }) {
@@ -530,6 +529,7 @@ module.exports = {
   uninstallFiles,
   commandName,
   GUIDE_FILES,
+  REMOVED_GUIDE_FILES,
   ASSET_FILES,
   SKILL_FILES,
   COMMAND_FILES,

@@ -8,7 +8,7 @@ own for getting them on and off your machine.
 
 | Command | What it does |
 | --- | --- |
-| `npx slashforge` | Installs guide files, the four commands, and the discipline skills into `~/.claude/` |
+| `npx slashforge` | Installs guide files, the four commands, and the nine discipline skills into `~/.claude/` |
 | `npx slashforge status` | Reports what is installed, at which version, without changing anything |
 | `npx slashforge uninstall` | Removes the guides and commands it installed |
 
@@ -31,7 +31,7 @@ SLASHFORGE_YES=1 npx slashforge
 
 ## install
 
-The default command. Installs the guide files, the four commands and the skills, then
+The default command. Installs the guide files, the four commands and the nine skills, then
 tells you where each one landed.
 
 ```bash
@@ -55,7 +55,7 @@ paths. Commit it and your teammates get the commands with no global install.
 ## status
 
 Reports the installed version, the guide files present, the commands registered,
-and whether the optional superpowers plugin was detected. It changes nothing.
+It changes nothing.
 
 ```bash
 npx slashforge status
@@ -66,7 +66,7 @@ slashforge status
   Package version (current): v4.0.1
   Installed version:         v4.0.1
   Installed at:              2026-08-01T15:37:54.153Z
-  Guide files:               16 (~/.claude/setup/slashforge)
+  Guide files:               15 (~/.claude/setup/slashforge)
     • forge-agents.md
     • forge-claude-md.md
     • forge-commands.md
@@ -76,7 +76,6 @@ slashforge status
     • /slashforge:investigate
     • /slashforge:review-pr
     • /slashforge:setup
-  superpowers plugin:        not installed (optional)
 ```
 
 On a machine with nothing installed it says so, rather than reporting an empty

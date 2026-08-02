@@ -15,6 +15,7 @@ const {
   uninstallFiles,
   commandName,
   GUIDE_FILES,
+  REMOVED_GUIDE_FILES,
   ASSET_FILES,
   SKILL_FILES,
   COMMAND_FILES,
@@ -364,16 +365,11 @@ test('a user file in the namespace dir survives uninstall alongside skills', () 
   assert.ok(fs.existsSync(path.join(target.commandsDir, 'slashforge')), 'dir must not be pruned');
 });
 
-// The disciplines ship with SlashForge now. Only two superpowers skills remain
-// referenced, both genuinely optional: worktrees (Phase 4) and subagent-driven
-// development (Phase 5, parallel units only). Anything else reappearing means a
-// hard dependency crept back in.
-test('only the two optional superpowers skills are still referenced', () => {
-  const ALLOWED = new Set([
-    'superpowers:using-git-worktrees',
-    'superpowers:subagent-driven-development',
-    'superpowers:requesting-code-review',
-  ]);
+// Every discipline now ships with SlashForge, so no template should invoke a
+// superpowers skill at all. Attribution comments are fine — they are a licence
+// obligation — but an invocation means a dependency crept back in.
+test('no template invokes a superpowers skill', () => {
+  const ALLOWED = new Set();
   const found = new Map();
   for (const f of [...GUIDE_FILES, ...SKILL_FILES, ...COMMAND_FILES]) {
     const body = fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8');
@@ -386,23 +382,41 @@ test('only the two optional superpowers skills are still referenced', () => {
   assert.deepEqual(
     [...found.keys()],
     [],
-    `non-optional superpowers skills referenced:\n  ${[...found].map(([k, v]) => `${k} in ${[...new Set(v)].join(', ')}`).join('\n  ')}`,
+    `superpowers skills referenced:\n  ${[...found].map(([k, v]) => `${k} in ${[...new Set(v)].join(', ')}`).join('\n  ')}`,
   );
 });
 
-// The preflight used to stop the run and offer to install superpowers. With the
-// disciplines shipped, that prompt is friction over nothing.
-test('the preflight detects rather than gates', () => {
-  const pf = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-preflight.md'), 'utf8');
+// v4.3.0 removed the preflight entirely: with every discipline shipped, the
+// Superpowers Check had nothing left to detect and the file read cost ~630
+// tokens a run for a no-op.
+test('no command declares a preflight and the guide is gone', () => {
   assert.ok(
-    /capability detection, not a gate/i.test(pf),
-    'preflight must state that it does not gate',
+    !fs.existsSync(path.join(TEMPLATES_DIR, 'forge-preflight.md')),
+    'forge-preflight.md should no longer ship',
   );
+  assert.ok(!GUIDE_FILES.includes('forge-preflight.md'), 'and should be out of GUIDE_FILES');
   assert.ok(
-    !/Install superpowers now\? \(y\/n\)/.test(pf),
-    'preflight must not prompt to install',
+    REMOVED_GUIDE_FILES.includes('forge-preflight.md'),
+    'it must be listed for cleanup, or upgrades leave it behind',
   );
+  for (const c of [...COMMAND_FILES, ...SKILL_FILES]) {
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, c), 'utf8');
+    assert.ok(!/^preflight:/m.test(body), `${c} still declares a preflight`);
+    assert.ok(!/forge-preflight/.test(body), `${c} still reads the preflight guide`);
+  }
 });
+
+test('upgrading clears a guide file that was dropped', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home });
+  installFiles(target, {});
+  // Simulate an older install that still has the file.
+  const stale = path.join(target.guidesDir, 'forge-preflight.md');
+  fs.writeFileSync(stale, '---\nname: x\ndescription: y\n---\n');
+  installFiles(target, {});
+  assert.ok(!fs.existsSync(stale), 'a dropped guide must be removed on re-install');
+});
+
 
 // The whole reason docs/superpowers/ appeared is that an artefact-writing skill
 // was left to pick its own destination. SlashForge's own skills must not repeat

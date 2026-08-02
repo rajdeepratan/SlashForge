@@ -1,6 +1,6 @@
 ---
-title: Skills and the superpowers plugin
-description: SlashForge ships its own discipline skills. The superpowers plugin is optional, and adds three capabilities rather than gating anything.
+title: Skills
+description: SlashForge ships every discipline skill the workflow uses. No plugin is required, and none is checked for.
 ---
 
 SlashForge ships **its own discipline skills**. They install with the package, live under the
@@ -8,8 +8,8 @@ SlashForge ships **its own discipline skills**. They install with the package, l
 
 The [superpowers](https://github.com/obra/superpowers) plugin used to be a preflight gate: every
 command stopped, checked for it, and warned about degraded mode if it was missing. That is no
-longer the case. It is now **optional**, and its absence costs three capabilities rather than the
-discipline layer.
+longer the case. **SlashForge needs no plugin at all** — every discipline the workflow uses ships
+with it.
 
 ## What ships with SlashForge
 
@@ -17,25 +17,27 @@ discipline layer.
 | --- | --- |
 | 1 Intake | `slashforge:brainstorm` (full mode only) |
 | 2 Plan | `slashforge:plan` |
-| 5 Implement | `slashforge:debug` (bugs) or `slashforge:tdd` (everything else testable) |
+| 4 Branch | `slashforge:worktree` (only when isolation is warranted) |
+| 5 Implement | `slashforge:debug` (bugs) · `slashforge:parallel` (independent units) · `slashforge:tdd` (everything else) |
 | 6 Verify | `slashforge:verify` |
+| 7 Review | `slashforge:request-review` |
 | 9 PR feedback | `slashforge:review-feedback` |
 
-Phases 7, 8 and 10 use no skill — SlashForge's own review checklist and branch-completion flow
-are more specific than a generic one would be.
+Phases 3, 8 and 10 use no skill — they are user gates and git operations the workflow handles
+directly.
 
-These are adapted from superpowers under the MIT licence, © 2025 Jesse Vincent. Each skill file
-carries the notice, because skills install into `~/.claude/` detached from the repo.
+Three skills carry names worth distinguishing: `slashforge:request-review` gets **your own** work
+reviewed before it ships, `slashforge:review-feedback` handles comments **you received**, and the
+`/slashforge:review-pr` command reviews **someone else's** pull request.
 
-## What superpowers still adds
+All nine are adapted from superpowers under the MIT licence, © 2025 Jesse Vincent. Each file
+carries the notice, because skills install into `~/.claude/` detached from this repo.
 
-| Phase | Optional skill | Without it |
-| --- | --- | --- |
-| 4 Branch | `superpowers:using-git-worktrees` | Branches normally, no worktree isolation |
-| 5 Implement | `superpowers:subagent-driven-development` | Uses `slashforge:tdd` instead |
-| 7 Review | `superpowers:requesting-code-review` | The `code-reviewer` agent works from the Phase 7 checklist |
+## Do you need the superpowers plugin?
 
-Nothing else changes. No gate, no prompt, no warning at the start of a run.
+**No.** As of v4.3.0 nothing in SlashForge invokes it, checks for it, or behaves differently when
+it is present. There is no preflight, no prompt, and no degraded mode, because there is nothing to
+degrade.
 
 ## Installing it anyway
 
@@ -43,12 +45,13 @@ Nothing else changes. No gate, no prompt, no warning at the start of a run.
 /plugin install superpowers@claude-plugins-official
 ```
 
-Worth it if you want worktree isolation on risky refactors, or parallel subagent execution on
-plans with genuinely independent units. Not worth installing solely to satisfy SlashForge.
+It is a good library in its own right and covers ground SlashForge does not — writing skills,
+condition-based waiting, defence in depth. Install it because you want those, not because
+SlashForge needs it.
 
 :::note
-Skills are detected once per session. One installed mid-session may not be visible until the
-next session starts.
+Skills are detected once per session. One installed mid-session may not be visible until the next
+session starts.
 :::
 
 ## Keeping it current
