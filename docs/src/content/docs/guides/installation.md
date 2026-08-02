@@ -34,7 +34,7 @@ degraded mode.
 Skipping it costs three capabilities and nothing else: worktree isolation in
 Phase 4, subagent-driven execution in Phase 5, and reviewer-subagent dispatch in
 Phase 7. See [skills and the superpowers
-plugin](/slashforge/guides/superpowers/).
+plugin](/slashforge/guides/skills/).
 
 **3. Set up the repo.** Open Claude Code in your project and run:
 
@@ -80,7 +80,7 @@ explicit:
 
 | | Required? | When you deal with it |
 | --- | --- | --- |
-| [superpowers](/slashforge/guides/superpowers/) | No, but strongly recommended | The first command you run offers to install it |
+| [superpowers](/slashforge/guides/skills/) | No — SlashForge ships its own skills | Never prompted for. Install it only if you want worktree isolation or subagent execution |
 | [Graphify](/slashforge/guides/graphify/) | No, fully optional | `/slashforge:setup` offers it mid-run, on supported languages only |
 
 You do not need to prepare anything. Install SlashForge, run a command, and it

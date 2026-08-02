@@ -47,7 +47,7 @@ opening it is the last thing that happens.
 
 | Never | Detail |
 | --- | --- |
-| **Auto-install** | [superpowers](/slashforge/guides/superpowers/) and [Graphify](/slashforge/guides/graphify/) are offers. You see the exact shell command before anything runs |
+| **Auto-install** | [superpowers](/slashforge/guides/skills/) is optional and never offered mid-run; [Graphify](/slashforge/guides/graphify/) is a one-time offer during setup. You see the exact shell command before anything runs |
 | **Force-push** | Not at any phase |
 | **Merge for you** | Phase 8 opens the PR. Merging is yours |
 | **Delete a branch silently** | Phase 10 asks before cleanup |

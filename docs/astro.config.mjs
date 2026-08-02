@@ -39,6 +39,9 @@ export default defineConfig({
     '/guides/migrating/': `${base}/reference/migrating/`,
     // Retitled: the page is now as much about plan mode as about /init.
     '/guides/vs-init/': `${base}/guides/plan-mode-and-init/`,
+    // Retitled in v4.2.0: superpowers stopped being a preflight gate, and the
+    // page became the documentation for the skills SlashForge ships itself.
+    '/guides/superpowers/': `${base}/guides/skills/`,
   },
 
   // Emit into dist/<base>/ so the built paths match the served URLs exactly.

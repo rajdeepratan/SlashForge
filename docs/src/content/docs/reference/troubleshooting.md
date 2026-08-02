@@ -21,7 +21,7 @@ Usually one of two things, and both are working as designed.
 
 - **The superpowers preflight was declined.** The workflow still runs; the skill
   steps degrade to the written phase instructions. See
-  [Superpowers preflight](/slashforge/guides/superpowers/).
+  [Skills](/slashforge/guides/skills/).
 - **`-quick` is doing what it says.** Lean mode skips brainstorming and swaps
   the agent code review for an inline checklist. Every user gate and all
   verification stay.

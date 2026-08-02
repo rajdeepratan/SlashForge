@@ -112,10 +112,9 @@ SlashForge integrates with the [superpowers](https://github.com/obra/superpowers
 plugin when installed, invoking a specific skill per phase — brainstorming for
 intake, test-driven-development for implementation, and so on.
 
-If superpowers is not installed, the workflow still runs. The skill steps
-degrade to following the written phase instructions. See
-[Superpowers preflight](/slashforge/guides/superpowers/) for what each phase
-uses it for and what you lose without it.
+SlashForge ships its own skills, so the superpowers plugin is optional and
+nothing degrades without it. See [Skills](/slashforge/guides/skills/) for what
+runs at each phase and the three capabilities the plugin still adds.
 
 ## Supported tools
 
