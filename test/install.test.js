@@ -301,13 +301,17 @@ test('uninstall leaves user-owned files in the slashforge namespace alone', () =
 // silently, swallowing everything after the never-closed element.
 // The invariant: template HTML never contains namespaced end tags.
 test('no template contains a namespaced HTML end tag', () => {
-  const NAMESPACED_END_TAG = /<\/[a-z][\w-]*:[\w-]+>/;
+  // Global, and matchAll rather than match: a single line can carry more than one
+  // (line 73 of forge-graph-summary.md did). Reporting per-occurrence keeps the
+  // failure count honest instead of collapsing to one hit per line.
+  const NAMESPACED_END_TAG = /<\/[a-z][\w-]*:[\w-]+>/g;
   const offenders = [];
   for (const f of [...GUIDE_FILES, ...ASSET_FILES, ...COMMAND_FILES]) {
     const lines = fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8').split('\n');
     lines.forEach((line, i) => {
-      const m = line.match(NAMESPACED_END_TAG);
-      if (m) offenders.push(`${f}:${i + 1} -> ${m[0]}`);
+      for (const m of line.matchAll(NAMESPACED_END_TAG)) {
+        offenders.push(`${f}:${i + 1} -> ${m[0]}`);
+      }
     });
   }
   assert.deepEqual(
