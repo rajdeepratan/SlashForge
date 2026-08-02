@@ -10,11 +10,14 @@ git operations in your repo. That deserves a page, not a footnote.
 
 | Path | When |
 | --- | --- |
-| `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow, plus `forge-report-shell.html` (the investigation report's styling) |
-| `~/.claude/commands/slashforge/` | On install — the three command files |
+| `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow, plus `forge-report-shell.html` (shared document styling) and `forge-open.sh` (opens a document in your browser) |
+| `~/.claude/commands/slashforge/` | On install — the four command files, plus SlashForge's own discipline skills (e.g. `slashforge:verify`) |
 | `<repo>/CLAUDE.md` | On `/slashforge:setup`, after you answer its questions |
 | `<repo>/.claude/` | On `/slashforge:setup` — rules, skills, agents, commands, hooks |
-| `<repo>/investigations/` | On `/slashforge:investigate` — the findings report |
+| `<repo>/docs/slashforge/investigations/` | On `/slashforge:investigate` — the findings report |
+| `<repo>/docs/slashforge/specs/` | On `/slashforge:code` full path — the design spec from Phase 1 |
+| `<repo>/docs/slashforge/plans/` | On `/slashforge:code` full path — the implementation plan from Phase 2 |
+| `<repo>/docs/slashforge/reviews/` | On `/slashforge:review-pr` — the review document |
 
 Nothing is written outside those paths. Every generated file carries a
 `generated_by` marker; remove or edit it and that file is treated as yours
@@ -28,16 +31,17 @@ and git operations for the branch and PR phases. It uses the tooling already
 configured in your repo. It does not install a test runner, a linter, or a
 formatter of its own.
 
-One exception worth naming, because it is the only command that reaches outside
-your repo: at the end of `/slashforge:investigate`, it asks your OS to open the
-finished report in your default browser — `open` on macOS, `xdg-open` on Linux,
-`wslview` on WSL, `start` on Windows. Claude Code will prompt you for that
-command the first time, so nothing launches without your say-so.
+One exception worth naming, because it is the only thing that reaches outside
+your repo: whenever a command writes an HTML document — an investigation report,
+a design spec, or an implementation plan — it asks your OS to open it in your
+default browser. `open` on macOS, `xdg-open` on Linux, `wslview` on WSL, `start`
+on Windows. Claude Code will prompt you for that command the first time, so
+nothing launches without your say-so.
 
 It is best-effort and deliberately timid. Over SSH, or on a headless Linux box
 with no `$DISPLAY`, it skips the step silently and just tells you the path. A
-failure to open never fails the investigation — the report is written first, and
-opening it is the last thing that happens.
+failure to open never fails the run — the document is written first, and opening
+it is the last thing that happens.
 
 ## What it never does
 
@@ -45,9 +49,10 @@ opening it is the last thing that happens.
 
 | Never | Detail |
 | --- | --- |
-| **Auto-install** | [superpowers](/slashforge/guides/superpowers/) and [Graphify](/slashforge/guides/graphify/) are offers. You see the exact shell command before anything runs |
+| **Auto-install** | [superpowers](/slashforge/guides/skills/) is optional and never offered mid-run; [Graphify](/slashforge/guides/graphify/) is a one-time offer during setup. You see the exact shell command before anything runs |
 | **Force-push** | Not at any phase |
 | **Merge for you** | Phase 8 opens the PR. Merging is yours |
+| **Post a review unasked** | `/slashforge:review-pr` shows the exact text first and never picks approve vs request-changes for you |
 | **Delete a branch silently** | Phase 10 asks before cleanup |
 | **Touch code in `investigate`** | No branch, no commits, no edits — the constraint is the feature |
 | **Phone home** | No telemetry. Graphify, if you accept it, indexes entirely locally |
@@ -60,8 +65,14 @@ Commit it.
 and everyone else on the team, start informed rather than cold. Generated
 configuration that lives only on one machine buys you nothing on the second run.
 
-The one directory worth considering for `.gitignore` is `investigations/`, if
-you would rather keep findings reports local. It sits at the repo root rather
+Phase 1 and Phase 2 write their spec and plan into `docs/slashforge/specs/` and
+`docs/slashforge/plans/`, as HTML built from the same shell as the investigation
+reports. Those paths are baked into SlashForge's own
+[skills](/slashforge/guides/skills/), so nothing writes design documents anywhere
+else in your repo.
+
+The one directory worth considering for `.gitignore` is `docs/slashforge/investigations/`, if
+you would rather keep findings reports local. It sits under `docs/` rather
 than inside `.claude/` so the reports are visible in Finder and open in a
 browser without a code editor — the trade-off is that it shows up in `git
 status`. SlashForge will not edit your `.gitignore`; adding that line is yours.

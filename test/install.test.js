@@ -16,6 +16,7 @@ const {
   commandName,
   GUIDE_FILES,
   ASSET_FILES,
+  SKILL_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
 } = require('../bin/install.js');
@@ -128,7 +129,7 @@ test('splicing a fragment into the shell survives $-sequences', () => {
     .replace('<!--TITLE-->', () => 'symptom (2026-08-02)')
     .replace('<!--CONTENT-->', () => body);
   assert.ok(out.includes(body), '$-sequences in the fragment were corrupted');
-  assert.ok(out.includes('<title>Investigation — symptom (2026-08-02)</title>'));
+  assert.ok(out.includes('<title>symptom (2026-08-02)</title>'), 'shell must not hardcode a title prefix');
   assert.ok(!out.includes('<!--CONTENT-->'), 'CONTENT marker not consumed');
 });
 
@@ -237,11 +238,13 @@ test('commands install into the slashforge namespace directory', () => {
   installFiles(target, {});
   const nsDir = path.join(target.commandsDir, 'slashforge');
   assert.ok(fs.existsSync(nsDir), 'slashforge/ namespace dir should exist');
-  assert.ok(fs.existsSync(path.join(nsDir, 'setup.md')));
-  assert.ok(fs.existsSync(path.join(nsDir, 'code.md')));
-  assert.ok(fs.existsSync(path.join(nsDir, 'investigate.md')));
+  // Derived, not hardcoded — a new command should not require editing this test.
+  for (const c of COMMAND_FILES) {
+    assert.ok(fs.existsSync(path.join(target.commandsDir, c)), `${c} should be installed`);
+  }
   const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
-  assert.deepEqual(meta.commands, ['/slashforge:setup', '/slashforge:code', '/slashforge:investigate']);
+  assert.deepEqual(meta.commands, COMMAND_FILES.map(commandName));
+  assert.ok(meta.commands.includes('/slashforge:review-pr'));
 });
 
 test('/slashforge:code dispatches lean mode and ships the override guide', () => {
@@ -292,6 +295,215 @@ test('uninstall leaves user-owned files in the slashforge namespace alone', () =
 
   assert.ok(fs.existsSync(mine), 'a user command in slashforge/ must survive uninstall');
   assert.ok(!fs.existsSync(path.join(target.commandsDir, 'slashforge', 'code.md')));
+});
+
+// Discipline skills install into the same slashforge/ namespace dir as the three
+// entry-point commands, which is what gives them a `slashforge:` invocation. They
+// are deliberately NOT in COMMAND_FILES: that list drives meta.json.commands and
+// the status output, and folding skills in turns a three-command report into one
+// that lists every internal discipline.
+test('skills install into the namespace dir with tokens rendered', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  for (const s of SKILL_FILES) {
+    const dest = path.join(target.commandsDir, s);
+    assert.ok(fs.existsSync(dest), `skill ${s} missing`);
+    const body = fs.readFileSync(dest, 'utf8');
+    assert.ok(!body.includes('{{INSTALL_PATH}}'), `${s} not rendered`);
+  }
+});
+
+test('skills carry an invocation name and are excluded from meta.json commands', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
+  assert.deepEqual(
+    meta.commands,
+    COMMAND_FILES.map(commandName),
+    'meta.commands must list only the entry-point commands, not discipline skills',
+  );
+  for (const s of SKILL_FILES) {
+    assert.ok(!meta.commands.includes(commandName(s)), `${s} leaked into meta.commands`);
+  }
+  // Still namespaced, though — that is the whole point of the location.
+  assert.ok(commandName(SKILL_FILES[0]).startsWith('/slashforge:'));
+});
+
+test('skills are frontmatter-validated, unlike assets', () => {
+  assert.doesNotThrow(() => validateTemplates(SKILL_FILES, TEMPLATES_DIR));
+  assert.throws(
+    () => parseFrontmatter('no frontmatter here', 'bad-skill.md'),
+    /missing opening/,
+  );
+});
+
+test('uninstall removes skills and still prunes the emptied namespace dir', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home });
+  installFiles(target, {});
+  uninstallFiles(target, {});
+  for (const s of SKILL_FILES) {
+    assert.ok(!fs.existsSync(path.join(target.commandsDir, s)), `skill ${s} survived uninstall`);
+  }
+  assert.ok(
+    !fs.existsSync(path.join(target.commandsDir, 'slashforge')),
+    'emptied namespace dir should be pruned',
+  );
+});
+
+test('a user file in the namespace dir survives uninstall alongside skills', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home });
+  installFiles(target, {});
+  const mine = path.join(target.commandsDir, 'slashforge', 'mine.md');
+  fs.writeFileSync(mine, 'user command');
+  uninstallFiles(target, {});
+  assert.ok(fs.existsSync(mine), 'user-authored command must survive');
+  assert.ok(fs.existsSync(path.join(target.commandsDir, 'slashforge')), 'dir must not be pruned');
+});
+
+// The disciplines ship with SlashForge now. Only two superpowers skills remain
+// referenced, both genuinely optional: worktrees (Phase 4) and subagent-driven
+// development (Phase 5, parallel units only). Anything else reappearing means a
+// hard dependency crept back in.
+test('only the two optional superpowers skills are still referenced', () => {
+  const ALLOWED = new Set([
+    'superpowers:using-git-worktrees',
+    'superpowers:subagent-driven-development',
+    'superpowers:requesting-code-review',
+  ]);
+  const found = new Map();
+  for (const f of [...GUIDE_FILES, ...SKILL_FILES, ...COMMAND_FILES]) {
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8');
+    for (const m of body.matchAll(/superpowers:[a-z][a-z-]+/g)) {
+      if (!ALLOWED.has(m[0])) {
+        found.set(m[0], (found.get(m[0]) || []).concat(f));
+      }
+    }
+  }
+  assert.deepEqual(
+    [...found.keys()],
+    [],
+    `non-optional superpowers skills referenced:\n  ${[...found].map(([k, v]) => `${k} in ${[...new Set(v)].join(', ')}`).join('\n  ')}`,
+  );
+});
+
+// The preflight used to stop the run and offer to install superpowers. With the
+// disciplines shipped, that prompt is friction over nothing.
+test('the preflight detects rather than gates', () => {
+  const pf = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-preflight.md'), 'utf8');
+  assert.ok(
+    /capability detection, not a gate/i.test(pf),
+    'preflight must state that it does not gate',
+  );
+  assert.ok(
+    !/Install superpowers now\? \(y\/n\)/.test(pf),
+    'preflight must not prompt to install',
+  );
+});
+
+// The whole reason docs/superpowers/ appeared is that an artefact-writing skill
+// was left to pick its own destination. SlashForge's own skills must not repeat
+// it: any skill that writes an artefact names the path inside its own body.
+test('SlashForge skills that write artefacts name their own destination', () => {
+  const expected = {
+    'brainstorm.md': 'docs/slashforge/specs/',
+    'plan.md': 'docs/slashforge/plans/',
+  };
+  for (const [file, dest] of Object.entries(expected)) {
+    const skill = SKILL_FILES.find((s) => s.endsWith(file));
+    assert.ok(skill, `${file} is not in SKILL_FILES`);
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, skill), 'utf8');
+    assert.ok(body.includes(dest), `${file} must name ${dest} as its write location`);
+  }
+});
+
+// Three skills now write HTML through one shell. The shell must not assume which
+// kind of document it is wrapping — it did, with a hardcoded "Investigation — "
+// prefix that would have titled every design spec as an investigation.
+test('the shell is document-agnostic and all three writers use it', () => {
+  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-report-shell.html'), 'utf8');
+  assert.ok(
+    /<title><!--TITLE--><\/title>/.test(shell),
+    'the shell must not prefix the title — the caller supplies the whole thing',
+  );
+
+  const writers = {
+    'investigate.md': 'docs/slashforge/investigations',
+    'brainstorm.md': 'docs/slashforge/specs',
+    'plan.md': 'docs/slashforge/plans',
+  };
+  for (const [file, dir] of Object.entries(writers)) {
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', file), 'utf8');
+    assert.ok(body.includes('forge-report-shell.html'), `${file} must splice into the shell`);
+    assert.ok(body.includes(`mkdir -p ${dir}`), `${file} must create ${dir}`);
+    assert.ok(body.includes('() => esc(title)'), `${file} must escape the title`);
+    assert.ok(body.includes('() => body'), `${file} must splice the body verbatim`);
+  }
+});
+
+// Opening a document must never be able to fail the run that produced it, and the
+// three writers must share one copy of the platform detection rather than each
+// carrying its own — divergent copies are how the mangled-tag bug happened.
+test('the open helper is shared, guarded, and always exits 0', () => {
+  const helper = path.join(TEMPLATES_DIR, 'forge-open.sh');
+  assert.ok(fs.existsSync(helper), 'forge-open.sh must ship');
+
+  for (const f of ['investigate.md', 'brainstorm.md', 'plan.md']) {
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', f), 'utf8');
+    assert.ok(body.includes('forge-open.sh'), `${f} must call the shared helper`);
+    assert.ok(
+      !/case "\$\(uname -s\)"/.test(body),
+      `${f} must not carry its own copy of the platform detection`,
+    );
+  }
+
+  const run = (env, arg) => {
+    const r = require('child_process').spawnSync('sh', [helper, arg], {
+      env: { ...process.env, ...env },
+      encoding: 'utf8',
+    });
+    return r.status;
+  };
+  // Remote session: must bail out cleanly rather than opening anything.
+  assert.equal(run({ SSH_CONNECTION: '1.2.3.4 22 5.6.7.8 22' }, '/tmp/nope.html'), 0);
+  // No argument at all.
+  assert.equal(run({ SSH_CONNECTION: '1' }, ''), 0);
+  // A path that does not exist, on a machine that may well have a browser.
+  assert.equal(run({}, '/tmp/definitely-does-not-exist-slashforge.html'), 0);
+});
+
+test('every SlashForge skill carries its MIT attribution', () => {
+  const missing = SKILL_FILES.filter((s) => {
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, s), 'utf8');
+    return !(body.includes('MIT License') && body.includes('Jesse Vincent'));
+  });
+  // Skills install to ~/.claude/ detached from this repo, so a root NOTICE would
+  // not travel with them — the notice has to live in each file.
+  assert.deepEqual(missing, [], `adapted skills missing attribution:\n  ${missing.join('\n  ')}`);
+});
+
+// The path may be named — the override instructions have to say what they are
+// overriding, or a later maintainer strips them as noise. What it may never be is
+// mentioned *without* the replacement alongside it, which is what a regression to
+// the upstream default would look like.
+test('docs/superpowers is only ever named next to the path replacing it', () => {
+  const offenders = [];
+  for (const f of [...GUIDE_FILES, ...ASSET_FILES, ...COMMAND_FILES]) {
+    const lines = fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8').split('\n');
+    lines.forEach((line, i) => {
+      if (!line.includes('docs/superpowers')) return;
+      if (line.includes('docs/slashforge/specs/') || line.includes('docs/slashforge/plans/')) return;
+      offenders.push(`${f}:${i + 1} -> ${line.trim().slice(0, 80)}`);
+    });
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    `docs/superpowers named without its replacement:\n  ${offenders.join('\n  ')}`,
+  );
 });
 
 // The splice command documented in investigate.md is what actually builds every
@@ -393,4 +605,78 @@ test('no template contains a namespaced HTML end tag', () => {
     [],
     `namespaced end tags found — a rename likely rewrote HTML closing tags:\n  ${offenders.join('\n  ')}`,
   );
+});
+
+// review-pr writes to GitHub, which is public and attributed to the user. The
+// command must never post without an explicit confirmation, and must never pick
+// request-changes (which blocks a merge) on the user's behalf.
+test('review-pr gates every GitHub write behind an explicit choice', () => {
+  const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', 'review-pr.md'), 'utf8');
+
+  assert.ok(/Nothing is posted to GitHub before this point/i.test(body), 'must state the gate');
+  assert.ok(/exact text that will appear on GitHub/i.test(body), 'must show verbatim text first');
+  assert.ok(/never infer the choice/i.test(body), 'must not infer the review event');
+
+  for (const ev of ['APPROVE', 'COMMENT', 'REQUEST_CHANGES']) {
+    assert.ok(body.includes(ev), `must document the ${ev} event`);
+  }
+  // The failure modes that would otherwise strand a review at the last step.
+  assert.ok(/own pull request/i.test(body), 'must handle self-authored PRs');
+  assert.ok(/422/.test(body), 'must handle the 422 from an out-of-diff line comment');
+  assert.ok(/review-requested/.test(body), 'must default to review-requested, not assignee');
+  assert.ok(/No open PRs/i.test(body), 'must handle the zero-PR case');
+});
+
+// The discovery flags are SlashForge's own, not gh's. A user pasting gh syntax
+// should not silently get a different query than they asked for.
+test('review-pr documents its discovery flags and their consequences', () => {
+  const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', 'review-pr.md'), 'utf8');
+  for (const flag of ['--assigned', '--mine', '--all']) {
+    assert.ok(body.includes(flag), `must document ${flag}`);
+  }
+  assert.ok(
+    /Do not pass them through to `gh`/.test(body),
+    'must state the flags are not gh flags',
+  );
+  // --mine is the one with a consequence: self-approval is impossible.
+  assert.ok(
+    /approve` is unavailable for every PR in this set/.test(body),
+    '--mine must withdraw approve up front, not at the gate',
+  );
+});
+
+// Findings are model-written prose: quotes, backticks, newlines and backslashes
+// are normal in them. Interpolating that into JSON by hand corrupts the payload,
+// so the documented assembly keeps prose in plain-text files and lets
+// JSON.stringify escape it. This runs the script out of the template itself — a
+// copy here could drift from the shipped instruction and still pass.
+test('the documented review payload escapes hostile prose', () => {
+  const md = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', 'review-pr.md'), 'utf8');
+  const m = md.match(/node -e '\n(const fs = require\("fs"\), path[\s\S]*?)\n'/);
+  assert.ok(m, 'could not find the payload assembly script in review-pr.md');
+
+  const d = tmp();
+  const body = 'Summary with "quotes", a $var, a `backtick`,\nand a backslash \\ here.\n';
+  const c1 = 'Finding: `code`, "quotes",\na newline, 100% and a \\ backslash.\n';
+  fs.writeFileSync(path.join(d, 'body.txt'), body);
+  fs.writeFileSync(path.join(d, 'c1.txt'), c1);
+  fs.writeFileSync(
+    path.join(d, 'anchors.json'),
+    JSON.stringify([{ path: 'src/x.js', line: 42, side: 'RIGHT', bodyFile: 'c1.txt' }]),
+  );
+
+  const out = path.join(d, 'payload.json');
+  execFileSync('node', ['-e', m[1], d, 'REQUEST_CHANGES', out]);
+
+  const payload = JSON.parse(fs.readFileSync(out, 'utf8'));
+  assert.equal(payload.event, 'REQUEST_CHANGES');
+  assert.equal(payload.body, body, 'summary must round-trip byte for byte');
+  assert.equal(payload.comments[0].body, c1, 'finding must round-trip byte for byte');
+  assert.equal(payload.comments[0].line, 42);
+  assert.equal(payload.comments[0].side, 'RIGHT');
+
+  // An approval carries no line comments.
+  fs.writeFileSync(path.join(d, 'anchors.json'), '[]');
+  execFileSync('node', ['-e', m[1], d, 'APPROVE', out]);
+  assert.deepEqual(JSON.parse(fs.readFileSync(out, 'utf8')).comments, []);
 });

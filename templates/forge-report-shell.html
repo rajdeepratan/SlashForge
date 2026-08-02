@@ -1,15 +1,17 @@
 <!doctype html>
 <!--
-  SlashForge investigation report shell.
+  SlashForge document shell.
 
-  Installed verbatim alongside the guide files and used by /slashforge:investigate.
-  The command writes ONLY the body fragment and splices it in here, so the CSS is
-  never regenerated per report — that keeps every report visually identical and
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
   keeps the boilerplate out of the model's output.
 
   Two comment markers below are substituted, and they are NOT treated alike:
 
-    TITLE   (in the head) takes "<short-symptom> (<YYYY-MM-DD>)" and MUST be
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
             HTML-escaped first — & then < then >. It is plain text from a
             user-supplied symptom; unescaped, a "</title>" in it ends the
             element early and the remainder leaks in as markup, and entity-
@@ -28,7 +30,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Investigation — <!--TITLE--></title>
+<title><!--TITLE--></title>
 <style>
   :root { color-scheme: light dark; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;

@@ -526,6 +526,9 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   background: var(--hairline);
   border: 2px solid var(--rule);
 }
+/* Four commands read badly as four ~254px columns inside the 1080px band — the
+   descriptions wrap to five lines. Two-up gives each cell ~508px. */
+.cells--quad { grid-template-columns: repeat(2, 1fr); }
 .cell { background: var(--surface); padding: 28px 24px 30px; display: flex; flex-direction: column; gap: 14px; }
 .cell code { font-family: var(--mono); font-size: 16px; font-weight: 500; letter-spacing: -0.02em; background: transparent; padding: 0; }
 .cell p { margin: 0; font-size: 15px; line-height: 1.65; color: var(--muted); max-width: none; }
@@ -611,7 +614,7 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   .topnav { display: none; }
   .hero__grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
   .rail { border-left: 0; border-top: 2px solid var(--hairline); padding-left: 0; padding-top: 28px; }
-  .cells { grid-template-columns: minmax(0, 1fr); }
+  .cells, .cells--quad { grid-template-columns: minmax(0, 1fr); }
   .search-btn { min-width: 0; }
   .search-btn span:first-of-type, .kbd { display: none; }
 }

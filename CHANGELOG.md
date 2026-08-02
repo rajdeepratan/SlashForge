@@ -6,6 +6,54 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.2.0] - 2026-08-02
+
+**The superpowers plugin is now optional.** SlashForge ships its own discipline skills under the `slashforge:` namespace it already owns — no plugin, no marketplace, no change to `npx slashforge`. Nothing stops, prompts, or warns about degraded mode any more.
+
+### Added
+
+- **`/slashforge:review-pr`** — reviews a pull request against *this* repo's standards (`CLAUDE.md`, `.claude/rules/`, and the conventions in the surrounding code) and posts line-level comments or an approval.
+
+  With no argument it searches `review-requested:@me` — that is what "waiting on me" means on GitHub, whereas `assignee` is a different relationship and usually empty — and widens to assignee only if that comes back empty. `--assigned`, `--mine` and `--all` override the default for teams that route reviews by assignment, for self-review, or for the full picture. Under `--mine`, approve is withdrawn when the list is shown rather than at the gate, since GitHub refuses self-approval and that should not be a surprise after the work is done. A PR number skips discovery entirely.
+
+  Drafts are skipped, one PR is reviewed without a menu, and no PRs means it says so — naming which query was empty so you know which flag to try.
+
+  Before reading the diff it checks CI status, existing review comments so it does not repeat a point already made, and whether the PR is yours — GitHub refuses to let anyone approve their own pull request, so that option is withdrawn when it applies. Past roughly 1,500 changed lines it says a single pass cannot be thorough and states what it covered.
+
+  **Nothing is posted without your explicit yes.** You see the verdict in chat, the full review in your browser, and then the exact text that will appear on GitHub, verbatim. `request-changes` blocks a merge and `comment` does not, so the command never picks between them for you — it recommends and asks. Findings and summary go up as a single review, so the PR gets one notification rather than a stream.
+
+  A line comment can only anchor inside the diff; one outside makes GitHub reject the whole review with a 422. The command moves those findings into the summary body, says which moved, and retries.
+
+  Findings are prose, so they contain quotes, backticks, newlines and backslashes as a matter of course. The documented payload assembly keeps prose in plain-text files and only puts anchors — paths, line numbers, sides — in JSON, letting `JSON.stringify` escape everything by construction. A test runs that assembly script out of the template itself against deliberately hostile text and asserts it round-trips byte for byte.
+
+  The review is saved to `docs/slashforge/reviews/<date>-pr-<N>.html` and stays as a local record whether or not anything is posted.
+
+- **SlashForge ships its own discipline skills** — `slashforge:brainstorm` (Phase 1), `slashforge:plan` (Phase 2), `slashforge:debug` and `slashforge:tdd` (Phase 5), `slashforge:verify` (Phase 6), and `slashforge:review-feedback` (Phase 9). Adapted from superpowers under MIT, © 2025 Jesse Vincent; the notice travels in each skill file, since skills install to `~/.claude/` detached from this repo.
+
+  No plugin and no marketplace were needed: the `slashforge:` namespace comes from the `slashforge/` subdirectory under the commands dir, which SlashForge already owns. `slashforge:brainstorm` drops the visual companion entirely — roughly 62 KB of browser-server machinery the workflow never used.
+
+- Installer support for skills (`SKILL_FILES`) and for a shell helper (`forge-open.sh`). Skills install into the namespace directory and are frontmatter-validated like commands — unlike assets, which have no frontmatter and are only checked for existence. Skills are deliberately kept out of `meta.json`'s `commands` and the `status` output, which continue to report the entry points a user actually types rather than every internal discipline.
+
+### Changed
+
+- **Every generated document now lives under `docs/slashforge/` and is HTML.** Investigation reports moved from `investigations/`, and the design spec and implementation plan from `.claude/specs/` and `.claude/plans/` — all now sit in `docs/slashforge/{investigations,specs,plans,reviews}/`. Nothing is moved for you; existing files stay where they are.
+
+  Specs and plans changed from Markdown to HTML, built from the same shell as the reports, so every artefact renders identically and opens in a browser without a code editor. Plan steps use `☐`/`☑` list items rather than `- [ ]`; edit the character in place as steps complete. Deliberately not `<input type="checkbox">` — the shell carries no JavaScript, so that state would not survive a reload.
+
+- **Specs, plans and reviews open in your browser when written**, the way investigation reports already did. All of them call a shipped helper, `forge-open.sh`, rather than each carrying its own copy of the platform detection — the same reasoning as the shared shell, and the same drift it prevents. Still best-effort: silent over SSH and on headless Linux, and it exits 0 in every case so it can never fail the run that produced the document.
+
+- `forge-report-shell.html` is now the **document shell** rather than the report shell. Its `<title>` no longer hardcodes an `Investigation — ` prefix; the caller supplies the whole title, so a design spec is titled as one. A test asserts the shell stays document-agnostic.
+
+- **The preflight no longer gates.** It was a blocking check that stopped every run, explained what you lose without superpowers, and offered to install it. It is now silent capability detection: it records what is available and adjusts which optional phases apply. No prompt, no warning, no "degraded mode" — because with the disciplines shipped, nothing is degraded. `install` no longer mentions the plugin at all; `status` reports it as a line item.
+
+- **Two superpowers skills were deliberately not replaced, and their references removed instead.** `finishing-a-development-branch` presents a merge-or-PR-or-keep menu that contradicts Phase 8's opinionated flow, and `requesting-code-review` is mostly subagent dispatch where Phase 7 already carries a more specific checklist. Porting them would have made the workflow worse, not more independent.
+
+- What superpowers still adds, when installed: `using-git-worktrees` (Phase 4 isolation), `subagent-driven-development` (Phase 5, genuinely parallel units), and `requesting-code-review` (Phase 7 reviewer dispatch). All three optional; all skipped cleanly when absent.
+
+### Fixed
+
+- **`/slashforge:code` no longer creates a `docs/superpowers/` directory in your repo.** superpowers' `brainstorming` and `writing-plans` skills default to writing their spec and plan under `docs/superpowers/` — a path SlashForge does not own and never asked for. SlashForge's own skills now write to `docs/slashforge/specs/` and `docs/slashforge/plans/` instead, and `docs/superpowers/` is gitignored as a backstop for a stale install. Existing directories are left alone.
+
 ## [4.1.2] - 2026-08-02
 
 ### Fixed

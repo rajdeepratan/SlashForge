@@ -42,7 +42,7 @@ constantly, so:
 | `commands/` | Repo-specific slash commands, on top of the three SlashForge installs |
 | `hooks/` | Automated behaviours that fire on an event, without being asked |
 
-## The three commands
+## The four commands
 
 Each command owns one job, and nothing overlaps.
 
@@ -65,9 +65,20 @@ user gate and the lint/test/build verification stay.
 ### `/slashforge:investigate`
 
 Read-only research. Reproduces a bug, finds the root cause, and writes a report
-to `investigations/`. No branch, no PR, no code changes. It ends by handing the
+to `docs/slashforge/investigations/`. No branch, no PR, no code changes. It ends by handing the
 report path to `/slashforge:code`, so the fix starts with the diagnosis already
 loaded instead of you restating the bug.
+
+### `/slashforge:review-pr`
+
+Reviews someone's pull request against *your* repo's standards — `CLAUDE.md`,
+`.claude/rules/`, and the conventions in the surrounding code — then posts
+line-level comments or an approval. With no argument it lists the PRs waiting on
+your review.
+
+It never posts without showing you the exact text first, and never chooses
+between `comment` and `request-changes` for you. Blocking someone's merge is your
+call.
 
 ## Why the workflow matters
 
@@ -112,10 +123,9 @@ SlashForge integrates with the [superpowers](https://github.com/obra/superpowers
 plugin when installed, invoking a specific skill per phase — brainstorming for
 intake, test-driven-development for implementation, and so on.
 
-If superpowers is not installed, the workflow still runs. The skill steps
-degrade to following the written phase instructions. See
-[Superpowers preflight](/slashforge/guides/superpowers/) for what each phase
-uses it for and what you lose without it.
+SlashForge ships its own skills, so the superpowers plugin is optional and
+nothing degrades without it. See [Skills](/slashforge/guides/skills/) for what
+runs at each phase and the three capabilities the plugin still adds.
 
 ## Supported tools
 

@@ -47,6 +47,10 @@ const commands = [
     name: '/slashforge:investigate',
     desc: 'Read-only research. Reproduces and root-causes a bug, then writes a findings report. Never touches your code.',
   },
+  {
+    name: '/slashforge:review-pr',
+    desc: "Reviews a pull request against your repo's own rules and conventions, then posts line-level comments or approves. Never posts without showing you the exact text.",
+  },
 ];
 
 const costs = [
@@ -141,10 +145,10 @@ const costs = [
     <section class="section section--ruled">
       <div class="band">
         <div class="section__head">
-          <h2>Three commands</h2>
+          <h2>Four commands</h2>
           <span class="label">Each owns one job</span>
         </div>
-        <div class="cells">
+        <div class="cells cells--quad">
           {
             commands.map((c) => (
               <div class="cell">

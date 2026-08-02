@@ -25,7 +25,7 @@ The user invoked `/slashforge:investigate` — the argument (if any) may be:
 ## Phases
 
 - **I1 — Investigation Intake:** parse input, extract expected vs. actual behavior, ask clarifying questions
-- **I2 — Investigate (read-only):** invoke `superpowers:systematic-debugging` (if installed); reproduce, bisect, trace, read code. **No edits to application code.**
+- **I2 — Investigate (read-only):** invoke `slashforge:debug`; reproduce, bisect, trace, read code. **No edits to application code.**
 - **I3 — Report & Hand-off:** produce findings report, write to file, print in chat
 
 ## Findings report — body fragment only
@@ -84,11 +84,11 @@ Three steps, in order: **write the file**, **open it**, **summarise in chat**.
 
 ### 1. Write
 
-Write your body fragment to a scratch file, then splice it into the shipped shell. Create `investigations/` if it doesn't exist — repo root, not inside `.claude/`, because a dot-directory is hidden in Finder and these reports are meant to be opened by a human without a code editor.
+Write your body fragment to a scratch file, then splice it into the shipped shell. Create `docs/slashforge/investigations/` if it doesn't exist, parents included (`mkdir -p` handles this). Not inside `.claude/`, because a dot-directory is hidden in Finder and these reports are meant to be opened by a human without a code editor.
 
 ```bash
-mkdir -p investigations
-report="investigations/investigation-<YYYY-MM-DD-HHMM>.html"
+mkdir -p docs/slashforge/investigations
+report="docs/slashforge/investigations/investigation-<YYYY-MM-DD-HHMM>.html"
 
 node -e '
 const fs = require("fs");
@@ -98,7 +98,7 @@ const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, 
 fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
   .replace("<!--TITLE-->",   () => esc(title))
   .replace("<!--CONTENT-->", () => body));
-' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$report" "<short-symptom> (<YYYY-MM-DD>)"
+' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$report" "Investigation — <short-symptom> (<YYYY-MM-DD>)"
 ```
 
 Three details that matter:
@@ -111,25 +111,13 @@ If the shell is missing (an older install, or a hand-modified `.claude/`), fall 
 
 ### 2. Open it in the user's browser (best-effort)
 
-Run this, substituting the real filename. It is **best-effort**: it must never fail the run, and it must stay silent where no browser exists.
+Use the shipped helper rather than writing your own platform detection:
 
 ```bash
-report="investigations/investigation-<YYYY-MM-DD-HHMM>.html"
-if [ -z "$SSH_CONNECTION" ]; then
-  case "$(uname -s)" in
-    Darwin) open "$report" 2>/dev/null || true ;;
-    Linux)
-      if grep -qi microsoft /proc/version 2>/dev/null; then
-        wslview "$report" 2>/dev/null || explorer.exe "$(wslpath -w "$report")" 2>/dev/null || true
-      elif [ -n "${DISPLAY}${WAYLAND_DISPLAY}" ]; then
-        xdg-open "$report" >/dev/null 2>&1 || true
-      fi ;;
-    MINGW*|MSYS*|CYGWIN*) start "" "$report" 2>/dev/null || true ;;
-  esac
-fi
+sh "{{INSTALL_PATH}}/forge-open.sh" "$report"
 ```
 
-The guards matter: `$SSH_CONNECTION` means a remote session (opening a browser there is useless or wrong), and an empty `$DISPLAY`/`$WAYLAND_DISPLAY` means a headless Linux box. In those cases the report is still written — it just is not opened, and you say so in step 3.
+The script handles the platform differences and the cases where opening makes no sense — a remote session (`$SSH_CONNECTION`), or a headless Linux box with no `$DISPLAY`/`$WAYLAND_DISPLAY`. It always exits 0, so it can never fail the run. In those cases the report is still written; it just is not opened, and you say so in step 3.
 
 ### 3. Summarise in chat — never print the HTML
 
@@ -146,12 +134,12 @@ Print **only**:
 
 End with the report's **actual filename** substituted in — never emit a placeholder like `<path>` or `#FileName`:
 
-> *"Investigation complete → `investigations/investigation-2026-08-02-1432.html`. Want me to fix this? Run `/slashforge:code investigation-2026-08-02-1432.html` to start the fix."*
+> *"Investigation complete → `docs/slashforge/investigations/investigation-2026-08-02-1432.html`. Want me to fix this? Run `/slashforge:code investigation-2026-08-02-1432.html` to start the fix."*
 
 Two different forms, deliberately:
 
 - **The pointer** (after the arrow) is the full repo-root-relative path — it tells the user where the file lives and is clickable in most terminals.
-- **The command** takes the **bare filename only.** `/slashforge:code` Step 0b resolves it against `investigations/`, so the shorter form is what the user has to type or paste.
+- **The command** takes the **bare filename only.** `/slashforge:code` Step 0b resolves it against `docs/slashforge/investigations/`, so the shorter form is what the user has to type or paste.
 
 No `#` or `@` prefix on either. A bare filename is what Step 0b resolves.
 

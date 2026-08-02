@@ -9,9 +9,9 @@ description: One command to install, then your first run end to end.
 npx slashforge
 ```
 
-That installs the guide files and the three commands into `~/.claude/`. Open
+That installs the guide files and the four commands into `~/.claude/`. Open
 Claude Code in any repo and type `/` — you should see `/slashforge:setup`,
-`/slashforge:code`, and `/slashforge:investigate`.
+`/slashforge:code`, `/slashforge:investigate`, and `/slashforge:review-pr`.
 
 ## Your first run
 
@@ -23,16 +23,18 @@ Start to finish, for a repo that has never used SlashForge.
 npx slashforge
 ```
 
-**2. Install superpowers.** Optional, but do it now — it is one line, and the
-workflow leans on it at almost every phase:
+**2. Install superpowers — optional.** SlashForge ships its own discipline
+skills, so you can skip this entirely. No command stops to ask, and there is no
+degraded mode.
 
 ```
 /plugin install superpowers@claude-plugins-official
 ```
 
-If you skip it, your first command will stop, explain what you lose, and offer
-to install it then. Nothing breaks either way — it just runs in a degraded mode
-it will tell you about.
+Skipping it costs three capabilities and nothing else: worktree isolation in
+Phase 4, subagent-driven execution in Phase 5, and reviewer-subagent dispatch in
+Phase 7. See [skills and the superpowers
+plugin](/slashforge/guides/skills/).
 
 **3. Set up the repo.** Open Claude Code in your project and run:
 
@@ -61,7 +63,8 @@ npx slashforge status
 ```
 
 That's the whole loop. `/slashforge:setup` once per repo, `/slashforge:code` per
-change, and [`/slashforge:investigate`](/slashforge/commands/slashforge-investigate/)
+change, [`/slashforge:review-pr`](/slashforge/commands/slashforge-review-pr/) to review
+someone else's, and [`/slashforge:investigate`](/slashforge/commands/slashforge-investigate/)
 when you need to understand a bug before touching it.
 
 ## Requirements
@@ -78,7 +81,7 @@ explicit:
 
 | | Required? | When you deal with it |
 | --- | --- | --- |
-| [superpowers](/slashforge/guides/superpowers/) | No, but strongly recommended | The first command you run offers to install it |
+| [superpowers](/slashforge/guides/skills/) | No — SlashForge ships its own skills | Never prompted for. Install it only if you want worktree isolation or subagent execution |
 | [Graphify](/slashforge/guides/graphify/) | No, fully optional | `/slashforge:setup` offers it mid-run, on supported languages only |
 
 You do not need to prepare anything. Install SlashForge, run a command, and it

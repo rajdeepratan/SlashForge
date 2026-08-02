@@ -8,7 +8,7 @@ own for getting them on and off your machine.
 
 | Command | What it does |
 | --- | --- |
-| `npx slashforge` | Installs guide files and the three commands into `~/.claude/` |
+| `npx slashforge` | Installs guide files, the four commands, and the discipline skills into `~/.claude/` |
 | `npx slashforge status` | Reports what is installed, at which version, without changing anything |
 | `npx slashforge uninstall` | Removes the guides and commands it installed |
 
@@ -31,7 +31,7 @@ SLASHFORGE_YES=1 npx slashforge
 
 ## install
 
-The default command. Installs the guide files and the three commands, then
+The default command. Installs the guide files, the four commands and the skills, then
 tells you where each one landed.
 
 ```bash
@@ -40,7 +40,7 @@ npx slashforge
 
 Re-running on a machine that already has it prompts to update to the latest
 version. Worth doing when either optional integration changes upstream — if
-superpowers renames a skill, or Graphify changes its install commands, the guide
+Graphify changes its install commands, or a workflow phase changes, the guide
 files need to catch up.
 
 ### Project mode
@@ -55,7 +55,7 @@ paths. Commit it and your teammates get the commands with no global install.
 ## status
 
 Reports the installed version, the guide files present, the commands registered,
-and whether superpowers was detected. It changes nothing.
+and whether the optional superpowers plugin was detected. It changes nothing.
 
 ```bash
 npx slashforge status
@@ -71,13 +71,12 @@ slashforge status
     • forge-claude-md.md
     • forge-commands.md
     ...
-  Installed commands:        3
+  Installed commands:        4
     • /slashforge:code
     • /slashforge:investigate
+    • /slashforge:review-pr
     • /slashforge:setup
-
-⚠  superpowers plugin not detected.
-   For the best experience, install it: https://github.com/obra/superpowers
+  superpowers plugin:        not installed (optional)
 ```
 
 On a machine with nothing installed it says so, rather than reporting an empty

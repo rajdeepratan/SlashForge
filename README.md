@@ -20,7 +20,7 @@
   <strong><a href="https://www.rajdeepratan.com/slashforge/">📖 Documentation</a></strong>
 </p>
 
-Installs three commands on any machine — `/slashforge:setup` to scaffold a repo, `/slashforge:code` for freeform development (add `-quick` for lean small-change work), and `/slashforge:investigate` for read-only research.
+Installs four commands on any machine — `/slashforge:setup` to scaffold a repo, `/slashforge:code` for freeform development (add `-quick` for lean small-change work), `/slashforge:investigate` for read-only research, and `/slashforge:review-pr` to review someone else's PR against your repo's rules.
 
 Currently supports **Claude Code**. Cursor and Codex targets are planned.
 
@@ -49,14 +49,15 @@ Currently supports **Claude Code**. Cursor and Codex targets are planned.
 
 ## What it does
 
-Installs a collection of guide files plus four slash commands that cover the full lifecycle from repo setup through shipped PRs and bug investigations.
+Installs a collection of guide files plus five slash commands that cover the full lifecycle from repo setup through shipped PRs, code review, and bug investigations.
 
 **Commands installed:**
 
 - **`/slashforge:setup`** — one-time repo setup. Explores the repo, asks clarifying questions, then creates `CLAUDE.md`, agents, rules, skills, commands, and hooks tailored to the codebase. Handles both fresh repos and partial setups.
 - **`/slashforge:code`** — freeform end-to-end development workflow. Ten phases: plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup. ~100–250k tokens per feature without Graphify; ~75–225k with it indexed.
 - **`/slashforge:code -quick`** — lean version of `/slashforge:code` for small changes. Skips brainstorming, uses a minimal plan (Changes + Test strategy only), and replaces the agent-driven code review with an inline self-review checklist. Keeps every user gate (plan, branch, PR, cleanup) and Phase 6 lint/test/build verification. ~40–70k tokens per change. Use for typo fixes, copy changes, config tweaks, renames, single-file refactors.
-- **`/slashforge:investigate [symptom]`** — read-only research. Reproduces and root-causes a suspected bug, produces a findings report saved to `investigations/`, then hands the report path to `/slashforge:code` so the fix starts with the diagnosis already loaded.
+- **`/slashforge:investigate [symptom]`** — read-only research. Reproduces and root-causes a suspected bug, produces a findings report saved to `docs/slashforge/investigations/`, then hands the report path to `/slashforge:code` so the fix starts with the diagnosis already loaded.
+- **`/slashforge:review-pr [number]`** — reviews a PR against this repo's `CLAUDE.md`, `.claude/rules/` and existing conventions, then posts line-level comments or an approval. Lists the PRs awaiting your review when there is more than one. Never posts without showing you the exact text and asking.
 
 ---
 
@@ -107,12 +108,12 @@ Commands live in a `forge/` subdirectory — that is what produces the `/slashfo
 
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification
-- **Preflight** — superpowers dependency check that runs before every command does anything else
+- **Preflight** — capability detection for optional integrations; never gates a command
 - **Graph** — optional Graphify integration: setup-time install offer, runtime freshness check, and the SUMMARY.html synthesis prompt
 - **Workflow** — the ten-phase development loop used by `/slashforge:code` and `/slashforge:code -quick` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across three focused files (base phases, investigation flow, agent selection)
 - **Rules** — how to create rule files for a repo (including path-scoped rules)
 - **Skills** — how to create skills using Anthropic's `SKILL.md` directory format
-- **Agents** — how to create agent files, superpowers skill mappings, monorepo structure
+- **Agents** — how to create agent files, per-agent skill mappings, monorepo structure
 - **Commands** — how to create slash commands (and the commands ↔ skills merger)
 - **Hooks** — how to configure automated behaviors in `settings.json` (events, scopes, common patterns)
 - **CLAUDE.md** — entry point file, `@path` imports, `AGENTS.md` interop
@@ -120,21 +121,21 @@ The guide files cover:
 
 ---
 
-## Preflight check — superpowers
+## Skills — SlashForge ships its own
 
-Every command installed by the kit runs a **preflight check before doing any repo work** — before exploring the codebase, reading files, or starting a phase.
+The disciplines the workflow depends on install with the package, under the `slashforge:` namespace: `slashforge:brainstorm` (Phase 1), `slashforge:plan` (Phase 2), `slashforge:debug` and `slashforge:tdd` (Phase 5), `slashforge:verify` (Phase 6), `slashforge:review-feedback` (Phase 9). No plugin and no marketplace — the namespace comes from the commands directory SlashForge already owns.
 
-If the `superpowers` plugin is missing, the command **stops and explains why it matters, lists what you lose without it, and offers to install** before proceeding. You can decline and run in an explicitly-degraded mode — the command will never silently drop a skill call.
+They are adapted from [superpowers](https://github.com/obra/superpowers) under the MIT licence, © 2025 Jesse Vincent, with the notice carried in each skill file.
 
-**Superpowers** — install with:
+**The superpowers plugin is optional.** It adds worktree isolation (Phase 4), subagent-driven execution (Phase 5, parallel units only), and reviewer-subagent dispatch (Phase 7). Without it those three are skipped and nothing else changes — no gate, no prompt, no degraded mode.
+
+**Superpowers** — optional, install with:
 ```
 /plugin install superpowers@claude-plugins-official
 ```
-Without it, phases skip their skill invocations (brainstorming, writing-plans, TDD, systematic-debugging, verification, receiving-code-review). For bug fixes this means no enforced red→green regression test.
+Without it, those three phases skip an optional step. Every discipline still runs, because SlashForge ships its own.
 
-If the upstream superpowers project renames a skill, re-run `npx slashforge` to pull updated guide files.
-
-**Graphify is a second optional integration but is not a preflight check** — it's a one-time setup-time offer inside `/slashforge:setup`, not re-checked per command. See the Graphify section below.
+**Graphify is the other optional integration**, and works differently — a one-time setup-time offer inside `/slashforge:setup`, not re-checked per command. See the Graphify section below.
 
 ---
 
@@ -237,18 +238,45 @@ Don't use for: bug fixes where the root cause isn't already understood (use `/sl
 ```
 /slashforge:investigate "users see 500 when uploading >10MB files"
 ```
-Read-only research. No branches, no PRs, no code changes. Produces a findings report (summary, reproduction, root cause, affected scope, suggested next step) written as a self-contained HTML file to `investigations/investigation-<timestamp>.html` — root-level, so it is visible in Finder rather than buried in a dot-directory.
+Read-only research. No branches, no PRs, no code changes. Produces a findings report (summary, reproduction, root cause, affected scope, suggested next step) written as a self-contained HTML file to `docs/slashforge/investigations/investigation-<timestamp>.html` — outside `.claude/`, so it is visible in Finder rather than buried in a dot-directory.
 
 The report is then **opened in your default browser** (`open` / `xdg-open` / `wslview` / `start`, skipped silently over SSH or on a headless box), and chat gets a short plain-text summary rather than the raw HTML. Styling comes from `forge-report-shell.html`, installed with the guides — each run writes only its body fragment, so every report looks identical and the CSS is never regenerated. The finished file still inlines everything and opens offline.
 
 It ends by handing the report path to the fix command:
 
 ```
-Investigation complete → investigations/investigation-2026-08-02-1432.html
+Investigation complete → docs/slashforge/investigations/investigation-2026-08-02-1432.html
 Want me to fix this? Run /slashforge:code investigation-2026-08-02-1432.html
 ```
 
-The command takes the bare filename — `/slashforge:code` resolves it against `investigations/`. Pass it and the fix command reads the report instead of asking you to restate the bug, so the root cause survives into a fresh session. Every gate still applies; the report's suggested fix is a proposal, not an approved plan.
+The command takes the bare filename — `/slashforge:code` resolves it against `docs/slashforge/investigations/`. Pass it and the fix command reads the report instead of asking you to restate the bug, so the root cause survives into a fresh session. Every gate still applies; the report's suggested fix is a proposal, not an approved plan.
+
+---
+
+```
+/slashforge:review-pr              # PRs awaiting your review
+/slashforge:review-pr 42           # that PR, whatever your relationship to it
+/slashforge:review-pr --assigned   # PRs assigned to you
+/slashforge:review-pr --mine       # your own PRs (comment only — GitHub blocks self-approval)
+/slashforge:review-pr --all        # all three, grouped
+```
+Reviews a pull request against **your repo's** standards — `CLAUDE.md`, `.claude/rules/`, and the conventions actually in the surrounding code — then posts line-level comments or an approval.
+
+With no argument it searches `review-requested:@me`, since that is what "waiting on me" means on GitHub; `assignee` is a different relationship and usually empty, so filtering on it would show an empty list. It widens to assignee only if the first search comes back empty, and says so. The flags override that: `--assigned` if your team routes reviews by assigning, `--mine` for self-review, `--all` for everything grouped. Drafts are skipped, a single PR is reviewed without a menu, and no PRs means it says so rather than inventing work.
+
+Before reading the diff it checks CI status, existing review comments so it does not repeat a point already made, and whether the PR is yours — GitHub refuses to let anyone approve their own, so that option is withdrawn when it applies. Past roughly 1,500 changed lines it says a single pass cannot be thorough and states which files it covered.
+
+**Nothing reaches GitHub without your explicit yes.** You get the verdict in chat, the full review opens in your browser, and then the exact text that will be posted — verbatim, because it is public and attributed to you:
+
+```
+Post this review?  approve · comment · request-changes · edit · cancel
+```
+
+`request-changes` blocks a merge and `comment` does not, so the command never picks between them. It recommends — blocking findings make the suggestion obvious — but blocking someone's PR is your decision.
+
+Line comments and the summary go up as a **single review**, so the PR gets one notification rather than a stream. A line comment can only anchor inside the diff; one outside makes GitHub reject the whole review with a 422, so the command moves those findings into the summary body, tells you which moved, and retries. The review is saved to `docs/slashforge/reviews/<date>-pr-<N>.html` either way.
+
+Requires `gh` installed and authenticated — checked up front, so it stops with instructions rather than failing halfway.
 
 ---
 
@@ -261,7 +289,7 @@ Claude Code ships with a built-in `/init` command. The two are complementary, no
 | Creates | `CLAUDE.md` only (or + skills/hooks with `CLAUDE_CODE_NEW_INIT=1`) | Full `.claude/` — rules, skills, agents, commands, hooks, plus `CLAUDE.md` |
 | Approach | Discovers and suggests — opinion-light | Opinionated — enforces multi-agent layout, 200-line cap, global vs specialist split |
 | Agents | None | Mandatory: `developer`, `code-reviewer`, `git`, plus specialists |
-| Workflow | None | Three commands: `/slashforge:setup` (setup), `/slashforge:code` (full flow, `-quick` for lean), `/slashforge:investigate` (read-only research) |
+| Workflow | None | Four commands: `/slashforge:setup` (setup), `/slashforge:code` (full flow, `-quick` for lean), `/slashforge:investigate` (read-only research), `/slashforge:review-pr` (PR review) |
 | Monorepo | Single-repo focused | Root + per-app `CLAUDE.md` flow |
 | Existing setup | Suggests improvements to `CLAUDE.md` | Full Update flow — reads everything in `.claude/` and fills gaps |
 

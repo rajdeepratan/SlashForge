@@ -33,12 +33,29 @@ const GUIDE_FILES = [
 // frontmatter, so they are copied but never frontmatter-validated.
 const ASSET_FILES = [
   'forge-report-shell.html',
+  'forge-open.sh',
 ];
 
 const COMMAND_FILES = [
   path.join('slashforge', 'setup.md'),
   path.join('slashforge', 'code.md'),
   path.join('slashforge', 'investigate.md'),
+  path.join('slashforge', 'review-pr.md'),
+];
+
+// Discipline skills. They install into the same `slashforge/` namespace dir as the
+// commands above — that subdirectory is what produces a `slashforge:` invocation —
+// and are rendered the same way. They are kept out of COMMAND_FILES on purpose:
+// that list drives meta.json's `commands` and the `status` output, which should
+// keep reporting the three entry points a user actually types, not every internal
+// discipline the workflow invokes on their behalf.
+const SKILL_FILES = [
+  path.join('slashforge', 'brainstorm.md'),
+  path.join('slashforge', 'plan.md'),
+  path.join('slashforge', 'debug.md'),
+  path.join('slashforge', 'tdd.md'),
+  path.join('slashforge', 'verify.md'),
+  path.join('slashforge', 'review-feedback.md'),
 ];
 
 // Namespace directory the command files live in, under the commands dir.
@@ -199,9 +216,13 @@ function installFiles(target, {
   guideFiles = GUIDE_FILES,
   commandFiles = COMMAND_FILES,
   assetFiles = ASSET_FILES,
+  skillFiles = SKILL_FILES,
 } = {}) {
   validateTemplates(guideFiles, templatesDir);
   validateTemplates(commandFiles, templatesDir);
+  // Skills carry frontmatter, so they are validated like commands — not like
+  // assets, which have none and are only checked for existence.
+  validateTemplates(skillFiles, templatesDir);
   assertTemplatesExist(assetFiles, templatesDir);
   fs.mkdirSync(target.guidesDir, { recursive: true });
   fs.mkdirSync(target.commandsDir, { recursive: true });
@@ -211,7 +232,7 @@ function installFiles(target, {
     fs.copyFileSync(path.join(templatesDir, f), dest);
     written.push(dest);
   }
-  for (const c of commandFiles) {
+  for (const c of [...commandFiles, ...skillFiles]) {
     const rendered = renderTemplate(fs.readFileSync(path.join(templatesDir, c), 'utf8'), {
       installPath: target.installPath,
       version,
@@ -236,11 +257,15 @@ function installFiles(target, {
   return written;
 }
 
-function uninstallFiles(target, { guideFiles = GUIDE_FILES, commandFiles = COMMAND_FILES } = {}) {
+function uninstallFiles(target, {
+  guideFiles = GUIDE_FILES,
+  commandFiles = COMMAND_FILES,
+  skillFiles = SKILL_FILES,
+} = {}) {
   const removed = [];
   // Current layout plus the v2 flat command files, so upgrading from < 3.0.0
   // and then uninstalling does not leave the old files behind.
-  for (const c of [...commandFiles, ...LEGACY_COMMAND_FILES]) {
+  for (const c of [...commandFiles, ...skillFiles, ...LEGACY_COMMAND_FILES]) {
     const p = path.join(target.commandsDir, c);
     if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
   }
@@ -308,10 +333,10 @@ function printStatus({ project = false } = {}) {
   console.log(`  Installed commands:        ${commands.length}`);
   for (const f of commands) console.log(`    • ${commandName(f)}`);
 
-  if (!isSuperpowersInstalled()) {
-    console.log(`\n⚠  superpowers plugin not detected.`);
-    console.log(`   For the best experience, install it: https://github.com/obra/superpowers`);
-  }
+  // Reported, not warned about. SlashForge ships its own skills, so the plugin's
+  // absence costs three optional capabilities and nothing else — a ⚠ would imply
+  // something is wrong when nothing is.
+  console.log(`  superpowers plugin:        ${isSuperpowersInstalled() ? 'detected' : 'not installed (optional)'}`);
 }
 
 async function install({ dryRun, assumeYes, project = false }) {
@@ -319,6 +344,7 @@ async function install({ dryRun, assumeYes, project = false }) {
 
   validateTemplates(GUIDE_FILES, TEMPLATES_DIR);
   validateTemplates(COMMAND_FILES, TEMPLATES_DIR);
+  validateTemplates(SKILL_FILES, TEMPLATES_DIR);
   assertTemplatesExist(ASSET_FILES, TEMPLATES_DIR);
 
   const alreadyInstalled = fs.existsSync(target.guidesDir);
@@ -378,16 +404,13 @@ async function install({ dryRun, assumeYes, project = false }) {
 
   reportLegacyLeftovers(target);
 
-  if (!isSuperpowersInstalled()) {
-    console.log('\n⚠  superpowers plugin not detected.');
-    console.log('   For the best experience, install it: https://github.com/obra/superpowers');
-  }
 
   console.log('\nDone! Open Claude Code in any repo:');
   console.log('  • /slashforge:setup — one-time repo setup');
   console.log('  • /slashforge:code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
   console.log('  • /slashforge:code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
   console.log('  • /slashforge:investigate [symptom] — read-only research, produces a findings report');
+  console.log('  • /slashforge:review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
 }
 
 // After an upgrade from < 3.0.0 the v2 files are still on disk. We deliberately
@@ -508,6 +531,7 @@ module.exports = {
   commandName,
   GUIDE_FILES,
   ASSET_FILES,
+  SKILL_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
 };
