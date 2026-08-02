@@ -129,7 +129,7 @@ test('splicing a fragment into the shell survives $-sequences', () => {
     .replace('<!--TITLE-->', () => 'symptom (2026-08-02)')
     .replace('<!--CONTENT-->', () => body);
   assert.ok(out.includes(body), '$-sequences in the fragment were corrupted');
-  assert.ok(out.includes('<title>Investigation — symptom (2026-08-02)</title>'));
+  assert.ok(out.includes('<title>symptom (2026-08-02)</title>'), 'shell must not hardcode a title prefix');
   assert.ok(!out.includes('<!--CONTENT-->'), 'CONTENT marker not consumed');
 });
 
@@ -407,14 +407,38 @@ test('the preflight detects rather than gates', () => {
 // it: any skill that writes an artefact names the path inside its own body.
 test('SlashForge skills that write artefacts name their own destination', () => {
   const expected = {
-    'brainstorm.md': '.claude/specs/',
-    'plan.md': '.claude/plans/',
+    'brainstorm.md': 'docs/slashforge/specs/',
+    'plan.md': 'docs/slashforge/plans/',
   };
   for (const [file, dest] of Object.entries(expected)) {
     const skill = SKILL_FILES.find((s) => s.endsWith(file));
     assert.ok(skill, `${file} is not in SKILL_FILES`);
     const body = fs.readFileSync(path.join(TEMPLATES_DIR, skill), 'utf8');
     assert.ok(body.includes(dest), `${file} must name ${dest} as its write location`);
+  }
+});
+
+// Three skills now write HTML through one shell. The shell must not assume which
+// kind of document it is wrapping — it did, with a hardcoded "Investigation — "
+// prefix that would have titled every design spec as an investigation.
+test('the shell is document-agnostic and all three writers use it', () => {
+  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-report-shell.html'), 'utf8');
+  assert.ok(
+    /<title><!--TITLE--><\/title>/.test(shell),
+    'the shell must not prefix the title — the caller supplies the whole thing',
+  );
+
+  const writers = {
+    'investigate.md': 'docs/slashforge/investigations',
+    'brainstorm.md': 'docs/slashforge/specs',
+    'plan.md': 'docs/slashforge/plans',
+  };
+  for (const [file, dir] of Object.entries(writers)) {
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', file), 'utf8');
+    assert.ok(body.includes('forge-report-shell.html'), `${file} must splice into the shell`);
+    assert.ok(body.includes(`mkdir -p ${dir}`), `${file} must create ${dir}`);
+    assert.ok(body.includes('() => esc(title)'), `${file} must escape the title`);
+    assert.ok(body.includes('() => body'), `${file} must splice the body verbatim`);
   }
 });
 
@@ -438,7 +462,7 @@ test('docs/superpowers is only ever named next to the path replacing it', () => 
     const lines = fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8').split('\n');
     lines.forEach((line, i) => {
       if (!line.includes('docs/superpowers')) return;
-      if (line.includes('.claude/specs/') || line.includes('.claude/plans/')) return;
+      if (line.includes('docs/slashforge/specs/') || line.includes('docs/slashforge/plans/')) return;
       offenders.push(`${f}:${i + 1} -> ${line.trim().slice(0, 80)}`);
     });
   }

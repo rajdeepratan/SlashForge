@@ -98,7 +98,7 @@ const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, 
 fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
   .replace("<!--TITLE-->",   () => esc(title))
   .replace("<!--CONTENT-->", () => body));
-' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$report" "<short-symptom> (<YYYY-MM-DD>)"
+' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$report" "Investigation — <short-symptom> (<YYYY-MM-DD>)"
 ```
 
 Three details that matter:

@@ -32,8 +32,41 @@ questions. Everything they need is in the plan or it does not reach them.
 
 ## Where the plan goes
 
-`.claude/plans/YYYY-MM-DD-<feature-name>.md`, unless the user has said otherwise. Do not write
-plans anywhere else in the repo.
+`docs/slashforge/plans/YYYY-MM-DD-<feature-name>.html`, unless the user has said otherwise. Do
+not write plans anywhere else in the repo.
+
+It is HTML, built from the shared document shell — the same one investigation reports and design
+specs use. **Write only the body fragment**; a substitution step splices it in.
+
+```bash
+mkdir -p docs/slashforge/plans
+plan="docs/slashforge/plans/<YYYY-MM-DD>-<feature-name>.html"
+
+node -e '
+const fs = require("fs");
+const [shell, frag, out, title] = process.argv.slice(1);
+const body = fs.readFileSync(frag, "utf8");
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
+  .replace("<!--TITLE-->",   () => esc(title))
+  .replace("<!--CONTENT-->", () => body));
+' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$plan" "Plan — <feature-name> (<YYYY-MM-DD>)"
+```
+
+Function-form replacement, title escaped, body verbatim. Delete the scratch fragment afterwards.
+
+### Tracking progress in HTML
+
+Steps are checkboxes. In HTML that is a literal `☐` at the start of the list item, swapped to `☑`
+when the step is done:
+
+```html
+<li>☐ <strong>Step 1: Write the failing test</strong></li>
+```
+
+Edit the character in place as you go — the plan is a live document, not a record written once.
+Do not use `<input type="checkbox">`: the shell carries no JavaScript, so its state would not
+survive a reload and would not be readable by whoever picks the plan up next.
 
 ## Before writing tasks: map the files
 
@@ -47,19 +80,25 @@ decomposition gets decided, so decide it deliberately:
 
 ## Required header
 
-```markdown
-# [Feature] Implementation Plan
+```html
+<h1>Plan — [Feature]</h1>
 
-**Goal:** [one sentence]
+<div class="summary">
+  <strong>Goal:</strong> [one sentence]
+</div>
 
-**Architecture:** [2–3 sentences on the approach]
+<h2>Architecture</h2>
+<p>[2–3 sentences on the approach]</p>
 
-**Tech stack:** [key technologies]
+<h2>Tech stack</h2>
+<p>[key technologies]</p>
 
-## Global constraints
-
-[Project-wide requirements — version floors, dependency limits, platform rules —
-one line each, values copied exactly from the spec. Every task inherits these.]
+<h2>Global constraints</h2>
+<ul>
+  <li>[Project-wide requirements — version floors, dependency limits, platform
+      rules — one line each, values copied exactly from the spec. Every task
+      inherits these.]</li>
+</ul>
 ```
 
 ## Task shape
@@ -71,41 +110,42 @@ something independently testable.
 
 Each **step** inside a task is one action, two to five minutes:
 
-````markdown
-### Task N: [Name]
+```html
+<h2>Task N: [Name]</h2>
 
-**Files:**
-- Create: `exact/path/to/file.js`
-- Modify: `exact/path/to/existing.js:123-145`
-- Test: `test/exact/path.test.js`
+<p><strong>Files</strong></p>
+<ul>
+  <li>Create: <code>exact/path/to/file.js</code></li>
+  <li>Modify: <code>exact/path/to/existing.js:123-145</code></li>
+  <li>Test: <code>test/exact/path.test.js</code></li>
+</ul>
 
-**Interfaces:**
-- Consumes: [what earlier tasks provide — exact signatures]
-- Produces: [what later tasks rely on — exact names and types]
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: [what earlier tasks provide — exact signatures]</li>
+  <li>Produces: [what later tasks rely on — exact names and types]</li>
+</ul>
 
-- [ ] **Step 1: Write the failing test**
-
-```js
-test('specific behaviour', () => {
+<ul>
+  <li>☐ <strong>Step 1: Write the failing test</strong>
+<pre><code>test('specific behaviour', () =&gt; {
   assert.equal(fn(input), expected);
-});
+});</code></pre></li>
+
+  <li>☐ <strong>Step 2: Run it and confirm it FAILS</strong><br>
+      Run: <code>npm test</code> — expected: fail with "fn is not defined"</li>
+
+  <li>☐ <strong>Step 3: Write the minimal implementation</strong>
+<pre><code>function fn(input) { return expected; }</code></pre></li>
+
+  <li>☐ <strong>Step 4: Run it and confirm it PASSES</strong></li>
+
+  <li>☐ <strong>Step 5: Commit</strong></li>
+</ul>
 ```
 
-- [ ] **Step 2: Run it and confirm it FAILS**
-
-Run: `npm test`
-Expected: fail with "fn is not defined"
-
-- [ ] **Step 3: Write the minimal implementation**
-
-```js
-function fn(input) { return expected; }
-```
-
-- [ ] **Step 4: Run it and confirm it PASSES**
-
-- [ ] **Step 5: Commit**
-````
+Code inside `<pre><code>` must have `<`, `>` and `&` escaped, or the snippet will be parsed as
+markup and vanish from the rendered page.
 
 The **Interfaces** block matters: a task's implementer sees only their own task, so this is how
 they learn the names and types their neighbours use.
@@ -137,4 +177,5 @@ Fix inline and move on.
 ## Hand-off
 
 Say where the plan is saved and confirm the execution approach before starting: task-by-task
-with review between, or straight through with checkpoints.
+with review between, or straight through with checkpoints. Open it in the user's browser if that
+is useful — it is a rendered document, not a source file.

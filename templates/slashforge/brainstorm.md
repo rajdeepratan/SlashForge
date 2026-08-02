@@ -42,8 +42,63 @@ where unexamined assumptions cost the most, because nobody thinks to check them.
 
 ## Where the spec goes
 
-`.claude/specs/YYYY-MM-DD-<topic>-design.md`, unless the user has said otherwise. Do not write
-design documents anywhere else in the repo.
+`docs/slashforge/specs/YYYY-MM-DD-<topic>-design.html`, unless the user has said otherwise. Do
+not write design documents anywhere else in the repo.
+
+It is HTML, built from the shared document shell — the same one the investigation reports use, so
+every SlashForge artefact looks alike and the CSS is never regenerated. **Write only the body
+fragment**; a substitution step splices it in.
+
+### The fragment
+
+Use only these elements. The shell styles `h1`, `h2`, `code`, `pre`, `ul`/`ol`, `table`, and
+`.summary`. Do not add inline `style=` attributes or new classes — the shell has no rules for them.
+
+```html
+<h1>Design — <topic></h1>
+
+<div class="summary">
+  <strong>Goal:</strong> <one sentence on what this achieves>
+</div>
+
+<h2>Problem</h2>
+<p>What is wrong or missing today, and why it matters.</p>
+
+<h2>Approach</h2>
+<p>The chosen shape, and the 2-3 alternatives with why they lost.</p>
+
+<h2>Design</h2>
+<p>The pieces, their boundaries, and how they interact. Wrap code references like
+   <code>path/to/file.ts:42</code> in <code>&lt;code&gt;</code> tags.</p>
+
+<h2>Testing</h2>
+<p>What will be tested and how it is proven.</p>
+
+<h2>Out of scope</h2>
+<ul>
+  <li>...</li>
+</ul>
+```
+
+### Writing it
+
+```bash
+mkdir -p docs/slashforge/specs
+spec="docs/slashforge/specs/<YYYY-MM-DD>-<topic>-design.html"
+
+node -e '
+const fs = require("fs");
+const [shell, frag, out, title] = process.argv.slice(1);
+const body = fs.readFileSync(frag, "utf8");
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
+  .replace("<!--TITLE-->",   () => esc(title))
+  .replace("<!--CONTENT-->", () => body));
+' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$spec" "Design — <topic> (<YYYY-MM-DD>)"
+```
+
+Function-form replacement, title escaped, body verbatim — same reasoning as the investigation
+report. Delete the scratch fragment afterwards.
 
 ## Steps
 
@@ -70,7 +125,7 @@ when it is straightforward, a few hundred words when it is genuinely nuanced. Co
 of the change, the pieces involved, how they interact, what happens when things fail, and how
 it gets tested. Check after each section that it still looks right.
 
-**6. Write the spec, then self-review it** with fresh eyes:
+**6. Write the spec** (see above), **then self-review it** with fresh eyes:
 
 - **Placeholders** — any TBD, TODO, or vague requirement? Fill them in.
 - **Consistency** — do any two sections contradict each other?

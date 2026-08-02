@@ -15,8 +15,8 @@ git operations in your repo. That deserves a page, not a footnote.
 | `<repo>/CLAUDE.md` | On `/slashforge:setup`, after you answer its questions |
 | `<repo>/.claude/` | On `/slashforge:setup` — rules, skills, agents, commands, hooks |
 | `<repo>/docs/slashforge/investigations/` | On `/slashforge:investigate` — the findings report |
-| `<repo>/.claude/specs/` | On `/slashforge:code` full path — the design spec from Phase 1 |
-| `<repo>/.claude/plans/` | On `/slashforge:code` full path — the implementation plan from Phase 2 |
+| `<repo>/docs/slashforge/specs/` | On `/slashforge:code` full path — the design spec from Phase 1 |
+| `<repo>/docs/slashforge/plans/` | On `/slashforge:code` full path — the implementation plan from Phase 2 |
 
 Nothing is written outside those paths. Every generated file carries a
 `generated_by` marker; remove or edit it and that file is treated as yours
@@ -62,8 +62,9 @@ Commit it.
 and everyone else on the team, start informed rather than cold. Generated
 configuration that lives only on one machine buys you nothing on the second run.
 
-Phase 1 and Phase 2 write their spec and plan into `.claude/specs/` and
-`.claude/plans/`. Those paths are baked into SlashForge's own
+Phase 1 and Phase 2 write their spec and plan into `docs/slashforge/specs/` and
+`docs/slashforge/plans/`, as HTML built from the same shell as the investigation
+reports. Those paths are baked into SlashForge's own
 [skills](/slashforge/guides/skills/), so nothing writes design documents anywhere
 else in your repo.
 

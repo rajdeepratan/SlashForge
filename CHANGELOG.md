@@ -11,7 +11,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 **The superpowers plugin is now optional.** SlashForge ships its own discipline skills under the `slashforge:` namespace it already owns — no plugin, no marketplace, no change to `npx slashforge`. Nothing stops, prompts, or warns about degraded mode any more.
 
 ### Changed
-- **Investigation reports moved from `investigations/` to `docs/slashforge/investigations/`**, keeping generated artefacts out of the repo root. Still outside `.claude/`, so they stay visible in Finder and open in a browser without a code editor. Existing reports are left where they are; nothing is moved for you.
+- **Every generated document now lives under `docs/slashforge/` and is HTML.** Investigation reports moved from `investigations/`, and the design spec and implementation plan moved from `.claude/specs/` and `.claude/plans/` — all three now sit in `docs/slashforge/{investigations,specs,plans}/`. Nothing is moved for you; existing files stay where they are.
+
+  Specs and plans changed from Markdown to HTML, built from the same shell as the reports, so all three render identically and open in a browser without a code editor. Plan steps use `☐`/`☑` list items rather than `- [ ]`; edit the character in place as steps complete. Deliberately not `<input type="checkbox">` — the shell carries no JavaScript, so that state would not survive a reload.
+
+- `forge-report-shell.html` is now the **document shell** rather than the report shell. Its `<title>` no longer hardcodes an `Investigation — ` prefix; the caller supplies the whole title, so a design spec is titled as one. A test asserts the shell stays document-agnostic.
 
 ### Fixed
 - **`/slashforge:code` no longer creates a `docs/superpowers/` directory in your repo.** superpowers' `brainstorming` and `writing-plans` skills default to writing their spec and plan under `docs/superpowers/` — a path SlashForge does not own and never asked for. Both skills honour a stated preference, and the workflow now states one: Phase 1 writes the design spec to `.claude/specs/`, Phase 2 writes the implementation plan to `.claude/plans/`.

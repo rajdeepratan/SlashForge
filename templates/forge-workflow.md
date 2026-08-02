@@ -27,7 +27,7 @@ Every phase with a named skill MUST invoke it via the `Skill` tool — do not pa
    - When uncertain → **default to full flow**
 3. **Announce the decision** before any token-heavy work: *"Treating this as [trivial | full]. [One-line reason from the checklist.] Say 'full flow' or 'quick' to override."* A user reply of `quick` or `trivial` forces the lean path; `full` or `full flow` forces the full path.
 4. **Trivial path:** skip `slashforge:brainstorm`. Go to Phase 2 with the **Lean plan format** (see Phase 2). Phases 3–10 run as normal — every user gate and Phase 6 verification stay in place.
-5. **Full path:** invoke `slashforge:brainstorm`. It writes the design spec to `.claude/specs/` by itself. Cover goal, user-visible behaviour, constraints, out-of-scope items, success criteria. Ask clarifying questions until the request is unambiguous. Do not propose a plan yet.
+5. **Full path:** invoke `slashforge:brainstorm`. It writes the design spec to `docs/slashforge/specs/` as HTML by itself. Cover goal, user-visible behaviour, constraints, out-of-scope items, success criteria. Ask clarifying questions until the request is unambiguous. Do not propose a plan yet.
 
 ---
 
@@ -35,7 +35,7 @@ Every phase with a named skill MUST invoke it via the `Skill` tool — do not pa
 
 **Skill:** `slashforge:plan`
 
-1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge:code -quick` and `/slashforge:code` trivial. Then invoke `slashforge:plan` to produce a structured plan. It writes to `.claude/plans/` by itself.
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge:code -quick` and `/slashforge:code` trivial. Then invoke `slashforge:plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
 2. **Full plan format** (default): cover every section, omitting only those that genuinely do not apply:
    - **Changes** — files/modules to be added, modified, or removed
    - **Affected surface** — public APIs, exported functions, shared interfaces, DB schemas, migrations
