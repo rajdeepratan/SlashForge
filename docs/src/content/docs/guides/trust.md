@@ -11,7 +11,7 @@ git operations in your repo. That deserves a page, not a footnote.
 | Path | When |
 | --- | --- |
 | `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow, plus `forge-report-shell.html` (shared document styling) and `forge-open.sh` (opens a document in your browser) |
-| `~/.claude/commands/slashforge/` | On install — the three command files, plus SlashForge's own discipline skills (e.g. `slashforge:verify`) |
+| `~/.claude/commands/slashforge/` | On install — the four command files, plus SlashForge's own discipline skills (e.g. `slashforge:verify`) |
 | `<repo>/CLAUDE.md` | On `/slashforge:setup`, after you answer its questions |
 | `<repo>/.claude/` | On `/slashforge:setup` — rules, skills, agents, commands, hooks |
 | `<repo>/docs/slashforge/investigations/` | On `/slashforge:investigate` — the findings report |

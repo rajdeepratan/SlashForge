@@ -20,7 +20,7 @@
   <strong><a href="https://www.rajdeepratan.com/slashforge/">📖 Documentation</a></strong>
 </p>
 
-Installs three commands on any machine — `/slashforge:setup` to scaffold a repo, `/slashforge:code` for freeform development (add `-quick` for lean small-change work), and `/slashforge:investigate` for read-only research.
+Installs four commands on any machine — `/slashforge:setup` to scaffold a repo, `/slashforge:code` for freeform development (add `-quick` for lean small-change work), `/slashforge:investigate` for read-only research, and `/slashforge:review-pr` to review someone else's PR against your repo's rules.
 
 Currently supports **Claude Code**. Cursor and Codex targets are planned.
 
@@ -238,7 +238,7 @@ Don't use for: bug fixes where the root cause isn't already understood (use `/sl
 ```
 /slashforge:investigate "users see 500 when uploading >10MB files"
 ```
-Read-only research. No branches, no PRs, no code changes. Produces a findings report (summary, reproduction, root cause, affected scope, suggested next step) written as a self-contained HTML file to `docs/slashforge/investigations/investigation-<timestamp>.html` — root-level, so it is visible in Finder rather than buried in a dot-directory.
+Read-only research. No branches, no PRs, no code changes. Produces a findings report (summary, reproduction, root cause, affected scope, suggested next step) written as a self-contained HTML file to `docs/slashforge/investigations/investigation-<timestamp>.html` — outside `.claude/`, so it is visible in Finder rather than buried in a dot-directory.
 
 The report is then **opened in your default browser** (`open` / `xdg-open` / `wslview` / `start`, skipped silently over SSH or on a headless box), and chat gets a short plain-text summary rather than the raw HTML. Styling comes from `forge-report-shell.html`, installed with the guides — each run writes only its body fragment, so every report looks identical and the CSS is never regenerated. The finished file still inlines everything and opens offline.
 
@@ -253,6 +253,30 @@ The command takes the bare filename — `/slashforge:code` resolves it against `
 
 ---
 
+```
+/slashforge:review-pr
+/slashforge:review-pr 42
+```
+Reviews a pull request against **your repo's** standards — `CLAUDE.md`, `.claude/rules/`, and the conventions actually in the surrounding code — then posts line-level comments or an approval.
+
+With no argument it finds the PRs waiting on you. It searches `review-requested:@me` first, since that is what "waiting on me" means on GitHub; `assignee` is a different relationship and usually empty, so filtering on it would show an empty list. Drafts are skipped, a single PR is reviewed without a menu, and no PRs means it says so rather than inventing work.
+
+Before reading the diff it checks CI status, existing review comments so it does not repeat a point already made, and whether the PR is yours — GitHub refuses to let anyone approve their own, so that option is withdrawn when it applies. Past roughly 1,500 changed lines it says a single pass cannot be thorough and states which files it covered.
+
+**Nothing reaches GitHub without your explicit yes.** You get the verdict in chat, the full review opens in your browser, and then the exact text that will be posted — verbatim, because it is public and attributed to you:
+
+```
+Post this review?  approve · comment · request-changes · edit · cancel
+```
+
+`request-changes` blocks a merge and `comment` does not, so the command never picks between them. It recommends — blocking findings make the suggestion obvious — but blocking someone's PR is your decision.
+
+Line comments and the summary go up as a **single review**, so the PR gets one notification rather than a stream. A line comment can only anchor inside the diff; one outside makes GitHub reject the whole review with a 422, so the command moves those findings into the summary body, tells you which moved, and retries. The review is saved to `docs/slashforge/reviews/<date>-pr-<N>.html` either way.
+
+Requires `gh` installed and authenticated — checked up front, so it stops with instructions rather than failing halfway.
+
+---
+
 ## `/slashforge:setup` vs Anthropic's `/init`
 
 Claude Code ships with a built-in `/init` command. The two are complementary, not competitors:
@@ -262,7 +286,7 @@ Claude Code ships with a built-in `/init` command. The two are complementary, no
 | Creates | `CLAUDE.md` only (or + skills/hooks with `CLAUDE_CODE_NEW_INIT=1`) | Full `.claude/` — rules, skills, agents, commands, hooks, plus `CLAUDE.md` |
 | Approach | Discovers and suggests — opinion-light | Opinionated — enforces multi-agent layout, 200-line cap, global vs specialist split |
 | Agents | None | Mandatory: `developer`, `code-reviewer`, `git`, plus specialists |
-| Workflow | None | Three commands: `/slashforge:setup` (setup), `/slashforge:code` (full flow, `-quick` for lean), `/slashforge:investigate` (read-only research) |
+| Workflow | None | Four commands: `/slashforge:setup` (setup), `/slashforge:code` (full flow, `-quick` for lean), `/slashforge:investigate` (read-only research), `/slashforge:review-pr` (PR review) |
 | Monorepo | Single-repo focused | Root + per-app `CLAUDE.md` flow |
 | Existing setup | Suggests improvements to `CLAUDE.md` | Full Update flow — reads everything in `.claude/` and fills gaps |
 

@@ -8,7 +8,7 @@ own for getting them on and off your machine.
 
 | Command | What it does |
 | --- | --- |
-| `npx slashforge` | Installs guide files and the three commands into `~/.claude/` |
+| `npx slashforge` | Installs guide files, the four commands, and the discipline skills into `~/.claude/` |
 | `npx slashforge status` | Reports what is installed, at which version, without changing anything |
 | `npx slashforge uninstall` | Removes the guides and commands it installed |
 
@@ -31,7 +31,7 @@ SLASHFORGE_YES=1 npx slashforge
 
 ## install
 
-The default command. Installs the guide files and the three commands, then
+The default command. Installs the guide files, the four commands and the skills, then
 tells you where each one landed.
 
 ```bash
@@ -71,9 +71,10 @@ slashforge status
     • forge-claude-md.md
     • forge-commands.md
     ...
-  Installed commands:        3
+  Installed commands:        4
     • /slashforge:code
     • /slashforge:investigate
+    • /slashforge:review-pr
     • /slashforge:setup
   superpowers plugin:        not installed (optional)
 ```

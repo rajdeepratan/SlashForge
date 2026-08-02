@@ -9,9 +9,9 @@ description: One command to install, then your first run end to end.
 npx slashforge
 ```
 
-That installs the guide files and the three commands into `~/.claude/`. Open
+That installs the guide files and the four commands into `~/.claude/`. Open
 Claude Code in any repo and type `/` — you should see `/slashforge:setup`,
-`/slashforge:code`, and `/slashforge:investigate`.
+`/slashforge:code`, `/slashforge:investigate`, and `/slashforge:review-pr`.
 
 ## Your first run
 
@@ -63,7 +63,8 @@ npx slashforge status
 ```
 
 That's the whole loop. `/slashforge:setup` once per repo, `/slashforge:code` per
-change, and [`/slashforge:investigate`](/slashforge/commands/slashforge-investigate/)
+change, [`/slashforge:review-pr`](/slashforge/commands/slashforge-review-pr/) to review
+someone else's, and [`/slashforge:investigate`](/slashforge/commands/slashforge-investigate/)
 when you need to understand a bug before touching it.
 
 ## Requirements

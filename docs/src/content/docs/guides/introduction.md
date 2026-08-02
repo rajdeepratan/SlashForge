@@ -42,7 +42,7 @@ constantly, so:
 | `commands/` | Repo-specific slash commands, on top of the three SlashForge installs |
 | `hooks/` | Automated behaviours that fire on an event, without being asked |
 
-## The three commands
+## The four commands
 
 Each command owns one job, and nothing overlaps.
 
@@ -68,6 +68,17 @@ Read-only research. Reproduces a bug, finds the root cause, and writes a report
 to `docs/slashforge/investigations/`. No branch, no PR, no code changes. It ends by handing the
 report path to `/slashforge:code`, so the fix starts with the diagnosis already
 loaded instead of you restating the bug.
+
+### `/slashforge:review-pr`
+
+Reviews someone's pull request against *your* repo's standards — `CLAUDE.md`,
+`.claude/rules/`, and the conventions in the surrounding code — then posts
+line-level comments or an approval. With no argument it lists the PRs waiting on
+your review.
+
+It never posts without showing you the exact text first, and never chooses
+between `comment` and `request-changes` for you. Blocking someone's merge is your
+call.
 
 ## Why the workflow matters
 

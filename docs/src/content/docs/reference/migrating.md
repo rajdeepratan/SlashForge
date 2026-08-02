@@ -23,8 +23,8 @@ v4.0.0 changes one thing: the command namespace.
 | `/forge:code -quick` | `/slashforge:code -quick` |
 | `/forge:investigate` | `/slashforge:investigate` |
 
-Nothing else changed. Same three commands, same ten phases, same gates, same
-`-quick` mode.
+Nothing else changed in v4.0.0 — the same three commands, ten phases, gates and
+`-quick` mode. (`/slashforge:review-pr` arrived later, in v4.2.0.)
 
 ### Why
 
