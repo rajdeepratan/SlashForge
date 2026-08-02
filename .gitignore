@@ -21,4 +21,4 @@ docs/superpowers/
 # Investigation reports for this repo are kept local. The docs present this as a
 # choice rather than a default — .claude/specs/ and .claude/plans/ are
 # deliberately NOT ignored, since .claude/ is meant to be committed.
-investigations/
+docs/slashforge/investigations/

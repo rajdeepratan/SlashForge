@@ -65,7 +65,7 @@ user gate and the lint/test/build verification stay.
 ### `/slashforge:investigate`
 
 Read-only research. Reproduces a bug, finds the root cause, and writes a report
-to `investigations/`. No branch, no PR, no code changes. It ends by handing the
+to `docs/slashforge/investigations/`. No branch, no PR, no code changes. It ends by handing the
 report path to `/slashforge:code`, so the fix starts with the diagnosis already
 loaded instead of you restating the bug.
 

@@ -84,11 +84,11 @@ Three steps, in order: **write the file**, **open it**, **summarise in chat**.
 
 ### 1. Write
 
-Write your body fragment to a scratch file, then splice it into the shipped shell. Create `investigations/` if it doesn't exist — repo root, not inside `.claude/`, because a dot-directory is hidden in Finder and these reports are meant to be opened by a human without a code editor.
+Write your body fragment to a scratch file, then splice it into the shipped shell. Create `docs/slashforge/investigations/` if it doesn't exist, parents included (`mkdir -p` handles this). Not inside `.claude/`, because a dot-directory is hidden in Finder and these reports are meant to be opened by a human without a code editor.
 
 ```bash
-mkdir -p investigations
-report="investigations/investigation-<YYYY-MM-DD-HHMM>.html"
+mkdir -p docs/slashforge/investigations
+report="docs/slashforge/investigations/investigation-<YYYY-MM-DD-HHMM>.html"
 
 node -e '
 const fs = require("fs");
@@ -114,7 +114,7 @@ If the shell is missing (an older install, or a hand-modified `.claude/`), fall 
 Run this, substituting the real filename. It is **best-effort**: it must never fail the run, and it must stay silent where no browser exists.
 
 ```bash
-report="investigations/investigation-<YYYY-MM-DD-HHMM>.html"
+report="docs/slashforge/investigations/investigation-<YYYY-MM-DD-HHMM>.html"
 if [ -z "$SSH_CONNECTION" ]; then
   case "$(uname -s)" in
     Darwin) open "$report" 2>/dev/null || true ;;
@@ -146,12 +146,12 @@ Print **only**:
 
 End with the report's **actual filename** substituted in — never emit a placeholder like `<path>` or `#FileName`:
 
-> *"Investigation complete → `investigations/investigation-2026-08-02-1432.html`. Want me to fix this? Run `/slashforge:code investigation-2026-08-02-1432.html` to start the fix."*
+> *"Investigation complete → `docs/slashforge/investigations/investigation-2026-08-02-1432.html`. Want me to fix this? Run `/slashforge:code investigation-2026-08-02-1432.html` to start the fix."*
 
 Two different forms, deliberately:
 
 - **The pointer** (after the arrow) is the full repo-root-relative path — it tells the user where the file lives and is clickable in most terminals.
-- **The command** takes the **bare filename only.** `/slashforge:code` Step 0b resolves it against `investigations/`, so the shorter form is what the user has to type or paste.
+- **The command** takes the **bare filename only.** `/slashforge:code` Step 0b resolves it against `docs/slashforge/investigations/`, so the shorter form is what the user has to type or paste.
 
 No `#` or `@` prefix on either. A bare filename is what Step 0b resolves.
 

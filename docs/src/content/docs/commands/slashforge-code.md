@@ -34,7 +34,7 @@ Pasting it carries the root cause into a fresh session rather than making you
 restate the bug from memory.
 
 Resolution is deliberately forgiving. A **bare filename** resolves against
-`investigations/`, which is the short form the investigate hand-off prints. A
+`docs/slashforge/investigations/`, which is the short form the investigate hand-off prints. A
 **full path** works as given, so `docs/spec.md` or any other requirements
 document is equally valid. A leading `@` or `#` is stripped first, so a pasted
 mention still works.

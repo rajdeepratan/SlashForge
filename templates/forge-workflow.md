@@ -18,7 +18,7 @@ Every phase with a named skill MUST invoke it via the `Skill` tool — do not pa
 
 **Skill:** `slashforge:brainstorm`
 
-1. Open with: **"What do you want to build, fix, or change?"** — **unless** the command was invoked with a requirements document (`code.md` Step 0b resolved the argument to a file, typically an `investigations/investigation-*.html` report handed off by `/slashforge:investigate`). In that case the document *is* the intake: read it, then open with the confirmation line from Step 0b instead of the open question. Never make the user retype what the report already states.
+1. Open with: **"What do you want to build, fix, or change?"** — **unless** the command was invoked with a requirements document (`code.md` Step 0b resolved the argument to a file, typically an `docs/slashforge/investigations/investigation-*.html` report handed off by `/slashforge:investigate`). In that case the document *is* the intake: read it, then open with the confirmation line from Step 0b instead of the open question. Never make the user retype what the report already states.
 2. **Classify the task yourself** — read the description (peek at affected files via Glob/Grep if it helps). Treat as **trivial** only if ALL of these hold:
    - Describable in one sentence without "and"
    - Touches ≤ 2 files by your best read

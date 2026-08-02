@@ -14,7 +14,7 @@ git operations in your repo. That deserves a page, not a footnote.
 | `~/.claude/commands/slashforge/` | On install — the three command files, plus SlashForge's own discipline skills (e.g. `slashforge:verify`) |
 | `<repo>/CLAUDE.md` | On `/slashforge:setup`, after you answer its questions |
 | `<repo>/.claude/` | On `/slashforge:setup` — rules, skills, agents, commands, hooks |
-| `<repo>/investigations/` | On `/slashforge:investigate` — the findings report |
+| `<repo>/docs/slashforge/investigations/` | On `/slashforge:investigate` — the findings report |
 | `<repo>/.claude/specs/` | On `/slashforge:code` full path — the design spec from Phase 1 |
 | `<repo>/.claude/plans/` | On `/slashforge:code` full path — the implementation plan from Phase 2 |
 
@@ -67,8 +67,8 @@ Phase 1 and Phase 2 write their spec and plan into `.claude/specs/` and
 [skills](/slashforge/guides/skills/), so nothing writes design documents anywhere
 else in your repo.
 
-The one directory worth considering for `.gitignore` is `investigations/`, if
-you would rather keep findings reports local. It sits at the repo root rather
+The one directory worth considering for `.gitignore` is `docs/slashforge/investigations/`, if
+you would rather keep findings reports local. It sits under `docs/` rather
 than inside `.claude/` so the reports are visible in Finder and open in a
 browser without a code editor — the trade-off is that it shows up in `git
 status`. SlashForge will not edit your `.gitignore`; adding that line is yours.
