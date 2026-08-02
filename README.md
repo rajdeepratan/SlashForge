@@ -120,13 +120,15 @@ The guide files cover:
 
 ---
 
-## Preflight check — superpowers
+## Skills — SlashForge ships its own
 
-Every command installed by the kit runs a **preflight check before doing any repo work** — before exploring the codebase, reading files, or starting a phase.
+The disciplines the workflow depends on install with the package, under the `slashforge:` namespace: `slashforge:brainstorm` (Phase 1), `slashforge:plan` (Phase 2), `slashforge:debug` and `slashforge:tdd` (Phase 5), `slashforge:verify` (Phase 6), `slashforge:review-feedback` (Phase 9). No plugin and no marketplace — the namespace comes from the commands directory SlashForge already owns.
 
-If the `superpowers` plugin is missing, the command **stops and explains why it matters, lists what you lose without it, and offers to install** before proceeding. You can decline and run in an explicitly-degraded mode — the command will never silently drop a skill call.
+They are adapted from [superpowers](https://github.com/obra/superpowers) under the MIT licence, © 2025 Jesse Vincent, with the notice carried in each skill file.
 
-**Superpowers** — install with:
+**The superpowers plugin is optional.** It adds worktree isolation (Phase 4) and subagent-driven execution (Phase 5, parallel units only). Without it those two are skipped and nothing else changes — no gate, no prompt, no degraded mode.
+
+**Superpowers** — optional, install with:
 ```
 /plugin install superpowers@claude-plugins-official
 ```

@@ -8,7 +8,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [4.2.0] - 2026-08-02
 
-Begins reducing the hard dependency on the superpowers plugin. SlashForge starts shipping its own discipline skills under the `slashforge:` namespace it already owns — no plugin, no marketplace, no change to `npx slashforge`.
+**The superpowers plugin is now optional.** SlashForge ships its own discipline skills under the `slashforge:` namespace it already owns — no plugin, no marketplace, no change to `npx slashforge`. Nothing stops, prompts, or warns about degraded mode any more.
 
 ### Fixed
 - **`/slashforge:code` no longer creates a `docs/superpowers/` directory in your repo.** superpowers' `brainstorming` and `writing-plans` skills default to writing their spec and plan under `docs/superpowers/` — a path SlashForge does not own and never asked for. Both skills honour a stated preference, and the workflow now states one: Phase 1 writes the design spec to `.claude/specs/`, Phase 2 writes the implementation plan to `.claude/plans/`.
@@ -16,11 +16,17 @@ Begins reducing the hard dependency on the superpowers plugin. SlashForge starts
   `docs/superpowers/` is also gitignored as a backstop, for a stale install or a skill that ignores the override. Existing directories are left alone — nothing is moved or deleted.
 
 ### Added
-- **SlashForge now ships its own discipline skills** — `slashforge:brainstorm` (idea to agreed design), `slashforge:plan` (spec to step-by-step plan), and `slashforge:verify` (evidence before claims). Adapted from superpowers' `brainstorming`, `writing-plans` and `verification-before-completion` (MIT, © 2025 Jesse Vincent; the notice travels in each skill file, since skills install to `~/.claude/` detached from this repo).
+- **SlashForge now ships its own discipline skills** — `slashforge:brainstorm` (Phase 1), `slashforge:plan` (Phase 2), `slashforge:debug` and `slashforge:tdd` (Phase 5), `slashforge:verify` (Phase 6), and `slashforge:review-feedback` (Phase 9). Adapted from superpowers under MIT, © 2025 Jesse Vincent; the notice travels in each skill file, since skills install to `~/.claude/` detached from this repo.
 
   `slashforge:brainstorm` drops the visual companion entirely — roughly 62 KB of browser-server machinery the workflow never used. Both artefact-writing skills name their own destination (`.claude/specs/`, `.claude/plans/`), so the class of bug that created `docs/superpowers/` cannot recur through them; a test enforces it.
 
   No plugin and no marketplace were needed: the `slashforge:` namespace comes from the `slashforge/` subdirectory under the commands dir, which SlashForge already owns. `npx slashforge` is unchanged.
+### Changed
+- **The preflight no longer gates.** It was a blocking check that stopped every run, explained what you lose without superpowers, and offered to install it. It is now silent capability detection: it records what is available and adjusts which optional phases apply. No prompt, no warning, no "degraded mode" — because with the disciplines shipped, nothing is degraded.
+- **Two superpowers skills were deliberately not replaced, and their references removed instead.** `finishing-a-development-branch` presents a merge-or-PR-or-keep menu that contradicts Phase 8's opinionated flow, and `requesting-code-review` is mostly subagent dispatch where Phase 7 already carries a more specific checklist. Porting them would have made the workflow worse, not more independent.
+- What superpowers still adds, when installed: `using-git-worktrees` (Phase 4 isolation) and `subagent-driven-development` (Phase 5, genuinely parallel units). Both optional; both skipped cleanly when absent.
+
+### Added
 - Installer support for skills (`SKILL_FILES`). They install into the namespace directory and are frontmatter-validated like commands — unlike assets, which have no frontmatter and are only checked for existence. They are deliberately kept out of `meta.json`'s `commands` and the `status` output, which continue to report the three entry points a user actually types rather than every internal discipline.
 - Two tests guarding the write-location override. One asserts every invocation of those skills names its write location; the other asserts `docs/superpowers` is never named without the path replacing it alongside — so the explanatory text stays, but a silent regression to the upstream default does not.
 

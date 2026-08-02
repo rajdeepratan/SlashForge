@@ -50,7 +50,7 @@ CLAUDE.md's orchestration table, the workflow file, and the agent filename must 
 
 1. **One-line role description**
 2. **"Before starting" reading list** — directories to read, not specific files
-3. **Superpowers skills** — which skills to invoke if the superpowers plugin is installed
+3. **Skills** — which skills the agent invokes
 4. **Phased workflow** — ordered steps the agent follows
 5. **Code quality checklist** — what it checks before handing off
 6. **When to ask vs decide** — what requires user input vs autonomous action
@@ -71,16 +71,16 @@ Reference directories, never specific files — file paths go stale:
 
 ## Superpowers Skills Per Agent Type
 
-If superpowers is installed, each agent type must invoke these skills:
+Each agent type must invoke these skills. `slashforge:` skills ship with SlashForge and are always available:
 
 | Agent | Skills to invoke |
 |---|---|
-| `developer`, `frontend-developer`, `api-builder` | `superpowers:brainstorming` (new features), `superpowers:writing-plans`, `superpowers:test-driven-development`, `superpowers:verification-before-completion` (before handoff) |
-| `debugger` | `superpowers:systematic-debugging`, `superpowers:verification-before-completion` |
-| `code-reviewer` | `superpowers:requesting-code-review` |
-| `test-writer` | `superpowers:test-driven-development`, `superpowers:verification-before-completion` |
+| `developer`, `frontend-developer`, `api-builder` | `slashforge:brainstorm` (new features), `slashforge:plan`, `slashforge:tdd`, `slashforge:verify` (before handoff) |
+| `debugger` | `slashforge:debug`, `slashforge:verify` |
+| `code-reviewer` | none — review against the Phase 7 checklist |
+| `test-writer` | `slashforge:tdd`, `slashforge:verify` |
 
-If superpowers is not installed, skip the skill and proceed with the workflow as written.
+Where a row names an optional `superpowers:` skill and the plugin is absent, skip it and proceed with the workflow as written.
 
 ---
 
@@ -106,10 +106,10 @@ Read `.claude/rules/` for coding standards and `.claude/skills/` for recipes.
 
 ## Skills
 
-If superpowers is installed:
-- [list the relevant superpowers skills for this agent type]
+Skills:
+- [list the relevant skills for this agent type]
 
-If superpowers is not installed, skip and proceed with the workflow.
+Skip any optional skill that is not installed and proceed with the workflow.
 
 ## Workflow
 

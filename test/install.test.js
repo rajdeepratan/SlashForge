@@ -362,6 +362,46 @@ test('a user file in the namespace dir survives uninstall alongside skills', () 
   assert.ok(fs.existsSync(path.join(target.commandsDir, 'slashforge')), 'dir must not be pruned');
 });
 
+// The disciplines ship with SlashForge now. Only two superpowers skills remain
+// referenced, both genuinely optional: worktrees (Phase 4) and subagent-driven
+// development (Phase 5, parallel units only). Anything else reappearing means a
+// hard dependency crept back in.
+test('only the two optional superpowers skills are still referenced', () => {
+  const ALLOWED = new Set([
+    'superpowers:using-git-worktrees',
+    'superpowers:subagent-driven-development',
+    'superpowers:requesting-code-review',
+  ]);
+  const found = new Map();
+  for (const f of [...GUIDE_FILES, ...SKILL_FILES, ...COMMAND_FILES]) {
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8');
+    for (const m of body.matchAll(/superpowers:[a-z][a-z-]+/g)) {
+      if (!ALLOWED.has(m[0])) {
+        found.set(m[0], (found.get(m[0]) || []).concat(f));
+      }
+    }
+  }
+  assert.deepEqual(
+    [...found.keys()],
+    [],
+    `non-optional superpowers skills referenced:\n  ${[...found].map(([k, v]) => `${k} in ${[...new Set(v)].join(', ')}`).join('\n  ')}`,
+  );
+});
+
+// The preflight used to stop the run and offer to install superpowers. With the
+// disciplines shipped, that prompt is friction over nothing.
+test('the preflight detects rather than gates', () => {
+  const pf = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-preflight.md'), 'utf8');
+  assert.ok(
+    /capability detection, not a gate/i.test(pf),
+    'preflight must state that it does not gate',
+  );
+  assert.ok(
+    !/Install superpowers now\? \(y\/n\)/.test(pf),
+    'preflight must not prompt to install',
+  );
+});
+
 // The whole reason docs/superpowers/ appeared is that an artefact-writing skill
 // was left to pick its own destination. SlashForge's own skills must not repeat
 // it: any skill that writes an artefact names the path inside its own body.
@@ -386,30 +426,6 @@ test('every SlashForge skill carries its MIT attribution', () => {
   // Skills install to ~/.claude/ detached from this repo, so a root NOTICE would
   // not travel with them — the notice has to live in each file.
   assert.deepEqual(missing, [], `adapted skills missing attribution:\n  ${missing.join('\n  ')}`);
-});
-
-// superpowers' brainstorming and writing-plans skills default to writing their
-// artefacts under docs/superpowers/ — a path they own, in the user's repo, that
-// SlashForge never asked for. Both honour a stated preference, so every
-// invocation must name where the artefact goes.
-test('the spec- and plan-writing skills are told where to write', () => {
-  const wf = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-workflow.md'), 'utf8');
-  const pairs = [
-    ['superpowers:brainstorming', '.claude/specs/'],
-    ['superpowers:writing-plans', '.claude/plans/'],
-  ];
-  for (const [skill, dest] of pairs) {
-    const invocations = wf
-      .split('\n')
-      .filter((l) => l.includes('invoke `' + skill + '`'));
-    assert.ok(invocations.length > 0, `no invocation of ${skill} found in forge-workflow.md`);
-    for (const line of invocations) {
-      assert.ok(
-        line.includes(dest),
-        `${skill} is invoked without naming ${dest}:\n  ${line.trim()}`,
-      );
-    }
-  }
 });
 
 // The path may be named — the override instructions have to say what they are

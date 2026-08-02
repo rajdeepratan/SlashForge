@@ -1,6 +1,6 @@
 ---
 name: /slashforge:code
-description: End-to-end development workflow — gather requirements, plan, confirm, branch, implement, verify, review, push, PR. Pass `-quick` for lean mode on small changes (skips brainstorming, minimal plan, inline self-review instead of the agent review). Uses superpowers skills at each phase when installed.
+description: End-to-end development workflow — gather requirements, plan, confirm, branch, implement, verify, review, push, PR. Pass `-quick` for lean mode on small changes (skips brainstorming, minimal plan, inline self-review instead of the agent review). Uses SlashForge's own skills at each phase; the superpowers plugin is optional.
 preflight: superpowers
 ---
 
@@ -47,7 +47,7 @@ You MUST follow every phase in order. Do not skip phases. Do not combine phases.
 In lean mode, use the entry line from `forge-workflow-quick.md` instead.
 **Skip the entry question entirely if Step 0b resolved a requirements document** — use its confirmation line instead, in either mode.
 
-Then begin Phase 1 — the workflow guide handles the auto-classification (trivial vs full) and decides whether `superpowers:brainstorming` applies. Do not invoke brainstorming unconditionally; let Phase 1 make that call.
+Then begin Phase 1 — the workflow guide handles the auto-classification (trivial vs full) and decides whether `slashforge:brainstorm` applies. Do not invoke it unconditionally; let Phase 1 make that call.
 
 The same classification also governs Graphify usage when installed: **full flow** consults the code graph (~10–25k tokens saved on real work); **trivial path** skips it (load overhead exceeds value on tiny edits). When announcing the classification to the user (per Phase 1), this is part of what the decision means.
 
@@ -57,17 +57,17 @@ The same classification also governs Graphify usage when installed: **full flow*
 3. **Phase 8** — PR target branch and reviewers
 4. **Phase 10** — branch cleanup after merge
 
-**Superpowers skills per phase (if superpowers is installed — use the `Skill` tool, do not paraphrase):**
-- Phase 1 — `superpowers:brainstorming` (full path only — skipped on the trivial auto-detect path, and skipped entirely in lean mode)
-- Phase 2 — `superpowers:writing-plans`
-- Phase 4 — `superpowers:using-git-worktrees` (when isolation is warranted)
-- Phase 5 — **exactly one** of: `superpowers:systematic-debugging` (bug) · `superpowers:subagent-driven-development` (parallel units) · `superpowers:test-driven-development` (everything else testable). See Phase 5 table in the workflow file.
-- Phase 6 — `superpowers:verification-before-completion`
-- Phase 7 — `superpowers:requesting-code-review`
-- Phase 8 — `superpowers:finishing-a-development-branch`
-- Phase 9 — `superpowers:receiving-code-review`
+**Skills per phase (use the `Skill` tool, do not paraphrase). `slashforge:` skills ship with SlashForge and are always present; `superpowers:` entries are optional:**
+- Phase 1 — `slashforge:brainstorm` (full path only — skipped on the trivial auto-detect path, and skipped entirely in lean mode)
+- Phase 2 — `slashforge:plan`
+- Phase 4 — `superpowers:using-git-worktrees` (optional; only if superpowers is installed)
+- Phase 5 — **exactly one** of: `slashforge:debug` (bug) · `superpowers:subagent-driven-development` (parallel units, optional) · `slashforge:tdd` (everything else testable). See Phase 5 table in the workflow file.
+- Phase 6 — `slashforge:verify`
+- Phase 7 — the `code-reviewer` agent against the Phase 7 checklist
+- Phase 8 — the `git` agent (no skill; Phases 8 and 10 are SlashForge's own flow)
+- Phase 9 — `slashforge:review-feedback`
 - Phase 10 — (no skill; `git` agent handles the cleanup)
 
-If superpowers is not installed, the workflow still runs — the skill steps degrade to following the written phase instructions without Skill tool invocations.
+Superpowers is optional. Its absence costs only the two phases that still name a `superpowers:` skill, and both degrade to their written steps.
 
 Follow the workflow file as the source of truth for phase details and success criteria.

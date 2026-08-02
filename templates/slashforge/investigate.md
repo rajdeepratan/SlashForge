@@ -25,7 +25,7 @@ The user invoked `/slashforge:investigate` — the argument (if any) may be:
 ## Phases
 
 - **I1 — Investigation Intake:** parse input, extract expected vs. actual behavior, ask clarifying questions
-- **I2 — Investigate (read-only):** invoke `superpowers:systematic-debugging` (if installed); reproduce, bisect, trace, read code. **No edits to application code.**
+- **I2 — Investigate (read-only):** invoke `slashforge:debug`; reproduce, bisect, trace, read code. **No edits to application code.**
 - **I3 — Report & Hand-off:** produce findings report, write to file, print in chat
 
 ## Findings report — body fragment only

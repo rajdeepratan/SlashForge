@@ -30,9 +30,11 @@ workflow leans on it at almost every phase:
 /plugin install superpowers@claude-plugins-official
 ```
 
-If you skip it, your first command will stop, explain what you lose, and offer
-to install it then. Nothing breaks either way — it just runs in a degraded mode
-it will tell you about.
+This step is optional. SlashForge ships its own discipline skills, so skipping it
+costs two capabilities — worktree isolation in Phase 4 and subagent-driven
+execution in Phase 5 — and nothing else. No command stops to ask, and there is no
+degraded mode. See [skills and the superpowers
+plugin](/slashforge/guides/superpowers/).
 
 **3. Set up the repo.** Open Claude Code in your project and run:
 

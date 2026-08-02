@@ -10,13 +10,13 @@ Ten-phase change-shipping flow used by `/slashforge:code` (full and trivial path
 - `forge-workflow-investigation.md` — Investigation Flow I1–I3 (loaded by `/slashforge:investigate` only — it does not load this file)
 - `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
 
-Every phase with a named superpowers skill MUST invoke that skill via the `Skill` tool when superpowers is installed — do not paraphrase. When it is not installed, follow the written steps directly. The flow runs without user intervention **except for four mandatory gates**: plan confirmation (Phase 3), branch decision (Phase 4), PR target + reviewers (Phase 8), and branch cleanup after merge (Phase 10).
+Every phase with a named skill MUST invoke it via the `Skill` tool — do not paraphrase. SlashForge ships its own skills for most phases, so they are always available; where a phase names a `superpowers:` skill instead, that skill is optional and the phase falls back to its written steps when the plugin is absent. The flow runs without user intervention **except for four mandatory gates**: plan confirmation (Phase 3), branch decision (Phase 4), PR target + reviewers (Phase 8), and branch cleanup after merge (Phase 10).
 
 ---
 
 ## Phase 1 — Freeform Intake
 
-**Superpowers skill (if installed):** `superpowers:brainstorming`
+**Skill:** `slashforge:brainstorm`
 
 1. Open with: **"What do you want to build, fix, or change?"** — **unless** the command was invoked with a requirements document (`code.md` Step 0b resolved the argument to a file, typically an `investigations/investigation-*.html` report handed off by `/slashforge:investigate`). In that case the document *is* the intake: read it, then open with the confirmation line from Step 0b instead of the open question. Never make the user retype what the report already states.
 2. **Classify the task yourself** — read the description (peek at affected files via Glob/Grep if it helps). Treat as **trivial** only if ALL of these hold:
@@ -26,16 +26,16 @@ Every phase with a named superpowers skill MUST invoke that skill via the `Skill
    - Description contains none of these force-full keywords: `refactor`, `migrate`, `integrate`, `implement`, `rewrite`, `wire up`, `design`
    - When uncertain → **default to full flow**
 3. **Announce the decision** before any token-heavy work: *"Treating this as [trivial | full]. [One-line reason from the checklist.] Say 'full flow' or 'quick' to override."* A user reply of `quick` or `trivial` forces the lean path; `full` or `full flow` forces the full path.
-4. **Trivial path:** skip `superpowers:brainstorming`. Go to Phase 2 with the **Lean plan format** (see Phase 2). Phases 3–10 run as normal — every user gate and Phase 6 verification stay in place.
-5. **Full path:** if superpowers is installed, invoke `superpowers:brainstorming` and **tell it to write the design spec to `.claude/specs/`**. Left unstated it writes to `docs/superpowers/specs/` — a directory SlashForge does not own and never asked for; the skill honours a stated preference, so state one. Cover goal, user-visible behaviour, constraints, out-of-scope items, success criteria. Ask clarifying questions until the request is unambiguous. Do not propose a plan yet.
+4. **Trivial path:** skip `slashforge:brainstorm`. Go to Phase 2 with the **Lean plan format** (see Phase 2). Phases 3–10 run as normal — every user gate and Phase 6 verification stay in place.
+5. **Full path:** invoke `slashforge:brainstorm`. It writes the design spec to `.claude/specs/` by itself. Cover goal, user-visible behaviour, constraints, out-of-scope items, success criteria. Ask clarifying questions until the request is unambiguous. Do not propose a plan yet.
 
 ---
 
 ## Phase 2 — Propose Plan
 
-**Superpowers skill (if installed):** `superpowers:writing-plans`
+**Skill:** `slashforge:plan`
 
-1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge:code -quick` and `/slashforge:code` trivial. Then, if superpowers is installed, invoke `superpowers:writing-plans` to produce a structured plan and **tell it to write the plan to `.claude/plans/`** — left unstated it writes to `docs/superpowers/plans/`, same reason as Phase 1.
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge:code -quick` and `/slashforge:code` trivial. Then invoke `slashforge:plan` to produce a structured plan. It writes to `.claude/plans/` by itself.
 2. **Full plan format** (default): cover every section, omitting only those that genuinely do not apply:
    - **Changes** — files/modules to be added, modified, or removed
    - **Affected surface** — public APIs, exported functions, shared interfaces, DB schemas, migrations
@@ -59,7 +59,7 @@ Every phase with a named superpowers skill MUST invoke that skill via the `Skill
 
 ## Phase 4 — Branch Decision (Gate)
 
-**Superpowers skill (if installed):** `superpowers:using-git-worktrees` (when isolation is warranted)
+**Skill (optional):** `superpowers:using-git-worktrees` (when isolation is warranted, and only if superpowers is installed)
 
 1. Ask the user: **"Should I work on the current branch, or create a new one?"**
 2. If **current branch**: verify it is not `main` / `master` / `production` (if it is, warn and require explicit override). Check the working tree is clean; if not, warn: **"There is uncommitted work. Please stash or commit before I continue."** Do not proceed until clean
@@ -79,12 +79,12 @@ Every phase with a named superpowers skill MUST invoke that skill via the `Skill
 
 | Task shape | Skill |
 |---|---|
-| Bug fix (intake established the intent is bug) | `superpowers:systematic-debugging` — reproduce, root-cause, **write a failing regression test first**, then fix until it passes (red → green) |
-| Feature/task with 2+ truly independent parallelisable units in the plan | `superpowers:subagent-driven-development` — dispatch the units; each subagent uses TDD internally |
-| Everything else that is testable (features, tasks, refactors) | `superpowers:test-driven-development` |
+| Bug fix (intake established the intent is bug) | `slashforge:debug` — reproduce, root-cause, **write a failing regression test first**, then fix until it passes (red → green) |
+| Feature/task with 2+ truly independent parallelisable units in the plan | `superpowers:subagent-driven-development` (optional; skip if superpowers is absent) — dispatch the units; each subagent uses TDD internally |
+| Everything else that is testable (features, tasks, refactors) | `slashforge:tdd` |
 | Genuinely not testable (docs, config, infra-only tweaks) | No Phase 5 skill — state *why* TDD was skipped, then implement |
 
-When uncertain, pick `superpowers:test-driven-development` and note the reasoning. `/slashforge:code -quick` always lands in row 3 or 4 — never systematic-debugging, never subagent-driven.
+When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code -quick` always lands in row 3 or 4 — never systematic-debugging, never subagent-driven.
 
 1. Select the appropriate specialist coding agent based on the task type (see Agent Selection Table in `forge-workflow-agents.md`). If no suitable agent exists, create it on the fly and notify the user: *"I created a `[name]` agent to handle this — saved to `.claude/agents/[name].md`"*
 2. Invoke the selected Phase 5 skill (or state why no skill applies), then implement.
@@ -94,9 +94,9 @@ When uncertain, pick `superpowers:test-driven-development` and note the reasonin
 
 ## Phase 6 — Verify (Lint, Test, Build)
 
-**Superpowers skill (if installed):** `superpowers:verification-before-completion`
+**Skill:** `slashforge:verify`
 
-1. If superpowers is installed, invoke `superpowers:verification-before-completion` — no success claims without evidence
+1. Invoke `slashforge:verify` — no success claims without evidence
 2. Verify that lint, test, and build commands are defined in `CLAUDE.md`. If any are missing, ask the user for them before continuing
 3. If new env vars were added, confirm they are in `.env.example` (or equivalent) before running anything
 4. Run lint/format — fix all errors before continuing
@@ -109,9 +109,9 @@ When uncertain, pick `superpowers:test-driven-development` and note the reasonin
 
 ## Phase 7 — Code Review
 
-**Superpowers skill (if installed):** `superpowers:requesting-code-review`
+**Skill:** none — the checklist below is the review standard. If superpowers is installed, `superpowers:requesting-code-review` may be used to dispatch a reviewer subagent.
 
-1. If superpowers is installed, invoke `superpowers:requesting-code-review`, then hand off to the `code-reviewer` agent
+1. Hand off to the `code-reviewer` agent against the checklist below. If superpowers is installed, `superpowers:requesting-code-review` covers dispatching a reviewer subagent
 2. Review must check:
    - Matches the approved plan — no scope creep, no missing pieces
    - No duplicate code, no dead code, no debug leftovers, no hardcoded secrets
@@ -127,9 +127,9 @@ When uncertain, pick `superpowers:test-driven-development` and note the reasonin
 
 ## Phase 8 — Push & PR (Gate)
 
-**Superpowers skill (if installed):** `superpowers:finishing-a-development-branch`
+**Skill:** none — Phases 8 and 10 below are SlashForge's own branch-completion flow, and are more specific than a generic one.
 
-1. If superpowers is installed, invoke `superpowers:finishing-a-development-branch`, then invoke the `git` agent to push. If push is rejected because the remote diverged, rebase on the latest; if conflict is not auto-resolvable, stop and ask the user.
+1. Invoke the `git` agent to push. If push is rejected because the remote diverged, rebase on the latest; if conflict is not auto-resolvable, stop and ask the user.
 2. Ask: **"Which branch should I target for this PR?"** and **"Who should I assign as reviewer(s)?"** — do not guess either (or read from a repo config if one exists).
 3. Create the PR with this structure:
    - **Title:** short imperative <70 chars
@@ -140,11 +140,11 @@ When uncertain, pick `superpowers:test-driven-development` and note the reasonin
 
 ## Phase 9 — PR Review Feedback
 
-**Superpowers skill (if installed):** `superpowers:receiving-code-review`
+**Skill:** `slashforge:review-feedback`
 
 If a human reviewer leaves comments on the PR:
 
-1. If superpowers is installed, invoke `superpowers:receiving-code-review` — apply technical rigor, not performative agreement
+1. Invoke `slashforge:review-feedback` — apply technical rigour, not performative agreement
 2. Read all comments in full before making any changes
 3. Group by type: **Must fix** (blocking), **Should fix** (quality/convention), **Discuss** (opinions/decisions). For **Discuss**, summarise and ask the user before touching code. For **Must/Should fix**, return to Phase 5, then re-run Phases 6–7 before pushing.
 4. Push the updated branch — the existing PR updates automatically

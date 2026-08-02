@@ -1,58 +1,66 @@
 ---
-title: Superpowers preflight
-description: Every command checks for the superpowers plugin before doing any repo work, and tells you what you lose without it.
+title: Skills and the superpowers plugin
+description: SlashForge ships its own discipline skills. The superpowers plugin is optional, and adds two capabilities rather than gating anything.
 ---
 
-Every SlashForge command runs a **preflight check before touching your repo** —
-before exploring the codebase, reading files, or starting a phase.
+SlashForge ships **its own discipline skills**. They install with the package, live under the
+`slashforge:` namespace, and are always available — no plugin, no marketplace, nothing to add.
 
-If the [superpowers](https://github.com/obra/superpowers) plugin is missing, the
-command stops, explains what you lose, and offers to install it.
+The [superpowers](https://github.com/obra/superpowers) plugin used to be a preflight gate: every
+command stopped, checked for it, and warned about degraded mode if it was missing. That is no
+longer the case. It is now **optional**, and its absence costs two capabilities rather than the
+discipline layer.
 
-You can decline. It then runs in an **explicitly degraded mode**. The important
-part is that it never silently drops a skill call — you always know which mode
-you are in.
+## What ships with SlashForge
 
-## Installing
+| Phase | Skill |
+| --- | --- |
+| 1 Intake | `slashforge:brainstorm` (full mode only) |
+| 2 Plan | `slashforge:plan` |
+| 5 Implement | `slashforge:debug` (bugs) or `slashforge:tdd` (everything else testable) |
+| 6 Verify | `slashforge:verify` |
+| 9 PR feedback | `slashforge:review-feedback` |
+
+Phases 7, 8 and 10 use no skill — SlashForge's own review checklist and branch-completion flow
+are more specific than a generic one would be.
+
+These are adapted from superpowers under the MIT licence, © 2025 Jesse Vincent. Each skill file
+carries the notice, because skills install into `~/.claude/` detached from the repo.
+
+## What superpowers still adds
+
+| Phase | Optional skill | Without it |
+| --- | --- | --- |
+| 4 Branch | `superpowers:using-git-worktrees` | Branches normally, no worktree isolation |
+| 5 Implement | `superpowers:subagent-driven-development` | Uses `slashforge:tdd` instead |
+| 7 Review | `superpowers:requesting-code-review` | The `code-reviewer` agent works from the Phase 7 checklist |
+
+Nothing else changes. No gate, no prompt, no warning at the start of a run.
+
+## Installing it anyway
 
 ```
 /plugin install superpowers@claude-plugins-official
 ```
 
-## What each phase uses it for
+Worth it if you want worktree isolation on risky refactors, or parallel subagent execution on
+plans with genuinely independent units. Not worth installing solely to satisfy SlashForge.
 
-| Phase | Skill |
-| --- | --- |
-| 1 Intake | `brainstorming` (full mode only) |
-| 2 Plan | `writing-plans` |
-| 4 Branch | `using-git-worktrees` (when isolation is warranted) |
-| 5 Implement | exactly one of `systematic-debugging`, `subagent-driven-development`, `test-driven-development` |
-| 6 Verify | `verification-before-completion` |
-| 7 Review | `requesting-code-review` |
-| 8 Push + PR | `finishing-a-development-branch` |
-| 9 PR feedback | `receiving-code-review` |
-
-## What you lose without it
-
-Phases skip their skill invocations. The written phase instructions still run,
-so the workflow and every user gate survive — but the enforcement weakens.
-
-The sharpest loss is on bug fixes: without `systematic-debugging` there is **no
-enforced red → green regression test**. You get a fix that appears to work
-rather than one proven to have failed before and passed after.
+:::note
+Skills are detected once per session. One installed mid-session may not be visible until the
+next session starts.
+:::
 
 ## Keeping it current
 
-If the upstream superpowers project renames a skill, the guide files fall out of
-sync. Re-run the installer to pull updated guides:
+Re-run the installer to pull updated skills and guides:
 
 ```bash
 npx slashforge
 ```
 
-## Graphify is not a preflight
+## Graphify
 
-[Graphify](/slashforge/guides/graphify/) is the other optional integration, but
-it works differently — it is a **one-time setup-time offer** inside
-`/slashforge:setup`, not a per-command check. Once installed, its own hook surfaces
-graph context automatically.
+[Graphify](/slashforge/guides/graphify/) is the other optional integration, and works
+differently — a **one-time setup-time offer** inside `/slashforge:setup` rather than a
+per-command check. Once installed, its own hook surfaces graph context automatically.

@@ -15,7 +15,7 @@ touching ≤ 2 files.
 
 **Not for:** new abstractions, work that touches multiple layers, ambiguous
 requirements, bug fixes where the root cause isn't already understood (use full
-mode so `superpowers:systematic-debugging` runs in Phase 5).
+mode so `slashforge:debug` runs in Phase 5).
 
 Lean mode **does not auto-escalate**. If you're unsure, use full `/slashforge:code` —
 its fast path already handles trivial tasks without the ceremony.
@@ -43,15 +43,15 @@ brainstorming and go straight to a short plan.)"**
 
 | Phase | Standard behaviour | Lean override |
 |---|---|---|
-| **1 Intake** | `superpowers:brainstorming` | **SKIP** — go straight to Phase 2 with the user's description as-is |
+| **1 Intake** | `slashforge:brainstorm` | **SKIP** — go straight to Phase 2 with the user's description as-is |
 | **2 Plan** | Full template: Changes, Affected surface, Env vars, Breaking changes, Risks, Test strategy | **LEAN** — include only **Changes** and **Test strategy**. If a section genuinely applies (e.g. a new env var was added), include it; otherwise omit it. Do not write "N/A" — a missing section *is* the N/A. |
 | **3 Confirm plan** | User gate | **KEEP** |
 | **4 Branch decision** | User gate | **KEEP** |
-| **5 Implement** | TDD + systematic-debugging + subagent-driven as applicable | **ONE SKILL ONLY** — `superpowers:test-driven-development` if the change is testable, else straight implement. Do not invoke `systematic-debugging` (lean mode is not a bug flow). Do not invoke `subagent-driven-development` (tasks are single-threaded by assumption) |
+| **5 Implement** | TDD + systematic-debugging + subagent-driven as applicable | **ONE SKILL ONLY** — `slashforge:tdd` if the change is testable, else straight implement. Do not invoke `slashforge:debug` (lean mode is not a bug flow). Do not invoke `subagent-driven-development` (tasks are single-threaded by assumption) |
 | **6 Verify** | lint + test + build | **KEEP** — cheap, catches real regressions |
-| **7 Code review** | `code-reviewer` agent + `superpowers:requesting-code-review` | **REPLACE** with the inline self-review checklist below |
+| **7 Code review** | `code-reviewer` agent against the Phase 7 checklist | **REPLACE** with the inline self-review checklist below |
 | **8 Push + PR** | User gate | **KEEP** |
-| **9 PR feedback** | `superpowers:receiving-code-review` if reviewer comments | **KEEP** (applies only if human reviewer comments) |
+| **9 PR feedback** | `slashforge:review-feedback` if reviewer comments | **KEEP** (applies only if human reviewer comments) |
 | **10 Cleanup** | User gate | **KEEP** |
 
 ## Inline self-review checklist (replaces Phase 7 agent pass)

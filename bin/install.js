@@ -50,7 +50,10 @@ const COMMAND_FILES = [
 const SKILL_FILES = [
   path.join('slashforge', 'brainstorm.md'),
   path.join('slashforge', 'plan.md'),
+  path.join('slashforge', 'debug.md'),
+  path.join('slashforge', 'tdd.md'),
   path.join('slashforge', 'verify.md'),
+  path.join('slashforge', 'review-feedback.md'),
 ];
 
 // Namespace directory the command files live in, under the commands dir.

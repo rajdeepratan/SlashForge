@@ -1,23 +1,25 @@
 ---
 name: Claude Setup — Preflight Checks
-description: Shared preflight check for superpowers. Run before any command that depends on it. Detects missing dependency, explains why it matters, offers install, proceeds or runs explicitly degraded. Session-scoped decline memory — never re-asks in the same session.
+description: Shared capability detection for optional integrations. Run before any command that lists a preflight. Records what is available and adjusts which optional phases apply. Never blocks, never prompts.
 ---
 
 # Preflight Checks
 
-Loaded by every command that lists a `preflight:` in its frontmatter. Goal: **never let a command run silently degraded.** If a required dependency is missing, ask once, explain why, offer install, and either proceed with full capability or continue explicitly degraded.
+Loaded by every command that lists a `preflight:` in its frontmatter. Goal: **know what is available before the flow starts**, so optional capabilities are used when present and skipped cleanly when not.
 
-Run only the checks a command lists in its frontmatter. **Session-scoped answers** — if the user declines, remember that choice for the rest of the conversation and do not re-ask.
+These checks detect; they do not gate. SlashForge's disciplines ship with SlashForge, so no command has a hard dependency on anything external. Run only the checks a command lists, and record the result for the session.
 
 ---
 
 ## Superpowers Check
 
-Triggered by `preflight: superpowers`.
+Triggered by `preflight: superpowers`. **This is capability detection, not a gate.** It never
+blocks, never prompts, and never asks the user to install anything.
 
-### Why it matters (show verbatim to the user when prompting)
-
-> **Why superpowers matters for this workflow:** the 10-phase flow depends on five skills — `superpowers:brainstorming` (Phase 1), `superpowers:writing-plans` (Phase 2), `superpowers:test-driven-development` (Phase 5, features), `superpowers:systematic-debugging` (Phase 5, bugs), `superpowers:verification-before-completion` (Phase 6). Without them the phases still run but the discipline layer is gone — most importantly, for bug fixes you lose the "failing regression test must exist and must have failed before the fix" guarantee.
+SlashForge ships its own skills for Phases 1, 2, 5, 6 and 9 — `slashforge:brainstorm`,
+`slashforge:plan`, `slashforge:debug`, `slashforge:tdd`, `slashforge:verify`,
+`slashforge:review-feedback`. Those are always present, so the discipline layer no longer
+depends on a third-party plugin.
 
 ### Detection
 
@@ -25,17 +27,29 @@ Triggered by `preflight: superpowers`.
 ls ~/.claude/plugins/cache/*/superpowers 2>/dev/null && echo "INSTALLED" || echo "MISSING"
 ```
 
-`INSTALLED` → proceed silently. `MISSING` → install flow.
+Record the result for the rest of the session. Say nothing to the user either way — a run that
+opens by announcing a plugin's absence is noise when nothing is actually lost.
 
-### Install flow
+### What the result changes
 
-1. Print the **Why it matters** block above.
-2. Ask: **"Install superpowers now? (y/n)"**
-3. On `y`: tell the user to type `/plugin install superpowers@claude-plugins-official` into chat (Claude cannot run `/plugin` on their behalf). Wait for confirmation, re-run detection. If still `MISSING`, ask whether to continue degraded or abort.
-4. On `n`: warn once — *"Proceeding in degraded mode. Phase 1 brainstorming, Phase 2 plan structuring, Phase 5 TDD / systematic-debugging, and Phase 6 verification will skip their skill invocations. For bug fixes this means no enforced red→green regression test."* Remember the decline.
+| Result | Effect |
+|---|---|
+| `INSTALLED` | Two optional capabilities become available: `superpowers:using-git-worktrees` (Phase 4, when isolation is warranted) and `superpowers:subagent-driven-development` (Phase 5, only for genuinely parallelisable units). |
+| `MISSING` | Those two are skipped. Phase 4 branches normally without a worktree; Phase 5 uses `slashforge:tdd` instead. Every other phase is unaffected. |
+
+Nothing is degraded when it is missing. Do not describe it as degraded, and do not offer to
+install it mid-run. If the user asks, the command is
+`/plugin install superpowers@claude-plugins-official` — Claude cannot run `/plugin` on their
+behalf.
 
 ---
 
-## What a declined check means, per command
+## Optional integrations, in general
 
-- **Superpowers declined** → all `superpowers:` skill calls replaced with their written fallback from the workflow files. State the degradation once at run start. Never silently skip a skill.
+An integration is optional when its absence costs a capability rather than a guarantee. Both of
+SlashForge's current integrations qualify:
+
+- **superpowers** — two optional phases, as above.
+- **Graphify** — a one-time offer inside `/slashforge:setup`, not a per-command check.
+
+Neither is ever a precondition for running a command.
