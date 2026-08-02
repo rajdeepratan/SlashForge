@@ -91,7 +91,7 @@ Phase 6 runs lint, tests, and build before anything reaches a PR — so
 
 Want to see it rather than read about it?
 **[What a run looks like](/slashforge/guides/example-run/)** walks one pass from
-prompt to gate.
+prompt to gate, then one PR review from finding the work to posting it.
 
 ## What a run costs
 
