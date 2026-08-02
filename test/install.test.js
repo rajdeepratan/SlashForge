@@ -293,3 +293,26 @@ test('uninstall leaves user-owned files in the slashforge namespace alone', () =
   assert.ok(fs.existsSync(mine), 'a user command in slashforge/ must survive uninstall');
   assert.ok(!fs.existsSync(path.join(target.commandsDir, 'slashforge', 'code.md')));
 });
+
+// A namespace rename done as a bare find-replace rewrites HTML closing tags:
+// `</code>` contains the substring `/code`, so renaming the `/code` command to
+// `/forge:code` turned it into `</forge:code>`. Opening tags have no slash and
+// survive, so only the closing half of each pair breaks — and browsers render it
+// silently, swallowing everything after the never-closed element.
+// The invariant: template HTML never contains namespaced end tags.
+test('no template contains a namespaced HTML end tag', () => {
+  const NAMESPACED_END_TAG = /<\/[a-z][\w-]*:[\w-]+>/;
+  const offenders = [];
+  for (const f of [...GUIDE_FILES, ...ASSET_FILES, ...COMMAND_FILES]) {
+    const lines = fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8').split('\n');
+    lines.forEach((line, i) => {
+      const m = line.match(NAMESPACED_END_TAG);
+      if (m) offenders.push(`${f}:${i + 1} -> ${m[0]}`);
+    });
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    `namespaced end tags found — a rename likely rewrote HTML closing tags:\n  ${offenders.join('\n  ')}`,
+  );
+});

@@ -69,8 +69,8 @@ The file is a complete standalone HTML document. Use the skeleton below verbatim
 <body>
 
 <h1>Graph Summary — <repo name> (<YYYY-MM-DD>)</h1>
-<blockquote>Human-readable synthesis of <code>GRAPH_REPORT.md</slashforge:code>. The report is auto-generated
-by <code>graphify .</slashforge:code>; this file is hand-curated synthesis written once at <code>/slashforge:setup</slashforge:code> time.</blockquote>
+<blockquote>Human-readable synthesis of <code>GRAPH_REPORT.md</code>. The report is auto-generated
+by <code>graphify .</code>; this file is hand-curated synthesis written once at <code>/slashforge:setup</code> time.</blockquote>
 
 <h2>Size &amp; quality</h2>
 <ul>
@@ -85,7 +85,7 @@ by <code>graphify .</slashforge:code>; this file is hand-curated synthesis writt
 <table>
   <thead><tr><th>Rank</th><th>Symbol</th><th>Edges</th><th>What it means</th></tr></thead>
   <tbody>
-    <tr><td>1</td><td><code>&lt;symbol&gt;</slashforge:code></td><td class="num">&lt;N&gt;</td>
+    <tr><td>1</td><td><code>&lt;symbol&gt;</code></td><td class="num">&lt;N&gt;</td>
         <td>&lt;one-sentence interpretation of why this is central&gt;</td></tr>
     <!-- 8–10 rows total -->
   </tbody>
@@ -93,12 +93,12 @@ by <code>graphify .</slashforge:code>; this file is hand-curated synthesis writt
 <p>[1–2 sentence "read this as architectural truth" paragraph naming the dominant pattern the god nodes confirm.]</p>
 
 <h2>Surprising connections — verify these</h2>
-<p>Inferred (non-AST) cross-community edges flagged in <code>GRAPH_REPORT.md</slashforge:code>.
+<p>Inferred (non-AST) cross-community edges flagged in <code>GRAPH_REPORT.md</code>.
    One-line verdict per edge — Real / Likely real / False positive — with the reason. Identify which look like graph noise.</p>
 <table>
   <thead><tr><th>Edge</th><th>Verdict</th></tr></thead>
   <tbody>
-    <tr><td><code>&lt;from&gt; → &lt;to&gt;</slashforge:code></td>
+    <tr><td><code>&lt;from&gt; → &lt;to&gt;</code></td>
         <td><span class="verdict-real">Real.</span> &lt;why&gt;</td></tr>
     <!-- repeat per edge; use verdict-likely / verdict-false where appropriate -->
   </tbody>
@@ -126,12 +126,12 @@ by <code>graphify .</slashforge:code>; this file is hand-curated synthesis writt
 <h2>Going deeper</h2>
 <pre><code>graphify query "&lt;question&gt;"            # BFS traversal — open-ended questions
 graphify path "&lt;NodeA&gt;" "&lt;NodeB&gt;"      # Shortest path between two symbols
-graphify explain "&lt;symbol&gt;"            # Plain-language node + neighbour explanation</slashforge:code></pre>
+graphify explain "&lt;symbol&gt;"            # Plain-language node + neighbour explanation</code></pre>
 <p>Three concrete examples using <em>this</em> repo's actual god nodes — not generic placeholders.</p>
 <ul>
-  <li><code>graphify explain "&lt;top-god-node&gt;"</slashforge:code> → blast radius of changing &lt;its purpose&gt;</li>
-  <li><code>graphify path "&lt;provider&gt;" "&lt;consumer&gt;"</slashforge:code> → trace from &lt;bootstrap&gt; to &lt;feature&gt;</li>
-  <li><code>graphify query "&lt;repo-specific question&gt;"</slashforge:code> → &lt;what it'd answer&gt;</li>
+  <li><code>graphify explain "&lt;top-god-node&gt;"</code> → blast radius of changing &lt;its purpose&gt;</li>
+  <li><code>graphify path "&lt;provider&gt;" "&lt;consumer&gt;"</code> → trace from &lt;bootstrap&gt; to &lt;feature&gt;</li>
+  <li><code>graphify query "&lt;repo-specific question&gt;"</code> → &lt;what it'd answer&gt;</li>
 </ul>
 
 </body>
