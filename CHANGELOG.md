@@ -6,7 +6,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [4.1.3] - 2026-08-02
+## [4.2.0] - 2026-08-02
+
+Begins reducing the hard dependency on the superpowers plugin. SlashForge starts shipping its own discipline skills under the `slashforge:` namespace it already owns — no plugin, no marketplace, no change to `npx slashforge`.
 
 ### Fixed
 - **`/slashforge:code` no longer creates a `docs/superpowers/` directory in your repo.** superpowers' `brainstorming` and `writing-plans` skills default to writing their spec and plan under `docs/superpowers/` — a path SlashForge does not own and never asked for. Both skills honour a stated preference, and the workflow now states one: Phase 1 writes the design spec to `.claude/specs/`, Phase 2 writes the implementation plan to `.claude/plans/`.
@@ -14,7 +16,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `docs/superpowers/` is also gitignored as a backstop, for a stale install or a skill that ignores the override. Existing directories are left alone — nothing is moved or deleted.
 
 ### Added
-- Two tests guarding the override. One asserts every invocation of those skills names its write location; the other asserts `docs/superpowers` is never named without the path replacing it alongside — so the explanatory text stays, but a silent regression to the upstream default does not.
+- **SlashForge now ships its own discipline skills**, starting with `slashforge:verify` — evidence before claims, adapted from superpowers' `verification-before-completion` (MIT, © 2025 Jesse Vincent; the notice travels in each skill file, since skills install to `~/.claude/` detached from this repo).
+
+  No plugin and no marketplace were needed: the `slashforge:` namespace comes from the `slashforge/` subdirectory under the commands dir, which SlashForge already owns. `npx slashforge` is unchanged.
+- Installer support for skills (`SKILL_FILES`). They install into the namespace directory and are frontmatter-validated like commands — unlike assets, which have no frontmatter and are only checked for existence. They are deliberately kept out of `meta.json`'s `commands` and the `status` output, which continue to report the three entry points a user actually types rather than every internal discipline.
+- Two tests guarding the write-location override. One asserts every invocation of those skills names its write location; the other asserts `docs/superpowers` is never named without the path replacing it alongside — so the explanatory text stays, but a silent regression to the upstream default does not.
 
 ## [4.1.2] - 2026-08-02
 

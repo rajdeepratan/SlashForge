@@ -16,6 +16,7 @@ const {
   commandName,
   GUIDE_FILES,
   ASSET_FILES,
+  SKILL_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
 } = require('../bin/install.js');
@@ -292,6 +293,73 @@ test('uninstall leaves user-owned files in the slashforge namespace alone', () =
 
   assert.ok(fs.existsSync(mine), 'a user command in slashforge/ must survive uninstall');
   assert.ok(!fs.existsSync(path.join(target.commandsDir, 'slashforge', 'code.md')));
+});
+
+// Discipline skills install into the same slashforge/ namespace dir as the three
+// entry-point commands, which is what gives them a `slashforge:` invocation. They
+// are deliberately NOT in COMMAND_FILES: that list drives meta.json.commands and
+// the status output, and folding skills in turns a three-command report into one
+// that lists every internal discipline.
+test('skills install into the namespace dir with tokens rendered', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  for (const s of SKILL_FILES) {
+    const dest = path.join(target.commandsDir, s);
+    assert.ok(fs.existsSync(dest), `skill ${s} missing`);
+    const body = fs.readFileSync(dest, 'utf8');
+    assert.ok(!body.includes('{{INSTALL_PATH}}'), `${s} not rendered`);
+  }
+});
+
+test('skills carry an invocation name and are excluded from meta.json commands', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
+  assert.deepEqual(
+    meta.commands,
+    COMMAND_FILES.map(commandName),
+    'meta.commands must list only the entry-point commands, not discipline skills',
+  );
+  for (const s of SKILL_FILES) {
+    assert.ok(!meta.commands.includes(commandName(s)), `${s} leaked into meta.commands`);
+  }
+  // Still namespaced, though — that is the whole point of the location.
+  assert.ok(commandName(SKILL_FILES[0]).startsWith('/slashforge:'));
+});
+
+test('skills are frontmatter-validated, unlike assets', () => {
+  assert.doesNotThrow(() => validateTemplates(SKILL_FILES, TEMPLATES_DIR));
+  assert.throws(
+    () => parseFrontmatter('no frontmatter here', 'bad-skill.md'),
+    /missing opening/,
+  );
+});
+
+test('uninstall removes skills and still prunes the emptied namespace dir', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home });
+  installFiles(target, {});
+  uninstallFiles(target, {});
+  for (const s of SKILL_FILES) {
+    assert.ok(!fs.existsSync(path.join(target.commandsDir, s)), `skill ${s} survived uninstall`);
+  }
+  assert.ok(
+    !fs.existsSync(path.join(target.commandsDir, 'slashforge')),
+    'emptied namespace dir should be pruned',
+  );
+});
+
+test('a user file in the namespace dir survives uninstall alongside skills', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home });
+  installFiles(target, {});
+  const mine = path.join(target.commandsDir, 'slashforge', 'mine.md');
+  fs.writeFileSync(mine, 'user command');
+  uninstallFiles(target, {});
+  assert.ok(fs.existsSync(mine), 'user-authored command must survive');
+  assert.ok(fs.existsSync(path.join(target.commandsDir, 'slashforge')), 'dir must not be pruned');
 });
 
 // superpowers' brainstorming and writing-plans skills default to writing their

@@ -41,6 +41,16 @@ const COMMAND_FILES = [
   path.join('slashforge', 'investigate.md'),
 ];
 
+// Discipline skills. They install into the same `slashforge/` namespace dir as the
+// commands above — that subdirectory is what produces a `slashforge:` invocation —
+// and are rendered the same way. They are kept out of COMMAND_FILES on purpose:
+// that list drives meta.json's `commands` and the `status` output, which should
+// keep reporting the three entry points a user actually types, not every internal
+// discipline the workflow invokes on their behalf.
+const SKILL_FILES = [
+  path.join('slashforge', 'verify.md'),
+];
+
 // Namespace directory the command files live in, under the commands dir.
 const COMMAND_NAMESPACE = 'slashforge';
 
@@ -199,9 +209,13 @@ function installFiles(target, {
   guideFiles = GUIDE_FILES,
   commandFiles = COMMAND_FILES,
   assetFiles = ASSET_FILES,
+  skillFiles = SKILL_FILES,
 } = {}) {
   validateTemplates(guideFiles, templatesDir);
   validateTemplates(commandFiles, templatesDir);
+  // Skills carry frontmatter, so they are validated like commands — not like
+  // assets, which have none and are only checked for existence.
+  validateTemplates(skillFiles, templatesDir);
   assertTemplatesExist(assetFiles, templatesDir);
   fs.mkdirSync(target.guidesDir, { recursive: true });
   fs.mkdirSync(target.commandsDir, { recursive: true });
@@ -211,7 +225,7 @@ function installFiles(target, {
     fs.copyFileSync(path.join(templatesDir, f), dest);
     written.push(dest);
   }
-  for (const c of commandFiles) {
+  for (const c of [...commandFiles, ...skillFiles]) {
     const rendered = renderTemplate(fs.readFileSync(path.join(templatesDir, c), 'utf8'), {
       installPath: target.installPath,
       version,
@@ -236,11 +250,15 @@ function installFiles(target, {
   return written;
 }
 
-function uninstallFiles(target, { guideFiles = GUIDE_FILES, commandFiles = COMMAND_FILES } = {}) {
+function uninstallFiles(target, {
+  guideFiles = GUIDE_FILES,
+  commandFiles = COMMAND_FILES,
+  skillFiles = SKILL_FILES,
+} = {}) {
   const removed = [];
   // Current layout plus the v2 flat command files, so upgrading from < 3.0.0
   // and then uninstalling does not leave the old files behind.
-  for (const c of [...commandFiles, ...LEGACY_COMMAND_FILES]) {
+  for (const c of [...commandFiles, ...skillFiles, ...LEGACY_COMMAND_FILES]) {
     const p = path.join(target.commandsDir, c);
     if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
   }
@@ -319,6 +337,7 @@ async function install({ dryRun, assumeYes, project = false }) {
 
   validateTemplates(GUIDE_FILES, TEMPLATES_DIR);
   validateTemplates(COMMAND_FILES, TEMPLATES_DIR);
+  validateTemplates(SKILL_FILES, TEMPLATES_DIR);
   assertTemplatesExist(ASSET_FILES, TEMPLATES_DIR);
 
   const alreadyInstalled = fs.existsSync(target.guidesDir);
@@ -508,6 +527,7 @@ module.exports = {
   commandName,
   GUIDE_FILES,
   ASSET_FILES,
+  SKILL_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
 };
