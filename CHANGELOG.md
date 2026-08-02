@@ -25,6 +25,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `docs/superpowers/` is also gitignored as a backstop, for a stale install or a skill that ignores the override. Existing directories are left alone — nothing is moved or deleted.
 
 ### Added
+- **`/slashforge:review-pr`** — reviews a pull request against *this* repo's standards (`CLAUDE.md`, `.claude/rules/`, and the conventions in the surrounding code) and posts line-level comments or an approval.
+
+  With no argument it finds the PRs waiting on you, searching `review-requested:@me` first — that is what "waiting on me" means on GitHub, whereas `assignee` is a different relationship and usually empty. Drafts are skipped, one PR is reviewed without a menu, and no PRs means it says so rather than inventing work.
+
+  Before reading the diff it checks CI status, existing review comments so it does not repeat a point already made, and whether the PR is yours — GitHub refuses to let anyone approve their own pull request, so that option is withdrawn when it applies. Past roughly 1,500 changed lines it says a single pass cannot be thorough and states what it covered.
+
+  **Nothing is posted without your explicit yes.** You see the verdict in chat, the full review in your browser, and then the exact text that will appear on GitHub, verbatim. `request-changes` blocks a merge and `comment` does not, so the command never picks between them for you — it recommends and asks. Findings and summary go up as a single review, so the PR gets one notification rather than a stream.
+
+  A line comment can only anchor inside the diff; one outside makes GitHub reject the whole review with a 422. The command moves those findings into the summary body, says which moved, and retries.
+
+  The review is saved to `docs/slashforge/reviews/<date>-pr-<N>.html` and stays as a local record whether or not anything is posted.
 - **SlashForge now ships its own discipline skills** — `slashforge:brainstorm` (Phase 1), `slashforge:plan` (Phase 2), `slashforge:debug` and `slashforge:tdd` (Phase 5), `slashforge:verify` (Phase 6), and `slashforge:review-feedback` (Phase 9). Adapted from superpowers under MIT, © 2025 Jesse Vincent; the notice travels in each skill file, since skills install to `~/.claude/` detached from this repo.
 
   `slashforge:brainstorm` drops the visual companion entirely — roughly 62 KB of browser-server machinery the workflow never used. Both artefact-writing skills name their own destination (`.claude/specs/`, `.claude/plans/`), so the class of bug that created `docs/superpowers/` cannot recur through them; a test enforces it.

@@ -40,6 +40,7 @@ const COMMAND_FILES = [
   path.join('slashforge', 'setup.md'),
   path.join('slashforge', 'code.md'),
   path.join('slashforge', 'investigate.md'),
+  path.join('slashforge', 'review-pr.md'),
 ];
 
 // Discipline skills. They install into the same `slashforge/` namespace dir as the
@@ -409,6 +410,7 @@ async function install({ dryRun, assumeYes, project = false }) {
   console.log('  • /slashforge:code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
   console.log('  • /slashforge:code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
   console.log('  • /slashforge:investigate [symptom] — read-only research, produces a findings report');
+  console.log('  • /slashforge:review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
 }
 
 // After an upgrade from < 3.0.0 the v2 files are still on disk. We deliberately

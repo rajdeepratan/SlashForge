@@ -49,7 +49,7 @@ Currently supports **Claude Code**. Cursor and Codex targets are planned.
 
 ## What it does
 
-Installs a collection of guide files plus four slash commands that cover the full lifecycle from repo setup through shipped PRs and bug investigations.
+Installs a collection of guide files plus five slash commands that cover the full lifecycle from repo setup through shipped PRs, code review, and bug investigations.
 
 **Commands installed:**
 
@@ -57,6 +57,7 @@ Installs a collection of guide files plus four slash commands that cover the ful
 - **`/slashforge:code`** — freeform end-to-end development workflow. Ten phases: plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup. ~100–250k tokens per feature without Graphify; ~75–225k with it indexed.
 - **`/slashforge:code -quick`** — lean version of `/slashforge:code` for small changes. Skips brainstorming, uses a minimal plan (Changes + Test strategy only), and replaces the agent-driven code review with an inline self-review checklist. Keeps every user gate (plan, branch, PR, cleanup) and Phase 6 lint/test/build verification. ~40–70k tokens per change. Use for typo fixes, copy changes, config tweaks, renames, single-file refactors.
 - **`/slashforge:investigate [symptom]`** — read-only research. Reproduces and root-causes a suspected bug, produces a findings report saved to `docs/slashforge/investigations/`, then hands the report path to `/slashforge:code` so the fix starts with the diagnosis already loaded.
+- **`/slashforge:review-pr [number]`** — reviews a PR against this repo's `CLAUDE.md`, `.claude/rules/` and existing conventions, then posts line-level comments or an approval. Lists the PRs awaiting your review when there is more than one. Never posts without showing you the exact text and asking.
 
 ---
 

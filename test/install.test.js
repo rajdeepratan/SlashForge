@@ -238,11 +238,13 @@ test('commands install into the slashforge namespace directory', () => {
   installFiles(target, {});
   const nsDir = path.join(target.commandsDir, 'slashforge');
   assert.ok(fs.existsSync(nsDir), 'slashforge/ namespace dir should exist');
-  assert.ok(fs.existsSync(path.join(nsDir, 'setup.md')));
-  assert.ok(fs.existsSync(path.join(nsDir, 'code.md')));
-  assert.ok(fs.existsSync(path.join(nsDir, 'investigate.md')));
+  // Derived, not hardcoded — a new command should not require editing this test.
+  for (const c of COMMAND_FILES) {
+    assert.ok(fs.existsSync(path.join(target.commandsDir, c)), `${c} should be installed`);
+  }
   const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
-  assert.deepEqual(meta.commands, ['/slashforge:setup', '/slashforge:code', '/slashforge:investigate']);
+  assert.deepEqual(meta.commands, COMMAND_FILES.map(commandName));
+  assert.ok(meta.commands.includes('/slashforge:review-pr'));
 });
 
 test('/slashforge:code dispatches lean mode and ships the override guide', () => {
@@ -603,4 +605,24 @@ test('no template contains a namespaced HTML end tag', () => {
     [],
     `namespaced end tags found — a rename likely rewrote HTML closing tags:\n  ${offenders.join('\n  ')}`,
   );
+});
+
+// review-pr writes to GitHub, which is public and attributed to the user. The
+// command must never post without an explicit confirmation, and must never pick
+// request-changes (which blocks a merge) on the user's behalf.
+test('review-pr gates every GitHub write behind an explicit choice', () => {
+  const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', 'review-pr.md'), 'utf8');
+
+  assert.ok(/Nothing is posted to GitHub before this point/i.test(body), 'must state the gate');
+  assert.ok(/exact text that will appear on GitHub/i.test(body), 'must show verbatim text first');
+  assert.ok(/never infer the choice/i.test(body), 'must not infer the review event');
+
+  for (const ev of ['APPROVE', 'COMMENT', 'REQUEST_CHANGES']) {
+    assert.ok(body.includes(ev), `must document the ${ev} event`);
+  }
+  // The failure modes that would otherwise strand a review at the last step.
+  assert.ok(/own pull request/i.test(body), 'must handle self-authored PRs');
+  assert.ok(/422/.test(body), 'must handle the 422 from an out-of-diff line comment');
+  assert.ok(/review-requested/.test(body), 'must default to review-requested, not assignee');
+  assert.ok(/No open PRs/i.test(body), 'must handle the zero-PR case');
 });

@@ -33,6 +33,7 @@ export const NAV: NavGroup[] = [
       { label: '/slashforge:setup', slug: 'commands/slashforge-setup' },
       { label: '/slashforge:code', slug: 'commands/slashforge-code' },
       { label: '/slashforge:investigate', slug: 'commands/slashforge-investigate' },
+      { label: '/slashforge:review-pr', slug: 'commands/slashforge-review-pr' },
     ],
   },
   {
