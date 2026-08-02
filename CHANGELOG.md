@@ -10,21 +10,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 **The superpowers plugin is now optional.** SlashForge ships its own discipline skills under the `slashforge:` namespace it already owns — no plugin, no marketplace, no change to `npx slashforge`. Nothing stops, prompts, or warns about degraded mode any more.
 
-### Changed
-- **Every generated document now lives under `docs/slashforge/` and is HTML.** Investigation reports moved from `investigations/`, and the design spec and implementation plan moved from `.claude/specs/` and `.claude/plans/` — all three now sit in `docs/slashforge/{investigations,specs,plans}/`. Nothing is moved for you; existing files stay where they are.
-
-  Specs and plans changed from Markdown to HTML, built from the same shell as the reports, so all three render identically and open in a browser without a code editor. Plan steps use `☐`/`☑` list items rather than `- [ ]`; edit the character in place as steps complete. Deliberately not `<input type="checkbox">` — the shell carries no JavaScript, so that state would not survive a reload.
-
-- **Specs and plans open in your browser when written**, the way investigation reports already did. All three now call a shipped helper, `forge-open.sh`, rather than each carrying its own copy of the platform detection — the same reasoning as the shared shell, and the same failure it prevents. Still best-effort: silent over SSH and on headless Linux, and it exits 0 in every case so it can never fail the run that produced the document.
-
-- `forge-report-shell.html` is now the **document shell** rather than the report shell. Its `<title>` no longer hardcodes an `Investigation — ` prefix; the caller supplies the whole title, so a design spec is titled as one. A test asserts the shell stays document-agnostic.
-
-### Fixed
-- **`/slashforge:code` no longer creates a `docs/superpowers/` directory in your repo.** superpowers' `brainstorming` and `writing-plans` skills default to writing their spec and plan under `docs/superpowers/` — a path SlashForge does not own and never asked for. Both skills honour a stated preference, and the workflow now states one: Phase 1 writes the design spec to `.claude/specs/`, Phase 2 writes the implementation plan to `.claude/plans/`.
-
-  `docs/superpowers/` is also gitignored as a backstop, for a stale install or a skill that ignores the override. Existing directories are left alone — nothing is moved or deleted.
-
 ### Added
+
 - **`/slashforge:review-pr`** — reviews a pull request against *this* repo's standards (`CLAUDE.md`, `.claude/rules/`, and the conventions in the surrounding code) and posts line-level comments or an approval.
 
   With no argument it finds the PRs waiting on you, searching `review-requested:@me` first — that is what "waiting on me" means on GitHub, whereas `assignee` is a different relationship and usually empty. Drafts are skipped, one PR is reviewed without a menu, and no PRs means it says so rather than inventing work.
@@ -36,19 +23,32 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   A line comment can only anchor inside the diff; one outside makes GitHub reject the whole review with a 422. The command moves those findings into the summary body, says which moved, and retries.
 
   The review is saved to `docs/slashforge/reviews/<date>-pr-<N>.html` and stays as a local record whether or not anything is posted.
-- **SlashForge now ships its own discipline skills** — `slashforge:brainstorm` (Phase 1), `slashforge:plan` (Phase 2), `slashforge:debug` and `slashforge:tdd` (Phase 5), `slashforge:verify` (Phase 6), and `slashforge:review-feedback` (Phase 9). Adapted from superpowers under MIT, © 2025 Jesse Vincent; the notice travels in each skill file, since skills install to `~/.claude/` detached from this repo.
 
-  `slashforge:brainstorm` drops the visual companion entirely — roughly 62 KB of browser-server machinery the workflow never used. Both artefact-writing skills name their own destination (`.claude/specs/`, `.claude/plans/`), so the class of bug that created `docs/superpowers/` cannot recur through them; a test enforces it.
+- **SlashForge ships its own discipline skills** — `slashforge:brainstorm` (Phase 1), `slashforge:plan` (Phase 2), `slashforge:debug` and `slashforge:tdd` (Phase 5), `slashforge:verify` (Phase 6), and `slashforge:review-feedback` (Phase 9). Adapted from superpowers under MIT, © 2025 Jesse Vincent; the notice travels in each skill file, since skills install to `~/.claude/` detached from this repo.
 
-  No plugin and no marketplace were needed: the `slashforge:` namespace comes from the `slashforge/` subdirectory under the commands dir, which SlashForge already owns. `npx slashforge` is unchanged.
+  No plugin and no marketplace were needed: the `slashforge:` namespace comes from the `slashforge/` subdirectory under the commands dir, which SlashForge already owns. `slashforge:brainstorm` drops the visual companion entirely — roughly 62 KB of browser-server machinery the workflow never used.
+
+- Installer support for skills (`SKILL_FILES`) and for a shell helper (`forge-open.sh`). Skills install into the namespace directory and are frontmatter-validated like commands — unlike assets, which have no frontmatter and are only checked for existence. Skills are deliberately kept out of `meta.json`'s `commands` and the `status` output, which continue to report the entry points a user actually types rather than every internal discipline.
+
 ### Changed
-- **The preflight no longer gates.** It was a blocking check that stopped every run, explained what you lose without superpowers, and offered to install it. It is now silent capability detection: it records what is available and adjusts which optional phases apply. No prompt, no warning, no "degraded mode" — because with the disciplines shipped, nothing is degraded.
-- **Two superpowers skills were deliberately not replaced, and their references removed instead.** `finishing-a-development-branch` presents a merge-or-PR-or-keep menu that contradicts Phase 8's opinionated flow, and `requesting-code-review` is mostly subagent dispatch where Phase 7 already carries a more specific checklist. Porting them would have made the workflow worse, not more independent.
-- What superpowers still adds, when installed: `using-git-worktrees` (Phase 4 isolation) and `subagent-driven-development` (Phase 5, genuinely parallel units). Both optional; both skipped cleanly when absent.
 
-### Added
-- Installer support for skills (`SKILL_FILES`). They install into the namespace directory and are frontmatter-validated like commands — unlike assets, which have no frontmatter and are only checked for existence. They are deliberately kept out of `meta.json`'s `commands` and the `status` output, which continue to report the three entry points a user actually types rather than every internal discipline.
-- Two tests guarding the write-location override. One asserts every invocation of those skills names its write location; the other asserts `docs/superpowers` is never named without the path replacing it alongside — so the explanatory text stays, but a silent regression to the upstream default does not.
+- **Every generated document now lives under `docs/slashforge/` and is HTML.** Investigation reports moved from `investigations/`, and the design spec and implementation plan from `.claude/specs/` and `.claude/plans/` — all now sit in `docs/slashforge/{investigations,specs,plans,reviews}/`. Nothing is moved for you; existing files stay where they are.
+
+  Specs and plans changed from Markdown to HTML, built from the same shell as the reports, so every artefact renders identically and opens in a browser without a code editor. Plan steps use `☐`/`☑` list items rather than `- [ ]`; edit the character in place as steps complete. Deliberately not `<input type="checkbox">` — the shell carries no JavaScript, so that state would not survive a reload.
+
+- **Specs, plans and reviews open in your browser when written**, the way investigation reports already did. All of them call a shipped helper, `forge-open.sh`, rather than each carrying its own copy of the platform detection — the same reasoning as the shared shell, and the same drift it prevents. Still best-effort: silent over SSH and on headless Linux, and it exits 0 in every case so it can never fail the run that produced the document.
+
+- `forge-report-shell.html` is now the **document shell** rather than the report shell. Its `<title>` no longer hardcodes an `Investigation — ` prefix; the caller supplies the whole title, so a design spec is titled as one. A test asserts the shell stays document-agnostic.
+
+- **The preflight no longer gates.** It was a blocking check that stopped every run, explained what you lose without superpowers, and offered to install it. It is now silent capability detection: it records what is available and adjusts which optional phases apply. No prompt, no warning, no "degraded mode" — because with the disciplines shipped, nothing is degraded. `install` no longer mentions the plugin at all; `status` reports it as a line item.
+
+- **Two superpowers skills were deliberately not replaced, and their references removed instead.** `finishing-a-development-branch` presents a merge-or-PR-or-keep menu that contradicts Phase 8's opinionated flow, and `requesting-code-review` is mostly subagent dispatch where Phase 7 already carries a more specific checklist. Porting them would have made the workflow worse, not more independent.
+
+- What superpowers still adds, when installed: `using-git-worktrees` (Phase 4 isolation), `subagent-driven-development` (Phase 5, genuinely parallel units), and `requesting-code-review` (Phase 7 reviewer dispatch). All three optional; all skipped cleanly when absent.
+
+### Fixed
+
+- **`/slashforge:code` no longer creates a `docs/superpowers/` directory in your repo.** superpowers' `brainstorming` and `writing-plans` skills default to writing their spec and plan under `docs/superpowers/` — a path SlashForge does not own and never asked for. SlashForge's own skills now write to `docs/slashforge/specs/` and `docs/slashforge/plans/` instead, and `docs/superpowers/` is gitignored as a backstop for a stale install. Existing directories are left alone.
 
 ## [4.1.2] - 2026-08-02
 
