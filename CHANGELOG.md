@@ -6,6 +6,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.1.1] - 2026-08-02
+
+### Fixed
+- **Malformed HTML closing tags in the `SUMMARY.html` template.** `templates/forge-graph-summary.md` carried 10 occurrences of `</slashforge:code>` where `</code>` belongs. An end tag with no matching open element is discarded by the HTML5 parser, so the `<code>` element never closed and swallowed everything after it — one ran for 67 lines. Anyone who ran `/slashforge:setup` and accepted the Graphify offer got a `graphify-out/SUMMARY.html` with large runs rendered as monospace code. Present in every release from v3.0.0 onward.
+
+  Root cause: the v3.0.0 rename of `/code` to `/forge:code` was applied as a bare string substitution, and `</code>` contains the substring `/code`. Opening tags have no slash and were untouched, which is why only the closing half of each pair broke. v4.0.0 then rewrote them again into `</slashforge:code>`.
+- The same corruption in `templates/slashforge/investigate.md` (2 occurrences) was fixed in v4.1.0 as incidental cleanup during the report-shell rewrite, but went unrecorded at the time. Noted here for the record.
+
+### Added
+- A regression test asserting that no template contains a namespaced HTML end tag (`</word:word>`). This damage landed twice across two renames without detection, because the existing template test only validated frontmatter. The check is prefix-agnostic, so it does not need updating at the next rename, and uses only Node builtins so it runs under the root CI's install-free `npm test`.
+
 ## [4.1.0] - 2026-08-02
 
 ### Changed
