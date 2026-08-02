@@ -48,6 +48,8 @@ const COMMAND_FILES = [
 // keep reporting the three entry points a user actually types, not every internal
 // discipline the workflow invokes on their behalf.
 const SKILL_FILES = [
+  path.join('slashforge', 'brainstorm.md'),
+  path.join('slashforge', 'plan.md'),
   path.join('slashforge', 'verify.md'),
 ];
 

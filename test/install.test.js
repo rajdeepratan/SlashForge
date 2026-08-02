@@ -362,6 +362,32 @@ test('a user file in the namespace dir survives uninstall alongside skills', () 
   assert.ok(fs.existsSync(path.join(target.commandsDir, 'slashforge')), 'dir must not be pruned');
 });
 
+// The whole reason docs/superpowers/ appeared is that an artefact-writing skill
+// was left to pick its own destination. SlashForge's own skills must not repeat
+// it: any skill that writes an artefact names the path inside its own body.
+test('SlashForge skills that write artefacts name their own destination', () => {
+  const expected = {
+    'brainstorm.md': '.claude/specs/',
+    'plan.md': '.claude/plans/',
+  };
+  for (const [file, dest] of Object.entries(expected)) {
+    const skill = SKILL_FILES.find((s) => s.endsWith(file));
+    assert.ok(skill, `${file} is not in SKILL_FILES`);
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, skill), 'utf8');
+    assert.ok(body.includes(dest), `${file} must name ${dest} as its write location`);
+  }
+});
+
+test('every SlashForge skill carries its MIT attribution', () => {
+  const missing = SKILL_FILES.filter((s) => {
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, s), 'utf8');
+    return !(body.includes('MIT License') && body.includes('Jesse Vincent'));
+  });
+  // Skills install to ~/.claude/ detached from this repo, so a root NOTICE would
+  // not travel with them — the notice has to live in each file.
+  assert.deepEqual(missing, [], `adapted skills missing attribution:\n  ${missing.join('\n  ')}`);
+});
+
 // superpowers' brainstorming and writing-plans skills default to writing their
 // artefacts under docs/superpowers/ — a path they own, in the user's repo, that
 // SlashForge never asked for. Both honour a stated preference, so every

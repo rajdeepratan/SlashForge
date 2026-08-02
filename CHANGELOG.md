@@ -16,7 +16,9 @@ Begins reducing the hard dependency on the superpowers plugin. SlashForge starts
   `docs/superpowers/` is also gitignored as a backstop, for a stale install or a skill that ignores the override. Existing directories are left alone — nothing is moved or deleted.
 
 ### Added
-- **SlashForge now ships its own discipline skills**, starting with `slashforge:verify` — evidence before claims, adapted from superpowers' `verification-before-completion` (MIT, © 2025 Jesse Vincent; the notice travels in each skill file, since skills install to `~/.claude/` detached from this repo).
+- **SlashForge now ships its own discipline skills** — `slashforge:brainstorm` (idea to agreed design), `slashforge:plan` (spec to step-by-step plan), and `slashforge:verify` (evidence before claims). Adapted from superpowers' `brainstorming`, `writing-plans` and `verification-before-completion` (MIT, © 2025 Jesse Vincent; the notice travels in each skill file, since skills install to `~/.claude/` detached from this repo).
+
+  `slashforge:brainstorm` drops the visual companion entirely — roughly 62 KB of browser-server machinery the workflow never used. Both artefact-writing skills name their own destination (`.claude/specs/`, `.claude/plans/`), so the class of bug that created `docs/superpowers/` cannot recur through them; a test enforces it.
 
   No plugin and no marketplace were needed: the `slashforge:` namespace comes from the `slashforge/` subdirectory under the commands dir, which SlashForge already owns. `npx slashforge` is unchanged.
 - Installer support for skills (`SKILL_FILES`). They install into the namespace directory and are frontmatter-validated like commands — unlike assets, which have no frontmatter and are only checked for existence. They are deliberately kept out of `meta.json`'s `commands` and the `status` output, which continue to report the three entry points a user actually types rather than every internal discipline.
