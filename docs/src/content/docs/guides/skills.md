@@ -1,5 +1,5 @@
 ---
-title: Skills and the superpowers plugin
+title: Skills
 description: SlashForge ships every discipline skill the workflow uses. No plugin is required, and none is checked for.
 ---
 
@@ -30,18 +30,14 @@ Three skills carry names worth distinguishing: `slashforge:request-review` gets 
 reviewed before it ships, `slashforge:review-feedback` handles comments **you received**, and the
 `/slashforge:review-pr` command reviews **someone else's** pull request.
 
-These are adapted from superpowers under the MIT licence, © 2025 Jesse Vincent. Each skill file
-carries the notice, because skills install into `~/.claude/` detached from the repo.
+All nine are adapted from superpowers under the MIT licence, © 2025 Jesse Vincent. Each file
+carries the notice, because skills install into `~/.claude/` detached from this repo.
 
 ## Do you need the superpowers plugin?
 
 **No.** As of v4.3.0 nothing in SlashForge invokes it, checks for it, or behaves differently when
 it is present. There is no preflight, no prompt, and no degraded mode, because there is nothing to
 degrade.
-
-Nine skills ship with SlashForge, adapted from superpowers under the MIT licence, © 2025 Jesse
-Vincent. Each file carries the notice, because skills install into `~/.claude/` detached from this
-repo.
 
 ## Installing it anyway
 

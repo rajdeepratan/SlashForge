@@ -8,7 +8,6 @@ const readline = require('readline');
 const pkg = require('../package.json');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
-const PLUGINS_CACHE_DIR = path.join(os.homedir(), '.claude', 'plugins', 'cache');
 
 const GUIDE_FILES = [
   'forge-instructions.md',
@@ -111,17 +110,6 @@ function prompt(question) {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function isSuperpowersInstalled() {
-  if (!fs.existsSync(PLUGINS_CACHE_DIR)) return false;
-  try {
-    const marketplaces = fs.readdirSync(PLUGINS_CACHE_DIR, { withFileTypes: true });
-    return marketplaces.some(
-      (entry) => entry.isDirectory() && fs.existsSync(path.join(PLUGINS_CACHE_DIR, entry.name, 'superpowers')),
-    );
-  } catch {
-    return false;
-  }
-}
 
 function parseFrontmatter(content, label) {
   const lines = content.split(/\r?\n/);
@@ -348,10 +336,6 @@ function printStatus({ project = false } = {}) {
   console.log(`  Installed commands:        ${commands.length}`);
   for (const f of commands) console.log(`    • ${commandName(f)}`);
 
-  // Reported, not warned about. SlashForge ships its own skills, so the plugin's
-  // absence costs three optional capabilities and nothing else — a ⚠ would imply
-  // something is wrong when nothing is.
-  console.log(`  superpowers plugin:        ${isSuperpowersInstalled() ? 'detected' : 'not installed (optional)'}`);
 }
 
 async function install({ dryRun, assumeYes, project = false }) {

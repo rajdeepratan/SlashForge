@@ -123,7 +123,21 @@ The guide files cover:
 
 ## Skills — SlashForge ships its own
 
-Every discipline the workflow uses installs with the package, under the `slashforge:` namespace: `brainstorm` (Phase 1), `plan` (Phase 2), `worktree` (Phase 4), `debug` / `parallel` / `tdd` (Phase 5), `verify` (Phase 6), `request-review` (Phase 7), `review-feedback` (Phase 9). No plugin and no marketplace — the namespace comes from the commands directory SlashForge already owns.
+Nine skills install with the package, under the `slashforge:` namespace:
+
+| Phase | Skill |
+| --- | --- |
+| 1 Intake | `slashforge:brainstorm` (full mode only) |
+| 2 Plan | `slashforge:plan` |
+| 4 Branch | `slashforge:worktree` (only when isolation is warranted) |
+| 5 Implement | `slashforge:debug` (bugs) · `slashforge:parallel` (independent units) · `slashforge:tdd` (everything else) |
+| 6 Verify | `slashforge:verify` |
+| 7 Review | `slashforge:request-review` |
+| 9 PR feedback | `slashforge:review-feedback` |
+
+No plugin and no marketplace — the `slashforge:` namespace comes from the commands directory SlashForge already owns.
+
+Three names are deliberately distinct: `slashforge:request-review` reviews **your own** work before it ships, `slashforge:review-feedback` handles comments **you received**, and `/slashforge:review-pr` reviews **someone else's** pull request.
 
 They are adapted from [superpowers](https://github.com/obra/superpowers) under the MIT licence, © 2025 Jesse Vincent, with the notice carried in each skill file.
 
@@ -133,7 +147,7 @@ They are adapted from [superpowers](https://github.com/obra/superpowers) under t
 ```
 /plugin install superpowers@claude-plugins-official
 ```
-Without it, those three phases skip an optional step. Every discipline still runs, because SlashForge ships its own.
+It is a good library in its own right and covers ground SlashForge does not. Install it for that, not for SlashForge.
 
 **Graphify is the other optional integration**, and works differently — a one-time setup-time offer inside `/slashforge:setup`, not re-checked per command. See the Graphify section below.
 
