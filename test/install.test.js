@@ -294,6 +294,51 @@ test('uninstall leaves user-owned files in the slashforge namespace alone', () =
   assert.ok(!fs.existsSync(path.join(target.commandsDir, 'slashforge', 'code.md')));
 });
 
+// superpowers' brainstorming and writing-plans skills default to writing their
+// artefacts under docs/superpowers/ — a path they own, in the user's repo, that
+// SlashForge never asked for. Both honour a stated preference, so every
+// invocation must name where the artefact goes.
+test('the spec- and plan-writing skills are told where to write', () => {
+  const wf = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-workflow.md'), 'utf8');
+  const pairs = [
+    ['superpowers:brainstorming', '.claude/specs/'],
+    ['superpowers:writing-plans', '.claude/plans/'],
+  ];
+  for (const [skill, dest] of pairs) {
+    const invocations = wf
+      .split('\n')
+      .filter((l) => l.includes('invoke `' + skill + '`'));
+    assert.ok(invocations.length > 0, `no invocation of ${skill} found in forge-workflow.md`);
+    for (const line of invocations) {
+      assert.ok(
+        line.includes(dest),
+        `${skill} is invoked without naming ${dest}:\n  ${line.trim()}`,
+      );
+    }
+  }
+});
+
+// The path may be named — the override instructions have to say what they are
+// overriding, or a later maintainer strips them as noise. What it may never be is
+// mentioned *without* the replacement alongside it, which is what a regression to
+// the upstream default would look like.
+test('docs/superpowers is only ever named next to the path replacing it', () => {
+  const offenders = [];
+  for (const f of [...GUIDE_FILES, ...ASSET_FILES, ...COMMAND_FILES]) {
+    const lines = fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8').split('\n');
+    lines.forEach((line, i) => {
+      if (!line.includes('docs/superpowers')) return;
+      if (line.includes('.claude/specs/') || line.includes('.claude/plans/')) return;
+      offenders.push(`${f}:${i + 1} -> ${line.trim().slice(0, 80)}`);
+    });
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    `docs/superpowers named without its replacement:\n  ${offenders.join('\n  ')}`,
+  );
+});
+
 // The splice command documented in investigate.md is what actually builds every
 // report, so the test runs THAT script rather than a copy of it — a copy could
 // drift from the template and still pass.

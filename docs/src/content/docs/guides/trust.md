@@ -15,6 +15,8 @@ git operations in your repo. That deserves a page, not a footnote.
 | `<repo>/CLAUDE.md` | On `/slashforge:setup`, after you answer its questions |
 | `<repo>/.claude/` | On `/slashforge:setup` — rules, skills, agents, commands, hooks |
 | `<repo>/investigations/` | On `/slashforge:investigate` — the findings report |
+| `<repo>/.claude/specs/` | On `/slashforge:code` full path — the design spec from Phase 1 |
+| `<repo>/.claude/plans/` | On `/slashforge:code` full path — the implementation plan from Phase 2 |
 
 Nothing is written outside those paths. Every generated file carries a
 `generated_by` marker; remove or edit it and that file is treated as yours
@@ -59,6 +61,11 @@ Commit it.
 `CLAUDE.md` and `.claude/` are the point — they are what makes the next session,
 and everyone else on the team, start informed rather than cold. Generated
 configuration that lives only on one machine buys you nothing on the second run.
+
+Phase 1 and Phase 2 write their spec and plan into `.claude/specs/` and
+`.claude/plans/`. Those paths are named explicitly when the skills are invoked —
+left to themselves, superpowers' `brainstorming` and `writing-plans` write to
+`docs/superpowers/`, a directory SlashForge does not own and never asked for.
 
 The one directory worth considering for `.gitignore` is `investigations/`, if
 you would rather keep findings reports local. It sits at the repo root rather

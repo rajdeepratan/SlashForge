@@ -6,6 +6,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.1.3] - 2026-08-02
+
+### Fixed
+- **`/slashforge:code` no longer creates a `docs/superpowers/` directory in your repo.** superpowers' `brainstorming` and `writing-plans` skills default to writing their spec and plan under `docs/superpowers/` — a path SlashForge does not own and never asked for. Both skills honour a stated preference, and the workflow now states one: Phase 1 writes the design spec to `.claude/specs/`, Phase 2 writes the implementation plan to `.claude/plans/`.
+
+  `docs/superpowers/` is also gitignored as a backstop, for a stale install or a skill that ignores the override. Existing directories are left alone — nothing is moved or deleted.
+
+### Added
+- Two tests guarding the override. One asserts every invocation of those skills names its write location; the other asserts `docs/superpowers` is never named without the path replacing it alongside — so the explanatory text stays, but a silent regression to the upstream default does not.
+
 ## [4.1.2] - 2026-08-02
 
 ### Fixed

@@ -12,3 +12,13 @@ docs/.astro/
 
 # generated from /CHANGELOG.md at build time — never edit or commit
 docs/src/content/docs/changelog.md
+
+# superpowers' brainstorming and writing-plans skills default to writing here.
+# The workflow templates now name .claude/specs/ and .claude/plans/ instead;
+# this is the backstop for a stale install or a skill that ignores the override.
+docs/superpowers/
+
+# Investigation reports for this repo are kept local. The docs present this as a
+# choice rather than a default — .claude/specs/ and .claude/plans/ are
+# deliberately NOT ignored, since .claude/ is meant to be committed.
+investigations/
