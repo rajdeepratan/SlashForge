@@ -10,7 +10,7 @@ git operations in your repo. That deserves a page, not a footnote.
 
 | Path | When |
 | --- | --- |
-| `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow, plus `forge-report-shell.html` (the investigation report's styling) |
+| `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow, plus `forge-report-shell.html` (shared document styling) and `forge-open.sh` (opens a document in your browser) |
 | `~/.claude/commands/slashforge/` | On install — the three command files, plus SlashForge's own discipline skills (e.g. `slashforge:verify`) |
 | `<repo>/CLAUDE.md` | On `/slashforge:setup`, after you answer its questions |
 | `<repo>/.claude/` | On `/slashforge:setup` — rules, skills, agents, commands, hooks |
@@ -30,16 +30,17 @@ and git operations for the branch and PR phases. It uses the tooling already
 configured in your repo. It does not install a test runner, a linter, or a
 formatter of its own.
 
-One exception worth naming, because it is the only command that reaches outside
-your repo: at the end of `/slashforge:investigate`, it asks your OS to open the
-finished report in your default browser — `open` on macOS, `xdg-open` on Linux,
-`wslview` on WSL, `start` on Windows. Claude Code will prompt you for that
-command the first time, so nothing launches without your say-so.
+One exception worth naming, because it is the only thing that reaches outside
+your repo: whenever a command writes an HTML document — an investigation report,
+a design spec, or an implementation plan — it asks your OS to open it in your
+default browser. `open` on macOS, `xdg-open` on Linux, `wslview` on WSL, `start`
+on Windows. Claude Code will prompt you for that command the first time, so
+nothing launches without your say-so.
 
 It is best-effort and deliberately timid. Over SSH, or on a headless Linux box
 with no `$DISPLAY`, it skips the step silently and just tells you the path. A
-failure to open never fails the investigation — the report is written first, and
-opening it is the last thing that happens.
+failure to open never fails the run — the document is written first, and opening
+it is the last thing that happens.
 
 ## What it never does
 

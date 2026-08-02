@@ -33,6 +33,7 @@ const GUIDE_FILES = [
 // frontmatter, so they are copied but never frontmatter-validated.
 const ASSET_FILES = [
   'forge-report-shell.html',
+  'forge-open.sh',
 ];
 
 const COMMAND_FILES = [

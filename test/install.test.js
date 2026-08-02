@@ -442,6 +442,37 @@ test('the shell is document-agnostic and all three writers use it', () => {
   }
 });
 
+// Opening a document must never be able to fail the run that produced it, and the
+// three writers must share one copy of the platform detection rather than each
+// carrying its own — divergent copies are how the mangled-tag bug happened.
+test('the open helper is shared, guarded, and always exits 0', () => {
+  const helper = path.join(TEMPLATES_DIR, 'forge-open.sh');
+  assert.ok(fs.existsSync(helper), 'forge-open.sh must ship');
+
+  for (const f of ['investigate.md', 'brainstorm.md', 'plan.md']) {
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', f), 'utf8');
+    assert.ok(body.includes('forge-open.sh'), `${f} must call the shared helper`);
+    assert.ok(
+      !/case "\$\(uname -s\)"/.test(body),
+      `${f} must not carry its own copy of the platform detection`,
+    );
+  }
+
+  const run = (env, arg) => {
+    const r = require('child_process').spawnSync('sh', [helper, arg], {
+      env: { ...process.env, ...env },
+      encoding: 'utf8',
+    });
+    return r.status;
+  };
+  // Remote session: must bail out cleanly rather than opening anything.
+  assert.equal(run({ SSH_CONNECTION: '1.2.3.4 22 5.6.7.8 22' }, '/tmp/nope.html'), 0);
+  // No argument at all.
+  assert.equal(run({ SSH_CONNECTION: '1' }, ''), 0);
+  // A path that does not exist, on a machine that may well have a browser.
+  assert.equal(run({}, '/tmp/definitely-does-not-exist-slashforge.html'), 0);
+});
+
 test('every SlashForge skill carries its MIT attribution', () => {
   const missing = SKILL_FILES.filter((s) => {
     const body = fs.readFileSync(path.join(TEMPLATES_DIR, s), 'utf8');

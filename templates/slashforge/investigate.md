@@ -111,25 +111,13 @@ If the shell is missing (an older install, or a hand-modified `.claude/`), fall 
 
 ### 2. Open it in the user's browser (best-effort)
 
-Run this, substituting the real filename. It is **best-effort**: it must never fail the run, and it must stay silent where no browser exists.
+Use the shipped helper rather than writing your own platform detection:
 
 ```bash
-report="docs/slashforge/investigations/investigation-<YYYY-MM-DD-HHMM>.html"
-if [ -z "$SSH_CONNECTION" ]; then
-  case "$(uname -s)" in
-    Darwin) open "$report" 2>/dev/null || true ;;
-    Linux)
-      if grep -qi microsoft /proc/version 2>/dev/null; then
-        wslview "$report" 2>/dev/null || explorer.exe "$(wslpath -w "$report")" 2>/dev/null || true
-      elif [ -n "${DISPLAY}${WAYLAND_DISPLAY}" ]; then
-        xdg-open "$report" >/dev/null 2>&1 || true
-      fi ;;
-    MINGW*|MSYS*|CYGWIN*) start "" "$report" 2>/dev/null || true ;;
-  esac
-fi
+sh "{{INSTALL_PATH}}/forge-open.sh" "$report"
 ```
 
-The guards matter: `$SSH_CONNECTION` means a remote session (opening a browser there is useless or wrong), and an empty `$DISPLAY`/`$WAYLAND_DISPLAY` means a headless Linux box. In those cases the report is still written — it just is not opened, and you say so in step 3.
+The script handles the platform differences and the cases where opening makes no sense — a remote session (`$SSH_CONNECTION`), or a headless Linux box with no `$DISPLAY`/`$WAYLAND_DISPLAY`. It always exits 0, so it can never fail the run. In those cases the report is still written; it just is not opened, and you say so in step 3.
 
 ### 3. Summarise in chat — never print the HTML
 

@@ -100,6 +100,15 @@ fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
 Function-form replacement, title escaped, body verbatim — same reasoning as the investigation
 report. Delete the scratch fragment afterwards.
 
+Then open it, so the user reads the rendered document rather than the markup:
+
+```bash
+sh "{{INSTALL_PATH}}/forge-open.sh" "$spec"
+```
+
+Best-effort — the helper stays silent over SSH or on a headless box and can never fail the run.
+If it could not open, say so and give the path.
+
 ## Steps
 
 Work through these in order.

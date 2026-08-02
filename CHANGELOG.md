@@ -15,6 +15,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
   Specs and plans changed from Markdown to HTML, built from the same shell as the reports, so all three render identically and open in a browser without a code editor. Plan steps use `☐`/`☑` list items rather than `- [ ]`; edit the character in place as steps complete. Deliberately not `<input type="checkbox">` — the shell carries no JavaScript, so that state would not survive a reload.
 
+- **Specs and plans open in your browser when written**, the way investigation reports already did. All three now call a shipped helper, `forge-open.sh`, rather than each carrying its own copy of the platform detection — the same reasoning as the shared shell, and the same failure it prevents. Still best-effort: silent over SSH and on headless Linux, and it exits 0 in every case so it can never fail the run that produced the document.
+
 - `forge-report-shell.html` is now the **document shell** rather than the report shell. Its `<title>` no longer hardcodes an `Investigation — ` prefix; the caller supplies the whole title, so a design spec is titled as one. A test asserts the shell stays document-agnostic.
 
 ### Fixed

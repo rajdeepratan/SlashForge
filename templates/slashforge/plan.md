@@ -55,6 +55,15 @@ fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
 
 Function-form replacement, title escaped, body verbatim. Delete the scratch fragment afterwards.
 
+Then open it, so the user reviews the rendered plan rather than the markup:
+
+```bash
+sh "{{INSTALL_PATH}}/forge-open.sh" "$plan"
+```
+
+Best-effort — the helper stays silent over SSH or on a headless box and can never fail the run.
+If it could not open, say so and give the path.
+
 ### Tracking progress in HTML
 
 Steps are checkboxes. In HTML that is a literal `☐` at the start of the list item, swapped to `☑`
@@ -177,5 +186,4 @@ Fix inline and move on.
 ## Hand-off
 
 Say where the plan is saved and confirm the execution approach before starting: task-by-task
-with review between, or straight through with checkpoints. Open it in the user's browser if that
-is useful — it is a rendered document, not a source file.
+with review between, or straight through with checkpoints. It is already open in their browser.
