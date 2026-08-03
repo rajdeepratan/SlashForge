@@ -52,3 +52,9 @@ jobs:
       - name: Check internal links resolve
         working-directory: docs
         run: node ../.github/scripts/check-docs-links.mjs
+
+      # An icon-only control with no accessible name renders correctly, so it
+      # survives review. The header socials shipped unnamed on every page.
+      - name: Check interactive elements have accessible names
+        working-directory: docs
+        run: node ../.github/scripts/check-docs-a11y.mjs
