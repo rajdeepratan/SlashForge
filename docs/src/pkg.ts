@@ -24,6 +24,16 @@ const pkg = JSON.parse(
   readFileSync(join(process.cwd(), '..', 'package.json'), 'utf8')
 );
 
+// Fail with something that names the cause. Without this the build dies on a
+// TypeError inside this file, which points the reader here rather than at the
+// manifest that is actually missing a field.
+for (const [path, value] of [
+  ['version', pkg.version],
+  ['engines.node', pkg.engines?.node],
+] as const) {
+  if (!value) throw new Error(`package.json is missing "${path}" — the docs site publishes it`);
+}
+
 /** The published version, e.g. "4.3.1". */
 export const version: string = pkg.version;
 
