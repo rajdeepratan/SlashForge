@@ -99,6 +99,23 @@ The flow reproduces the problem before diagnosing it. An unreproduced bug gets
 a stated hypothesis rather than a confident root cause — a diagnosis that was
 never observed failing is a guess, and it is labelled as one.
 
+## What it costs
+
+**~15–60k tokens per report.** The fixed part is small — the command and its
+three guides come to roughly **4.8k tokens** — because investigating needs far
+less instruction than building does.
+
+Everything above that is reading. No code is written, so the cost is set by how
+far the trail runs before the cause appears: a stack trace that names the file
+lands near the bottom of the range, while a bug that only shows up across three
+layers means reading all three. Reproduction adds command output on top, and a
+failing build or test suite can be verbose.
+
+It is the cheapest command that produces a durable artefact, which is the
+argument for reaching for it before `/slashforge:code` on anything you do not
+yet understand. Diagnosing at investigate prices and handing the report forward
+costs less than diagnosing midway through a full run.
+
 ## Argument
 
 The argument is optional and freeform — a symptom, an error message, a failing

@@ -104,6 +104,8 @@ to a workflow this heavy.
 | Full run, with Graphify indexed | ~75–225k tokens |
 | `-quick` | ~40–70k tokens per change |
 | `/slashforge:review-pr` | ~15–70k tokens per review |
+| `/slashforge:investigate` | ~15–60k tokens per report |
+| `/slashforge:setup` | ~50–120k tokens, once per repo |
 
 The range is driven by the size of the feature, not by the tooling — a
 single-module change lands near the bottom, a multi-layer feature near the top.

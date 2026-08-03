@@ -55,10 +55,10 @@ Installs a collection of guide files plus four slash commands that cover the ful
 
 **Commands installed:**
 
-- **`/slashforge:setup`** — one-time repo setup. Explores the repo, asks clarifying questions, then creates `CLAUDE.md`, agents, rules, skills, commands, and hooks tailored to the codebase. Handles both fresh repos and partial setups.
+- **`/slashforge:setup`** — one-time repo setup. Explores the repo, asks clarifying questions, then creates `CLAUDE.md`, agents, rules, skills, commands, and hooks tailored to the codebase. Handles both fresh repos and partial setups. ~50–120k tokens, paid once — it has the largest fixed instruction load of any command (~20k before it reads a line of your code) and writes a dozen or more files.
 - **`/slashforge:code`** — freeform end-to-end development workflow. Ten phases: plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup. ~100–250k tokens per feature without Graphify; ~75–225k with it indexed.
 - **`/slashforge:code -quick`** — lean version of `/slashforge:code` for small changes. Skips brainstorming, uses a minimal plan (Changes + Test strategy only), and replaces the agent-driven code review with an inline self-review checklist. Keeps every user gate (plan, branch, PR, cleanup) and Phase 6 lint/test/build verification. ~40–70k tokens per change. Use for typo fixes, copy changes, config tweaks, renames, single-file refactors.
-- **`/slashforge:investigate [symptom]`** — read-only research. Reproduces and root-causes a suspected bug, produces a findings report saved to `docs/slashforge/investigations/`, then hands the report path to `/slashforge:code` so the fix starts with the diagnosis already loaded.
+- **`/slashforge:investigate [symptom]`** — read-only research. Reproduces and root-causes a suspected bug, produces a findings report saved to `docs/slashforge/investigations/`, then hands the report path to `/slashforge:code` so the fix starts with the diagnosis already loaded. ~15–60k tokens, set by how far the trail runs — it writes one report, not code.
 - **`/slashforge:review-pr [number]`** — reviews a PR against this repo's `CLAUDE.md`, `.claude/rules/` and existing conventions, then posts line-level comments or an approval. Lists the PRs awaiting your review when there is more than one. Never posts without showing you the exact text and asking. ~15–70k tokens per review, set almost entirely by the size of the diff.
 
 ---
@@ -73,6 +73,8 @@ Installs a collection of guide files plus four slash commands that cover the ful
 | **With Graphify indexed** | 75–225k — the graph replaces exploratory grep, roughly 4–10% off |
 | **`-quick` mode** | 40–70k per change. Skips brainstorming and the agent review; keeps every gate and the lint/test/build verification |
 | **`/slashforge:review-pr`** | 15–70k per review, driven almost entirely by diff size |
+| **`/slashforge:investigate`** | 15–60k per report. No code is written, so the cost is reading — how far the trail runs |
+| **`/slashforge:setup`** | 50–120k, **once per repo.** Reads ~20k of its own instructions, then explores and writes your `.claude/` |
 | **What you get for it** | Nothing ships that was not planned, gated, verified and reviewed |
 
 The range is driven by the size of the work, not the tooling. A single-file copy change lands near the bottom; a multi-layer feature near the top.
