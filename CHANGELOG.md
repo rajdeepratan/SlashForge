@@ -6,6 +6,22 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.3.1] - 2026-08-02
+
+Documentation only. No change to any command, skill, or installed file.
+
+### Changed
+- **The README leads with what it costs.** "Is SlashForge right for you?" now sits before the install instructions rather than leaving the token figures scattered through command bullets, where someone deciding whether to install would not find them. It states plainly that the cost is the point rather than an inefficiency, and says when to skip the tool entirely.
+- **The ten phases are a table, with the four gates marked.** The README said "ten phases" and then listed them starting from Plan — Intake was missing and Push & PR was split in two. Each phase now says what actually happens.
+- **A Customization section.** Nothing documented where Phase 6's verification commands come from, which is the first thing anyone changes. It covers `CLAUDE.md` commands, path-scoped rules using the real `paths` frontmatter field, and the `generated_by` marker that lets edits survive a re-run.
+- Added *"Guardrails, not autocomplete."* under the tagline.
+
+### Fixed
+- The README claimed **five** slash commands. There are four — `-quick` is a mode of `/slashforge:code`, not a command of its own.
+- The docs site's meta description listed only three commands, omitting `/slashforge:review-pr`.
+- Tidied the package description, which had a stray space before its full stop and a missing comma between two commands.
+
+
 ## [4.3.0] - 2026-08-02
 
 **SlashForge no longer references the superpowers plugin at all.** Nothing invokes it, checks for it, or behaves differently when it is present. The three capabilities that were still optional in 4.2.0 now ship as SlashForge skills.
