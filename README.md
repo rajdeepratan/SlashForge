@@ -7,6 +7,8 @@
 
 <p align="center"><strong>Workflow slash commands for AI coding agents.</strong></p>
 
+<p align="center"><em>Guardrails, not autocomplete.</em></p>
+
 <p align="center">
 <a href="https://www.npmjs.com/package/slashforge"><img src="https://img.shields.io/npm/v/slashforge.svg?color=EC3013&labelColor=201E1D" alt="npm version"></a>
 <a href="https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml"><img src="https://github.com/rajdeepratan/SlashForge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
