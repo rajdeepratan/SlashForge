@@ -49,7 +49,7 @@ Currently supports **Claude Code**. Cursor and Codex targets are planned.
 
 ## What it does
 
-Installs a collection of guide files plus five slash commands that cover the full lifecycle from repo setup through shipped PRs, code review, and bug investigations.
+Installs a collection of guide files plus four slash commands that cover the full lifecycle from repo setup through shipped PRs, code review, and bug investigations.
 
 **Commands installed:**
 
@@ -58,6 +58,25 @@ Installs a collection of guide files plus five slash commands that cover the ful
 - **`/slashforge:code -quick`** — lean version of `/slashforge:code` for small changes. Skips brainstorming, uses a minimal plan (Changes + Test strategy only), and replaces the agent-driven code review with an inline self-review checklist. Keeps every user gate (plan, branch, PR, cleanup) and Phase 6 lint/test/build verification. ~40–70k tokens per change. Use for typo fixes, copy changes, config tweaks, renames, single-file refactors.
 - **`/slashforge:investigate [symptom]`** — read-only research. Reproduces and root-causes a suspected bug, produces a findings report saved to `docs/slashforge/investigations/`, then hands the report path to `/slashforge:code` so the fix starts with the diagnosis already loaded.
 - **`/slashforge:review-pr [number]`** — reviews a PR against this repo's `CLAUDE.md`, `.claude/rules/` and existing conventions, then posts line-level comments or an approval. Lists the PRs awaiting your review when there is more than one. Never posts without showing you the exact text and asking.
+
+---
+
+## Is SlashForge right for you?
+
+**It is deliberately heavy.** If you want a prompt turned into a patch as fast as possible, this is the wrong tool — the cost below is the point, not an inefficiency to be tuned away.
+
+| | |
+| --- | --- |
+| **Full run** | 100–250k tokens per feature |
+| **With Graphify indexed** | 75–225k — the graph replaces exploratory grep, roughly 4–10% off |
+| **`-quick` mode** | 40–70k per change. Skips brainstorming and the agent review; keeps every gate and the lint/test/build verification |
+| **What you get for it** | Nothing ships that was not planned, gated, verified and reviewed |
+
+The range is driven by the size of the feature, not the tooling. A single-file copy change lands near the bottom; a multi-layer feature near the top.
+
+**Use it when** the cost of shipping something wrong exceeds the cost of the ceremony — shared codebases, production services, work you will have to explain later.
+
+**Skip it when** you are prototyping, spiking, or working somewhere a mistake is cheap to undo.
 
 ---
 
@@ -229,7 +248,22 @@ Detects whether the repo is fresh or already has a setup, and acts accordingly.
 ```
 /slashforge:code
 ```
-Freeform workflow. Starts with *"What do you want to build, fix, or change?"* and walks through ten phases, pausing at four user gates: plan confirmation, branch decision, PR target + reviewers, and branch cleanup after merge.
+Freeform workflow. Starts with *"What do you want to build, fix, or change?"* and walks through ten phases, pausing at four gates where it stops and waits for you.
+
+| # | Phase | What happens |
+| --- | --- | --- |
+| 1 | Intake | Requirements gathering. Auto-classifies trivial vs full; brainstorming runs here on the full path |
+| 2 | Plan | A structured plan — changes, affected surface, env vars, breaking changes, risks, test strategy |
+| 3 | **Confirm** 🛑 | *"Proceed with this plan?"* Nothing is implemented until you say so |
+| 4 | **Branch** 🛑 | Current branch or a new one, and from what base. Refuses to work on `main` without an override |
+| 5 | Implement | Test-first where the change is testable; root-cause-first when it is a bug |
+| 6 | Verify | Lint, tests, build. A failure returns to Phase 5 rather than proceeding |
+| 7 | Review | A `code-reviewer` agent pass against the repo's own rules |
+| 8 | **Push & PR** 🛑 | Asks for the target branch and reviewers — it does not guess either |
+| 9 | PR feedback | Applies reviewer comments, re-verifies, pushes again |
+| 10 | **Cleanup** 🛑 | Deletes the branch after you confirm the PR merged |
+
+The gates are the product. Everything between them runs without interruption.
 
 Phase 1 **auto-classifies** the task as trivial or full based on an explicit checklist (≤ 2 files, no new abstraction / dependency / public API, no force-full keywords like `refactor` or `migrate`). Claude announces the decision (*"Treating this as trivial: single-file string change. Say 'full flow' to override."*) and proceeds — trivial tasks skip brainstorming and use a lean plan (Changes + Test strategy only), full tasks run the whole flow. You can override with `full flow` or `quick` in your reply. Phases 3–10 run normally in both paths, so every gate and the Phase 6 verification stay in place.
 
@@ -308,6 +342,39 @@ Claude Code ships with a built-in `/init` command. The two are complementary, no
 | Existing setup | Suggests improvements to `CLAUDE.md` | Full Update flow — reads everything in `.claude/` and fills gaps |
 
 **Use `/init`** for a lightweight starter `CLAUDE.md` on a personal project. **Use `/slashforge:setup`** when the repo needs a disciplined `.claude/` layout, specialist agents, or a defined team workflow. You can also run `/init` first for a starter, then `/slashforge:setup` in Update mode to enrich it.
+
+---
+
+## Customization
+
+Everything the workflow enforces comes from files in your repo, so changing the behaviour means editing those rather than configuring SlashForge.
+
+**Verification commands** live in `CLAUDE.md`. Phase 6 runs exactly what you put here:
+
+```markdown
+## Commands
+- Lint:      npm run lint
+- Typecheck: npx tsc --noEmit
+- Test:      npm test
+- Build:     npm run build
+```
+
+If a command is missing, Phase 6 asks for it rather than guessing or skipping.
+
+**Coding standards** live in `.claude/rules/`. One file per concern. A rule with no `paths` field loads at session start; add one and it loads only when a matching file is touched, which keeps frontend rules out of backend work:
+
+```yaml
+---
+paths:
+  - "src/api/**/*.ts"
+---
+```
+
+Both `/slashforge:code` Phase 7 and `/slashforge:review-pr` judge against these.
+
+**Agents** live in `.claude/agents/`. `/slashforge:setup` generates a set matched to the codebase; edit them, or add your own for a concern the generated set missed.
+
+All of it is generated by `/slashforge:setup` and then yours. Every generated file carries a `generated_by` marker — edit or remove it and that file is never refreshed again, so your changes survive a re-run.
 
 ---
 
