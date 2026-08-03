@@ -96,9 +96,14 @@ const costs = [
     note: 'The graph shaves roughly 4–10%. It does not change the order of magnitude.',
   },
   {
-    label: 'Lean mode',
-    value: '-quick',
+    label: 'Lean mode (-quick)',
+    value: '40–70k',
     note: 'Skips brainstorming and the review agent. Every user gate and all verification stay.',
+  },
+  {
+    label: 'Reviewing a PR',
+    value: '15–70k',
+    note: 'Almost entirely the diff. Three files is about 2k of it; fourteen is about 42k.',
   },
 ];
 ---
@@ -222,9 +227,9 @@ const costs = [
       <div class="band">
         <div class="section__head">
           <h2>What it costs</h2>
-          <span class="label">Tokens per feature</span>
+          <span class="label">Tokens per run</span>
         </div>
-        <div class="cells">
+        <div class="cells cells--quad">
           {
             costs.map((c) => (
               <div class="cell">
@@ -236,7 +241,7 @@ const costs = [
           }
         </div>
         <p class="caveat">
-          The range is driven by the size of the feature, not by the tooling. SlashForge is
+          The range is driven by the size of the work, not by the tooling. SlashForge is
           deliberately heavy — if you want a prompt turned into a patch as fast as possible, this is
           the wrong tool.
         </p>
