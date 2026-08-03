@@ -111,6 +111,12 @@ rejects the entire review with a 422 — the command detects this, moves those f
 summary body, tells you which moved, and posts again.
 :::
 
+## What it costs
+
+**~15–70k tokens per review**, and the diff is almost all of it. A three-file PR is around 2k tokens of diff; a fourteen-file one around 42k — a twentyfold spread before `CLAUDE.md`, the matching rules, or any surrounding code is read. The instructions themselves are a fixed ~3.6k.
+
+That is why size appears in the selection list rather than being discovered later, and why past roughly 1,500 changed lines the command says a single pass cannot be thorough instead of producing confident generalities.
+
 ## Requirements
 
 `gh` installed and authenticated. The command checks first and stops with instructions rather than
