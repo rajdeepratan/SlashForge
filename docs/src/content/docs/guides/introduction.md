@@ -98,11 +98,12 @@ prompt to gate, then one PR review from finding the work to posting it.
 Stated up front, because it is the first thing worth knowing before committing
 to a workflow this heavy.
 
-| Mode | Per feature |
+| Mode | Cost |
 | --- | --- |
-| Full run | 100–250k tokens |
+| Full run | 100–250k tokens per feature |
 | Full run, with Graphify indexed | ~75–225k tokens |
-| `-quick` | ~40–70k tokens |
+| `-quick` | ~40–70k tokens per change |
+| `/slashforge:review-pr` | ~15–70k tokens per review |
 
 The range is driven by the size of the feature, not by the tooling — a
 single-module change lands near the bottom, a multi-layer feature near the top.
