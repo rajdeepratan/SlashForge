@@ -60,6 +60,32 @@ exact commands before asking — nothing is installed without your say-so.
 If you accept, it also synthesises `graphify-out/SUMMARY.html`, a
 browser-readable interpretation of the machine-formatted graph report.
 
+## What it costs
+
+**~50–120k tokens — once per repo.** Unlike the other commands, this is not a
+per-run cost. You pay it when you adopt SlashForge in a codebase and then not
+again unless you re-run it.
+
+It carries **the largest fixed instruction load of any command: ~20k tokens**,
+before it has read a single line of your code. That is the command plus twelve
+guide files, and it is the price of the output being tailored rather than
+templated — the guides are what let it write rules that match your conventions
+instead of generic ones.
+
+The rest divides in two, and the second half is the expensive direction:
+
+| | |
+| --- | --- |
+| Exploration | Reading your repo — structure, conventions, existing config. Scales with repo size. |
+| Generation | Writing `CLAUDE.md`, rules, skills, agents, commands and hooks. **Output tokens**, a dozen or more files. |
+
+Accepting the [Graphify](#graphify) offer adds roughly **5–15k** for
+synthesising `SUMMARY.html`.
+
+A small, conventional repo lands near 50k. A large polyglot one with several
+distinct subsystems — more to read, and more rules worth writing — approaches
+the top.
+
 ## What it does not do
 
 It does not write application code, create branches, or open PRs. It only

@@ -106,6 +106,16 @@ const costs = [
     value: '15–70k',
     note: 'Almost entirely the diff. Three files is about 2k of it; fourteen is about 42k.',
   },
+  {
+    label: 'Investigating a bug',
+    value: '15–60k',
+    note: 'No code is written, so this is reading — however far the trail runs before the cause.',
+  },
+  {
+    label: 'Repo setup',
+    value: '50–120k',
+    note: 'Once per repo. The largest fixed load of any command, then it writes your .claude/.',
+  },
 ];
 ---
 
@@ -230,7 +240,7 @@ const costs = [
           <h2>What it costs</h2>
           <span class="label">Tokens per run</span>
         </div>
-        <div class="cells cells--quad">
+        <div class="cells">
           {
             costs.map((c) => (
               <div class="cell">
