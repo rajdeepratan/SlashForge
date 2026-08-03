@@ -6,6 +6,7 @@
 import Head from '../components/Head.astro';
 import Header from '../components/Header.astro';
 import SearchModal from '../components/SearchModal.astro';
+import { version } from '../pkg';
 import '../styles/site.css';
 
 interface Props {
@@ -34,7 +35,7 @@ const { title, description, rawTitle, section, updated } = Astro.props;
 
     <div class="foot">
       <span>MIT licensed. Built by hand.</span>
-      <span>v4.0.1</span>
+      <span>v{version}</span>
     </div>
 
     <SearchModal />
