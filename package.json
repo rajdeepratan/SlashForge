@@ -1,8 +1,8 @@
 {
   "name": "slashforge",
   "version": "4.3.0",
-  "description": "Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate. Currently supports Claude Code.",
-  "homepage": "https://www.rajdeepratan.com/slashforge/",
+  "description": "Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate /slashforge:review-pr . Currently supports Claude Code.",
+  "homepage": "https://www.rajdeepratan.com/slashforge",
   "scripts": {
     "test": "node --test"
   },
@@ -32,7 +32,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rajdeepratan/SlashForge"
+    "url": "git+https://github.com/rajdeepratan/SlashForge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rajdeepratan/SlashForge/issues"
   },
   "license": "MIT",
   "publishConfig": {
