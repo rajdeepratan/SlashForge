@@ -9,7 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        # 16 is here because package.json declares engines ">=16". If this job
+        # fails, that claim is false and engines should be raised rather than
+        # this entry quietly removed.
+        node-version: [16, 18, 20, 22]
     steps:
       - uses: actions/checkout@v6
       - name: Setup Node.js ${{ matrix.node-version }}
@@ -58,3 +61,9 @@ jobs:
       - name: Check interactive elements have accessible names
         working-directory: docs
         run: node ../.github/scripts/check-docs-a11y.mjs
+
+      # The version was hand-written in two places and froze at v4.0.1 while npm
+      # served 4.3.1 — on every page, for six releases.
+      - name: Check documented facts match package.json
+        working-directory: docs
+        run: node ../.github/scripts/check-docs-facts.mjs
