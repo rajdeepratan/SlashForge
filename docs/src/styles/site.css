@@ -406,109 +406,141 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 /* ---------- Home ---------- */
 
 .band { max-width: 1080px; margin-inline: auto; padding-inline: 32px; }
+/* The fold alone runs edge to edge, on the header's own 32px gutter — the same
+   full-bleed treatment the docs shell uses. A centred band left visible
+   whitespace down both sides of it on a wide display. The sections below keep
+   the measure: they are prose in cells, and prose does not want 1900px. */
+.band--full { max-width: none; margin-inline: 0; }
 
-.hero { padding: 56px 0 0; }
-.hero__grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 72px; align-items: start; }
-.hero__lockup { display: flex; align-items: center; gap: 20px; }
-.hero__lockup svg { flex: none; }
-/* The wordmark is the home page's <h1>: the page had no h1 at all, which is
-   the single worst on-page SEO signal to be missing. Styled to look exactly as
-   it did as a <b>, with the heading's default margin removed. */
-.hero__lockup h1 { font-size: 60px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin: 0; }
-.hero__line { font-size: 24px; line-height: 1.45; letter-spacing: -0.015em; margin: 26px 0 0; max-width: 24ch; }
-.hero__line--accent { color: var(--accent-text); font-weight: 600; margin-top: 4px; }
+/* The fold is one row: the pitch and the install block on the left, the two
+   replays on the right. Everything is sized off that split — see .terms for
+   why the terminal type is as small as it is. */
+.hero { padding: 64px 0 76px; border-bottom: 2px solid var(--rule); }
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+/* The pitch is the home page's <h1>: the page had no h1 at all, which is the
+   single worst on-page SEO signal to be missing. The wordmark it replaced is
+   still one line up, in the header.
 
-.actions { display: flex; gap: 2px; margin-top: 32px; flex-wrap: wrap; }
+   The column width is what breaks it after "commands" — a max-width here would
+   have to be re-tuned every time the type scale moves. */
+.hero__title {
+  font-size: clamp(34px, 3.25vw, 52px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  margin: 0;
+}
+.hero__line { font-size: clamp(20px, 2vw, 30px); line-height: 1.3; letter-spacing: -0.02em; margin: 24px 0 0; }
+.hero__line--accent { color: var(--accent-text); font-weight: 600; }
+
+.actions { display: flex; gap: 16px; margin-top: 38px; flex-wrap: wrap; }
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 14px;
-  font-size: 15px;
+  min-width: 190px;
+  font-size: 16px;
   font-weight: 600;
-  padding: 15px 24px;
+  padding: 17px 28px;
 }
 .btn--primary { background: var(--ember); color: #f3f2f2; }
 .btn--primary:hover { background: var(--ember-hover); }
-.btn--ghost { border: 2px solid var(--rule); padding: 13px 22px; }
+.btn--ghost { border: 2px solid var(--rule); padding: 15px 26px; }
 .btn--ghost:hover { background: var(--surface); }
 
-.rail { border-left: 2px solid var(--hairline); padding-left: 28px; }
+.rail { margin-top: 52px; max-width: 360px; }
 .label { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
 .rail__cmd {
   font-family: var(--mono);
-  font-size: 14.5px;
+  font-size: 15px;
   border: 2px solid var(--rule);
   background: var(--code-bg);
-  padding: 13px 14px;
-  margin-top: 16px;
+  padding: 15px 16px;
+  margin-top: 14px;
 }
 .rail__cmd i { color: var(--muted); font-style: normal; }
-.rail__hr { height: 2px; background: var(--hairline); margin: 22px 0; border: 0; }
-.rail__note { font-size: 13.5px; line-height: 1.65; color: var(--muted); margin: 0; }
+.rail__note { font-size: 13.5px; line-height: 1.65; color: var(--muted); margin: 16px 0 0; }
 .rail__note strong { color: var(--text); font-weight: 600; }
-.rail__facts { display: flex; gap: 22px; margin-top: 20px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.rail__facts { display: flex; align-items: center; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+/* The separator takes the fact colour at half strength: --hairline is tuned for
+   2px rules and disappears against the dark background at 1px of type. */
+.rail__facts span + span::before { content: '|'; margin: 0 12px; opacity: 0.45; }
 
 /* Terminal — ink on ink in both themes. It is a picture of a terminal, not a
    surface of the page, so it does not invert. */
-.replay { padding: 40px 0 72px; border-bottom: 2px solid var(--rule); }
+.replay { min-width: 0; }
 .replay__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
-.replay__head h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.025em; margin: 0; }
+.replay__head h2 { font-size: clamp(18px, 1.5vw, 22px); font-weight: 700; letter-spacing: -0.025em; margin: 0; }
 .replay__controls { display: flex; align-items: center; gap: 18px; }
-.replay__link { font-size: 13.5px; font-weight: 600; color: var(--accent-text); }
+.replay__link { font-size: 12.5px; font-weight: 600; color: var(--accent-text); }
 .replay__btn {
   background: transparent;
   border: 2px solid var(--rule);
   color: var(--text);
   font-family: var(--font);
-  font-size: 11.5px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 7px 12px;
+  padding: 5px 10px;
   cursor: pointer;
 }
 .replay__btn:hover { background: var(--ember); border-color: var(--ember); color: #f3f2f2; }
 
-/* Two replays side by side. The band leaves ~507px a column, so the body drops
-   to 13px — that fits 59 characters, and the demos are written to stay under it.
-   Any longer and a terminal wraps mid-line, which defeats the alignment the
-   content relies on. */
-.terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+/* Two replays side by side inside half the fold. The column works out at ~0.28
+   of the viewport, and the longest demo line is 57 characters — 34.2em at
+   JetBrains Mono's 0.6em advance — so 0.67vw is the largest slope that never
+   wraps a line mid-flow, at any width. The clamp tracks down to the 1340px
+   breakpoint, below which the fold unstacks and the terminals get the full band
+   back, and up to 13px, past which the type outgrows the demo. */
+.terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .terms__col { display: flex; flex-direction: column; align-items: flex-start; }
 .terms__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
-.terms__head h3 { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+.terms__head h3 { font-size: clamp(13px, 1.05vw, 15px); font-weight: 700; letter-spacing: -0.02em; margin: 0; }
 /* Grid stretches the columns, but a terminal keeps its content height — so the
    shorter run ended above the taller one and the two links sat at different
    heights. Letting .term grow fills the column and puts both links on the same
    line, whatever the demos say. */
 .terms__col .term { width: 100%; flex: 1; display: flex; flex-direction: column; }
-.terms__col .term__body { font-size: 13px; padding: 18px 16px 20px; flex: 1; }
+.terms__col .term__body {
+  font-size: clamp(9px, 0.67vw, 13px);
+  line-height: 1.62;
+  padding: 13px 8px 15px;
+  min-height: 0;
+  flex: 1;
+}
 .terms__col .replay__link { margin-top: 14px; }
 
 .term { border: 2px solid var(--rule); background: #171615; }
 .term__bar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 9px;
+  padding: 8px 12px;
   border-bottom: 2px solid var(--rule);
   background: #201e1d;
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: clamp(10.5px, 0.62vw, 12px);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #a09a97;
@@ -561,11 +593,28 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 .cell code { font-family: var(--mono); font-size: 16px; font-weight: 500; letter-spacing: -0.02em; background: transparent; padding: 0; }
 .cell p { margin: 0; font-size: 15px; line-height: 1.65; color: var(--muted); max-width: none; }
 .cell__value { font-family: var(--mono); font-size: 27px; font-weight: 500; letter-spacing: -0.03em; }
-.caveat { font-size: 16px; line-height: 1.7; color: var(--muted); margin: 22px 0 0; max-width: 68ch; }
+/* No measure: the caveat is a footnote to the grid above it, so it reads as one
+   block set to the grid's own width. At 68ch it broke three lines short of the
+   cells' right edge and looked like a stray paragraph. */
+.caveat { font-size: 16px; line-height: 1.7; color: var(--muted); margin: 22px 0 0; max-width: none; }
 
 /* Poster close — the one place ember runs as a field. */
-.poster { background: var(--ember); color: #f3f2f2; padding-block: 76px; }
-.poster p { font-size: clamp(36px, 6vw, 54px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.08; margin: 0; max-width: 20ch; }
+/* Centred: the closing statement runs the full gutter-to-gutter width, so it
+   reads as a centred plate rather than a left-aligned block with a long tail of
+   empty ember beside it. The button follows the same axis. */
+.poster { background: var(--ember); color: #f3f2f2; padding-block: 76px; text-align: center; }
+/* One line, not a stack: the closing statement is 61 characters, and Archivo at
+   this weight and tracking advances ~0.52em, so the type has to track the full
+   gutter-to-gutter width — hence the full-bleed band and the 2.95vw slope. It
+   only wraps below ~900px, where no size would hold it on one line. */
+.poster p {
+  font-size: clamp(28px, 2.95vw, 54px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  margin: 0;
+  max-width: none;
+}
 .poster a {
   display: inline-flex;
   align-items: center;
@@ -636,12 +685,32 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   .toc { display: none; }
 }
 
+/* Below this the fold's right column is too narrow for two terminals at a
+   readable size, so the pitch and the replays stack and the terminals take the
+   full band back. */
+@media (max-width: 1340px) {
+  .hero__grid { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+  .hero__title { max-width: 20ch; }
+  .rail { margin-top: 40px; }
+  /* Out of the fold the replay block owns the full band, so every part of it
+     goes back to the size it reads at on its own — the small type upstairs is
+     a consequence of the split, not the design. */
+  .replay__head h2 { font-size: 24px; }
+  .terms__head h3 { font-size: 18px; }
+  .terms__head { gap: 16px; margin-bottom: 14px; }
+  .replay__btn { font-size: 11.5px; padding: 7px 12px; }
+  .term__bar { font-size: 11.5px; gap: 10px; padding: 10px 14px; }
+  /* Still two columns down to 900px, and between there and ~1060px half the
+     band is narrower than 57 characters at 13px — so the size keeps tracking
+     the viewport until it can sit at 13px. */
+  .terms { gap: 20px; }
+  .terms__col .term__body { font-size: clamp(10px, 1.17vw, 13px); line-height: 1.7; padding: 18px 16px 20px; }
+}
+
 @media (max-width: 900px) {
   .shell { grid-template-columns: minmax(0, 1fr); }
   .sidebar { display: none; }
   .topnav { display: none; }
-  .hero__grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
-  .rail { border-left: 0; border-top: 2px solid var(--hairline); padding-left: 0; padding-top: 28px; }
   .cells, .cells--quad { grid-template-columns: minmax(0, 1fr); }
   .terms { grid-template-columns: minmax(0, 1fr); gap: 40px; }
   .terms__col .term__body { font-size: 14px; }
@@ -955,10 +1024,9 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 
   .brand span { font-size: 18px; }
 
-  /* 60px "SlashForge" plus a 72px mark is ~392px — wider than the viewport. */
-  .hero__lockup { gap: 14px; }
-  .hero__lockup svg { width: 48px; height: 48px; }
-  .hero__lockup h1 { font-size: clamp(34px, 11vw, 60px); }
+  /* 52px over 14ch is ~390px — wider than the viewport. */
+  .hero__title { font-size: clamp(30px, 8.6vw, 44px); max-width: none; }
+  .actions .btn { flex: 1 1 auto; }
 
   .band { padding-inline: 20px; }
   .main { padding: 32px 20px 64px; }
@@ -983,7 +1051,14 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   .steps > div { grid-template-columns: 32px 1fr; gap: 12px; padding: 16px; }
   .modal { padding-top: 56px; }
   .modal__foot { gap: 12px; flex-wrap: wrap; }
-  .rail__facts { gap: 16px; }
+  /* The pipes carry the spacing now, so the flex gap would double it. Node,
+     licence and version measure ~230px together at 375px — they stay on one
+     line, which is the only reason the row is a row. */
+  .rail__facts span + span::before { margin: 0 9px; }
+
+  /* 61 characters at the desktop size would be six lines on a phone. */
+  .poster p { font-size: clamp(29px, 8vw, 40px); }
+  .poster { padding-block: 56px; }
 }
 
 /* Long unbroken strings — URLs, package names — must not push the page out. */
