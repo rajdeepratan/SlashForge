@@ -126,22 +126,12 @@ const costs = [
 >
   <main>
     <section class="hero">
-      <div class="band hero__grid">
-        <div>
-          <div class="hero__lockup">
-            <svg width="72" height="72" viewBox="0 0 64 64" aria-hidden="true"
-              ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="currentColor"></path><path
-                d="M16 8 H26 L21 18 H11 Z"
-                fill="#EC3013"></path></svg
-            >
-            <h1>SlashForge</h1>
-          </div>
-          <p class="hero__line">Workflow slash commands for AI coding agents.</p>
+      <div class="band band--full hero__grid">
+        <div class="hero__copy">
+          <h1 class="hero__title">Workflow slash commands for AI coding agents.</h1>
           <p class="hero__line hero__line--accent">Guardrails, not autocomplete.</p>
           <div class="actions">
-            <a class="btn btn--primary" href={`${base}/guides/introduction/`}>
-              Get started <span aria-hidden="true">→</span>
-            </a>
+            <a class="btn btn--primary" href={`${base}/guides/introduction/`}>Get Started</a>
             <a
               class="btn btn--ghost"
               href="https://github.com/rajdeepratan/SlashForge"
@@ -151,63 +141,60 @@ const costs = [
               View on GitHub
             </a>
           </div>
-        </div>
 
-        <div class="rail">
-          <div class="label">Install</div>
-          <div class="rail__cmd"><i>$ </i>npx slashforge</div>
-          <hr class="rail__hr" />
-          <p class="rail__note">
-            Supports <strong>Claude Code</strong> today. Cursor and Codex targets are planned.
-          </p>
-          <div class="rail__facts"><span>Node {nodeFloor}</span><span>MIT</span><span>v{version}</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="replay">
-      <div class="band">
-        <div class="replay__head">
-          <h2>Two runs, start to finish</h2>
-          <div class="replay__controls">
-            <a class="replay__link" href={`${base}/guides/example-run/`}>Read it annotated →</a>
+          <div class="rail">
+            <div class="label">Install</div>
+            <div class="rail__cmd"><i>$ </i>npx slashforge</div>
+            <p class="rail__note">
+              Supports <strong>Claude Code</strong> today. Cursor and Codex targets are planned.
+            </p>
+            <div class="rail__facts"><span>Node {nodeFloor}</span><span>MIT</span><span>v{version}</span></div>
           </div>
         </div>
-        <div class="terms">
-          <div class="terms__col" data-replay>
-            <div class="terms__head">
-              <h3>Shipping a feature</h3>
-              <button class="replay__btn" type="button" data-replay-btn>Replay</button>
-            </div>
-            <div class="term">
-              <div class="term__bar">
-                <svg width="12" height="12" viewBox="0 0 64 64" aria-hidden="true"
-                  ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="#EC3013"></path></svg
-                >
-                <span>feat/rate-limiting</span>
-                <span class="term__status" data-replay-status>complete</span>
-              </div>
-              <div class="term__body" data-replay-body>
-                {DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
-              </div>
+
+        <div class="replay">
+          <div class="replay__head">
+            <h2>Two runs, start to finish</h2>
+            <div class="replay__controls">
+              <a class="replay__link" href={`${base}/guides/example-run/`}>Read it annotated →</a>
             </div>
           </div>
-
-          <div class="terms__col" data-replay>
-            <div class="terms__head">
-              <h3>Reviewing someone else's</h3>
-              <button class="replay__btn" type="button" data-replay-btn>Replay</button>
-            </div>
-            <div class="term">
-              <div class="term__bar">
-                <svg width="12" height="12" viewBox="0 0 64 64" aria-hidden="true"
-                  ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="#EC3013"></path></svg
-                >
-                <span>reviewing #42</span>
-                <span class="term__status" data-replay-status>complete</span>
+          <div class="terms">
+            <div class="terms__col" data-replay>
+              <div class="terms__head">
+                <h3>Shipping a feature</h3>
+                <button class="replay__btn" type="button" data-replay-btn>Replay</button>
               </div>
-              <div class="term__body" data-replay-body>
-                {REVIEW_DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
+              <div class="term">
+                <div class="term__bar">
+                  <svg width="11" height="11" viewBox="0 0 64 64" aria-hidden="true"
+                    ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="#EC3013"></path></svg
+                  >
+                  <span>feat/rate-limiting</span>
+                  <span class="term__status" data-replay-status>complete</span>
+                </div>
+                <div class="term__body" data-replay-body>
+                  {DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
+                </div>
+              </div>
+            </div>
+
+            <div class="terms__col" data-replay>
+              <div class="terms__head">
+                <h3>Reviewing someone else's</h3>
+                <button class="replay__btn" type="button" data-replay-btn>Replay</button>
+              </div>
+              <div class="term">
+                <div class="term__bar">
+                  <svg width="11" height="11" viewBox="0 0 64 64" aria-hidden="true"
+                    ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="#EC3013"></path></svg
+                  >
+                  <span>reviewing #42</span>
+                  <span class="term__status" data-replay-status>complete</span>
+                </div>
+                <div class="term__body" data-replay-body>
+                  {REVIEW_DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
+                </div>
               </div>
             </div>
           </div>
@@ -219,7 +206,7 @@ const costs = [
       <div class="band">
         <div class="section__head">
           <h2>Four commands</h2>
-          <span class="label">Each owns one job</span>
+          <span class="label">Each command triggers one distinct workflow</span>
         </div>
         <div class="cells cells--quad">
           {
@@ -260,8 +247,8 @@ const costs = [
     </section>
 
     <section class="poster">
-      <div class="band">
-        <p>It stops people shipping sloppy work.</p>
+      <div class="band band--full">
+        <p>It empowers people to do their finest work every single time.</p>
         <a href={`${base}/guides/introduction/`}>Read the introduction <span aria-hidden="true">→</span></a>
       </div>
     </section>
