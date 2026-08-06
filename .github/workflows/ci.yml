@@ -3,6 +3,11 @@ name: CI
 on:
   push:
   pull_request:
+  # Manual trigger. During the Actions outage of 2026-08-06 no run was created
+  # for two merges, and with nothing queued there was nothing to re-run — the
+  # only way back to a green commit was another push. This gives the Run
+  # workflow button on any branch instead.
+  workflow_dispatch:
 
 jobs:
   test:
