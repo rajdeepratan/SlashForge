@@ -19,28 +19,28 @@ git operations in your repo. That deserves a page, not a footnote.
 | `<repo>/docs/slashforge/plans/` | On `/slashforge:code` full path — the implementation plan from Phase 2 |
 | `<repo>/docs/slashforge/reviews/` | On `/slashforge:review-pr` — the review document |
 
-Nothing is written outside those paths. Every generated file carries a
-`generated_by` marker; remove or edit it and that file is treated as yours
-permanently. See [`/slashforge:setup`](/slashforge/commands/slashforge-setup/)
+==Nothing is written outside those paths.== Every generated file carries a
+`generated_by` marker; ==remove or edit it and that file is treated as yours
+permanently==. See [`/slashforge:setup`](/slashforge/commands/slashforge-setup/)
 for how the markers decide what may be refreshed.
 
 ## What it runs
 
 Inside the workflow it runs **your own project commands** — lint, tests, build —
 and git operations for the branch and PR phases. It uses the tooling already
-configured in your repo. It does not install a test runner, a linter, or a
-formatter of its own.
+configured in your repo. ==It does not install a test runner, a linter, or a
+formatter of its own.==
 
 One exception worth naming, because it is the only thing that reaches outside
 your repo: whenever a command writes an HTML document — an investigation report,
 a design spec, or an implementation plan — it asks your OS to open it in your
 default browser. `open` on macOS, `xdg-open` on Linux, `wslview` on WSL, `start`
-on Windows. Claude Code will prompt you for that command the first time, so
-nothing launches without your say-so.
+on Windows. ==Claude Code will prompt you for that command the first time, so
+nothing launches without your say-so.==
 
 It is best-effort and deliberately timid. Over SSH, or on a headless Linux box
-with no `$DISPLAY`, it skips the step silently and just tells you the path. A
-failure to open never fails the run — the document is written first, and opening
+with no `$DISPLAY`, it skips the step silently and just tells you the path. ==A
+failure to open never fails the run== — the document is written first, and opening
 it is the last thing that happens.
 
 ## What it never does
@@ -59,10 +59,10 @@ it is the last thing that happens.
 
 ## Committing the config
 
-Commit it.
+==Commit it.==
 
-`CLAUDE.md` and `.claude/` are the point — they are what makes the next session,
-and everyone else on the team, start informed rather than cold. Generated
+`CLAUDE.md` and `.claude/` are the point — ==they are what makes the next session,
+and everyone else on the team, start informed rather than cold.== Generated
 configuration that lives only on one machine buys you nothing on the second run.
 
 Phase 1 and Phase 2 write their spec and plan into `docs/slashforge/specs/` and
@@ -75,11 +75,11 @@ The one directory worth considering for `.gitignore` is `docs/slashforge/investi
 you would rather keep findings reports local. It sits under `docs/` rather
 than inside `.claude/` so the reports are visible in Finder and open in a
 browser without a code editor — the trade-off is that it shows up in `git
-status`. SlashForge will not edit your `.gitignore`; adding that line is yours.
+status`. ==SlashForge will not edit your `.gitignore`==; adding that line is yours.
 
 :::note
-`npx slashforge uninstall` removes only what it put in `~/.claude/`. A repo's own
-`.claude/` directory is yours and is never touched. See the
+`npx slashforge uninstall` removes only what it put in `~/.claude/`. ==A repo's own
+`.claude/` directory is yours and is never touched.== See the
 [CLI reference](/slashforge/reference/cli/).
 :::
 

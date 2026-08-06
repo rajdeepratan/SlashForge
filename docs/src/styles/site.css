@@ -24,8 +24,14 @@
   --accent-text: #b52309;
   --code-bg: #eae7e5;
   --sel-bg: #fde3de;
+  /* The highlight wash. Its own token rather than --sel-bg: a selection is
+     transient and can be loud, a highlight is permanent and cannot. */
+  --mark-bg: #fbdcd5;
 
   --nav-h: 68px;
+  /* The fixed action bar. Everything that sticks to the viewport subtracts it. */
+  --bar-h: 56px;
+  --bar-pad: 32px;
   --font: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
   --mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, monospace;
 }
@@ -40,12 +46,15 @@
   --accent-text: #ff6a4d;
   --code-bg: #221f1e;
   --sel-bg: #3a140c;
+  --mark-bg: #4d1a0c;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
+  /* Room for the fixed action bar, so the last line of any page clears it. */
+  padding-bottom: var(--bar-h);
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
@@ -151,7 +160,7 @@ a { color: inherit; text-decoration: none; }
   padding: 30px 24px 80px 32px;
   position: sticky;
   top: var(--nav-h);
-  max-height: calc(100vh - var(--nav-h));
+  max-height: calc(100vh - var(--nav-h) - var(--bar-h));
   overflow-y: auto;
 }
 
@@ -248,6 +257,35 @@ a { color: inherit; text-decoration: none; }
   font-size: 15px;
   background: var(--code-bg);
   padding: 1px 5px;
+}
+
+/* Highlight — written as `==text==`, see src/plugins/remark-mark.mjs.
+   An ember wash rather than a yellow one: the palette is three colours, and a
+   highlighter yellow would be the only other hue on the page. Weight is left
+   alone so a highlight can sit inside a sentence without shouting over the
+   bold terms around it, and the box is square like everything else. */
+.main mark {
+  background: var(--mark-bg);
+  color: inherit;
+  padding: 1px 4px;
+  margin: 0 -1px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Inline code and links keep their own treatment inside a highlight — the wash
+   sits behind them, it does not replace them. */
+.main mark :is(code, a) { background: transparent; }
+.main mark a { text-decoration-color: currentColor; }
+
+/* Print and forced-colours: a background that may not render must not be the
+   only signal, so the highlight falls back to an underline. */
+@media print, (forced-colors: active) {
+  .main mark {
+    background: transparent;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
 }
 
 /* Tables: uppercase header over a 2px rule, hairlines between rows, no fill. */
@@ -370,7 +408,7 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 .pager strong { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
 
 /* On this page */
-.toc { padding: 56px 32px 80px 0; position: sticky; top: var(--nav-h); }
+.toc { padding: 56px 32px 80px 0; position: sticky; top: var(--nav-h); max-height: calc(100vh - var(--nav-h) - var(--bar-h)); overflow-y: auto; }
 .toc > p {
   margin: 0;
   padding-bottom: 8px;
@@ -392,16 +430,100 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 .toc a:hover { color: var(--text); }
 .toc a[aria-current='true'] { color: var(--accent-text); font-weight: 600; }
 
+/* The action bar — fixed, on every page. `body` pays for the space it takes so
+   nothing ends up underneath it; the sticky sidebar and TOC lose the same
+   height from their own viewport, above. */
 .foot {
-  border-top: 2px solid var(--rule);
-  padding: 26px 32px;
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 25;
+  height: var(--bar-h);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+  padding: 0 var(--bar-pad);
+  border-top: 2px solid var(--rule);
+  background: var(--bg);
   font-size: 13px;
   color: var(--muted);
 }
-.foot span:last-child { font-family: var(--mono); }
+
+.foot__meta { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.foot__meta svg { flex: none; color: var(--text); }
+.foot__tag { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.foot__ver { font-family: var(--mono); font-size: 12px; }
+
+.foot__actions { position: relative; display: flex; align-items: center; gap: 8px; flex: none; }
+
+/* Bordered chips, square like everything else — the reference these came from
+   uses rounded pills, which this identity does not have. */
+/* Help is a <button> and Star is an <a>, so the shared class has to undo the
+   button defaults — background: buttonface renders as a light chip on the dark
+   theme, and the UA font is not Archivo. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  border: 2px solid var(--hairline);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pill:hover { border-color: var(--rule); color: var(--text); }
+.pill svg { flex: none; }
+
+/* The count only ever appears once a real number has arrived. */
+.pill__count {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--code-bg);
+  padding: 1px 6px;
+}
+.pill__count[hidden] { display: none; }
+
+/* The Help menu opens upward, because the bar is at the bottom of the viewport.
+   Fixed rather than absolute so it can be positioned against the bar itself:
+   `--bar-h - 2px` lands its bottom border exactly on the bar's top border, and
+   the two 2px rules in the same colour read as one continuous line instead of
+   the panel floating a few pixels clear of it. It shares the bar's gutter, so
+   its right edge lines up with the controls at every width. */
+.helpwrap { display: flex; }
+.helpmenu {
+  position: fixed;
+  bottom: calc(var(--bar-h) - 2px);
+  right: var(--bar-pad);
+  min-width: 232px;
+  max-width: calc(100vw - 28px);
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--rule);
+  background: var(--surface);
+}
+.helpmenu[hidden] { display: none; }
+.helpmenu a {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.helpmenu a + a { border-top: 2px solid var(--hairline); }
+.helpmenu a:hover { background: var(--ember); color: #f3f2f2; }
+.helpmenu__note { font-size: 11.5px; font-weight: 400; color: var(--muted); }
+.helpmenu a:hover .helpmenu__note { color: #f3f2f2; }
+
 
 /* ---------- Home ---------- */
 
@@ -716,6 +838,9 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   .terms__col .term__body { font-size: 14px; }
   .search-btn { min-width: 0; }
   .search-btn span:first-of-type, .kbd { display: none; }
+  /* The bar's left side is the first thing to go: it is a credit line, and the
+     three controls on the right are the reason the bar exists. */
+  .foot__tag { display: none; }
 }
 
 /* ==========================================================================
@@ -876,7 +1001,7 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
     padding: 24px 32px;
   }
   .main { padding: 36px 32px 72px; }
-  .foot { padding: 26px 32px; flex-direction: column; align-items: flex-start; gap: 8px; }
+
 }
 
 /* ---------- Changelog releases ----------
@@ -1031,7 +1156,6 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   .band { padding-inline: 20px; }
   .main { padding: 32px 20px 64px; }
   .sidebar.is-open { padding: 24px 20px; }
-  .foot { padding: 22px 20px; }
 
   /* The label block is ~140px wide, which leaves too little beside it. */
   .note {
@@ -1059,6 +1183,9 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   /* 61 characters at the desktop size would be six lines on a phone. */
   .poster p { font-size: clamp(29px, 8vw, 40px); }
   .poster { padding-block: 56px; }
+
+  .foot { --bar-pad: 20px; justify-content: center; }
+  .foot__meta { display: none; }
 }
 
 /* Long unbroken strings — URLs, package names — must not push the page out. */
@@ -1072,5 +1199,5 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   .brand span { display: none; }
   .main { padding: 28px 16px 56px; }
   .band { padding-inline: 16px; }
-  .foot { padding: 20px 16px; }
+  .foot { --bar-pad: 14px; }
 }

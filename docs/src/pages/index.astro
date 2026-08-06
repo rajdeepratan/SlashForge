@@ -85,7 +85,16 @@ const commands = [
   },
 ];
 
+// Ordered the way a reader meets the costs, and in the same order as the four
+// commands above: setup, then a run and its two variants, then the other two
+// jobs. It used to descend by cost within each row, which put the one-time
+// prerequisite fourth — a number you pay first reading as an afterthought.
 const costs = [
+  {
+    label: 'Repo setup',
+    value: '50–120k',
+    note: 'Once per repo, before anything else. The largest fixed load of any command, then it writes your .claude/.',
+  },
   {
     label: 'Full run',
     value: '100–250k',
@@ -94,7 +103,7 @@ const costs = [
   {
     label: 'With Graphify',
     value: '75–225k',
-    note: 'The graph shaves roughly 4–10%. It does not change the order of magnitude.',
+    note: 'The same run, indexed. The graph shaves roughly 4–10%; it does not change the order of magnitude.',
   },
   {
     label: 'Lean mode (-quick)',
@@ -102,19 +111,14 @@ const costs = [
     note: 'Skips brainstorming and the review agent. Every user gate and all verification stay.',
   },
   {
-    label: 'Repo setup',
-    value: '50–120k',
-    note: 'Once per repo. The largest fixed load of any command, then it writes your .claude/.',
+    label: 'Investigating a bug',
+    value: '15–60k',
+    note: 'No code is written, so this is reading — however far the trail runs before the cause.',
   },
   {
     label: 'Reviewing a PR',
     value: '15–70k',
     note: 'Almost entirely the diff. Three files is about 2k of it; fourteen is about 42k.',
-  },
-  {
-    label: 'Investigating a bug',
-    value: '15–60k',
-    note: 'No code is written, so this is reading — however far the trail runs before the cause.',
   },
 ];
 ---

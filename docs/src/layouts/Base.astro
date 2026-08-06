@@ -19,6 +19,8 @@ interface Props {
 }
 
 const { title, description, rawTitle, section, updated } = Astro.props;
+
+const repo = 'https://github.com/rajdeepratan/SlashForge';
 ---
 
 <!doctype html>
@@ -33,10 +35,67 @@ const { title, description, rawTitle, section, updated } = Astro.props;
 
     <slot />
 
-    <div class="foot">
-      <span>MIT licensed. Built by hand.</span>
-      <span>v{version}</span>
-    </div>
+    {/*
+      The action bar. Fixed to the bottom on every page: starring the repo and
+      finding help should never be more than a glance away, and a footer at the
+      end of a 200-line reference page is not.
+      `body` carries the matching bottom padding, and the sidebar and TOC lose
+      the same height from their sticky viewport so nothing hides behind it.
+    */}
+    <footer class="foot">
+      <div class="foot__meta">
+        <svg width="15" height="15" viewBox="0 0 64 64" aria-hidden="true"
+          ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="currentColor"></path><path
+            d="M16 8 H26 L21 18 H11 Z"
+            fill="#EC3013"></path></svg
+        >
+        <span class="foot__tag">Open source · MIT licensed · Built by hand</span>
+        <span class="foot__ver">v{version}</span>
+      </div>
+
+      <div class="foot__actions">
+        {/* Two ways to reach a human, so neither has to win the one slot. */}
+        <div class="helpwrap">
+          <button
+            class="pill"
+            type="button"
+            data-help-toggle
+            aria-expanded="false"
+            aria-controls="help-menu"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"
+              ><circle cx="12" cy="12" r="9.5"></circle><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"></path><path
+                d="M12 17h.01"></path></svg
+            >
+            <span class="pill__label">Help</span>
+          </button>
+
+          <div class="helpmenu" id="help-menu" hidden>
+            <a href={`${repo}/issues/new/choose`} target="_blank" rel="noopener">
+              <span>Open an issue</span>
+              <span class="helpmenu__note">Bugs and feature requests</span>
+            </a>
+            <a href="mailto:slashforge@rajdeepratan.com">
+              <span>Email the maintainer</span>
+              <span class="helpmenu__note">slashforge@rajdeepratan.com</span>
+            </a>
+          </div>
+        </div>
+
+        <a class="pill" href={repo} target="_blank" rel="noopener">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
+            ><path
+              d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.5-5.3 5.8.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z"
+            ></path></svg
+          >
+          <span class="pill__label">Star</span>
+          {/* Filled in by src/scripts/site.js, and left out entirely if the
+              count cannot be fetched — a "Star" button with no number still
+              works, a button showing a stale or empty number does not. */}
+          <span class="pill__count" data-star-count hidden></span>
+        </a>
+      </div>
+    </footer>
 
     <SearchModal />
 

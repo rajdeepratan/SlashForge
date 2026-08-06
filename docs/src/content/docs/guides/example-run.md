@@ -3,7 +3,7 @@ title: What a run looks like
 description: One pass through /slashforge:code and one through /slashforge:review-pr, from prompt to gate, so you can judge the shape of the output before installing anything.
 ---
 
-Everything below is shaped like output rather than description. This is the
+==Everything below is shaped like output rather than description.== This is the
 whole reason to read the docs before installing: you can decide whether the
 process suits you without running it once.
 
@@ -24,13 +24,13 @@ argument syntax to learn.
   429 with a Retry-After header.
 ```
 
-Phase 1 gathers requirements and classifies the task. A change this size gets
+==Phase 1 gathers requirements and classifies the task.== A change this size gets
 the full path; something trivial would skip brainstorming automatically without
 asking.
 
 ## Phase 2 — the plan
 
-It does not touch a file yet. It writes a structured plan and stops.
+==It does not touch a file yet. It writes a structured plan and stops.==
 
 The section headings are fixed — the command is told to cover every one of
 them, omitting only those that genuinely do not apply:
@@ -66,7 +66,7 @@ applicable" — it never pads the plan with `N/A`.
 
 > **It will not proceed without your answer.**
 
-This is the point of the whole command. It asks, and then it waits.
+==This is the point of the whole command. It asks, and then it waits.==
 
 ```
   Do you want to proceed with this plan? If not, what should change?
@@ -79,7 +79,7 @@ place. It returns to Phase 1 with the new information and re-plans, because new
 information can change the scope — and a plan edited in isolation quietly stops
 matching the requirements it came from.
 
-Nothing is implemented until you approve. Phase 4 then asks a second question of
+==Nothing is implemented until you approve.== Phase 4 then asks a second question of
 its own — whether to work on the current branch or cut a new one, and from what
 base.
 
@@ -95,7 +95,7 @@ base.
 | 10 Cleanup | Branch deleted, after you approve |
 
 :::note
-Phase 6 is not advisory. A failing test stops the run before a PR exists — so
+==Phase 6 is not advisory. A failing test stops the run before a PR exists== — so
 "it's done" means it was verified, not asserted.
 :::
 
@@ -126,7 +126,7 @@ teams never set the second one on a PR.
 > 1
 ```
 
-Drafts are skipped. One waiting PR is reviewed without a menu, and none at all
+==Drafts are skipped.== One waiting PR is reviewed without a menu, and none at all
 says so rather than inventing work. The sizes are in the list on purpose —
 past roughly 1,500 changed lines a single pass produces generalities, and it
 will say so instead of pretending otherwise.
@@ -142,7 +142,7 @@ can change what the review is allowed to conclude:
   Authorship    not yours — approval is available
 ```
 
-Repeating a point someone already made is noise. Approving over red checks is
+==Repeating a point someone already made is noise.== Approving over red checks is
 worse. And if the PR *were* yours, GitHub would refuse the approval outright —
 so the option is withdrawn up front rather than after the work is done.
 
@@ -165,7 +165,7 @@ CHECKS
   Reviewed                   all 6 files
 ```
 
-Sorted by severity, not by file order. Three findings that would break
+==Sorted by severity, not by file order.== Three findings that would break
 production matter more than twenty style nits, and the review says which are
 blocking. It also states what it actually read — a review that skipped two files
 should say so.
@@ -197,7 +197,7 @@ suggestion obvious — but choosing to block someone else's work is yours.
 | The PR | One review: the summary and every line comment, in a single notification |
 | `docs/slashforge/reviews/` | The review as HTML, opened in your browser |
 
-The local copy stays whether or not you posted, so a review you cancelled is
+==The local copy stays whether or not you posted==, so a review you cancelled is
 still a review you can read.
 
 :::note
