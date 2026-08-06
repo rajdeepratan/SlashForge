@@ -55,5 +55,9 @@ command, not the workflow== — Phase 6 failing is the feature doing its job.
 
 ## Still stuck
 
-Open an issue and **include the output of `npx slashforge status`**. It is the
-single most useful thing you can attach.
+[Open an issue](https://github.com/rajdeepratan/SlashForge/issues/new/choose)
+and ==**include the output of `npx slashforge status`**==. It is the single most
+useful thing you can attach.
+
+For anything that does not belong in a public issue, email
+[slashforge@rajdeepratan.com](mailto:slashforge@rajdeepratan.com).

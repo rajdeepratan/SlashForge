@@ -410,6 +410,17 @@ Remove or edit the marker on any file you want the kit to leave alone.
 
 ---
 
+## Support
+
+Start with [Troubleshooting](https://www.rajdeepratan.com/slashforge/reference/troubleshooting/) — it covers the handful of things that actually go wrong, and the first one accounts for most of them.
+
+| | |
+| --- | --- |
+| **Bug or feature request** | [Open an issue](https://github.com/rajdeepratan/SlashForge/issues/new/choose). Include the output of `npx slashforge status` — it is the single most useful thing you can attach |
+| **Anything else** | [slashforge@rajdeepratan.com](mailto:slashforge@rajdeepratan.com) |
+
+---
+
 ## Author
 
 <img src="assets/png/rajdeepratan.png" width="72" alt="Rajdeep Ratan">
