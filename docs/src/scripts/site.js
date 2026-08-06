@@ -258,3 +258,80 @@
      phone rotating) has to recompute it even with no scroll. */
   window.addEventListener('resize', mark, { passive: true });
 })();
+
+/* ---- help menu on the action bar ----
+   A button rather than a link, because there is more than one way to reach a
+   human: the issue tracker for anything reproducible, email for anything else.
+   Closes on outside click and on Escape, and returns focus to the button. */
+(function () {
+  var btn = document.querySelector('[data-help-toggle]');
+  var menu = document.getElementById('help-menu');
+  if (!btn || !menu) return;
+
+  function setOpen(open) {
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    setOpen(menu.hidden);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!menu.hidden && !menu.contains(e.target)) setOpen(false);
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !menu.hidden) {
+      setOpen(false);
+      btn.focus();
+    }
+  });
+})();
+
+/* ---- star count on the action bar ----
+   A public, unauthenticated call to the GitHub API, cached in localStorage for
+   six hours: the count moves slowly, and the anonymous rate limit is 60 an hour
+   per IP. Every failure path is silent — the button is a link to the repo
+   whether or not a number ever arrives, so a rate limit, an offline reader or a
+   blocked request costs nothing. */
+(function () {
+  var slot = document.querySelector('[data-star-count]');
+  if (!slot || typeof fetch !== 'function') return;
+
+  var KEY = 'sf-stars';
+  var TTL = 6 * 60 * 60 * 1000;
+
+  function paint(count) {
+    if (typeof count !== 'number' || !isFinite(count) || count < 0) return;
+    slot.textContent =
+      count >= 1000 ? (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(count);
+    slot.hidden = false;
+  }
+
+  var cached = null;
+  try {
+    cached = JSON.parse(localStorage.getItem(KEY) || 'null');
+  } catch (e) {}
+
+  if (cached && typeof cached.at === 'number' && Date.now() - cached.at < TTL) {
+    paint(cached.count);
+    return;
+  }
+
+  fetch('https://api.github.com/repos/rajdeepratan/SlashForge', {
+    headers: { Accept: 'application/vnd.github+json' },
+  })
+    .then(function (res) {
+      return res.ok ? res.json() : null;
+    })
+    .then(function (data) {
+      if (!data || typeof data.stargazers_count !== 'number') return;
+      paint(data.stargazers_count);
+      try {
+        localStorage.setItem(KEY, JSON.stringify({ count: data.stargazers_count, at: Date.now() }));
+      } catch (e) {}
+    })
+    .catch(function () {});
+})();

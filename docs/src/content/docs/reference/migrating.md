@@ -3,18 +3,18 @@ title: Migrating
 description: Every upgrade path in one place. Skip this page unless you installed before v4.
 ---
 
-Newest first. Find the version you are on, apply that section, and stop — each
+==Newest first. Find the version you are on, apply that section, and stop== — each
 one is self-contained, and if you are two hops back you can do both at once.
 
 :::note
-Your repo's own `.claude/` directory survives every migration on this page.
+==Your repo's own `.claude/` directory survives every migration on this page.==
 Only the files under `~/.claude/` are replaced. The configuration
 `/slashforge:setup` generated is yours.
 :::
 
 ## v3 to v4
 
-v4.0.0 changes one thing: the command namespace.
+==v4.0.0 changes one thing: the command namespace.==
 
 | v3 | v4 |
 | --- | --- |
@@ -23,7 +23,7 @@ v4.0.0 changes one thing: the command namespace.
 | `/forge:code -quick` | `/slashforge:code -quick` |
 | `/forge:investigate` | `/slashforge:investigate` |
 
-Nothing else changed in v4.0.0 — the same three commands, ten phases, gates and
+==Nothing else changed in v4.0.0== — the same three commands, ten phases, gates and
 `-quick` mode. (`/slashforge:review-pr` arrived later, in v4.2.0.)
 
 ### Why
@@ -41,12 +41,12 @@ Better to absorb the rename now than after it has spread.
 | Commands | `~/.claude/commands/forge/` | `~/.claude/commands/slashforge/` |
 | Guides | `~/.claude/setup/slashforge/` | unchanged |
 
-Guide filenames are unchanged. Only the command namespace directory moved.
+==Guide filenames are unchanged. Only the command namespace directory moved.==
 
 ## v2 to v3
 
-v3.0.0 renamed every command. There is no compatibility shim — the old names
-stop working.
+v3.0.0 renamed every command. ==There is no compatibility shim — the old names
+stop working.==
 
 | v2 | v3 |
 | --- | --- |
@@ -100,9 +100,9 @@ Both were deprecated in v2.0.0 and removed on schedule:
 ## From claude-setup-kit
 
 If you installed **`claude-setup-kit`**, you are on the original package name.
-It is deprecated and no longer updated.
+==It is deprecated and no longer updated.==
 
-Do not migrate in stages. Go straight to the current release:
+==Do not migrate in stages. Go straight to the current release:==
 
 ```bash
 npm uninstall -g claude-setup-kit
@@ -115,8 +115,8 @@ Or without a global install:
 npx slashforge
 ```
 
-The package name is cosmetic. The command names are muscle memory, and they are
-what will actually trip you up:
+The package name is cosmetic. ==The command names are muscle memory, and they are
+what will actually trip you up:==
 
 | You are typing | Now type |
 | --- | --- |
@@ -136,7 +136,7 @@ npx slashforge
 ```
 
 That installs the current layout and then **lists** any older files still on
-disk. It will not delete them — they are files you did not ask it to touch.
+disk. ==It will not delete them== — they are files you did not ask it to touch.
 
 Remove them yourself, or clear everything and reinstall:
 
@@ -145,7 +145,7 @@ npx slashforge uninstall   # recognises the v2, v3 and v4 layouts
 npx slashforge
 ```
 
-`uninstall` and `status` both recognise every earlier layout, so an upgraded
+==`uninstall` and `status` both recognise every earlier layout==, so an upgraded
 install can always be cleaned up rather than orphaned. See the
 [CLI reference](/slashforge/reference/cli/) for exactly what each one touches.
 

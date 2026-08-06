@@ -55,6 +55,26 @@ every cross-link the moment hosting changes.
    resolve fails the build
 3. `npm run build` to confirm
 
+## Highlighting a line
+
+`==text==` renders as `<mark>` — an ember wash behind the sentence, so a reader
+skimming a long page has something to aim at. `src/plugins/remark-mark.mjs`
+does the transform; `.main mark` styles it.
+
+```md
+==It never posts anything without your explicit yes.==
+==`--project` vendors the guides into your repo==
+```
+
+The pair may span inline code, links and bold. Two rules keep it out of the way
+of ordinary prose: an opener needs a non-space after it and a closer a non-space
+before it, so `x == y` is left alone, and an unpaired `==` renders verbatim.
+
+Use it for the sentence a reader must not miss — the constraint, the gate, the
+thing that surprises people — not for terms. Bold already marks those, and a
+page with ten highlights has none. Roughly **one per section**, never in a
+heading.
+
 ## Structure
 
 ```

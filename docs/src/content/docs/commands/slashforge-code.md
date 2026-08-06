@@ -9,8 +9,8 @@ description: End-to-end development workflow — plan, confirm, branch, implemen
 /slashforge:code [file]
 ```
 
-The full development workflow, from an idea to a merged PR. Ten phases, run in
-order, with four points where it stops and waits for you.
+The full development workflow, from an idea to a merged PR. ==Ten phases, run in
+order, with four points where it stops and waits for you.==
 
 ## Argument
 
@@ -22,7 +22,7 @@ The argument is optional. Pass a description, a file, or nothing:
 /slashforge:code docs/spec.md
 ```
 
-If the argument resolves to a **file**, it is read as the requirements document
+==If the argument resolves to a **file**, it is read as the requirements document==
 and the usual "what do you want to build?" question is skipped — the document
 already answered it. Anything else is treated as a free-form description, and
 no argument at all means it asks.
@@ -33,22 +33,22 @@ ends by printing exactly this command with its report filename filled in.
 Pasting it carries the root cause into a fresh session rather than making you
 restate the bug from memory.
 
-Resolution is deliberately forgiving. A **bare filename** resolves against
+==Resolution is deliberately forgiving.== A **bare filename** resolves against
 `docs/slashforge/investigations/`, which is the short form the investigate hand-off prints. A
 **full path** works as given, so `docs/spec.md` or any other requirements
 document is equally valid. A leading `@` or `#` is stripped first, so a pasted
 mention still works.
 
 :::note
-A requirements document is an input, not an approval. Phase 1 still classifies
+==A requirements document is an input, not an approval.== Phase 1 still classifies
 the task, Phase 2 still writes a plan, and the Phase 3 gate still waits for your
 yes. A report's "suggested next step" is a proposal.
 :::
 
 ## The gates
 
-These are the point of the command. It will not proceed past any of them
-without your answer:
+==These are the point of the command. It will not proceed past any of them
+without your answer:==
 
 | Phase | Gate |
 | --- | --- |
@@ -79,7 +79,7 @@ without your answer:
 | Without Graphify | **100–250k tokens** |
 | With Graphify indexed | **~75–225k tokens** (−10 to −25k) |
 
-The range is driven by the size of the feature, not by Graphify — a single-module
+==The range is driven by the size of the feature, not by Graphify== — a single-module
 change lands near the bottom, a multi-layer feature near the top. Graphify shaves
 roughly 4–10% off; it does not change the order of magnitude.
 
@@ -92,7 +92,7 @@ If you want a materially cheaper run, that lever is
 /slashforge:code -quick
 ```
 
-For small, well-scoped changes where the full ceremony is overkill: single-file
+==For small, well-scoped changes where the full ceremony is overkill==: single-file
 fixes, copy changes, config tweaks, renames, refactors touching two files or
 fewer.
 
@@ -113,12 +113,12 @@ mode skips the graph entirely, so this figure is the same either way.
 | 7 Review | `code-reviewer` agent | **Inline self-review checklist** |
 | 8–10 | Gates | Kept |
 
-Every user gate survives. So does Phase 6 verification — that is where most of
+==Every user gate survives. So does Phase 6 verification== — that is where most of
 the safety lives, and it is cheap.
 
 ### Lean mode is never inferred
 
-Only an explicit `-quick` selects it. Describing a tiny change without the flag
+==Only an explicit `-quick` selects it.== Describing a tiny change without the flag
 runs full mode, whose Phase 1 auto-classification already handles trivial work
 without the ceremony.
 
@@ -130,7 +130,7 @@ Lean mode stops and recommends restarting in full mode if:
 - Phase 6 verification fails three times in a row on the same issue
 - the self-review checklist fails on two or more items
 
-It will not quietly do full-sized work under the lean header.
+==It will not quietly do full-sized work under the lean header.==
 
 ### Not for
 
@@ -148,8 +148,8 @@ It announces the call — *"Treating this as trivial: single-file string change.
 Say 'full flow' to override."* — and proceeds. Trivial tasks skip brainstorming
 and use a lean plan; full tasks run everything.
 
-Override in your reply with `full flow` or `quick`. Phases 3–10 run normally on
-both paths, so every gate and the Phase 6 verification stay in place.
+Override in your reply with `full flow` or `quick`. ==Phases 3–10 run normally on
+both paths, so every gate and the Phase 6 verification stay in place.==
 
 ## Auto-coverage check
 
@@ -163,15 +163,15 @@ cover. If there is no specialist agent, no scoped rule, and no mention in
    update]. Add these to the plan so they ship in this PR?"* Accept and the new
    files are drafted in Phase 5 alongside the feature code.
 2. **Phase 7 (safety net)** — the `code-reviewer` agent re-checks the diff. If
-   gaps remain, it raises a **note**, not a block. The PR can still merge.
+   gaps remain, ==it raises a **note**, not a block. The PR can still merge==.
 
 Skipped on `-quick`, on trivial auto-detect, and on `/slashforge:investigate`.
 
 **Cost:** ~100–300 tokens when no gaps are found; ~300–600 when gaps surface and
 you decline; ~3–8k when you accept and files are generated.
 
-**Why it exists:** without it, every new domain silently widens the gap between
-what the repo does and what `.claude/` knows. Agents stay generic, rules stop
+**Why it exists:** ==without it, every new domain silently widens the gap between
+what the repo does and what `.claude/` knows.== Agents stay generic, rules stop
 matching, `CLAUDE.md` drifts. This closes the loop incrementally instead of
 relying on you to remember to re-run `/slashforge:setup`.
 
@@ -192,5 +192,5 @@ These ship with SlashForge and are always available:
 Phases 3, 8 and 10 use no skill — they are user gates and git operations the
 workflow handles directly.
 
-Every one of these ships with SlashForge. No plugin is required, and none is
-checked for. See [Skills](/slashforge/guides/skills/).
+==Every one of these ships with SlashForge. No plugin is required, and none is
+checked for.== See [Skills](/slashforge/guides/skills/).

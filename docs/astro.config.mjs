@@ -4,6 +4,7 @@ import sitemap from '@astrojs/sitemap';
 import remarkDirective from 'remark-directive';
 import { remarkCallouts } from './src/plugins/remark-callouts.mjs';
 import { remarkChangelog } from './src/plugins/remark-changelog.mjs';
+import { remarkMark } from './src/plugins/remark-mark.mjs';
 import { rehypeCodeFrame } from './src/plugins/rehype-code-frame.mjs';
 import { rehypeTableWrap } from './src/plugins/rehype-table-wrap.mjs';
 
@@ -75,7 +76,7 @@ export default defineConfig({
     // remark-directive parses the `:::note` syntax; remarkCallouts turns it
     // into the design's callout markup. Order matters — the parser has to run
     // first or there are no directive nodes to transform.
-    remarkPlugins: [remarkDirective, remarkCallouts, remarkChangelog],
+    remarkPlugins: [remarkDirective, remarkCallouts, remarkChangelog, remarkMark],
     rehypePlugins: [rehypeCodeFrame, rehypeTableWrap],
   },
 });

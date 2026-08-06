@@ -8,10 +8,10 @@ description: One-time repo setup — generates CLAUDE.md plus tailored rules, sk
 ```
 
 One-time setup for a repository. Explores the codebase, asks clarifying
-questions, then generates a `.claude/` configuration tailored to what it found.
+questions, then ==generates a `.claude/` configuration tailored to what it found==.
 
-Handles both fresh repos and partial setups — if `.claude/` already exists, it
-fills gaps rather than overwriting.
+Handles both fresh repos and partial setups — ==if `.claude/` already exists, it
+fills gaps rather than overwriting==.
 
 ## What it creates
 
@@ -39,7 +39,7 @@ what happens:
 | Present, version older | Stale — proposes a refresh, asks before overwriting |
 | Missing or edited | Treated as yours — gaps filled, never overwritten |
 
-Remove or edit the marker on any file you want left alone permanently.
+==Remove or edit the marker on any file you want left alone permanently.==
 
 ## Monorepos
 
@@ -54,16 +54,16 @@ During exploration, `/slashforge:setup` checks language fit for
 non-trivial source files are in a supported language, it offers to install and
 index. On YAML, shell, or config-only repos it skips silently.
 
-This is a **setup-time offer, not a per-command check**. It always shows you the
-exact commands before asking — nothing is installed without your say-so.
+This is a **setup-time offer, not a per-command check**. ==It always shows you the
+exact commands before asking — nothing is installed without your say-so.==
 
 If you accept, it also synthesises `graphify-out/SUMMARY.html`, a
 browser-readable interpretation of the machine-formatted graph report.
 
 ## What it costs
 
-**~50–120k tokens — once per repo.** Unlike the other commands, this is not a
-per-run cost. You pay it when you adopt SlashForge in a codebase and then not
+**~50–120k tokens — once per repo.** ==Unlike the other commands, this is not a
+per-run cost.== You pay it when you adopt SlashForge in a codebase and then not
 again unless you re-run it.
 
 It carries **the largest fixed instruction load of any command: ~20k tokens**,
@@ -88,6 +88,6 @@ the top.
 
 ## What it does not do
 
-It does not write application code, create branches, or open PRs. It only
-produces configuration. Use [`/slashforge:code`](/slashforge/commands/slashforge-code/)
+==It does not write application code, create branches, or open PRs. It only
+produces configuration.== Use [`/slashforge:code`](/slashforge/commands/slashforge-code/)
 for development work.

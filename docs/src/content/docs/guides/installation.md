@@ -9,7 +9,7 @@ description: One command to install, then your first run end to end.
 npx slashforge
 ```
 
-That installs the guide files and the four commands into `~/.claude/`. Open
+==That installs the guide files and the four commands into `~/.claude/`.== Open
 Claude Code in any repo and type `/` — you should see `/slashforge:setup`,
 `/slashforge:code`, `/slashforge:investigate`, and `/slashforge:review-pr`.
 
@@ -23,8 +23,8 @@ Start to finish, for a repo that has never used SlashForge.
 npx slashforge
 ```
 
-**2. Set up the repo.** SlashForge ships every discipline skill the workflow
-uses, so there is no plugin step. See [Skills](/slashforge/guides/skills/) for
+**2. Set up the repo.** ==SlashForge ships every discipline skill the workflow
+uses, so there is no plugin step.== See [Skills](/slashforge/guides/skills/) for
 what runs at each phase.
 
 **3. Set up the repo.** Open Claude Code in your project and run:
@@ -33,8 +33,8 @@ what runs at each phase.
 /slashforge:setup
 ```
 
-It explores the codebase, asks you questions in batches, and generates
-`CLAUDE.md` plus `.claude/` rules, agents, skills, and hooks. This is also where
+It explores the codebase, asks you questions in batches, and ==generates
+`CLAUDE.md` plus `.claude/` rules, agents, skills, and hooks==. This is also where
 Graphify is offered, if your languages are supported — say no and it skips
 silently.
 
@@ -44,8 +44,8 @@ silently.
 /slashforge:code
 ```
 
-It asks what you want to build, then walks the ten phases, stopping at four
-points for your approval. For a small change, add `-quick`.
+It asks what you want to build, then walks the ten phases, ==stopping at four
+points for your approval==. For a small change, add `-quick`.
 
 **5. Check it landed.**
 
@@ -53,8 +53,8 @@ points for your approval. For a small change, add `-quick`.
 npx slashforge status
 ```
 
-That's the whole loop. `/slashforge:setup` once per repo, `/slashforge:code` per
-change, [`/slashforge:review-pr`](/slashforge/commands/slashforge-review-pr/) to review
+==That's the whole loop. `/slashforge:setup` once per repo, `/slashforge:code` per
+change==, [`/slashforge:review-pr`](/slashforge/commands/slashforge-review-pr/) to review
 someone else's, and [`/slashforge:investigate`](/slashforge/commands/slashforge-investigate/)
 when you need to understand a bug before touching it.
 
@@ -63,7 +63,7 @@ when you need to understand a bug before touching it.
 - **Node.js 18+**
 - **Claude Code**
 
-That is all SlashForge itself requires.
+==That is all SlashForge itself requires.==
 
 ## Optional integrations
 
@@ -75,12 +75,12 @@ explicit:
 | [superpowers](/slashforge/guides/skills/) | No — nothing invokes or checks for it | Never prompted for. Install it only if you want its own library |
 | [Graphify](/slashforge/guides/graphify/) | No, fully optional | `/slashforge:setup` offers it mid-run, on supported languages only |
 
-You do not need to prepare anything. Install SlashForge, run a command, and it
+==You do not need to prepare anything.== Install SlashForge, run a command, and it
 will offer what it needs when it needs it.
 
 :::note
 Graphify is a Python CLI, so accepting that one needs Python 3.10+ and `uv`
-(or `pipx`/`pip`) on your machine. Nothing to do up front — the
+(or `pipx`/`pip`) on your machine. ==Nothing to do up front== — the
 [Graphify page](/slashforge/guides/graphify/) covers the prerequisites and the
 optional extras when you get there.
 :::

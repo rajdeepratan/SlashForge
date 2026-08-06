@@ -3,7 +3,7 @@ title: CLI reference
 description: The three things the npm package itself does, outside Claude Code.
 ---
 
-The slash commands run inside Claude Code. The package has a small CLI of its
+==The slash commands run inside Claude Code.== The package has a small CLI of its
 own for getting them on and off your machine.
 
 | Command | What it does |
@@ -22,8 +22,8 @@ own for getting them on and off your machine.
 | `--help`, `-h` | Full usage |
 
 `--yes` is also enabled by `SLASHFORGE_YES=1`, or automatically when stdin is
-not a TTY — so CI, devcontainers, and anywhere else the install must not block
-on a prompt work without the flag.
+not a TTY — ==so CI, devcontainers, and anywhere else the install must not block
+on a prompt work without the flag==.
 
 ```bash
 SLASHFORGE_YES=1 npx slashforge
@@ -38,8 +38,8 @@ tells you where each one landed.
 npx slashforge
 ```
 
-Re-running on a machine that already has it prompts to update to the latest
-version. Worth doing when either optional integration changes upstream — if
+==Re-running on a machine that already has it prompts to update to the latest
+version.== Worth doing when either optional integration changes upstream — if
 Graphify changes its install commands, or a workflow phase changes, the guide
 files need to catch up.
 
@@ -50,7 +50,7 @@ npx slashforge --project
 ```
 
 Vendors the guides and commands into the repo's `./.claude/` with repo-relative
-paths. Commit it and your teammates get the commands with no global install.
+paths. ==Commit it and your teammates get the commands with no global install.==
 
 ## status
 
@@ -86,7 +86,7 @@ slashforge: not installed.
 Run `npx slashforge` to install v4.3.1.
 ```
 
-`status` recognises the older v2 and v3 layouts as well as the current one, so
+==`status` recognises the older v2 and v3 layouts as well as the current one==, so
 an install upgraded across a rename still reports accurately instead of looking
 absent.
 
@@ -97,16 +97,16 @@ npx slashforge uninstall              # from ~/.claude/
 npx slashforge uninstall --project    # from ./.claude/
 ```
 
-Removes only the files SlashForge installed, and recognises the v2 and v3
+==Removes only the files SlashForge installed==, and recognises the v2 and v3
 layouts alongside the current one — so an upgraded install can be cleaned up
 rather than orphaned.
 
 :::note
-Without `--project`, uninstall touches nothing but `~/.claude/`. A repo's own
+==Without `--project`, uninstall touches nothing but `~/.claude/`.== A repo's own
 `.claude/` directory — the configuration `/slashforge:setup` generated — is
 yours and is never read or removed. `--project` is the one case where it acts on
 a repo, and only on the repo you run it in.
 :::
 
-If you have added your own commands under `~/.claude/commands/slashforge/`, they
-are left alone and the directory is kept.
+==If you have added your own commands under `~/.claude/commands/slashforge/`, they
+are left alone and the directory is kept.==
