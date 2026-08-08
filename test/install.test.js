@@ -6,6 +6,7 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const {
+  isNewerVersion,
   parseFrontmatter,
   validateTemplates,
   assertTemplatesExist,
@@ -693,4 +694,23 @@ test('the documented review payload escapes hostile prose', () => {
   fs.writeFileSync(path.join(d, 'anchors.json'), '[]');
   execFileSync('node', ['-e', m[1], d, 'APPROVE', out]);
   assert.deepEqual(JSON.parse(fs.readFileSync(out, 'utf8')).comments, []);
+});
+
+// The update warning is unsolicited, so a false positive is worse than a missed
+// one: anything this cannot parse with certainty must compare as "not newer".
+test('isNewerVersion only fires on a certainly-newer release', () => {
+  assert.equal(isNewerVersion('4.3.1', '4.2.0'), true, 'minor bump');
+  assert.equal(isNewerVersion('4.2.1', '4.2.0'), true, 'patch bump');
+  assert.equal(isNewerVersion('5.0.0', '4.9.9'), true, 'major bump');
+  assert.equal(isNewerVersion('4.10.0', '4.9.0'), true, 'numeric, not lexical');
+
+  assert.equal(isNewerVersion('4.3.1', '4.3.1'), false, 'same version');
+  assert.equal(isNewerVersion('4.2.0', '4.3.1'), false, 'older than installed');
+
+  // A registry that answers with something unexpected must not produce a
+  // warning telling the user to reinstall.
+  for (const junk of [null, undefined, '', 'latest', '4.3', '4.3.1-beta.1', 'v4.3.1', {}, 4.31]) {
+    assert.equal(isNewerVersion(junk, '4.2.0'), false, `junk candidate: ${JSON.stringify(junk)}`);
+  }
+  assert.equal(isNewerVersion('4.3.1', 'unknown'), false, 'junk current');
 });

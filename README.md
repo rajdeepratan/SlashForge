@@ -400,6 +400,19 @@ npx slashforge
 # → "slashforge is already installed. Update to v3.0.x? (y/n)"
 ```
 
+Both `npx slashforge` and `npx slashforge status` check npm afterwards and say so if a newer release exists:
+
+```
+⚠  This is v4.2.0. The current release is v4.3.1.
+   `npx slashforge` runs a global install if you have one, and never checks npm:
+     npm uninstall -g slashforge     # then re-run npx, or
+     npm install -g slashforge@latest
+```
+
+That last line is the one worth knowing: **`npx` prefers an executable already on your `PATH`**, so if you have ever run `npm install -g slashforge`, `npx slashforge` runs that copy and never contacts the registry. It can install an old release indefinitely while reporting success.
+
+The check has a 1.5 second timeout and fails silently — offline installs are unaffected. It is skipped under `CI`, and `SLASHFORGE_NO_UPDATE_CHECK=1` turns it off.
+
 **Safe re-runs of `/slashforge:setup`.** Every file `/slashforge:setup` creates in a repo's `.claude/` and the root `CLAUDE.md` now carries a `generated_by` marker (YAML frontmatter for `.claude/` files, an HTML comment for `CLAUDE.md`). On re-run, the Update flow uses the marker to tell kit-generated files from files you've edited:
 
 - Marker present, version current → safe to refresh

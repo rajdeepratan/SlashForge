@@ -299,14 +299,131 @@ function readMeta(metaFile) {
 }
 
 // ---------------------------------------------------------------------------
+// Update check
+// ---------------------------------------------------------------------------
+
+/**
+ * True when `candidate` is a strictly newer release than `current`.
+ *
+ * Plain `x.y.z` only. A prerelease, a build tag, or anything else this does not
+ * understand returns false: the warning is unsolicited, so it prints only when
+ * it is certainly right.
+ */
+function isNewerVersion(candidate, current) {
+  const parse = (v) => {
+    const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(String(v == null ? '' : v).trim());
+    return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
+  };
+  const a = parse(candidate);
+  const b = parse(current);
+  if (!a || !b) return false;
+  for (let i = 0; i < 3; i += 1) {
+    if (a[i] !== b[i]) return a[i] > b[i];
+  }
+  return false;
+}
+
+/**
+ * The version the registry serves as `latest`, or null.
+ *
+ * Every failure path is silent and the timeout is short. This is a courtesy
+ * line at the end of an install that has already succeeded — it must never
+ * make one hang, fail, or behave differently offline. Honours the registry npm
+ * is configured with, so a mirror or a private proxy is asked instead.
+ */
+function fetchLatestVersion({ timeoutMs = 1500 } = {}) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (v) => {
+      if (!settled) {
+        settled = true;
+        resolve(v);
+      }
+    };
+
+    const base = (process.env.npm_config_registry || 'https://registry.npmjs.org/').replace(/\/+$/, '');
+    // The version manifest, not the packument: ~2KB against ~200KB, and every
+    // registry serves it. Note the plain Accept — npm's abbreviated-metadata
+    // type (application/vnd.npm.install-v1+json) is only valid on the packument
+    // endpoint and answers 406 here, which is silent by design and would have
+    // meant this check never fired.
+    const url = `${base}/${pkg.name}/latest`;
+    const client = url.startsWith('http://') ? require('http') : require('https');
+
+    let req;
+    try {
+      req = client.get(
+        url,
+        { headers: { accept: 'application/json' }, timeout: timeoutMs },
+        (res) => {
+          if (res.statusCode !== 200) {
+            res.resume();
+            done(null);
+            return;
+          }
+          let body = '';
+          res.setEncoding('utf8');
+          res.on('data', (chunk) => {
+            body += chunk;
+            // A manifest is a few KB. Anything larger is not what we asked for.
+            if (body.length > 1e6) req.destroy();
+          });
+          res.on('end', () => {
+            try {
+              done(JSON.parse(body).version || null);
+            } catch {
+              done(null);
+            }
+          });
+        }
+      );
+    } catch {
+      done(null);
+      return;
+    }
+
+    req.on('timeout', () => {
+      req.destroy();
+      done(null);
+    });
+    req.on('error', () => done(null));
+  });
+}
+
+/**
+ * Prints one line when the running copy is behind the registry.
+ *
+ * The installer reports its own version, so a stale copy looks exactly like a
+ * current one. That is what a global `npm i -g slashforge` produces: `npx`
+ * prefers an executable already on PATH and never contacts the registry, so
+ * `npx slashforge` can install an old release indefinitely with no sign that
+ * anything is wrong. The fix is named here because it is not guessable.
+ *
+ * Skipped under CI and behind SLASHFORGE_NO_UPDATE_CHECK, where the output is
+ * a log nobody reads.
+ */
+async function warnIfOutdated() {
+  if (process.env.SLASHFORGE_NO_UPDATE_CHECK === '1' || process.env.CI) return;
+
+  const latest = await fetchLatestVersion();
+  if (!isNewerVersion(latest, pkg.version)) return;
+
+  console.log(`\n⚠  This is v${pkg.version}. The current release is v${latest}.`);
+  console.log(`   \`npx ${pkg.name}\` runs a global install if you have one, and never checks npm:`);
+  console.log(`     npm uninstall -g ${pkg.name}     # then re-run npx, or`);
+  console.log(`     npm install -g ${pkg.name}@latest`);
+}
+
+// ---------------------------------------------------------------------------
 // CLI commands
 // ---------------------------------------------------------------------------
 
-function printStatus({ project = false } = {}) {
+async function printStatus({ project = false } = {}) {
   const target = resolveTarget({ project });
   if (!fs.existsSync(target.guidesDir)) {
     console.log('slashforge: not installed.');
     console.log(`Run \`npx ${pkg.name}\` to install v${pkg.version}.`);
+    await warnIfOutdated();
     return;
   }
 
@@ -336,6 +453,7 @@ function printStatus({ project = false } = {}) {
   console.log(`  Installed commands:        ${commands.length}`);
   for (const f of commands) console.log(`    • ${commandName(f)}`);
 
+  await warnIfOutdated();
 }
 
 async function install({ dryRun, assumeYes, project = false }) {
@@ -410,6 +528,8 @@ async function install({ dryRun, assumeYes, project = false }) {
   console.log('  • /slashforge:code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
   console.log('  • /slashforge:investigate [symptom] — read-only research, produces a findings report');
   console.log('  • /slashforge:review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
+
+  await warnIfOutdated();
 }
 
 // After an upgrade from < 3.0.0 the v2 files are still on disk. We deliberately
@@ -482,7 +602,7 @@ async function main() {
   const project = args.includes('--project');
 
   if (args[0] === 'status') {
-    printStatus({ project });
+    await printStatus({ project });
     closeRl();
     return;
   }
@@ -520,6 +640,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  isNewerVersion,
   parseFrontmatter,
   validateTemplates,
   assertTemplatesExist,

@@ -15,6 +15,25 @@ description: The handful of things that actually go wrong, and what to do about 
 4. If `status` shows nothing installed, re-run `npx slashforge` and watch for a permissions error on `~/.claude/`.
 :::
 
+## It installed an old version
+
+`npx slashforge` printed a version older than the one on npm, and commands you
+expected are missing.
+
+==`npx` prefers an executable already on your `PATH`.== If `npm install -g
+slashforge` was ever run, `npx slashforge` runs that copy and never contacts the
+registry, so it keeps installing the old release while reporting success.
+
+```bash
+which slashforge          # a path here is the problem
+npm uninstall -g slashforge
+npx slashforge            # now resolves the current release
+```
+
+Keep the global install instead if you prefer — `npm install -g
+slashforge@latest` updates it in place. Either way `npx slashforge status` will
+tell you whether the copy you just ran is current.
+
 ## A phase is being skipped
 
 ==Usually one of two things, and both are working as designed.==

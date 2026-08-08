@@ -52,6 +52,29 @@ npx slashforge --project
 Vendors the guides and commands into the repo's `./.claude/` with repo-relative
 paths. ==Commit it and your teammates get the commands with no global install.==
 
+### The update check
+
+`install` and `status` both ask npm for the current release when they finish,
+and print one warning if the copy you ran is older:
+
+```
+⚠  This is v4.2.0. The current release is v4.3.1.
+   `npx slashforge` runs a global install if you have one, and never checks npm:
+     npm uninstall -g slashforge     # then re-run npx, or
+     npm install -g slashforge@latest
+```
+
+==`npx` prefers an executable already on your `PATH`.== If you have ever run
+`npm install -g slashforge`, `npx slashforge` runs *that* copy and never
+contacts the registry — so it can keep installing an old release while
+reporting success, which is exactly what this warning is for.
+
+The check has a 1.5 second timeout and ==every failure is silent==: an offline
+install, a private registry that does not answer, or a response in an
+unexpected shape all leave the output unchanged. It honours the registry npm is
+configured with, is skipped when `CI` is set, and `SLASHFORGE_NO_UPDATE_CHECK=1`
+turns it off.
+
 ## status
 
 Reports the installed version, the guide files present, the commands registered,
