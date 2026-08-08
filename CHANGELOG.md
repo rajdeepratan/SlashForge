@@ -6,6 +6,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **`install` and `status` say when the copy you ran is out of date.** The installer reported its own version, so a stale copy looked exactly like a current one — and `npx` prefers an executable already on `PATH`, meaning a single `npm install -g slashforge` makes `npx slashforge` install that old release forever without ever contacting the registry. Both commands now ask npm for the current release when they finish and print the fix if the running copy is behind. 1.5 second timeout, every failure silent, honours the configured registry, skipped under `CI`, and `SLASHFORGE_NO_UPDATE_CHECK=1` turns it off.
+
 ## [4.3.1] - 2026-08-02
 
 Documentation only. No change to any command, skill, or installed file.
