@@ -58,7 +58,7 @@ paths. ==Commit it and your teammates get the commands with no global install.==
 and print one warning if the copy you ran is older:
 
 ```
-⚠  This is v4.2.0. The current release is v4.3.1.
+⚠  This is v4.3.1. The current release is v4.4.0.
    `npx slashforge` runs a global install if you have one, and never checks npm:
      npm uninstall -g slashforge     # then re-run npx, or
      npm install -g slashforge@latest
@@ -86,8 +86,8 @@ npx slashforge status
 
 ```
 slashforge status
-  Package version (current): v4.3.1
-  Installed version:         v4.3.1
+  Package version (current): v4.4.0
+  Installed version:         v4.4.0
   Installed at:              2026-08-01T15:37:54.153Z
   Guide files:               15 (~/.claude/setup/slashforge)
     • forge-agents.md
@@ -106,7 +106,7 @@ install:
 
 ```
 slashforge: not installed.
-Run `npx slashforge` to install v4.3.1.
+Run `npx slashforge` to install v4.4.0.
 ```
 
 ==`status` recognises the older v2 and v3 layouts as well as the current one==, so
