@@ -30,6 +30,21 @@ function tmp() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'csk-test-'));
 }
 
+// A command that ships as a dispatcher plus a workflow file is read by the agent
+// as one instruction, so a guarantee it makes may be carried by either half.
+// These tests assert against the concatenation rather than against whichever file
+// happens to hold a given line today.
+const WORKFLOW_COMPANION = {
+  'review-pr.md': 'forge-workflow-review-pr.md',
+  'investigate.md': 'forge-workflow-investigation.md',
+};
+
+function commandInstruction(file) {
+  const parts = [path.join(TEMPLATES_DIR, 'slashforge', file)];
+  if (WORKFLOW_COMPANION[file]) parts.push(path.join(TEMPLATES_DIR, WORKFLOW_COMPANION[file]));
+  return parts.map((p) => fs.readFileSync(p, 'utf8')).join('\n');
+}
+
 test('parseFrontmatter parses valid frontmatter', () => {
   const fm = parseFrontmatter('---\nname: x\ndescription: y\n---\nbody', 'f');
   assert.equal(fm.name, 'x');
@@ -124,14 +139,14 @@ test('guide files are rendered, leaving no unsubstituted placeholders', () => {
     const body = fs.readFileSync(path.join(target.guidesDir, g), 'utf8');
     assert.ok(!/\{\{[A-Z_]+\}\}/.test(body), `guide ${g} shipped an unrendered placeholder`);
   }
-  const reviewFlow = fs.readFileSync(
-    path.join(target.guidesDir, 'forge-workflow-review-pr.md'),
-    'utf8',
-  );
-  assert.ok(
-    reviewFlow.includes(path.join(target.installPath, 'forge-report-shell.html')),
-    'the PR review flow must resolve the report shell to a real installed path',
-  );
+  // Both flows splice through the shared shell, and both name it by absolute path.
+  for (const flow of ['forge-workflow-review-pr.md', 'forge-workflow-investigation.md']) {
+    const body = fs.readFileSync(path.join(target.guidesDir, flow), 'utf8');
+    assert.ok(
+      body.includes(path.join(target.installPath, 'forge-report-shell.html')),
+      `${flow} must resolve the report shell to a real installed path`,
+    );
+  }
 });
 
 test('the report shell carries both substitution markers and stays self-contained', () => {
@@ -473,7 +488,7 @@ test('the shell is document-agnostic and all three writers use it', () => {
     'plan.md': 'docs/slashforge/plans',
   };
   for (const [file, dir] of Object.entries(writers)) {
-    const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', file), 'utf8');
+    const body = commandInstruction(file);
     assert.ok(body.includes('forge-report-shell.html'), `${file} must splice into the shell`);
     assert.ok(body.includes(`mkdir -p ${dir}`), `${file} must create ${dir}`);
     assert.ok(body.includes('() => esc(title)'), `${file} must escape the title`);
@@ -489,7 +504,7 @@ test('the open helper is shared, guarded, and always exits 0', () => {
   assert.ok(fs.existsSync(helper), 'forge-open.sh must ship');
 
   for (const f of ['investigate.md', 'brainstorm.md', 'plan.md']) {
-    const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', f), 'utf8');
+    const body = commandInstruction(f);
     assert.ok(body.includes('forge-open.sh'), `${f} must call the shared helper`);
     assert.ok(
       !/case "\$\(uname -s\)"/.test(body),
@@ -543,13 +558,14 @@ test('docs/superpowers is only ever named next to the path replacing it', () => 
   );
 });
 
-// The splice command documented in investigate.md is what actually builds every
-// report, so the test runs THAT script rather than a copy of it — a copy could
-// drift from the template and still pass.
+// The splice command documented in the investigate instruction is what actually
+// builds every report, so the test runs THAT script rather than a copy of it — a
+// copy could drift from the template and still pass. It lives in Phase I3 of the
+// workflow file, which commandInstruction pulls in alongside the command.
 function spliceScriptFromTemplate() {
-  const md = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', 'investigate.md'), 'utf8');
+  const md = commandInstruction('investigate.md');
   const m = md.match(/node -e '\n([\s\S]*?)\n'/);
-  assert.ok(m, 'could not find the node splice script in investigate.md');
+  assert.ok(m, 'could not find the node splice script in the investigate instruction');
   return m[1];
 }
 
@@ -644,24 +660,11 @@ test('no template contains a namespaced HTML end tag', () => {
   );
 });
 
-// /slashforge:review-pr ships as a pair — the command file dispatches, the
-// workflow file carries the phase detail — and the agent reads both. The
-// guarantees below are properties of that pair, so they are asserted against the
-// concatenation rather than against whichever half happens to carry a line today.
-function reviewPrInstruction() {
-  return [
-    path.join(TEMPLATES_DIR, 'slashforge', 'review-pr.md'),
-    path.join(TEMPLATES_DIR, 'forge-workflow-review-pr.md'),
-  ]
-    .map((p) => fs.readFileSync(p, 'utf8'))
-    .join('\n');
-}
-
 // review-pr writes to GitHub, which is public and attributed to the user. The
 // command must never post without an explicit confirmation, and must never pick
 // request-changes (which blocks a merge) on the user's behalf.
 test('review-pr gates every GitHub write behind an explicit choice', () => {
-  const body = reviewPrInstruction();
+  const body = commandInstruction('review-pr.md');
 
   assert.ok(/Nothing is posted to GitHub before this point/i.test(body), 'must state the gate');
   assert.ok(/exact text that will appear on GitHub/i.test(body), 'must show verbatim text first');
@@ -680,7 +683,7 @@ test('review-pr gates every GitHub write behind an explicit choice', () => {
 // The discovery flags are SlashForge's own, not gh's. A user pasting gh syntax
 // should not silently get a different query than they asked for.
 test('review-pr documents its discovery flags and their consequences', () => {
-  const body = reviewPrInstruction();
+  const body = commandInstruction('review-pr.md');
   for (const flag of ['--assigned', '--mine', '--all']) {
     assert.ok(body.includes(flag), `must document ${flag}`);
   }
@@ -701,7 +704,7 @@ test('review-pr documents its discovery flags and their consequences', () => {
 // JSON.stringify escape it. This runs the script out of the template itself — a
 // copy here could drift from the shipped instruction and still pass.
 test('the documented review payload escapes hostile prose', () => {
-  const md = reviewPrInstruction();
+  const md = commandInstruction('review-pr.md');
   const m = md.match(/node -e '\n(const fs = require\("fs"\), path[\s\S]*?)\n'/);
   assert.ok(m, 'could not find the payload assembly script in the review-pr instruction');
 
