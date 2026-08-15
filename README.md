@@ -134,9 +134,8 @@ Commands live in a `forge/` subdirectory — that is what produces the `/slashfo
 
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification
-- **Instructions** — golden rules, creation order, file structure, verification
 - **Graph** — optional Graphify integration: setup-time install offer, runtime freshness check, and the SUMMARY.html synthesis prompt
-- **Workflow** — the ten-phase development loop used by `/slashforge:code` and `/slashforge:code -quick` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across three focused files (base phases, investigation flow, agent selection)
+- **Workflow** — the ten-phase development loop used by `/slashforge:code` and `/slashforge:code -quick` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across four focused files (base phases, investigation flow, PR review flow, agent selection)
 - **Rules** — how to create rule files for a repo (including path-scoped rules)
 - **Skills** — how to create skills using Anthropic's `SKILL.md` directory format
 - **Agents** — how to create agent files, per-agent skill mappings, monorepo structure
@@ -403,7 +402,7 @@ npx slashforge
 Both `npx slashforge` and `npx slashforge status` check npm afterwards and say so if a newer release exists:
 
 ```
-⚠  This is v4.3.1. The current release is v4.4.0.
+⚠  This is v4.4.0. The current release is v4.4.1.
    `npx slashforge` runs a global install if you have one, and never checks npm:
      npm uninstall -g slashforge     # then re-run npx, or
      npm install -g slashforge@latest

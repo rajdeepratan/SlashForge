@@ -6,6 +6,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.4.1] - 2026-08-14
+
 ### Changed
 - **`/slashforge:review-pr` is a dispatcher plus a workflow file now, the same shape as `/slashforge:code`.** The command file carried all seven steps inline at 301 lines — the largest template in the kit — while `code.md` stayed at 70 by delegating to `forge-workflow.md`. The phase detail moved to `forge-workflow-review-pr.md`, and the steps are named `Phase R1`–`R7` to match the `I1`–`I3` naming the investigation flow already used. Nothing about what the command does or the order it does it in has changed.
 
