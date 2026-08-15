@@ -8,6 +8,7 @@ description: End-to-end workflow invoked by /slashforge:code and /slashforge:inv
 Ten-phase change-shipping flow used by `/slashforge:code` (full and trivial paths) and `/slashforge:code -quick`. Companion files:
 
 - `forge-workflow-investigation.md` — Investigation Flow I1–I3 (loaded by `/slashforge:investigate` only — it does not load this file)
+- `forge-workflow-review-pr.md` — PR Review Flow R1–R7 (loaded by `/slashforge:review-pr` only; it applies the Phase 7 checklist below as its review standard, but does not load the rest of this file)
 - `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
 
 Every phase with a named skill MUST invoke it via the `Skill` tool — do not paraphrase. Every skill the workflow names ships with SlashForge, so all of them are always available. There are no optional dependencies. The flow runs without user intervention **except for four mandatory gates**: plan confirmation (Phase 3), branch decision (Phase 4), PR target + reviewers (Phase 8), and branch cleanup after merge (Phase 10).

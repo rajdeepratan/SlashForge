@@ -16,6 +16,7 @@ const GUIDE_FILES = [
   'forge-coverage.md',
   'forge-workflow.md',
   'forge-workflow-investigation.md',
+  'forge-workflow-review-pr.md',
   'forge-workflow-agents.md',
   'forge-workflow-quick.md',
   'forge-rules.md',
@@ -226,7 +227,24 @@ function installFiles(target, {
   fs.mkdirSync(target.guidesDir, { recursive: true });
   fs.mkdirSync(target.commandsDir, { recursive: true });
   const written = [];
-  for (const f of [...guideFiles, ...assetFiles]) {
+  // Guides are rendered like commands: a guide may name a sibling by absolute
+  // path (forge-workflow-review-pr.md points at forge-report-shell.html), and a
+  // copied-not-rendered guide would ship the literal {{INSTALL_PATH}}.
+  for (const f of guideFiles) {
+    const dest = path.join(target.guidesDir, f);
+    fs.writeFileSync(
+      dest,
+      renderTemplate(fs.readFileSync(path.join(templatesDir, f), 'utf8'), {
+        installPath: target.installPath,
+        version,
+        pkgName,
+      }),
+    );
+    written.push(dest);
+  }
+  // Assets are installed verbatim — forge-open.sh is executed as-is and the
+  // report shell's own markers are not mustache placeholders.
+  for (const f of assetFiles) {
     const dest = path.join(target.guidesDir, f);
     fs.copyFileSync(path.join(templatesDir, f), dest);
     written.push(dest);
