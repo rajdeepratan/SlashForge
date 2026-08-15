@@ -6,6 +6,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.4.2] - 2026-08-14
+
 ### Changed
 - **`/slashforge:investigate` is a dispatcher plus a workflow file too, matching `/slashforge:code` and `/slashforge:review-pr`.** The command file carried the findings-report spec, the splice command, the open helper and the hand-off wording inline at 143 lines, while `forge-workflow-investigation.md` restated the same three phases in summary — so I3 existed twice, in two levels of detail, and the two could drift. The detail now lives once, in Phase I3 of the workflow file, leaving a 51-line dispatcher.
 - **The investigation flow no longer defers back to the command file.** `forge-workflow-investigation.md` pointed at `investigate.md` for the fragment spec, the splice command and the browser-open snippet — a workaround for guides not being rendered, which meant a guide could not name a sibling by absolute path. 4.4.1 fixed that, so the guide names `forge-report-shell.html` and `forge-open.sh` directly.
