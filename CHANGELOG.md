@@ -6,6 +6,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- **`/slashforge:review-pr` is a dispatcher plus a workflow file now, the same shape as `/slashforge:code`.** The command file carried all seven steps inline at 301 lines — the largest template in the kit — while `code.md` stayed at 70 by delegating to `forge-workflow.md`. The phase detail moved to `forge-workflow-review-pr.md`, and the steps are named `Phase R1`–`R7` to match the `I1`–`I3` naming the investigation flow already used. Nothing about what the command does or the order it does it in has changed.
+
+### Fixed
+- **Guide files are rendered rather than copied.** Guides were installed with `copyFileSync`, so a `{{INSTALL_PATH}}` in one would ship as the literal placeholder and the agent would splice against a path that does not exist. No guide used a placeholder until now, and `forge-workflow-review-pr.md` names `forge-report-shell.html` by absolute path. Rendering is a no-op for every other guide; assets are still installed verbatim, since `forge-open.sh` is executed as-is.
+
 ## [4.4.0] - 2026-08-08
 
 ### Added

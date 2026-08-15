@@ -112,6 +112,28 @@ test('asset files install verbatim alongside the guides', () => {
   }
 });
 
+// A guide may point at a sibling by absolute path — forge-workflow-review-pr.md
+// names forge-report-shell.html that way. If guides were copied rather than
+// rendered, the installed guide would carry a literal {{INSTALL_PATH}} and the
+// agent would splice against a path that does not exist.
+test('guide files are rendered, leaving no unsubstituted placeholders', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  for (const g of GUIDE_FILES) {
+    const body = fs.readFileSync(path.join(target.guidesDir, g), 'utf8');
+    assert.ok(!/\{\{[A-Z_]+\}\}/.test(body), `guide ${g} shipped an unrendered placeholder`);
+  }
+  const reviewFlow = fs.readFileSync(
+    path.join(target.guidesDir, 'forge-workflow-review-pr.md'),
+    'utf8',
+  );
+  assert.ok(
+    reviewFlow.includes(path.join(target.installPath, 'forge-report-shell.html')),
+    'the PR review flow must resolve the report shell to a real installed path',
+  );
+});
+
 test('the report shell carries both substitution markers and stays self-contained', () => {
   const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-report-shell.html'), 'utf8');
   assert.ok(shell.includes('<!--TITLE-->'), 'shell missing TITLE marker');
@@ -622,11 +644,24 @@ test('no template contains a namespaced HTML end tag', () => {
   );
 });
 
+// /slashforge:review-pr ships as a pair — the command file dispatches, the
+// workflow file carries the phase detail — and the agent reads both. The
+// guarantees below are properties of that pair, so they are asserted against the
+// concatenation rather than against whichever half happens to carry a line today.
+function reviewPrInstruction() {
+  return [
+    path.join(TEMPLATES_DIR, 'slashforge', 'review-pr.md'),
+    path.join(TEMPLATES_DIR, 'forge-workflow-review-pr.md'),
+  ]
+    .map((p) => fs.readFileSync(p, 'utf8'))
+    .join('\n');
+}
+
 // review-pr writes to GitHub, which is public and attributed to the user. The
 // command must never post without an explicit confirmation, and must never pick
 // request-changes (which blocks a merge) on the user's behalf.
 test('review-pr gates every GitHub write behind an explicit choice', () => {
-  const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', 'review-pr.md'), 'utf8');
+  const body = reviewPrInstruction();
 
   assert.ok(/Nothing is posted to GitHub before this point/i.test(body), 'must state the gate');
   assert.ok(/exact text that will appear on GitHub/i.test(body), 'must show verbatim text first');
@@ -645,7 +680,7 @@ test('review-pr gates every GitHub write behind an explicit choice', () => {
 // The discovery flags are SlashForge's own, not gh's. A user pasting gh syntax
 // should not silently get a different query than they asked for.
 test('review-pr documents its discovery flags and their consequences', () => {
-  const body = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', 'review-pr.md'), 'utf8');
+  const body = reviewPrInstruction();
   for (const flag of ['--assigned', '--mine', '--all']) {
     assert.ok(body.includes(flag), `must document ${flag}`);
   }
@@ -666,9 +701,9 @@ test('review-pr documents its discovery flags and their consequences', () => {
 // JSON.stringify escape it. This runs the script out of the template itself — a
 // copy here could drift from the shipped instruction and still pass.
 test('the documented review payload escapes hostile prose', () => {
-  const md = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge', 'review-pr.md'), 'utf8');
+  const md = reviewPrInstruction();
   const m = md.match(/node -e '\n(const fs = require\("fs"\), path[\s\S]*?)\n'/);
-  assert.ok(m, 'could not find the payload assembly script in review-pr.md');
+  assert.ok(m, 'could not find the payload assembly script in the review-pr instruction');
 
   const d = tmp();
   const body = 'Summary with "quotes", a $var, a `backtick`,\nand a backslash \\ here.\n';
