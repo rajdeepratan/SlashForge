@@ -254,7 +254,7 @@ function resolveTargetName(name) {
 </ul>
 
 <ul>
-<li>☐ <strong>Step 1: Write the failing tests</strong>
+<li>☑ <strong>Step 1: Write the failing tests</strong>
 <pre><code>test('agents install writes SKILL.md dirs with a valid name', () =&gt; {
   const home = tmp();
   const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
@@ -300,11 +300,11 @@ test('meta.json records the target and the installed command names', () =&gt; {
   assert.deepEqual(meta.commands, ['/slashforge-code', '/slashforge-investigate', '/slashforge-review-pr']);
 });</code></pre></li>
 
-<li>☐ <strong>Step 2: Run and confirm they FAIL</strong><br>
+<li>☑ <strong>Step 2: Run and confirm they FAIL</strong><br>
     Run: <code>npm test</code> — expected: <code>ENOENT</code> on the <code>slashforge-code</code> directory, because
     <code>installFiles</code> still writes the flat layout.</li>
 
-<li>☐ <strong>Step 3: Add the two helpers</strong> above <code>installFiles</code>
+<li>☑ <strong>Step 3: Add the two helpers</strong> above <code>installFiles</code>
 <pre><code>// 'slashforge/code.md' -&gt; 'slashforge-code'
 function skillDirName(file, prefix = '') {
   return prefix + path.basename(file, '.md');
@@ -326,7 +326,7 @@ function toSkillFrontmatter(content, skillName) {
   return lines.join('\n');
 }</code></pre></li>
 
-<li>☐ <strong>Step 4: Make <code>commandName</code> target-aware</strong> at <code>bin/install.js:184</code>
+<li>☑ <strong>Step 4: Make <code>commandName</code> target-aware</strong> at <code>bin/install.js:184</code>
 <pre><code>function commandName(file, target = null) {
   if (target &amp;&amp; target.layout === 'skills') {
     return '/' + skillDirName(file, target.namePrefix);
@@ -335,7 +335,7 @@ function toSkillFrontmatter(content, skillName) {
 }</code></pre>
     The default argument keeps the existing call in <code>printStatus</code> working unchanged.</li>
 
-<li>☐ <strong>Step 5: Branch the command-writing loop</strong> in <code>installFiles</code>
+<li>☑ <strong>Step 5: Branch the command-writing loop</strong> in <code>installFiles</code>
 <pre><code>  const omit = target.omit || [];
   for (const c of [...commandFiles, ...skillFiles]) {
     if (omit.includes(c)) continue;
@@ -355,7 +355,7 @@ function toSkillFrontmatter(content, skillName) {
     written.push(dest);
   }</code></pre></li>
 
-<li>☐ <strong>Step 6: Record the target in meta.json</strong>
+<li>☑ <strong>Step 6: Record the target in meta.json</strong>
 <pre><code>  const meta = JSON.stringify({
     package: pkgName,
     version,
@@ -365,9 +365,9 @@ function toSkillFrontmatter(content, skillName) {
     commands: commandFiles.filter((c) =&gt; !omit.includes(c)).map((c) =&gt; commandName(c, target)),
   }, null, 2) + '\n';</code></pre></li>
 
-<li>☐ <strong>Step 7: Run and confirm PASS</strong> — <code>npm test</code>, all existing tests still green.</li>
+<li>☑ <strong>Step 7: Run and confirm PASS</strong> — <code>npm test</code>, all existing tests still green.</li>
 
-<li>☐ <strong>Step 8: Commit</strong> — <code>feat(install): write the Agent Skills layout for the agents target</code></li>
+<li>☑ <strong>Step 8: Commit</strong> — <code>feat(install): write the Agent Skills layout for the agents target</code></li>
 </ul>
 
 <h2>Task 3: Uninstall and status per target</h2>
