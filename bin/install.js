@@ -582,14 +582,38 @@ async function install({ dryRun, assumeYes, project = false }) {
   }
 
   if (dryRun) {
-    const writes = plannedWrites(target);
+    const plannedWrites = [];
+    for (const file of GUIDE_FILES) {
+      plannedWrites.push({
+        kind: 'guide',
+        src: path.join(TEMPLATES_DIR, file),
+        dest: path.join(target.guidesDir, file),
+      });
+    }
+    for (const cmd of [...COMMAND_FILES, ...SKILL_FILES]) {
+      plannedWrites.push({
+        kind: 'command',
+        src: path.join(TEMPLATES_DIR, cmd),
+        dest: path.join(target.commandsDir, cmd),
+      });
+    }
+    for (const asset of ASSET_FILES) {
+      plannedWrites.push({
+        kind: 'asset',
+        src: path.join(TEMPLATES_DIR, asset),
+        dest: path.join(target.guidesDir, asset),
+      });
+    }
+    plannedWrites.push({
+      kind: 'meta',
+      dest: target.metaFile,
+    });
 
     console.log(`\nDry-run (no files written) — would install v${pkg.version}:\n`);
     console.log(`  mkdir -p ${target.guidesDir}`);
     console.log(`  mkdir -p ${target.commandsDir}`);
-    for (const w of writes) {
-      // Guides and commands are rendered (placeholders filled); assets are copied verbatim.
-      const label = w.kind === 'asset' ? 'copy  ' : w.kind === 'meta' ? 'write ' : 'render';
+    for (const w of plannedWrites) {
+      const label = w.kind === 'guide' ? 'copy  ' : w.kind === 'command' ? 'render' : w.kind === 'asset' ? 'copy  ' : 'write ';
       const base = w.src ? path.basename(w.src) : path.basename(w.dest);
       console.log(`  ${label} ${base.padEnd(36)} → ${w.dest}`);
     }
