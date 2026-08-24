@@ -207,9 +207,41 @@ function renderTemplate(content, { installPath, version, pkgName }) {
     .replace(/\{\{KIT_PACKAGE\}\}/g, pkgName);
 }
 
+// 'slashforge/code.md' -> 'slashforge-code'.
+function skillDirName(file, prefix = '') {
+  return prefix + path.basename(file, '.md');
+}
+
+// Cursor and Codex require `name` to be lowercase letters, digits and hyphens only,
+// and to match the skill's parent directory. Templates carry Claude Code's
+// '/slashforge:code' form, so that one line is rewritten. Bounded to the frontmatter
+// block so a body line beginning 'name:' is never touched.
+function toSkillFrontmatter(content, skillName) {
+  const lines = content.split(/\r?\n/);
+  const end = lines.indexOf('---', 1);
+  for (let i = 1; i < end; i += 1) {
+    if (/^name\s*:/.test(lines[i])) {
+      lines[i] = `name: ${skillName}`;
+      break;
+    }
+  }
+  return lines.join('\n');
+}
+
+// The skills layout has no `:` namespace, so in-body references to sibling commands
+// must use the hyphenated form — otherwise every cross-reference in the workflow names
+// a command that does not exist on this target.
+function toSkillCommandRefs(content, prefix) {
+  return content.replace(/\/slashforge:([a-z][a-z-]*)/g, `/${prefix}$1`);
+}
+
 // 'forge/setup.md' -> '/slashforge:setup'. A command file's path under the commands
-// dir determines how it is invoked; a subdirectory becomes a `:` namespace.
-function commandName(file) {
+// dir determines how it is invoked; a subdirectory becomes a `:` namespace. The
+// skills layout has no namespace, so the prefix lives in the directory name instead.
+function commandName(file, target = null) {
+  if (target && target.layout === 'skills') {
+    return '/' + skillDirName(file, target.namePrefix);
+  }
   return '/' + file.replace(/\.md$/, '').split(path.sep).join(':');
 }
 
@@ -258,14 +290,15 @@ function installFiles(target, {
   // copied-not-rendered guide would ship the literal {{INSTALL_PATH}}.
   for (const f of guideFiles) {
     const dest = path.join(target.guidesDir, f);
-    fs.writeFileSync(
-      dest,
-      renderTemplate(fs.readFileSync(path.join(templatesDir, f), 'utf8'), {
-        installPath: target.installPath,
-        version,
-        pkgName,
-      }),
-    );
+    let rendered = renderTemplate(fs.readFileSync(path.join(templatesDir, f), 'utf8'), {
+      installPath: target.installPath,
+      version,
+      pkgName,
+    });
+    if (target.layout === 'skills') {
+      rendered = toSkillCommandRefs(rendered, target.namePrefix);
+    }
+    fs.writeFileSync(dest, rendered);
     written.push(dest);
   }
   // Assets are installed verbatim — forge-open.sh is executed as-is and the
@@ -275,15 +308,27 @@ function installFiles(target, {
     fs.copyFileSync(path.join(templatesDir, f), dest);
     written.push(dest);
   }
+  const omit = target.omit || [];
   for (const c of [...commandFiles, ...skillFiles]) {
-    const rendered = renderTemplate(fs.readFileSync(path.join(templatesDir, c), 'utf8'), {
+    // A target may not support every command; setup provisions Claude Code
+    // structure that has no equivalent under the skills layout.
+    if (omit.includes(c)) continue;
+    let rendered = renderTemplate(fs.readFileSync(path.join(templatesDir, c), 'utf8'), {
       installPath: target.installPath,
       version,
       pkgName,
     });
-    const dest = path.join(target.commandsDir, c);
-    // Command files live in a namespace subdirectory (forge/), which is what
-    // produces the /slashforge:name invocation form.
+    let dest;
+    if (target.layout === 'skills') {
+      const name = skillDirName(c, target.namePrefix);
+      rendered = toSkillCommandRefs(rendered, target.namePrefix);
+      rendered = toSkillFrontmatter(rendered, name);
+      dest = path.join(target.commandsDir, name, 'SKILL.md');
+    } else {
+      // Command files live in a namespace subdirectory (forge/), which is what
+      // produces the /slashforge:name invocation form.
+      dest = path.join(target.commandsDir, c);
+    }
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, rendered);
     written.push(dest);
@@ -297,7 +342,10 @@ function installFiles(target, {
     version,
     installed_at: new Date().toISOString(),
     mode: target.mode,
-    commands: commandFiles.map(commandName),
+    target: target.target,
+    commands: commandFiles
+      .filter((c) => !omit.includes(c))
+      .map((c) => commandName(c, target)),
   }, null, 2) + '\n';
   fs.writeFileSync(target.metaFile, meta);
   written.push(target.metaFile);
@@ -700,6 +748,9 @@ module.exports = {
   installFiles,
   uninstallFiles,
   commandName,
+  skillDirName,
+  toSkillFrontmatter,
+  toSkillCommandRefs,
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
   ASSET_FILES,

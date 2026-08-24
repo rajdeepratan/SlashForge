@@ -23,6 +23,7 @@ const {
   LEGACY_COMMAND_FILES,
   TARGETS,
   resolveTargetName,
+  skillDirName,
 } = require('../bin/install.js');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
@@ -831,4 +832,106 @@ test('resolveTargetName normalises aliases and rejects unknowns', () => {
 test('agents target omits setup', () => {
   assert.ok(TARGETS.agents.omit.includes(path.join('slashforge', 'setup.md')));
   assert.deepEqual(TARGETS.claude.omit, []);
+});
+
+test('agents install writes SKILL.md dirs with a rewritten name', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+  const body = fs.readFileSync(
+    path.join(home, '.agents', 'skills', 'slashforge-code', 'SKILL.md'), 'utf8');
+  assert.match(body, /^name: slashforge-code$/m);
+  assert.ok(!body.includes('/slashforge:code'), 'the Claude command form must be rewritten');
+});
+
+test('every installed SKILL.md name is valid and matches its parent dir', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+  const root = path.join(home, '.agents', 'skills');
+  const dirs = fs.readdirSync(root);
+  assert.equal(dirs.length, COMMAND_FILES.length + SKILL_FILES.length - 1, 'setup is omitted');
+  for (const dir of dirs) {
+    const fm = parseFrontmatter(fs.readFileSync(path.join(root, dir, 'SKILL.md'), 'utf8'), dir);
+    assert.match(fm.name, /^[a-z0-9-]+$/, `${dir}: name must be lowercase-hyphen only`);
+    assert.equal(fm.name, dir, `${dir}: name must match its parent directory`);
+  }
+});
+
+test('setup is omitted on the agents target but present on claude', () => {
+  const home = tmp();
+  installFiles(resolveTarget({ target: 'cursor', homeDir: home, cwd: home }), {});
+  assert.ok(!fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-setup')));
+
+  const home2 = tmp();
+  installFiles(resolveTarget({ homeDir: home2, cwd: home2 }), {});
+  assert.ok(fs.existsSync(path.join(home2, '.claude', 'commands', 'slashforge', 'setup.md')));
+});
+
+test('agents skills render with no leftover placeholder', () => {
+  const home = tmp();
+  installFiles(resolveTarget({ target: 'cursor', homeDir: home, cwd: home }), {});
+  const body = fs.readFileSync(
+    path.join(home, '.agents', 'skills', 'slashforge-code', 'SKILL.md'), 'utf8');
+  assert.ok(!body.includes('{{INSTALL_PATH}}'));
+  assert.ok(body.includes('.agents/setup/slashforge'));
+});
+
+test('agents guides are installed alongside the skills', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+  for (const f of GUIDE_FILES) {
+    assert.ok(fs.existsSync(path.join(target.guidesDir, f)), `missing guide ${f}`);
+  }
+  for (const f of ASSET_FILES) {
+    assert.ok(fs.existsSync(path.join(target.guidesDir, f)), `missing asset ${f}`);
+  }
+});
+
+test('meta.json records the target and installed command names', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'codex', homeDir: home, cwd: home });
+  installFiles(target, {});
+  const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
+  assert.equal(meta.target, 'agents');
+  assert.deepEqual(meta.commands,
+    ['/slashforge-code', '/slashforge-investigate', '/slashforge-review-pr']);
+});
+
+test('claude meta.json keeps the colon command names', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
+  assert.equal(meta.target, 'claude');
+  assert.ok(meta.commands.includes('/slashforge:setup'));
+});
+
+test('skillDirName maps a template path to a prefixed dir name', () => {
+  assert.equal(skillDirName(path.join('slashforge', 'code.md'), 'slashforge-'), 'slashforge-code');
+  assert.equal(skillDirName(path.join('slashforge', 'code.md')), 'code');
+});
+
+test('skills layout rewrites in-body command references to the hyphen form', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+
+  const skill = fs.readFileSync(
+    path.join(home, '.agents', 'skills', 'slashforge-investigate', 'SKILL.md'), 'utf8');
+  assert.ok(skill.includes('/slashforge-code'), 'hand-off must name the hyphenated command');
+  assert.ok(!skill.includes('/slashforge:'), 'no colon form may survive on this target');
+
+  const guide = fs.readFileSync(path.join(target.guidesDir, 'forge-workflow.md'), 'utf8');
+  assert.ok(!guide.includes('/slashforge:'), 'guides must be rewritten too');
+});
+
+test('claude layout leaves command references untouched', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  const guide = fs.readFileSync(path.join(target.guidesDir, 'forge-workflow.md'), 'utf8');
+  assert.ok(guide.includes('/slashforge:code'), 'the colon form is correct on Claude Code');
+  assert.ok(!guide.includes('/slashforge-code'));
 });
