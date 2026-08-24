@@ -69,6 +69,34 @@ const REMOVED_GUIDE_FILES = [
   'forge-preflight.md',
 ];
 
+// Install targets. `claude` writes flat command files under .claude/commands/slashforge/,
+// which is what produces the /slashforge:name form. `agents` writes the Agent Skills
+// layout to .agents/skills/, which both Cursor and Codex read. That layout has no
+// namespace of any kind, so the prefix has to be carried in the directory name instead.
+const TARGETS = {
+  claude: { dirname: '.claude', commandsSubdir: 'commands', layout: 'commands', namePrefix: '', omit: [] },
+  agents: {
+    dirname: '.agents',
+    commandsSubdir: 'skills',
+    layout: 'skills',
+    namePrefix: 'slashforge-',
+    // setup provisions .claude/agents, hooks and CLAUDE.md — none of which exist here.
+    omit: [path.join('slashforge', 'setup.md')],
+  },
+};
+
+// Users type the vendor they use, not the directory convention it happens to share.
+const TARGET_ALIASES = { cursor: 'agents', codex: 'agents' };
+
+function resolveTargetName(name) {
+  const key = String(name == null ? 'claude' : name).trim().toLowerCase();
+  const resolved = TARGET_ALIASES[key] || key;
+  if (!TARGETS[resolved]) {
+    throw new Error(`Unknown target '${name}'. Use one of: claude, cursor, codex, agents.`);
+  }
+  return resolved;
+}
+
 // Namespace directory the command files live in, under the commands dir.
 const COMMAND_NAMESPACE = 'slashforge';
 
@@ -185,27 +213,25 @@ function commandName(file) {
   return '/' + file.replace(/\.md$/, '').split(path.sep).join(':');
 }
 
-function resolveTarget({ project = false, homeDir = os.homedir(), cwd = process.cwd() } = {}) {
-  if (project) {
-    const base = path.join(cwd, '.claude');
-    const guidesDir = path.join(base, 'setup', 'slashforge');
-    return {
-      guidesDir,
-      legacyGuidesDir: path.join(base, 'setup', LEGACY_GUIDES_DIRNAME),
-      commandsDir: path.join(base, 'commands'),
-      metaFile: path.join(guidesDir, 'meta.json'),
-      installPath: '.claude/setup/slashforge',
-      mode: 'project',
-    };
-  }
-  const guidesDir = path.join(homeDir, '.claude', 'setup', 'slashforge');
+function resolveTarget({ target = 'claude', project = false, homeDir = os.homedir(), cwd = process.cwd() } = {}) {
+  const name = resolveTargetName(target);
+  const spec = TARGETS[name];
+  const base = path.join(project ? cwd : homeDir, spec.dirname);
+  const guidesDir = path.join(base, 'setup', 'slashforge');
   return {
+    target: name,
+    layout: spec.layout,
+    namePrefix: spec.namePrefix,
+    omit: spec.omit,
     guidesDir,
-    legacyGuidesDir: path.join(homeDir, '.claude', 'setup', LEGACY_GUIDES_DIRNAME),
-    commandsDir: path.join(homeDir, '.claude', 'commands'),
+    // Only the Claude target ever had a v2 layout to clean up.
+    legacyGuidesDir: name === 'claude' ? path.join(base, 'setup', LEGACY_GUIDES_DIRNAME) : null,
+    commandsDir: path.join(base, spec.commandsSubdir),
     metaFile: path.join(guidesDir, 'meta.json'),
-    installPath: guidesDir.split(path.sep).join('/'),
-    mode: 'global',
+    installPath: project
+      ? [spec.dirname, 'setup', 'slashforge'].join('/')
+      : guidesDir.split(path.sep).join('/'),
+    mode: project ? 'project' : 'global',
   };
 }
 
@@ -680,4 +706,6 @@ module.exports = {
   SKILL_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
+  TARGETS,
+  resolveTargetName,
 };

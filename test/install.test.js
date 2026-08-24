@@ -21,6 +21,8 @@ const {
   SKILL_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
+  TARGETS,
+  resolveTargetName,
 } = require('../bin/install.js');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
@@ -774,4 +776,59 @@ test('isNewerVersion only fires on a certainly-newer release', () => {
     assert.equal(isNewerVersion(junk, '4.2.0'), false, `junk candidate: ${JSON.stringify(junk)}`);
   }
   assert.equal(isNewerVersion('4.3.1', 'unknown'), false, 'junk current');
+});
+
+// ---------------------------------------------------------------------------
+// Install targets (Cursor / Codex)
+// ---------------------------------------------------------------------------
+
+test('resolveTarget agents global uses ~/.agents and the skills layout', () => {
+  const t = resolveTarget({ target: 'agents', homeDir: '/home/u', cwd: '/repo' });
+  assert.equal(t.guidesDir, path.join('/home/u', '.agents', 'setup', 'slashforge'));
+  assert.equal(t.commandsDir, path.join('/home/u', '.agents', 'skills'));
+  assert.equal(t.installPath, '/home/u/.agents/setup/slashforge');
+  assert.equal(t.layout, 'skills');
+  assert.equal(t.namePrefix, 'slashforge-');
+});
+
+test('resolveTarget agents project uses cwd', () => {
+  const t = resolveTarget({ target: 'agents', project: true, homeDir: '/home/u', cwd: '/repo' });
+  assert.equal(t.commandsDir, path.join('/repo', '.agents', 'skills'));
+  assert.equal(t.installPath, '.agents/setup/slashforge');
+  assert.equal(t.mode, 'project');
+});
+
+test('cursor and codex are aliases for the agents target', () => {
+  for (const name of ['cursor', 'codex', 'CURSOR', ' codex ']) {
+    assert.equal(resolveTarget({ target: name, homeDir: '/h', cwd: '/r' }).target, 'agents');
+  }
+});
+
+test('claude stays the default and keeps the commands layout', () => {
+  const t = resolveTarget({ homeDir: '/home/u', cwd: '/repo' });
+  assert.equal(t.target, 'claude');
+  assert.equal(t.layout, 'commands');
+  assert.equal(t.namePrefix, '');
+  assert.equal(t.commandsDir, path.join('/home/u', '.claude', 'commands'));
+});
+
+test('only the claude target carries a legacy guides dir', () => {
+  assert.ok(resolveTarget({ homeDir: '/h', cwd: '/r' }).legacyGuidesDir);
+  assert.equal(resolveTarget({ target: 'cursor', homeDir: '/h', cwd: '/r' }).legacyGuidesDir, null);
+});
+
+test('unknown target throws with the valid names listed', () => {
+  assert.throws(() => resolveTarget({ target: 'vscode' }), /claude, cursor, codex, agents/);
+});
+
+test('resolveTargetName normalises aliases and rejects unknowns', () => {
+  assert.equal(resolveTargetName('cursor'), 'agents');
+  assert.equal(resolveTargetName(undefined), 'claude');
+  assert.equal(resolveTargetName(null), 'claude');
+  assert.throws(() => resolveTargetName('emacs'), /Unknown target/);
+});
+
+test('agents target omits setup', () => {
+  assert.ok(TARGETS.agents.omit.includes(path.join('slashforge', 'setup.md')));
+  assert.deepEqual(TARGETS.claude.omit, []);
 });
