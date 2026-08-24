@@ -620,9 +620,8 @@ async function printStatus({ target: targetName = 'claude', project = false } = 
   await warnIfOutdated();
 }
 
-// The file writes an install would perform, as data. The dry run lists these, so
-// it must walk the same four lists installFiles does: a preview built from its own
-// shorter list is how the dry run came to announce 21 of the 32 files it wrote.
+// The file writes an install would perform, as data — so the dry-run listing can be
+// asserted on without capturing stdout.
 function plannedWrites(target, {
   templatesDir = TEMPLATES_DIR,
   guideFiles = GUIDE_FILES,
@@ -630,22 +629,24 @@ function plannedWrites(target, {
   assetFiles = ASSET_FILES,
   skillFiles = SKILL_FILES,
 } = {}) {
+  const omit = target.omit || [];
   const writes = [];
   for (const file of guideFiles) {
     writes.push({ kind: 'guide', src: path.join(templatesDir, file), dest: path.join(target.guidesDir, file) });
   }
+  for (const cmd of [...commandFiles, ...skillFiles]) {
+    if (omit.includes(cmd)) continue;
+    writes.push({ kind: 'command', src: path.join(templatesDir, cmd), dest: commandPath(target, cmd) });
+  }
   for (const asset of assetFiles) {
     writes.push({ kind: 'asset', src: path.join(templatesDir, asset), dest: path.join(target.guidesDir, asset) });
-  }
-  for (const cmd of [...commandFiles, ...skillFiles]) {
-    writes.push({ kind: 'command', src: path.join(templatesDir, cmd), dest: path.join(target.commandsDir, cmd) });
   }
   writes.push({ kind: 'meta', dest: target.metaFile });
   return writes;
 }
 
-async function install({ dryRun, assumeYes, project = false }) {
-  const target = resolveTarget({ project });
+async function install({ dryRun, assumeYes, project = false, target: targetName = 'claude' }) {
+  const target = resolveTarget({ target: targetName, project });
 
   validateTemplates(GUIDE_FILES, TEMPLATES_DIR);
   validateTemplates(COMMAND_FILES, TEMPLATES_DIR);
@@ -667,37 +668,12 @@ async function install({ dryRun, assumeYes, project = false }) {
   }
 
   if (dryRun) {
-    const plannedWrites = [];
-    for (const file of GUIDE_FILES) {
-      plannedWrites.push({
-        kind: 'guide',
-        src: path.join(TEMPLATES_DIR, file),
-        dest: path.join(target.guidesDir, file),
-      });
-    }
-    for (const cmd of [...COMMAND_FILES, ...SKILL_FILES]) {
-      plannedWrites.push({
-        kind: 'command',
-        src: path.join(TEMPLATES_DIR, cmd),
-        dest: path.join(target.commandsDir, cmd),
-      });
-    }
-    for (const asset of ASSET_FILES) {
-      plannedWrites.push({
-        kind: 'asset',
-        src: path.join(TEMPLATES_DIR, asset),
-        dest: path.join(target.guidesDir, asset),
-      });
-    }
-    plannedWrites.push({
-      kind: 'meta',
-      dest: target.metaFile,
-    });
+    const writes = plannedWrites(target, {});
 
     console.log(`\nDry-run (no files written) — would install v${pkg.version}:\n`);
     console.log(`  mkdir -p ${target.guidesDir}`);
     console.log(`  mkdir -p ${target.commandsDir}`);
-    for (const w of plannedWrites) {
+    for (const w of writes) {
       const label = w.kind === 'guide' ? 'copy  ' : w.kind === 'command' ? 'render' : w.kind === 'asset' ? 'copy  ' : 'write ';
       const base = w.src ? path.basename(w.src) : path.basename(w.dest);
       console.log(`  ${label} ${base.padEnd(36)} → ${w.dest}`);
@@ -711,11 +687,28 @@ async function install({ dryRun, assumeYes, project = false }) {
   console.log(`\n✓ v${pkg.version} installed`);
   console.log(`✓ Guide files: ${target.guidesDir}`);
   for (const cmd of COMMAND_FILES) {
-    console.log(`✓ Command: ${path.join(target.commandsDir, cmd)}`);
+    if (target.omit.includes(cmd)) continue;
+    console.log(`✓ Command: ${commandPath(target, cmd)}`);
   }
 
   reportLegacyLeftovers(target);
 
+  if (target.layout === 'skills') {
+    const omitted = COMMAND_FILES.filter((c) => target.omit.includes(c));
+    if (omitted.length) {
+      console.log(`\n⚠  Not installed on this target: ${omitted.map((c) => '/' + skillDirName(c, target.namePrefix)).join(', ')}`);
+      console.log('   setup provisions .claude/agents, hooks and CLAUDE.md, which have no');
+      console.log('   equivalent here yet. Run /slashforge:setup from Claude Code instead.');
+    }
+    console.log('\nDone! Open Cursor in any repo:');
+    console.log('  • /slashforge-code — freeform end-to-end development workflow');
+    console.log('  • /slashforge-code -quick — lean mode for small changes');
+    console.log('  • /slashforge-investigate [symptom] — read-only research, produces a findings report');
+    console.log('  • /slashforge-review-pr [number] — review a PR against this repo\'s rules');
+    console.log('\n  Codex reads the same directory and invokes them as $slashforge-code (unverified).');
+    await warnIfOutdated();
+    return;
+  }
 
   console.log('\nDone! Open Claude Code in any repo:');
   console.log('  • /slashforge:setup — one-time repo setup');
@@ -749,13 +742,14 @@ function reportLegacyLeftovers(target) {
   console.log('   They are no longer used. Safe to delete once you have moved to /slashforge:* commands.');
 }
 
-async function uninstall({ project, assumeYes, interactive = true }) {
-  const target = resolveTarget({ project });
+async function uninstall({ project, assumeYes, target: targetName = 'claude' }) {
+  const target = resolveTarget({ target: targetName, project });
   // Also detect a v2 install so `uninstall` can clean up after an upgrade.
-  const installed = hasKitFiles(target.guidesDir) ||
-    fs.existsSync(target.legacyGuidesDir) ||
-    [...COMMAND_FILES, ...LEGACY_COMMAND_FILES]
-      .some((c) => fs.existsSync(path.join(target.commandsDir, c)));
+  const installed = fs.existsSync(target.guidesDir) ||
+    (target.legacyGuidesDir && fs.existsSync(target.legacyGuidesDir)) ||
+    COMMAND_FILES.some((c) => fs.existsSync(commandPath(target, c))) ||
+    (target.layout === 'commands' &&
+      LEGACY_COMMAND_FILES.some((c) => fs.existsSync(path.join(target.commandsDir, c))));
   if (!installed) {
     console.log('slashforge is not installed at this location. Nothing to remove.');
     return;
@@ -791,12 +785,20 @@ function printHelp() {
   console.log('  uninstall    Remove the kit\'s guides and commands (use --project for ./.claude)');
   console.log('');
   console.log('Options:');
-  console.log('  --project    Install into ./.claude/ of the current repo (project mode)');
+  console.log('  --project    Install into ./.claude/ (or ./.agents/) of the current repo');
+  console.log('  --target <n> claude (default) | cursor | codex | agents');
   console.log('  --dry-run    Print planned file writes without touching the filesystem');
   console.log('  --yes, -y    Non-interactive mode — auto-confirm the prompts');
   console.log('               (SLASHFORGE_YES=1 does the same; without a TTY the update prompt');
   console.log('               is confirmed on its own, but uninstall still needs --yes)');
   console.log('  --help, -h   Show this help');
+}
+
+function parseTargetArg(args) {
+  const i = args.indexOf('--target');
+  if (i !== -1 && args[i + 1]) return args[i + 1];
+  const inline = args.find((a) => a.startsWith('--target='));
+  return inline ? inline.slice('--target='.length) : 'claude';
 }
 
 async function main() {
@@ -809,9 +811,12 @@ async function main() {
   }
 
   const project = args.includes('--project');
+  const target = parseTargetArg(args);
+  // Fail fast on a bad target rather than deep inside an install.
+  resolveTargetName(target);
 
   if (args[0] === 'status') {
-    await printStatus({ project });
+    await printStatus({ project, target });
     closeRl();
     return;
   }
@@ -826,15 +831,13 @@ async function main() {
   const assumeYes = explicitYes || !interactive;
 
   if (args[0] === 'uninstall') {
-    // Removing the kit is not the update prompt: it takes an explicit yes rather
-    // than one inferred from a missing TTY.
-    await uninstall({ project, assumeYes: explicitYes, interactive });
+    await uninstall({ project, assumeYes, target });
     closeRl();
     return;
   }
 
   try {
-    await install({ dryRun, assumeYes, project });
+    await install({ dryRun, assumeYes, project, target });
   } finally {
     closeRl();
   }
@@ -866,6 +869,8 @@ module.exports = {
   toSkillFrontmatter,
   toSkillCommandRefs,
   commandPath,
+  parseTargetArg,
+  plannedWrites,
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
   ASSET_FILES,
