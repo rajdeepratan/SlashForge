@@ -653,12 +653,15 @@ async function install({ dryRun, assumeYes, project = false, target: targetName 
       console.log('   setup provisions .claude/agents, hooks and CLAUDE.md, which have no');
       console.log('   equivalent here yet. Run /slashforge:setup from Claude Code instead.');
     }
-    console.log('\nDone! Open Cursor in any repo:');
+    // cursor and codex both resolve to this target, so the message names neither
+    // exclusively — a codex user should not be told to open Cursor.
+    console.log('\nDone! Cursor and Codex both read this directory:');
     console.log('  • /slashforge-code — freeform end-to-end development workflow');
     console.log('  • /slashforge-code -quick — lean mode for small changes');
     console.log('  • /slashforge-investigate [symptom] — read-only research, produces a findings report');
     console.log('  • /slashforge-review-pr [number] — review a PR against this repo\'s rules');
-    console.log('\n  Codex reads the same directory and invokes them as $slashforge-code (unverified).');
+    console.log('\n  In Cursor type /slashforge-code. In Codex the same skills are invoked');
+    console.log('  as $slashforge-code — that path is not yet verified.');
     await warnIfOutdated();
     return;
   }

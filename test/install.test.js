@@ -1042,3 +1042,17 @@ test('install summary lists the paths it actually wrote', () => {
   }
   assert.ok(!out.includes('slashforge-setup/SKILL.md'), 'omitted command must not be listed');
 });
+
+test('the completion message does not name the wrong vendor', () => {
+  const run = (t) => {
+    const home = tmp();
+    return execFileSync(process.execPath, [BIN, '--target', t], {
+      encoding: 'utf8',
+      env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' },
+    });
+  };
+  const codex = run('codex');
+  assert.ok(!/Open Cursor/.test(codex), 'a codex install must not tell the user to open Cursor');
+  assert.match(codex, /Cursor and Codex/);
+  assert.match(run('cursor'), /Cursor and Codex/);
+});
