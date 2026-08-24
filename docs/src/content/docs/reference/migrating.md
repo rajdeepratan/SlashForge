@@ -55,8 +55,8 @@ stop working.==
 | `/quick` | `/forge:code -quick` |
 | `/investigate` | `/forge:investigate` |
 
-`/setup-claude` was tied to a single vendor, which does not survive the planned
-Cursor and Codex support. The namespace also stops `/code` colliding with
+`/setup-claude` was tied to a single vendor, which does not survive the Cursor
+and Codex support that has since shipped. The namespace also stops `/code` colliding with
 commands you already have — a real risk when the same commands are installed
 across many repos.
 
@@ -125,8 +125,8 @@ what will actually trip you up:==
 | `/quick` | `/slashforge:code -quick` |
 | `/investigate` | `/slashforge:investigate` |
 
-`claude-setup-kit` tied the project to one vendor. Cursor and Codex support is
-planned, and a name built around a single tool does not survive that. The same
+`claude-setup-kit` tied the project to one vendor. Cursor and Codex support has
+since shipped, and a name built around a single tool would not have survived it. The same
 reasoning drove `/setup-claude` → `/slashforge:setup` one release later.
 
 ## Upgrading, whichever hop you are on
