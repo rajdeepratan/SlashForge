@@ -471,7 +471,7 @@ test('uninstall prunes the skills root only when it is empty', () =&gt; {
 </ul>
 
 <ul>
-<li>☐ <strong>Step 1: Write the failing tests</strong>
+<li>☑ <strong>Step 1: Write the failing tests</strong>
 <pre><code>test('parseTargetArg reads both flag forms and defaults to claude', () =&gt; {
   assert.equal(parseTargetArg(['--target', 'cursor']), 'cursor');
   assert.equal(parseTargetArg(['--target=codex']), 'codex');
@@ -487,10 +487,10 @@ test('dry-run for the agents target writes nothing and names skill paths', () =&
   assert.ok(!fs.existsSync(path.join(home, '.agents')), 'dry-run must not create files');
 });</code></pre></li>
 
-<li>☐ <strong>Step 2: Run and confirm they FAIL</strong><br>
+<li>☑ <strong>Step 2: Run and confirm they FAIL</strong><br>
     Run: <code>npm test</code> — expected: <code>parseTargetArg is not a function</code>.</li>
 
-<li>☐ <strong>Step 3: Add <code>parseTargetArg</code></strong>
+<li>☑ <strong>Step 3: Add <code>parseTargetArg</code></strong>
 <pre><code>function parseTargetArg(args) {
   const i = args.indexOf('--target');
   if (i !== -1 &amp;&amp; args[i + 1]) return args[i + 1];
@@ -498,19 +498,19 @@ test('dry-run for the agents target writes nothing and names skill paths', () =&
   return inline ? inline.slice('--target='.length) : 'claude';
 }</code></pre></li>
 
-<li>☐ <strong>Step 4: Extract <code>plannedWrites(target, opts)</code></strong> from the dry-run block at
+<li>☑ <strong>Step 4: Extract <code>plannedWrites(target, opts)</code></strong> from the dry-run block at
     <code>bin/install.js:492-520</code> into a named function that returns the array, so the dry-run path is testable
     without capturing stdout. It applies <code>target.omit</code> and the skills layout using the same
     <code>skillDirName</code> as Task 2. <code>install()</code> then calls it and prints the result.
     <strong>Note:</strong> this block currently has uncommitted local changes adding assets and skills to the
     dry-run listing — preserve that behaviour when extracting.</li>
 
-<li>☐ <strong>Step 5: Thread <code>target</code> through the CLI</strong> — <code>main()</code> calls
+<li>☑ <strong>Step 5: Thread <code>target</code> through the CLI</strong> — <code>main()</code> calls
     <code>parseTargetArg(args)</code> once and passes it to <code>install</code>, <code>uninstall</code> and
     <code>printStatus</code>. Wrap the <code>resolveTargetName</code> call so an unknown target exits 1 with the
     error text rather than a stack trace.</li>
 
-<li>☐ <strong>Step 6: Add the omission and invocation messaging</strong> to <code>install()</code>
+<li>☑ <strong>Step 6: Add the omission and invocation messaging</strong> to <code>install()</code>
 <pre><code>  if (target.layout === 'skills') {
     console.log('\n⚠  /slashforge-setup is not installed on this target.');
     console.log('   It provisions .claude/agents, hooks and CLAUDE.md, which have no');
@@ -523,16 +523,16 @@ test('dry-run for the agents target writes nothing and names skill paths', () =&
   }</code></pre>
     Leave the existing Claude Code block unchanged, selected by <code>else</code>.</li>
 
-<li>☐ <strong>Step 7: Update <code>printHelp</code></strong> — add
+<li>☑ <strong>Step 7: Update <code>printHelp</code></strong> — add
     <code>--target &lt;name&gt;  claude (default) | cursor | codex | agents</code>.</li>
 
-<li>☐ <strong>Step 8: Run and confirm PASS</strong> — <code>npm test</code>.</li>
+<li>☑ <strong>Step 8: Run and confirm PASS</strong> — <code>npm test</code>.</li>
 
-<li>☐ <strong>Step 9: Manual smoke test</strong>
+<li>☑ <strong>Step 9: Manual smoke test</strong>
 <pre><code>node bin/install.js --dry-run --target cursor --project
 node bin/install.js --dry-run --project        # must be unchanged from main</code></pre></li>
 
-<li>☐ <strong>Step 10: Commit</strong> — <code>feat(cli): add --target flag with cursor and codex aliases</code></li>
+<li>☑ <strong>Step 10: Commit</strong> — <code>feat(cli): add --target flag with cursor and codex aliases</code></li>
 </ul>
 
 <h2>Task 5: Update the claim sites</h2>

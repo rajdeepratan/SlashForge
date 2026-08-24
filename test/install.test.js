@@ -24,6 +24,8 @@ const {
   TARGETS,
   resolveTargetName,
   skillDirName,
+  parseTargetArg,
+  plannedWrites,
 } = require('../bin/install.js');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
@@ -973,4 +975,70 @@ test('uninstall on the agents target never touches .claude', () => {
   assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')),
     'the Claude install must be untouched');
   assert.ok(fs.existsSync(claude.guidesDir));
+});
+
+test('parseTargetArg reads both flag forms and defaults to claude', () => {
+  assert.equal(parseTargetArg(['--target', 'cursor']), 'cursor');
+  assert.equal(parseTargetArg(['--target=codex']), 'codex');
+  assert.equal(parseTargetArg(['--project']), 'claude');
+  assert.equal(parseTargetArg([]), 'claude');
+});
+
+test('plannedWrites for the agents target names skill paths and skips setup', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  const writes = plannedWrites(target, {});
+  assert.ok(writes.some((w) => w.dest.endsWith(path.join('slashforge-code', 'SKILL.md'))));
+  assert.ok(!writes.some((w) => w.dest.includes('slashforge-setup')));
+  assert.ok(writes.some((w) => w.kind === 'asset'), 'assets must be listed');
+  assert.ok(writes.some((w) => w.kind === 'meta'));
+});
+
+test('dry-run with --target cursor writes nothing', () => {
+  const home = tmp();
+  const out = execFileSync(process.execPath, [BIN, '--dry-run', '--target', 'cursor'], {
+    encoding: 'utf8',
+    env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' },
+  });
+  assert.match(out, /slashforge-code/);
+  assert.ok(!out.includes('slashforge-setup'), 'setup is omitted on this target');
+  assert.ok(!fs.existsSync(path.join(home, '.agents')), 'dry-run must not create files');
+});
+
+test('an unknown target exits 1 with the valid names', () => {
+  assert.throws(
+    () => execFileSync(process.execPath, [BIN, '--target', 'vscode'], {
+      encoding: 'utf8', stdio: 'pipe',
+      env: { ...process.env, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' },
+    }),
+    (err) => {
+      assert.equal(err.status, 1);
+      assert.match(err.stderr, /claude, cursor, codex, agents/);
+      return true;
+    });
+});
+
+test('status reports the agents target after installing to it', () => {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  execFileSync(process.execPath, [BIN, '--target', 'cursor'], { encoding: 'utf8', env });
+  const out = execFileSync(process.execPath, [BIN, 'status', '--target', 'cursor'], { encoding: 'utf8', env });
+  assert.match(out, /Target:\s+agents/);
+  assert.match(out, /\/slashforge-code/);
+  assert.ok(!out.includes('/slashforge:code'));
+});
+
+test('install summary lists the paths it actually wrote', () => {
+  const home = tmp();
+  const out = execFileSync(process.execPath, [BIN, '--target', 'cursor'], {
+    encoding: 'utf8',
+    env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' },
+  });
+  const listed = out.split('\n').filter((l) => l.startsWith('✓ Command:'));
+  assert.ok(listed.length > 0, 'commands should be listed');
+  for (const line of listed) {
+    const p = line.replace('✓ Command:', '').trim();
+    assert.ok(fs.existsSync(p), `summary names a path that was not written: ${p}`);
+  }
+  assert.ok(!out.includes('slashforge-setup/SKILL.md'), 'omitted command must not be listed');
 });
