@@ -228,6 +228,13 @@ function toSkillFrontmatter(content, skillName) {
   return lines.join('\n');
 }
 
+// Where a command template lands for a given target.
+function commandPath(target, file) {
+  return target.layout === 'skills'
+    ? path.join(target.commandsDir, skillDirName(file, target.namePrefix), 'SKILL.md')
+    : path.join(target.commandsDir, file);
+}
+
 // The skills layout has no `:` namespace, so in-body references to sibling commands
 // must use the hyphenated form — otherwise every cross-reference in the workflow names
 // a command that does not exist on this target.
@@ -358,19 +365,36 @@ function uninstallFiles(target, {
   skillFiles = SKILL_FILES,
 } = {}) {
   const removed = [];
-  // Current layout plus the v2 flat command files, so upgrading from < 3.0.0
-  // and then uninstalling does not leave the old files behind.
-  for (const c of [...commandFiles, ...skillFiles, ...LEGACY_COMMAND_FILES]) {
-    const p = path.join(target.commandsDir, c);
-    if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
-  }
-  // Prune the namespace dir once emptied, but never touch it if the user has
-  // put their own commands in there.
-  for (const ns of [COMMAND_NAMESPACE, LEGACY_COMMAND_NAMESPACE]) {
-    const nsDir = path.join(target.commandsDir, ns);
-    if (fs.existsSync(nsDir) && fs.readdirSync(nsDir).length === 0) {
-      fs.rmdirSync(nsDir);
-      removed.push(nsDir);
+  if (target.layout === 'skills') {
+    // .agents/skills is shared ground with every other tool's skills, so only the
+    // directories this installer writes are eligible for removal.
+    for (const c of [...commandFiles, ...skillFiles]) {
+      const dir = path.join(target.commandsDir, skillDirName(c, target.namePrefix));
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+        removed.push(dir);
+      }
+    }
+    // Prune the shared root only if we are the ones who emptied it.
+    if (fs.existsSync(target.commandsDir) && fs.readdirSync(target.commandsDir).length === 0) {
+      fs.rmdirSync(target.commandsDir);
+      removed.push(target.commandsDir);
+    }
+  } else {
+    // Current layout plus the v2 flat command files, so upgrading from < 3.0.0
+    // and then uninstalling does not leave the old files behind.
+    for (const c of [...commandFiles, ...skillFiles, ...LEGACY_COMMAND_FILES]) {
+      const p = path.join(target.commandsDir, c);
+      if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
+    }
+    // Prune the namespace dir once emptied, but never touch it if the user has
+    // put their own commands in there.
+    for (const ns of [COMMAND_NAMESPACE, LEGACY_COMMAND_NAMESPACE]) {
+      const nsDir = path.join(target.commandsDir, ns);
+      if (fs.existsSync(nsDir) && fs.readdirSync(nsDir).length === 0) {
+        fs.rmdirSync(nsDir);
+        removed.push(nsDir);
+      }
     }
   }
   for (const dir of [target.guidesDir, target.legacyGuidesDir]) {
@@ -510,8 +534,8 @@ async function warnIfOutdated() {
 // CLI commands
 // ---------------------------------------------------------------------------
 
-async function printStatus({ project = false } = {}) {
-  const target = resolveTarget({ project });
+async function printStatus({ target: targetName = 'claude', project = false } = {}) {
+  const target = resolveTarget({ target: targetName, project });
   if (!fs.existsSync(target.guidesDir)) {
     console.log('slashforge: not installed.');
     console.log(`Run \`npx ${pkg.name}\` to install v${pkg.version}.`);
@@ -521,6 +545,7 @@ async function printStatus({ project = false } = {}) {
 
   const meta = readMeta(target.metaFile);
   console.log(`\nslashforge status`);
+  console.log(`  Target:                    ${target.target}`);
   console.log(`  Package version (current): v${pkg.version}`);
   if (meta) {
     const marker = meta.version !== pkg.version ? '  ← update available' : '';
@@ -540,10 +565,10 @@ async function printStatus({ project = false } = {}) {
   // Command files sit in a namespace subdirectory, so probe each expected path
   // rather than listing the commands dir.
   const commands = COMMAND_FILES
-    .filter((c) => fs.existsSync(path.join(target.commandsDir, c)))
+    .filter((c) => fs.existsSync(commandPath(target, c)))
     .sort();
   console.log(`  Installed commands:        ${commands.length}`);
-  for (const f of commands) console.log(`    • ${commandName(f)}`);
+  for (const f of commands) console.log(`    • ${commandName(f, target)}`);
 
   await warnIfOutdated();
 }
@@ -635,6 +660,8 @@ async function install({ dryRun, assumeYes, project = false }) {
 // do not delete them during install — that would be removing files the user
 // never asked us to touch — so point at them instead and let the user decide.
 function reportLegacyLeftovers(target) {
+  // The v2 layout only ever existed under .claude/.
+  if (target.layout !== 'commands') return;
   const stale = [];
   if (target.legacyGuidesDir && fs.existsSync(target.legacyGuidesDir)) {
     stale.push(target.legacyGuidesDir);
@@ -751,6 +778,7 @@ module.exports = {
   skillDirName,
   toSkillFrontmatter,
   toSkillCommandRefs,
+  commandPath,
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
   ASSET_FILES,

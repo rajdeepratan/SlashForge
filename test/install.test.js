@@ -935,3 +935,42 @@ test('claude layout leaves command references untouched', () => {
   assert.ok(guide.includes('/slashforge:code'), 'the colon form is correct on Claude Code');
   assert.ok(!guide.includes('/slashforge-code'));
 });
+
+test('uninstall removes only slashforge dirs from the shared skills root', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+
+  const foreign = path.join(home, '.agents', 'skills', 'someone-elses-skill');
+  fs.mkdirSync(foreign, { recursive: true });
+  fs.writeFileSync(path.join(foreign, 'SKILL.md'), '---\nname: someone-elses-skill\ndescription: x\n---\n');
+
+  uninstallFiles(target, {});
+
+  assert.ok(fs.existsSync(foreign), 'a foreign skill must survive uninstall');
+  assert.ok(!fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code')));
+  assert.ok(!fs.existsSync(target.guidesDir), 'guides must be removed');
+});
+
+test('uninstall prunes the skills root only when it is left empty', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+  uninstallFiles(target, {});
+  assert.ok(!fs.existsSync(path.join(home, '.agents', 'skills')),
+    'an emptied skills root should be pruned');
+});
+
+test('uninstall on the agents target never touches .claude', () => {
+  const home = tmp();
+  const claude = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(claude, {});
+  const agents = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(agents, {});
+
+  uninstallFiles(agents, {});
+
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')),
+    'the Claude install must be untouched');
+  assert.ok(fs.existsSync(claude.guidesDir));
+});
