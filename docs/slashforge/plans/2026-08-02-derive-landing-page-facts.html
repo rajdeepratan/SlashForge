@@ -1,0 +1,329 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — derive the published version from package.json (2026-08-02)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Plan — derive the published version from package.json</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> Replace both hardcoded version literals with a single derived source, and
+  guard the build against either being written by hand again.
+</div>
+
+<h2>Architecture</h2>
+
+<p>Three tasks. The guard goes first and is proven to fail against the current build — 17 findings,
+   a measured number, not an estimate. The shared module then turns it green. The CI matrix change
+   comes last because its outcome is genuinely unknown and must not block the fix.</p>
+
+<h2>Tech stack</h2>
+
+<p>Node built-ins only — <code>node:fs</code>, <code>node:path</code>, ESM. Astro frontmatter and
+   <code>src/*.ts</code> modules run in Node at build time, so the manifest can be read without
+   entering Vite's module graph.</p>
+
+<h2>Global constraints</h2>
+<ul>
+  <li><strong>Zero dependencies.</strong></li>
+  <li><strong>Do not modify <code>docs/package-lock.json</code>.</strong> A macOS-regenerated
+      lockfile omits Linux optional dependencies and breaks CI's <code>npm ci</code>. If
+      <code>node_modules</code> is missing, restore with <code>npm ci</code>. Prefer
+      <code>npm run</code> over <code>npx astro</code>, which has rewritten the lockfile before.</li>
+  <li><strong>Derive once, consume twice.</strong> Reading the manifest separately in each file would
+      repeat, in the fix, the duplication that caused the bug.</li>
+  <li>The existing suite (43 tests), the docs build, the link check and the accessible-name guard
+      must all stay green.</li>
+</ul>
+
+<h2>File map</h2>
+<table>
+  <tr><th>File</th><th>Responsibility</th></tr>
+  <tr><td>Create <code>.github/scripts/check-docs-facts.mjs</code></td>
+      <td>Fails if any version chip in the built output disagrees with <code>package.json</code>.</td></tr>
+  <tr><td>Create <code>docs/src/pkg.ts</code></td>
+      <td>Single source: reads the manifest, exports <code>version</code> and <code>nodeFloor</code>.</td></tr>
+  <tr><td>Modify <code>docs/src/layouts/Base.astro</code></td>
+      <td>Footer version — renders on every page.</td></tr>
+  <tr><td>Modify <code>docs/src/pages/index.astro</code></td>
+      <td>Hero fact chips — version and Node floor.</td></tr>
+  <tr><td>Modify <code>.github/workflows/ci.yml</code></td>
+      <td>Runs the guard; adds Node 16 to the test matrix.</td></tr>
+</table>
+
+<h2>Task 1: Write the guard and prove it catches both literals</h2>
+
+<p><strong>Files:</strong> Create <code>.github/scripts/check-docs-facts.mjs</code></p>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: the built <code>docs/dist/</code> tree and <code>../package.json</code>. Run from
+      <code>docs/</code>.</li>
+  <li>Produces: an executable wired into CI in Task 3.</li>
+</ul>
+
+<ul>
+  <li>☐ <strong>Step 1: Build</strong><br>
+      Run: <code>cd docs &amp;&amp; npm run build</code></li>
+
+  <li>☐ <strong>Step 2: Write the guard</strong>
+<pre><code>#!/usr/bin/env node
+/**
+ * Fails if a published version string in the built docs disagrees with package.json.
+ *
+ * The site restated its version by hand in two places — the hero and the shared
+ * footer — and both froze at v4.0.1 while npm served 4.3.1. Seventeen stale
+ * strings across sixteen pages, live. The values are derived now, so this should
+ * always pass; its job is to fail if anyone writes one by hand again.
+ *
+ * Run from docs/ after `npm run build`.
+ */
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
+
+const DIST = 'dist';
+
+if (!existsSync(DIST)) {
+  console.error(`::error::${DIST}/ not found — run the build first`);
+  process.exit(1);
+}
+
+const pkg = JSON.parse(readFileSync(join('..', 'package.json'), 'utf8'));
+const expected = `v${pkg.version}`;
+
+const pages = [];
+(function walk(dir) {
+  for (const entry of readdirSync(dir)) {
+    const p = join(dir, entry);
+    if (statSync(p).isDirectory()) walk(p);
+    else if (p.endsWith('.html')) pages.push(p);
+  }
+})(DIST);
+
+// Deliberately narrow: only a bare vN.N.N alone inside a &lt;span&gt;. The changelog
+// page legitimately lists every past release, and a looser pattern would flag
+// all of them.
+const CHIP = /&lt;span&gt;(v\d+\.\d+\.\d+)&lt;\/span&gt;/g;
+
+let wrong = 0;
+for (const page of pages) {
+  const html = readFileSync(page, 'utf8');
+  for (const [, found] of html.matchAll(CHIP)) {
+    if (found === expected) continue;
+    console.error(
+      `::error file=docs/${relative('.', page)}::shows ${found}, package.json says ${expected}`
+    );
+    wrong++;
+  }
+}
+
+console.log(`checked ${pages.length} pages against ${expected}`);
+
+if (wrong &gt; 0) {
+  console.error(`${wrong} stale version string(s)`);
+  process.exit(1);
+}
+
+console.log('every published version string matches package.json');
+</code></pre></li>
+
+  <li>☐ <strong>Step 3: Run it and confirm it FAILS with exactly 17 findings across 16 pages</strong><br>
+      Run: <code>cd docs &amp;&amp; node ../.github/scripts/check-docs-facts.mjs</code><br>
+      Expected: exit 1. Sixteen from the shared footer, plus one extra on
+      <code>index.html</code> for the hero chip. <strong>Seventeen is the measured number</strong> —
+      it came from dry-running this guard before the plan was written. A different count means the
+      pattern is wrong: fewer and it is missing a surface, more and it is catching the changelog's
+      release list.</li>
+
+  <li>☐ <strong>Step 4: Commit</strong>
+<pre><code>git add .github/scripts/check-docs-facts.mjs
+git commit -m "test(docs): guard published version strings against package.json"</code></pre></li>
+</ul>
+
+<h2>Task 2: Derive both facts and turn the guard green</h2>
+
+<p><strong>Files:</strong> Create <code>docs/src/pkg.ts</code>; modify
+   <code>docs/src/layouts/Base.astro</code> and <code>docs/src/pages/index.astro</code></p>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: the guard from Task 1.</li>
+  <li>Produces: <code>version: string</code> and <code>nodeFloor: string</code>, exported from
+      <code>src/pkg.ts</code> and imported as <code>'../pkg'</code> from both
+      <code>layouts/</code> and <code>pages/</code>.</li>
+</ul>
+
+<ul>
+  <li>☐ <strong>Step 1: Create the shared module</strong><br>
+      <code>docs/src/pkg.ts</code>, alongside the existing <code>src/nav.ts</code>:
+<pre><code>import { readFileSync } from 'node:fs';
+
+const pkg = JSON.parse(
+  readFileSync(new URL('../../package.json', import.meta.url), 'utf8')
+);
+
+/** The published version, e.g. "4.3.1". */
+export const version: string = pkg.version;
+
+/** The engines floor as a display string: "&gt;=16" -&gt; "16+", "&gt;=18.0.0" -&gt; "18+". */
+export const nodeFloor: string =
+  `${pkg.engines.node.replace(/[^0-9.]/g, '').split('.')[0]}+`;</code></pre></li>
+
+  <li>☐ <strong>Step 2: Use it in the footer</strong> — <code>Base.astro</code>, import beside the
+      existing ones and replace the literal at line 37:
+<pre><code>import { version } from '../pkg';
+...
+&lt;div class="foot"&gt;
+  &lt;span&gt;MIT licensed. Built by hand.&lt;/span&gt;
+  &lt;span&gt;v{version}&lt;/span&gt;
+&lt;/div&gt;</code></pre></li>
+
+  <li>☐ <strong>Step 3: Use it in the hero</strong> — <code>index.astro</code>, replacing the
+      <code>rail__facts</code> line:
+<pre><code>import { version, nodeFloor } from '../pkg';
+...
+&lt;div class="rail__facts"&gt;
+  &lt;span&gt;Node {nodeFloor}&lt;/span&gt;&lt;span&gt;MIT&lt;/span&gt;&lt;span&gt;v{version}&lt;/span&gt;
+&lt;/div&gt;</code></pre></li>
+
+  <li>☐ <strong>Step 4: Rebuild</strong><br>
+      Run: <code>cd docs &amp;&amp; npm run build</code> — the guard reads built output, so a stale
+      <code>dist/</code> would report the old result and look like a pass.</li>
+
+  <li>☐ <strong>Step 5: Confirm the guard PASSES</strong><br>
+      Expected: exit 0, <code>every published version string matches package.json</code>.</li>
+
+  <li>☐ <strong>Step 6: Confirm BOTH surfaces render correctly</strong><br>
+      Checking one is what missed the footer originally:
+<pre><code>grep -o '&lt;div class="foot"&gt;.*&lt;/div&gt;' dist/slashforge/guides/trust/index.html
+grep -o 'rail__facts.*' dist/slashforge/index.html</code></pre>
+      Expected: <code>v4.3.1</code> in the footer of a non-home page, and
+      <code>Node 16+</code> plus <code>v4.3.1</code> in the hero.</li>
+
+  <li>☐ <strong>Step 7: Confirm the dev server still serves it</strong><br>
+      Run <code>npm run dev</code>, then
+      <code>curl -s localhost:4321/slashforge/ | grep -o 'v[0-9.]*&lt;/span&gt;'</code>.<br>
+      This is the check that matters: the rejected <code>import</code> approach passes the build and
+      fails here.</li>
+
+  <li>☐ <strong>Step 8: Commit</strong>
+<pre><code>git add docs/src/pkg.ts docs/src/layouts/Base.astro docs/src/pages/index.astro
+git commit -m "fix(docs): derive the published version and Node floor from package.json"</code></pre></li>
+</ul>
+
+<h2>Task 3: Wire CI, and test the Node floor the package claims</h2>
+
+<p><strong>Files:</strong> Modify <code>.github/workflows/ci.yml</code></p>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: the guard from Task 1, passing after Task 2.</li>
+  <li>Produces: nothing later tasks depend on.</li>
+</ul>
+
+<ul>
+  <li>☐ <strong>Step 1: Run the guard in the docs job</strong>, after the accessible-name step:
+<pre><code>      - name: Check documented facts match package.json
+        working-directory: docs
+        run: node ../.github/scripts/check-docs-facts.mjs</code></pre></li>
+
+  <li>☐ <strong>Step 2: Add Node 16 to the test matrix</strong>
+<pre><code>        node-version: [16, 18, 20, 22]</code></pre></li>
+
+  <li>☐ <strong>Step 3: Full verification</strong>
+<pre><code>npm test                                           # 43/43
+cd docs &amp;&amp; npm run build                           # exit 0
+node ../.github/scripts/check-docs-links.mjs       # links resolve
+node ../.github/scripts/check-docs-a11y.mjs        # names present
+node ../.github/scripts/check-docs-facts.mjs       # versions match
+git status --porcelain docs/package-lock.json      # no output</code></pre></li>
+
+  <li>☐ <strong>Step 4: Commit</strong>
+<pre><code>git add .github/workflows/ci.yml
+git commit -m "ci: run the facts guard and test the Node floor the package claims"</code></pre></li>
+
+  <li>☐ <strong>Step 5: Watch the Node 16 job on the PR</strong><br>
+      <strong>This may fail.</strong> <code>node --test</code> arrived in Node 16.17 and was
+      experimental until 18. A red <code>test (16)</code> is evidence that
+      <code>engines: "&gt;=16"</code> is a false claim.<br>
+      <strong>Do not silently drop 16 from the matrix.</strong> Report it, say plainly that the floor
+      cannot be supported, and let the user choose between raising <code>engines</code> to
+      <code>&gt;=18</code> or keeping 16 and fixing what broke.</li>
+</ul>
+
+<h2>Verification of the whole change</h2>
+
+<p>The guard reports <strong>17</strong> before Task 2 and <strong>0</strong> after, and both numbers
+   must be observed rather than assumed. To re-prove later: restore either literal, rebuild, run the
+   guard, revert, rebuild, run again.</p>
+
+<h2>Out of scope</h2>
+<ul>
+  <li>The quickstart block and a hero copy button — product decisions, their own change.</li>
+  <li>Raising <code>engines</code>, unless CI proves 16 unsupportable.</li>
+  <li>The <code>MIT</code> literals. A licence does not change with releases.</li>
+</ul>
+
+
+</body>
+</html>

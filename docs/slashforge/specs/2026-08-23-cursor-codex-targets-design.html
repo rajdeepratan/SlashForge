@@ -1,0 +1,214 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design — Cursor and Codex targets (2026-08-23)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — Cursor and Codex targets</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> <code>npx slashforge --target cursor</code> installs the workflow commands and discipline
+  skills into <code>.agents/skills/</code>, where Cursor and Codex both discover them — with Claude Code's install
+  byte-identical to today.
+</div>
+
+<h2>Problem</h2>
+
+<p>SlashForge has claimed "Cursor and Codex targets are planned" since v3.0.0, across five user-facing surfaces
+including the npm package description. No implementation exists. A Cursor or Codex user who installs the package
+today gets a successful install that their agent cannot discover at all.</p>
+
+<p>Investigation (<code>docs/slashforge/investigations/investigation-2026-08-23-1553.html</code>) found the port is
+now much cheaper than when the claim was written: both targets implement the Agent Skills standard
+(<code>SKILL.md</code> with <code>name</code>/<code>description</code> frontmatter), which is the shape SlashForge's
+files already have, and all vendor coupling flows from one function — <code>resolveTarget()</code> at
+<code>bin/install.js:186</code>.</p>
+
+<h2>Approach</h2>
+
+<p><strong>Chosen: installer-side destination mapping.</strong> Templates stay flat <code>.md</code> files.
+<code>installFiles()</code> gains a second <em>layout</em>, mapping each template to a per-vendor destination and
+rewriting the frontmatter <code>name</code> as it renders. Claude Code's code path is untouched.</p>
+
+<p>This works because <code>{{INSTALL_PATH}}</code> already carries guide cross-references at render time
+(<code>renderTemplate()</code>, <code>bin/install.js:170</code>). Pointing it at the agents guides directory keeps
+every reference between guides valid, so <strong>no template content changes</strong>.</p>
+
+<p>Two alternatives were considered and rejected:</p>
+
+<ul>
+  <li><strong>Restructure templates on disk to <code>&lt;name&gt;/SKILL.md</code>.</strong> Churns all 13 command and
+      skill files, and forces Claude Code either onto <code>.claude/skills/</code> — losing the <code>/slashforge:</code>
+      namespace and breaking every existing user — or into maintaining two on-disk layouts for one set of content.
+      Destination is a render-time concern, not a source-layout one.</li>
+  <li><strong>Symlink <code>.agents/skills/</code> at <code>.claude/commands/</code>.</strong> Cannot work: one layout
+      is flat files, the other is directories containing <code>SKILL.md</code>. There is no symlink that bridges
+      the two shapes.</li>
+</ul>
+
+<h2>Design</h2>
+
+<p><strong>1. Target descriptor.</strong> <code>resolveTarget()</code> takes a <code>target</code> alongside the
+existing <code>project</code> flag, driven by a table:</p>
+
+<pre>const TARGETS = {
+  claude: {
+    root:           '.claude',
+    commandsSubdir: 'commands',
+    layout:         'commands',   // .claude/commands/slashforge/&lt;name&gt;.md
+  },
+  agents: {
+    root:           '.agents',
+    commandsSubdir: 'skills',
+    layout:         'skills',     // .agents/skills/slashforge-&lt;name&gt;/SKILL.md
+    namePrefix:     'slashforge-',
+    omit:           ['setup'],
+  },
+};</pre>
+
+<p>It returns today's shape plus <code>layout</code>, <code>namePrefix</code> and <code>omit</code>. Guides land in
+<code>&lt;root&gt;/setup/slashforge/</code> for both targets, so <code>installPath</code> resolution is unchanged in
+form.</p>
+
+<p><strong>2. Two layouts in <code>installFiles()</code>.</strong> The <code>commands</code> layout is today's
+behaviour, unchanged. The <code>skills</code> layout writes a directory per command:</p>
+
+<table>
+  <tr><th>Template</th><th>Claude target</th><th>Agents target</th></tr>
+  <tr><td><code>slashforge/code.md</code></td><td><code>.claude/commands/slashforge/code.md</code></td><td><code>.agents/skills/slashforge-code/SKILL.md</code></td></tr>
+  <tr><td><code>slashforge/tdd.md</code></td><td><code>.claude/commands/slashforge/tdd.md</code></td><td><code>.agents/skills/slashforge-tdd/SKILL.md</code></td></tr>
+  <tr><td><code>slashforge/setup.md</code></td><td><code>.claude/commands/slashforge/setup.md</code></td><td><em>omitted this cycle</em></td></tr>
+  <tr><td><code>forge-*.md</code>, assets</td><td><code>~/.claude/setup/slashforge/</code></td><td><code>~/.agents/setup/slashforge/</code></td></tr>
+</table>
+
+<p><strong>3. Frontmatter rewrite.</strong> Templates declare <code>name: /slashforge:code</code>. Cursor requires
+<code>name</code> to be lowercase letters, digits and hyphens only, and to match the parent folder. The skills layout
+rewrites that single line to <code>name: slashforge-code</code>; <code>description</code> and body pass through
+untouched.</p>
+
+<p><strong>4. CLI surface.</strong> <code>--target claude|cursor|codex|agents</code>, defaulting to
+<code>claude</code>. <code>cursor</code> and <code>codex</code> are aliases for <code>agents</code> — users will type
+the vendor they use, and the alias layer means a future split into <code>.cursor/skills/</code> needs no CLI break.
+<code>--target</code> composes with the existing <code>--project</code>, <code>--dry-run</code> and
+<code>--yes</code>, and is honoured by <code>status</code> and <code>uninstall</code>.</p>
+
+<p><strong>5. <code>meta.json</code></strong> gains a <code>target</code> field so <code>status</code> and
+<code>uninstall</code> can report and clean the right install.</p>
+
+<p><strong>6. Claim updates.</strong> <code>README.md:27</code>, the npm <code>description</code> in
+<code>package.json</code>, <code>docs/src/content/docs/guides/introduction.md:135</code> and
+<code>docs/src/content/docs/reference/migrating.md</code> change from "planned" to the shipped state, noting that
+Codex invokes with <code>$name</code> rather than <code>/name</code> and that <code>setup</code> is Claude Code only
+for now.</p>
+
+<h2>Risks &amp; edge cases</h2>
+
+<ul>
+  <li><strong>Uninstall must not touch a user's other skills.</strong> <code>.agents/skills/</code> is shared ground.
+      Uninstall removes only <code>slashforge-*</code> directories and prunes <code>skills/</code> only when empty —
+      mirroring the existing namespace-dir care at <code>bin/install.js</code>'s <code>uninstallFiles()</code>.</li>
+  <li><strong>Omitting <code>setup</code> must be visible</strong>, or Cursor users will read it as a broken install.
+      The installer prints the omission and why.</li>
+  <li><strong>Codex arrives untested.</strong> It reads <code>.agents/skills/</code>, so it should work, but this
+      cycle validates against Cursor only. The claim wording reflects that.</li>
+  <li><strong>Pre-existing:</strong> the Claude path depends on <code>.claude/commands/&lt;ns&gt;/</code>
+      subdirectory namespacing, which is absent from the current skills documentation. Not introduced here, but it is
+      the mechanism the whole <code>/slashforge:</code> form rests on.</li>
+</ul>
+
+<h2>Testing</h2>
+
+<p>Node's built-in runner, extending <code>test/install.test.js</code> (777 lines).</p>
+
+<ul>
+  <li><strong>Claude regression:</strong> every existing assertion runs unchanged and must stay green — this is the
+      proof that current users are unaffected.</li>
+  <li><code>resolveTarget()</code> across four combinations: claude/agents × global/project.</li>
+  <li><code>installFiles({target:'agents'})</code> writes <code>.agents/skills/slashforge-code/SKILL.md</code>, and
+      writes no <code>slashforge-setup</code> directory.</li>
+  <li><strong>Frontmatter contract:</strong> for every installed <code>SKILL.md</code>, the <code>name</code> matches
+      <code>^[a-z0-9-]+$</code> and equals its parent directory name. This is the assertion that would have caught the
+      raw <code>/slashforge:code</code> value.</li>
+  <li><strong>Guide references resolve:</strong> a rendered agents-target command contains no literal
+      <code>{{INSTALL_PATH}}</code> and points inside <code>.agents/setup/slashforge</code>.</li>
+  <li><strong>Uninstall isolation:</strong> a foreign <code>.agents/skills/someone-elses-skill/</code> survives
+      <code>uninstall --target cursor</code>.</li>
+  <li><code>--dry-run --target cursor</code> prints agents paths and creates nothing.</li>
+  <li><code>meta.json</code> records the target.</li>
+</ul>
+
+<h2>Out of scope</h2>
+
+<ul>
+  <li>Codex-specific artefacts — <code>AGENTS.md</code>, <code>agents/openai.yaml</code>, <code>$name</code> beyond a
+      documentation note</li>
+  <li>The per-vendor rewrite of <code>setup.md</code> (deferred piece 6)</li>
+  <li>Degrading the subagent-dispatch, hooks and <code>CLAUDE.md</code> assumptions in the workflow prose — the
+      <code>forge-workflow-agents.md</code> mandatory-agents rule and <code>parallel.md</code> still assume Claude Code</li>
+  <li>Writing <code>.cursor/skills/</code> or <code>.codex/skills/</code> directly</li>
+  <li>Any change to Claude Code behaviour, command names, or on-disk template layout</li>
+</ul>
+
+
+</body>
+</html>
