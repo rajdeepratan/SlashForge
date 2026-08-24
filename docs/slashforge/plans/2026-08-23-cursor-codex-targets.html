@@ -387,7 +387,7 @@ function toSkillFrontmatter(content, skillName) {
 </ul>
 
 <ul>
-<li>☐ <strong>Step 1: Write the failing tests</strong>
+<li>☑ <strong>Step 1: Write the failing tests</strong>
 <pre><code>test('uninstall removes only slashforge dirs from the shared skills root', () =&gt; {
   const home = tmp();
   const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
@@ -411,11 +411,11 @@ test('uninstall prunes the skills root only when it is empty', () =&gt; {
   assert.ok(!fs.existsSync(path.join(home, '.agents', 'skills')));
 });</code></pre></li>
 
-<li>☐ <strong>Step 2: Run and confirm they FAIL</strong><br>
+<li>☑ <strong>Step 2: Run and confirm they FAIL</strong><br>
     Run: <code>npm test</code> — expected: the <code>slashforge-code</code> directory still exists, because
     <code>uninstallFiles</code> only looks for flat files.</li>
 
-<li>☐ <strong>Step 3: Branch <code>uninstallFiles</code></strong> — replace the command-removal loop at
+<li>☑ <strong>Step 3: Branch <code>uninstallFiles</code></strong> — replace the command-removal loop at
     <code>bin/install.js:286-299</code>
 <pre><code>  if (target.layout === 'skills') {
     for (const c of [...commandFiles, ...skillFiles]) {
@@ -434,11 +434,11 @@ test('uninstall prunes the skills root only when it is empty', () =&gt; {
     // ...existing flat-file removal and namespace pruning, unchanged...
   }</code></pre></li>
 
-<li>☐ <strong>Step 4: Guard the legacy report</strong> — in <code>reportLegacyLeftovers</code> at
+<li>☑ <strong>Step 4: Guard the legacy report</strong> — in <code>reportLegacyLeftovers</code> at
     <code>bin/install.js:563</code>, return early when <code>target.layout !== 'commands'</code>. The v2 layout only
     ever existed under <code>.claude/</code>.</li>
 
-<li>☐ <strong>Step 5: Make <code>printStatus</code> target-aware</strong> — accept <code>{ target, project }</code>,
+<li>☑ <strong>Step 5: Make <code>printStatus</code> target-aware</strong> — accept <code>{ target, project }</code>,
     pass <code>target</code> to <code>resolveTarget</code>, print the target name, and probe installed commands
     through the layout:
 <pre><code>  const commands = COMMAND_FILES.filter((c) =&gt; {
@@ -449,9 +449,9 @@ test('uninstall prunes the skills root only when it is empty', () =&gt; {
   }).sort();
   for (const f of commands) console.log(`    • ${commandName(f, target)}`);</code></pre></li>
 
-<li>☐ <strong>Step 6: Run and confirm PASS</strong> — <code>npm test</code>.</li>
+<li>☑ <strong>Step 6: Run and confirm PASS</strong> — <code>npm test</code>.</li>
 
-<li>☐ <strong>Step 7: Commit</strong> — <code>feat(install): handle the skills layout in uninstall and status</code></li>
+<li>☑ <strong>Step 7: Commit</strong> — <code>feat(install): handle the skills layout in uninstall and status</code></li>
 </ul>
 
 <h2>Task 4: CLI flag and messaging</h2>
