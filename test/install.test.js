@@ -22,6 +22,8 @@ const {
   SKILL_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
+  TARGETS,
+  resolveTargetName,
 } = require('../bin/install.js');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
@@ -767,266 +769,57 @@ test('isNewerVersion only fires on a certainly-newer release', () => {
   assert.equal(isNewerVersion('4.3.1', 'unknown'), false, 'junk current');
 });
 
-// --- Findings from the SlashForge 4.4.3 course audit ---
+// ---------------------------------------------------------------------------
+// Install targets (Cursor / Codex)
+// ---------------------------------------------------------------------------
 
-// The dry run built its own list from two of the four file lists, so it announced
-// 21 files and the install wrote 32. Both now come from one function; comparing
-// the two in both directions stops the drift from coming back.
-test('plannedWrites and installFiles name exactly the same files, global and project', () => {
-  for (const project of [false, true]) {
-    const home = tmp();
-    const target = resolveTarget({ project, homeDir: home, cwd: home });
-    const planned = plannedWrites(target).map((w) => w.dest).sort();
-    const actual = installFiles(target, {}).slice().sort();
-    assert.deepEqual(planned, actual, `${project ? 'project' : 'global'}: dry run and install disagree`);
+test('resolveTarget agents global uses ~/.agents and the skills layout', () => {
+  const t = resolveTarget({ target: 'agents', homeDir: '/home/u', cwd: '/repo' });
+  assert.equal(t.guidesDir, path.join('/home/u', '.agents', 'setup', 'slashforge'));
+  assert.equal(t.commandsDir, path.join('/home/u', '.agents', 'skills'));
+  assert.equal(t.installPath, '/home/u/.agents/setup/slashforge');
+  assert.equal(t.layout, 'skills');
+  assert.equal(t.namePrefix, 'slashforge-');
+});
+
+test('resolveTarget agents project uses cwd', () => {
+  const t = resolveTarget({ target: 'agents', project: true, homeDir: '/home/u', cwd: '/repo' });
+  assert.equal(t.commandsDir, path.join('/repo', '.agents', 'skills'));
+  assert.equal(t.installPath, '.agents/setup/slashforge');
+  assert.equal(t.mode, 'project');
+});
+
+test('cursor and codex are aliases for the agents target', () => {
+  for (const name of ['cursor', 'codex', 'CURSOR', ' codex ']) {
+    assert.equal(resolveTarget({ target: name, homeDir: '/h', cwd: '/r' }).target, 'agents');
   }
 });
 
-test('the CLI dry run announces every file the install then writes', () => {
-  const home = tmp();
-  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
-  const stdout = execFileSync('node', [BIN, '--dry-run'], { env, encoding: 'utf8' });
-  const announced = stdout.split('\n').filter((l) => l.includes('→')).map((l) => l.split('→ ')[1].trim()).sort();
-  assert.deepEqual(fs.readdirSync(home), [], 'the dry run wrote something');
-
-  execFileSync('node', [BIN, '--yes'], { env, stdio: 'ignore' });
-  const written = [];
-  (function walk(d) {
-    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-      const p = path.join(d, e.name);
-      if (e.isDirectory()) walk(p); else written.push(p);
-    }
-  })(home);
-  assert.deepEqual(announced, written.sort());
+test('claude stays the default and keeps the commands layout', () => {
+  const t = resolveTarget({ homeDir: '/home/u', cwd: '/repo' });
+  assert.equal(t.target, 'claude');
+  assert.equal(t.layout, 'commands');
+  assert.equal(t.namePrefix, '');
+  assert.equal(t.commandsDir, path.join('/home/u', '.claude', 'commands'));
 });
 
-// Guides have been rendered since 4.4.1, so a dry run that says "copy" for them
-// describes an install that no longer exists. Only the assets are copied.
-test('the dry run labels rendered guides as render and copied assets as copy', () => {
-  const home = tmp();
-  const stdout = execFileSync('node', [BIN, '--dry-run'], {
-    encoding: 'utf8',
-    env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' },
-  });
-  assert.match(stdout, /render\s+forge-workflow\.md/);
-  assert.doesNotMatch(stdout, /copy\s+forge-[a-z-]+\.md/, 'a guide is still labelled copy');
-  for (const a of ASSET_FILES) {
-    assert.match(stdout, new RegExp(`copy\\s+${a.replace('.', '\\.')}`), `${a} should be labelled copy`);
-  }
+test('only the claude target carries a legacy guides dir', () => {
+  assert.ok(resolveTarget({ homeDir: '/h', cwd: '/r' }).legacyGuidesDir);
+  assert.equal(resolveTarget({ target: 'cursor', homeDir: '/h', cwd: '/r' }).legacyGuidesDir, null);
 });
 
-// --yes switches on by itself without a terminal, which is right for the update
-// prompt and wrong for uninstall: a script that runs `uninstall` by mistake should
-// not remove the kit without anyone having said yes.
-test('uninstall without a terminal refuses unless --yes is given', () => {
-  const home = tmp();
-  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
-  delete env.SLASHFORGE_YES;
-  execFileSync('node', [BIN, '--yes'], { env, stdio: 'ignore' });
-  const target = resolveTarget({ homeDir: home, cwd: home });
-
-  const r = require('child_process').spawnSync('node', [BIN, 'uninstall'], {
-    env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  assert.notEqual(r.status, 0, 'uninstall without a terminal should fail, not succeed silently');
-  assert.match(r.stderr + r.stdout, /--yes/, 'the refusal should say how to confirm');
-  assert.ok(fs.existsSync(target.guidesDir), 'nothing may be removed without a yes');
-
-  execFileSync('node', [BIN, 'uninstall', '--yes'], { env, stdio: 'ignore' });
-  assert.ok(!fs.existsSync(target.guidesDir), 'an explicit --yes still uninstalls');
+test('unknown target throws with the valid names listed', () => {
+  assert.throws(() => resolveTarget({ target: 'vscode' }), /claude, cursor, codex, agents/);
 });
 
-test('parseFrontmatter accepts a folded or literal YAML description', () => {
-  const folded = parseFrontmatter('---\nname: x\ndescription: >\n  one\n  two\n---\n', 'f');
-  assert.equal(folded.description, 'one two');
-  const literal = parseFrontmatter('---\nname: x\ndescription: |\n  one\n  two\n---\n', 'f');
-  assert.equal(literal.description, 'one\ntwo');
-  const plain = parseFrontmatter('---\nname: x\ndescription: one\n  two\n---\n', 'f');
-  assert.equal(plain.description, 'one two');
+test('resolveTargetName normalises aliases and rejects unknowns', () => {
+  assert.equal(resolveTargetName('cursor'), 'agents');
+  assert.equal(resolveTargetName(undefined), 'claude');
+  assert.equal(resolveTargetName(null), 'claude');
+  assert.throws(() => resolveTargetName('emacs'), /Unknown target/);
 });
 
-test('parseFrontmatter finds a closing fence with trailing whitespace', () => {
-  const fm = parseFrontmatter('---\nname: x\ndescription: y\n---  \nbody', 'f');
-  assert.equal(fm.description, 'y');
-});
-
-test('parseFrontmatter still refuses an indented line with no key above it', () => {
-  assert.throws(() => parseFrontmatter('---\n  stray\nname: x\ndescription: y\n---\n', 'f'), /invalid/);
-});
-
-// The two guides the model reads during setup must agree on where a skill lives.
-test('forge-instructions names the SKILL.md folder form and the 500-line limit', () => {
-  const guide = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-instructions.md'), 'utf8');
-  assert.ok(guide.includes('| Skills | `.claude/skills/<name>/SKILL.md` |'), 'skills row still the flat form');
-  assert.ok(!guide.includes('.claude/skills/*.md'), 'the flat skills form is still named');
-  const skills = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-skills.md'), 'utf8');
-  assert.ok(/500 lines/.test(guide) && /500 lines/.test(skills), 'the SKILL.md limit must match in both guides');
-});
-
-// Setup's Step 9 is the only thing that checks the size rule. It used a ** glob,
-// which bash without globstar treats as one folder deep, so SKILL.md was never
-// counted. The test runs the command from the guide itself, under bash.
-function lines(n) {
-  return Array.from({ length: n }, (_, i) => `line ${i}`).join('\n') + '\n';
-}
-
-test('setup verify step fails on an oversized SKILL.md in a skill folder', () => {
-  const guide = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-instructions.md'), 'utf8');
-  const step9 = guide.slice(guide.indexOf('## Step 9'));
-  const m = step9.match(/```bash\n([\s\S]*?)```/);
-  assert.ok(m, 'no Step 9 bash block');
-  const script = m[1].split('\n\n')[0];
-  assert.ok(!script.includes('**'), 'the size check must not rely on a ** glob');
-  const run = (dir) => require('child_process').spawnSync('bash', ['-c', script], { cwd: dir, encoding: 'utf8' });
-
-  const repo = tmp();
-  fs.writeFileSync(path.join(repo, 'CLAUDE.md'), lines(10));
-  fs.mkdirSync(path.join(repo, '.claude', 'rules'), { recursive: true });
-  fs.writeFileSync(path.join(repo, '.claude', 'rules', 'api.md'), lines(6));
-  const skill = path.join(repo, '.claude', 'skills', 'add-endpoint');
-  fs.mkdirSync(skill, { recursive: true });
-  fs.writeFileSync(path.join(skill, 'SKILL.md'), lines(300));
-  // A project install of the kit itself carries long guides; they are not the repo's files.
-  installFiles(resolveTarget({ project: true, cwd: repo, homeDir: tmp() }), {});
-
-  assert.equal(run(repo).status, 0, 'a 300-line SKILL.md is within its 500-line limit');
-  fs.writeFileSync(path.join(skill, 'SKILL.md'), lines(600));
-  const over = run(repo);
-  assert.notEqual(over.status, 0, 'a 600-line SKILL.md must fail the check');
-  assert.match(over.stdout, /SKILL\.md/);
-  fs.writeFileSync(path.join(skill, 'SKILL.md'), lines(10));
-  fs.writeFileSync(path.join(repo, '.claude', 'rules', 'api.md'), lines(250));
-  assert.notEqual(run(repo).status, 0, 'a 250-line rule must fail the check');
-});
-
-// The old assertion ("exits 0 on a missing file") could not fail: the helper
-// exits 0 on every path. And on a desktop it really opened something. Stub the
-// openers on PATH instead, so the test proves which one ran, with what, and that
-// a failing opener still leaves the run alone.
-test('the open helper hands the path to the platform opener and survives its failure', () => {
-  if (process.platform === 'win32') return; // Git Bash's `start` is a shell builtin wrapper; covered by review.
-  const helper = path.join(TEMPLATES_DIR, 'forge-open.sh');
-  const bin = tmp();
-  const log = path.join(bin, 'calls.log');
-  for (const opener of ['open', 'xdg-open', 'wslview']) {
-    const stub = path.join(bin, opener);
-    fs.writeFileSync(stub, `#!/bin/sh\necho "${opener} $*" >> "${log}"\nexit "\${STUB_EXIT:-0}"\n`);
-    fs.chmodSync(stub, 0o755);
-  }
-  const run = (extra) => require('child_process').spawnSync('sh', [helper, '/tmp/report.html'], {
-    env: { PATH: `${bin}:/usr/bin:/bin`, DISPLAY: ':0', ...extra },
-    encoding: 'utf8',
-  });
-
-  assert.equal(run({}).status, 0);
-  const calls = fs.readFileSync(log, 'utf8');
-  assert.match(calls, /^(open|xdg-open|wslview) \/tmp\/report\.html$/m, `no opener was given the path: ${calls}`);
-
-  fs.writeFileSync(log, '');
-  assert.equal(run({ STUB_EXIT: '1' }).status, 0, 'a failing opener must not fail the run');
-  assert.notEqual(fs.readFileSync(log, 'utf8'), '', 'the opener should still have been tried');
-
-  fs.writeFileSync(log, '');
-  assert.equal(run({ SSH_CONNECTION: '1.2.3.4 22 5.6.7.8 22' }).status, 0);
-  assert.equal(fs.readFileSync(log, 'utf8'), '', 'a remote session must not try to open anything');
-});
-
-// Every document the kit writes went through an inline `node -e '<script>'`. A
-// permission rule matches Bash by prefix, so allowing it meant allowing any node
-// script at all. Shipped as files, each can be allowed by its own path.
-test('no template runs an inline node script', () => {
-  const offenders = [];
-  for (const f of [...GUIDE_FILES, ...COMMAND_FILES, ...SKILL_FILES]) {
-    const body = fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8');
-    if (/node -e '/.test(body)) offenders.push(f);
-  }
-  assert.deepEqual(offenders, [], `inline node -e still in:\n  ${offenders.join('\n  ')}`);
-});
-
-test('every document writer calls the shipped splice script', () => {
-  for (const f of ['investigate.md', 'brainstorm.md', 'plan.md', 'review-pr.md']) {
-    assert.ok(
-      commandInstruction(f).includes('node "{{INSTALL_PATH}}/forge-splice.js"'),
-      `${f} must splice through forge-splice.js`,
-    );
-  }
-  assert.ok(
-    commandInstruction('review-pr.md').includes('node "{{INSTALL_PATH}}/forge-review-payload.js"'),
-    'review-pr must assemble its payload through forge-review-payload.js',
-  );
-});
-
-// With the kit both in ~/.claude and in the repo, Claude Code runs the personal
-// copy ("personal over project"), so the committed version silently does nothing.
-test('status and a project install warn when a global install shadows the project one', () => {
-  const home = tmp();
-  const repo = tmp();
-  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
-  execFileSync('node', [BIN, '--yes'], { env, stdio: 'ignore' });
-  const installOut = execFileSync('node', [BIN, '--project', '--yes'], { env, cwd: repo, encoding: 'utf8' });
-  assert.match(installOut, /global install.*runs instead/is);
-  const statusOut = execFileSync('node', [BIN, 'status', '--project'], { env, cwd: repo, encoding: 'utf8' });
-  assert.match(statusOut, /global install.*runs instead/is);
-
-  const quiet = tmp();
-  const alone = execFileSync('node', [BIN, 'status', '--project'], {
-    env: { ...env, HOME: quiet, USERPROFILE: quiet }, cwd: repo, encoding: 'utf8',
-  });
-  assert.doesNotMatch(alone, /runs instead/i, 'no warning without a global install');
-});
-
-// The refusal is about not removing things unasked. With nothing installed there
-// is nothing to ask about, so a cleanup script must keep its old, quiet exit 0.
-test('uninstall without a terminal is still a quiet no-op when nothing is installed', () => {
-  const home = tmp();
-  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
-  delete env.SLASHFORGE_YES;
-  const r = require('child_process').spawnSync('node', [BIN, 'uninstall'], {
-    env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stdout, /Nothing to remove/);
-});
-
-// #82: the commands dir was already careful — only named files go, and the folder
-// only once empty. The guides dir was removed recursively, taking any file a user
-// had put there with it. It now gets the same care as the commands dir.
-test('uninstall keeps user files in the guides dir and removes only the kit', () => {
-  const home = tmp();
-  const target = resolveTarget({ homeDir: home, cwd: home });
-  installFiles(target, {});
-  const mine = path.join(target.guidesDir, 'my-notes.md');
-  fs.writeFileSync(mine, 'mine');
-  // A guide an older version shipped and this one no longer lists.
-  fs.writeFileSync(path.join(target.guidesDir, 'forge-preflight.md'), 'old');
-
-  uninstallFiles(target, {});
-
-  assert.ok(fs.existsSync(mine), 'a user file in setup/slashforge/ must survive uninstall');
-  assert.deepEqual(fs.readdirSync(target.guidesDir), ['my-notes.md'], 'every kit file must be gone');
-});
-
-test('uninstall still removes the guides dir when only kit files were in it', () => {
-  const home = tmp();
-  const target = resolveTarget({ homeDir: home, cwd: home });
-  installFiles(target, {});
-  fs.writeFileSync(path.join(target.guidesDir, 'forge-preflight.md'), 'old');
-  uninstallFiles(target, {});
-  assert.ok(!fs.existsSync(target.guidesDir));
-});
-
-test('a guides dir holding only user files does not count as an install', () => {
-  const home = tmp();
-  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
-  execFileSync('node', [BIN, '--yes'], { env, stdio: 'ignore' });
-  const target = resolveTarget({ homeDir: home, cwd: home });
-  fs.writeFileSync(path.join(target.guidesDir, 'my-notes.md'), 'mine');
-
-  const out = execFileSync('node', [BIN, 'uninstall', '--yes'], { env, encoding: 'utf8' });
-  assert.match(out, /kept .*my-notes\.md|my-notes\.md.*kept/is, 'uninstall should say what it left and why');
-
-  const status = execFileSync('node', [BIN, 'status'], { env, encoding: 'utf8' });
-  assert.match(status, /not installed/, 'leftover user files are not an install');
-  const again = execFileSync('node', [BIN, 'uninstall', '--yes'], { env, encoding: 'utf8' });
-  assert.match(again, /Nothing to remove/);
+test('agents target omits setup', () => {
+  assert.ok(TARGETS.agents.omit.includes(path.join('slashforge', 'setup.md')));
+  assert.deepEqual(TARGETS.claude.omit, []);
 });

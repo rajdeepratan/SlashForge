@@ -137,7 +137,7 @@ Task 2 adds <code>skillDirName</code>, Task 4 adds <code>parseTargetArg</code> a
 </ul>
 
 <ul>
-<li>☐ <strong>Step 1: Write the failing tests</strong>
+<li>☑ <strong>Step 1: Write the failing tests</strong>
 <pre><code>test('resolveTarget agents global uses ~/.agents and skills layout', () =&gt; {
   const t = resolveTarget({ target: 'agents', homeDir: '/home/u', cwd: '/repo' });
   assert.equal(t.guidesDir, path.join('/home/u', '.agents', 'setup', 'slashforge'));
@@ -170,11 +170,11 @@ test('unknown target throws with the valid names listed', () =&gt; {
   assert.throws(() =&gt; resolveTarget({ target: 'vscode' }), /claude, cursor, codex, agents/);
 });</code></pre></li>
 
-<li>☐ <strong>Step 2: Run and confirm they FAIL</strong><br>
+<li>☑ <strong>Step 2: Run and confirm they FAIL</strong><br>
     Run: <code>npm test</code> — expected: <code>t.layout</code> is <code>undefined</code>, and the alias test fails
     because <code>target</code> is not returned.</li>
 
-<li>☐ <strong>Step 3: Add the target table</strong> after <code>bin/install.js:73</code>
+<li>☑ <strong>Step 3: Add the target table</strong> after <code>bin/install.js:73</code>
 <pre><code>// Install targets. `claude` writes flat command files to .claude/commands/slashforge/,
 // which is what produces the /slashforge:name form. `agents` writes the Agent Skills
 // layout to .agents/skills/, read by both Cursor and Codex; that layout has no
@@ -203,7 +203,7 @@ function resolveTargetName(name) {
   return resolved;
 }</code></pre></li>
 
-<li>☐ <strong>Step 4: Replace <code>resolveTarget</code></strong> at <code>bin/install.js:188-210</code>
+<li>☑ <strong>Step 4: Replace <code>resolveTarget</code></strong> at <code>bin/install.js:188-210</code>
 <pre><code>function resolveTarget({ target = 'claude', project = false, homeDir = os.homedir(), cwd = process.cwd() } = {}) {
   const name = resolveTargetName(target);
   const spec = TARGETS[name];
@@ -226,14 +226,14 @@ function resolveTargetName(name) {
   };
 }</code></pre></li>
 
-<li>☐ <strong>Step 5: Export the new names</strong> — add <code>TARGETS</code> and <code>resolveTargetName</code> to
+<li>☑ <strong>Step 5: Export the new names</strong> — add <code>TARGETS</code> and <code>resolveTargetName</code> to
     <code>module.exports</code> at <code>bin/install.js:667</code>.</li>
 
-<li>☐ <strong>Step 6: Run and confirm PASS</strong><br>
+<li>☑ <strong>Step 6: Run and confirm PASS</strong><br>
     Run: <code>npm test</code> — the four pre-existing <code>resolveTarget</code> tests at
     <code>test/install.test.js:81-94</code> must still pass unmodified. That is the byte-identical guarantee.</li>
 
-<li>☐ <strong>Step 7: Commit</strong> — <code>feat(install): add target descriptor to resolveTarget</code></li>
+<li>☑ <strong>Step 7: Commit</strong> — <code>feat(install): add target descriptor to resolveTarget</code></li>
 </ul>
 
 <h2>Task 2: Skills layout and frontmatter rewrite</h2>
