@@ -24,7 +24,14 @@
 
 Installs four commands on any machine — `/slashforge:setup` to scaffold a repo, `/slashforge:code` for freeform development (add `-quick` for lean small-change work), `/slashforge:investigate` for read-only research, and `/slashforge:review-pr` to review someone else's PR against your repo's rules.
 
-Currently supports **Claude Code**. Cursor and Codex targets are planned.
+Supports **Claude Code**, and **Cursor** via `npx slashforge --target cursor`.
+**Codex** reads the same `.agents/skills/` directory and invokes the commands as
+`$slashforge-code`, though that path is not yet verified.
+
+On Cursor and Codex the commands are hyphenated — `/slashforge-code`, not
+`/slashforge:code` — because neither supports the `:` namespace. `/slashforge:setup`
+is Claude Code only for now; it provisions `.claude/` structure that has no equivalent
+on the other targets.
 
 > ### ⚠️ Breaking changes in v4.0.0
 >

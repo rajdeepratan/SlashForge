@@ -550,28 +550,28 @@ node bin/install.js --dry-run --project        # must be unchanged from main</co
 </ul>
 
 <ul>
-<li>☐ <strong>Step 1: Replace the README claim</strong> at <code>README.md:27</code>
+<li>☑ <strong>Step 1: Replace the README claim</strong> at <code>README.md:27</code>
 <pre><code>Supports **Claude Code** and, via `npx slashforge --target cursor`, **Cursor**.
 The same install is read by **Codex**, which discovers `.agents/skills/` too and
 invokes them as `$slashforge-code` — untested so far. `/slashforge:setup` is
 Claude Code only for now.</code></pre></li>
 
-<li>☐ <strong>Step 2: Update the npm description</strong> in <code>package.json</code> — replace
+<li>☑ <strong>Step 2: Update the npm description</strong> in <code>package.json</code> — replace
     "Currently supports Claude Code." with "Supports Claude Code and Cursor." Keep it under the ~200 characters npm
     renders in listings.</li>
 
-<li>☐ <strong>Step 3: Add <code>cursor</code> and <code>codex</code> to <code>keywords</code></strong> in
+<li>☑ <strong>Step 3: Add <code>cursor</code> and <code>codex</code> to <code>keywords</code></strong> in
     <code>package.json</code>, so the package surfaces in registry search for both.</li>
 
-<li>☐ <strong>Step 4: Update the two docs pages</strong> — the highlighted claim at
+<li>☑ <strong>Step 4: Update the two docs pages</strong> — the highlighted claim at
     <code>introduction.md:135</code>, and the two rationale sentences at <code>migrating.md:59,128</code> which say
     support "is planned". State what shipped and note the <code>setup</code> exception.</li>
 
-<li>☐ <strong>Step 5: Verify no stale claim survives</strong>
+<li>☑ <strong>Step 5: Verify no stale claim survives</strong>
 <pre><code>grep -rn "are planned\|Currently supports" README.md package.json docs/src/content/docs/</code></pre>
     Expected: no hits outside <code>CHANGELOG.md</code>, whose historical entries stay as written.</li>
 
-<li>☐ <strong>Step 6: Commit</strong> — <code>docs: state shipped Cursor support and the setup exception</code></li>
+<li>☑ <strong>Step 6: Commit</strong> — <code>docs: state shipped Cursor support and the setup exception</code></li>
 </ul>
 
 <h2>Verification</h2>
