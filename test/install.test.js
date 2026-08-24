@@ -265,6 +265,29 @@ test('CLI uninstall --project --yes is a graceful no-op when nothing is installe
   );
 });
 
+test('CLI --dry-run reports every file a real install would write, including skills and assets', () => {
+  const tmpRepo = tmp();
+  const stdout = execFileSync('node', [BIN, '--project', '--dry-run'], {
+    cwd: tmpRepo,
+    encoding: 'utf8',
+  });
+
+  for (const f of SKILL_FILES) {
+    assert.ok(
+      stdout.includes(path.basename(f)),
+      `dry-run output should mention skill file ${f}, got: ${stdout}`,
+    );
+  }
+  for (const f of ASSET_FILES) {
+    assert.ok(
+      stdout.includes(f),
+      `dry-run output should mention asset file ${f}, got: ${stdout}`,
+    );
+  }
+
+  assert.ok(!fs.existsSync(path.join(tmpRepo, '.claude')), '--dry-run must not create any files');
+});
+
 test('commandName maps a namespaced file to its slash invocation', () => {
   assert.equal(commandName(path.join('slashforge', 'setup.md')), '/slashforge:setup');
   assert.equal(commandName(path.join('slashforge', 'code.md')), '/slashforge:code');

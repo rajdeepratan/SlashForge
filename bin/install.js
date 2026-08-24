@@ -505,11 +505,18 @@ async function install({ dryRun, assumeYes, project = false }) {
         dest: path.join(target.guidesDir, file),
       });
     }
-    for (const cmd of COMMAND_FILES) {
+    for (const cmd of [...COMMAND_FILES, ...SKILL_FILES]) {
       plannedWrites.push({
         kind: 'command',
         src: path.join(TEMPLATES_DIR, cmd),
         dest: path.join(target.commandsDir, cmd),
+      });
+    }
+    for (const asset of ASSET_FILES) {
+      plannedWrites.push({
+        kind: 'asset',
+        src: path.join(TEMPLATES_DIR, asset),
+        dest: path.join(target.guidesDir, asset),
       });
     }
     plannedWrites.push({
@@ -521,7 +528,7 @@ async function install({ dryRun, assumeYes, project = false }) {
     console.log(`  mkdir -p ${target.guidesDir}`);
     console.log(`  mkdir -p ${target.commandsDir}`);
     for (const w of plannedWrites) {
-      const label = w.kind === 'guide' ? 'copy  ' : w.kind === 'command' ? 'render' : 'write ';
+      const label = w.kind === 'guide' ? 'copy  ' : w.kind === 'command' ? 'render' : w.kind === 'asset' ? 'copy  ' : 'write ';
       const base = w.src ? path.basename(w.src) : path.basename(w.dest);
       console.log(`  ${label} ${base.padEnd(36)} → ${w.dest}`);
     }
