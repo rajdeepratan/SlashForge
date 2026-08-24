@@ -1,0 +1,195 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design — accessible names for the header social links (2026-08-02)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — accessible names for the header social links</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> Give the four header social links an accessible name, and add a CI guard so
+  the same class of bug cannot ship again unnoticed.
+</div>
+
+<h2>Problem</h2>
+
+<p>The four social links in <code>docs/src/components/Header.astro</code> are icon-only. Each has no
+   text content, an <code>&lt;svg&gt;</code> marked <code>aria-hidden="true"</code> as its only
+   child, and a <code>title</code> attribute as the sole source of a name.</p>
+
+<p>Every one of those three choices is individually correct. Together they produce a focusable link
+   that exposes no accessible name: <code>title</code> is the <em>last-resort</em> fallback in the
+   accessible-name computation, it is not announced consistently across screen readers, and it never
+   appears at all for keyboard or touch users. A screen reader reaches four links in a row and can
+   distinguish none of them.</p>
+
+<p>The header is a shared component, so this is four violations on <strong>every page</strong> of the
+   published site, not four in total. Confirmed against the built output and reported by an external
+   audit as "Headings and anchors must have an accessible name".</p>
+
+<p>The second problem is why nobody noticed. The page <em>looks</em> correct, so the defect is
+   invisible in review. The same file already labels its other icon controls properly —
+   <code>aria-label="Search the docs"</code>, <code>"Search"</code>, <code>"Sections"</code> — which
+   shows this was an oversight rather than a misunderstanding, and that an oversight is exactly what
+   will happen again with the next icon button.</p>
+
+<h2>Approach</h2>
+
+<p>Two independent pieces: fix the four links, then add a check that would have caught them.</p>
+
+<p>For the guard, three options were weighed.</p>
+
+<table>
+  <tr><th>Option</th><th>Verdict</th></tr>
+  <tr>
+    <td>A separate <code>check-docs-a11y.mjs</code></td>
+    <td><strong>Chosen.</strong> Its own name, its own CI step, its own failure message. An
+        accessibility failure reported by something called a link checker is confusing to whoever
+        hits it.</td>
+  </tr>
+  <tr>
+    <td>Extend <code>check-docs-links.mjs</code></td>
+    <td>Rejected. One fewer file, but it conflates two concerns under a name describing only one.</td>
+  </tr>
+  <tr>
+    <td>A third-party runner (axe, pa11y)</td>
+    <td>Rejected. Catches far more, but adds a dependency and a headless browser to a repo whose root
+        package has zero dependencies and whose CI runs <code>npm test</code> with no install step.
+        Disproportionate for one rule.</td>
+  </tr>
+</table>
+
+<p><strong>The guard treats <code>title</code> as insufficient.</strong> This is deliberately
+   stricter than the specification requires — <code>title</code> is a valid last-resort name source —
+   because accepting it would mean the guard passes on the exact bug it exists to catch.</p>
+
+<h2>Design</h2>
+
+<p><strong>The fix.</strong> Four <code>aria-label</code> attributes in
+   <code>docs/src/components/Header.astro</code>, carrying the new-tab hint since all four links use
+   <code>target="_blank"</code> and browsers do not reliably announce that:</p>
+
+<pre>aria-label="GitHub (opens in a new tab)"
+aria-label="npm (opens in a new tab)"
+aria-label="Sponsor (opens in a new tab)"
+aria-label="Buy me a coffee (opens in a new tab)"</pre>
+
+<p><code>aria-hidden="true"</code> stays on the SVGs — the artwork should remain hidden once the link
+   itself is named. <code>title</code> stays too; it is what produces the mouse tooltip, and it is
+   harmless once a stronger name is present.</p>
+
+<p><strong>The guard.</strong> <code>.github/scripts/check-docs-a11y.mjs</code>, following
+   <code>check-docs-links.mjs</code> in structure, style and conventions: an ESM script run from
+   <code>docs/</code> after the build, walking <code>dist/</code> for <code>.html</code> files.</p>
+
+<p>It flags any <code>&lt;a&gt;</code> or <code>&lt;button&gt;</code> that has all of:</p>
+
+<ul>
+  <li>an <code>&lt;svg&gt;</code> among its contents,</li>
+  <li>no text content once tags and entities are stripped,</li>
+  <li>no <code>aria-label</code> and no <code>aria-labelledby</code> on the element,</li>
+  <li>no <code>&lt;title&gt;</code> inside the SVG.</li>
+</ul>
+
+<p>Each finding prints a <code>::error file=docs/&lt;path&gt;::</code> annotation naming the element
+   and its <code>href</code> so it is locatable, the script prints a page count like its sibling, and
+   it exits <code>1</code> if the count is non-zero.</p>
+
+<p>It runs as a step in the existing <code>docs</code> job in
+   <code>.github/workflows/ci.yml</code>, after the link check, so both operate on the same built
+   output.</p>
+
+<h2>Testing</h2>
+
+<p><strong>Red before green, against reality rather than a fixture.</strong> The guard must report
+   exactly <strong>4</strong> findings on the current build — the four known links — before the fix
+   lands, and <strong>0</strong> after. Verified in that order, because a guard that has only ever
+   passed proves nothing about whether it can fail.</p>
+
+<p>Two further checks on the guard itself, since a checker that is wrong in either direction is worse
+   than none:</p>
+
+<ul>
+  <li><strong>No false positives.</strong> The search button, sections toggle and theme toggle
+      already carry names or visible text and must stay unflagged. The sweep that found this bug
+      already confirmed the built output contains exactly four offenders and no others.</li>
+  <li><strong>The rule is the intended one.</strong> An element named only by <code>title</code>
+      must still be flagged — that is the case that shipped.</li>
+</ul>
+
+<p>The existing suite (43 tests), the docs build, and the link check must all stay green.</p>
+
+<h2>Out of scope</h2>
+<ul>
+  <li>The other three categories in the audit report. Only the accessibility findings are in scope,
+      and within those only the missing-name rule.</li>
+  <li>Broader accessibility auditing — colour contrast, focus order, landmark structure. Worth doing,
+      but a different piece of work with a different shape.</li>
+  <li>The search, sections and theme controls, which are already named correctly.</li>
+  <li>Changing <code>target="_blank"</code> itself. Whether these links should open a new tab at all
+      is a product decision, not an accessibility fix.</li>
+</ul>
+
+
+</body>
+</html>
