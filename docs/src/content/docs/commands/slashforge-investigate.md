@@ -8,6 +8,12 @@ description: Read-only research — reproduce and root-cause a bug, then produce
 /slashforge:investigate [symptom]
 ```
 
+:::note
+==On Cursor and Codex this is `/slashforge-investigate`.== Those targets have no `:` namespace, so the
+prefix lives in the name. Codex invokes it as `$slashforge-investigate`. See
+[Targets](/slashforge/reference/cli/#targets).
+:::
+
 Read-only research. ==Reproduces a suspected bug, finds the root cause, and writes
 a findings report.==
 
