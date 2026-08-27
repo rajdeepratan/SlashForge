@@ -1,0 +1,188 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design — derive the published version from package.json (2026-08-02)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — derive the published version from package.json</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> Stop the docs site restating the version and Node floor by hand — in both
+  the places it does so — and add a guard that fails the build if either is written by hand again.
+</div>
+
+<h2>Problem</h2>
+
+<p>The site publishes its version from <strong>two hardcoded literals</strong>, both frozen at
+   <code>4.0.1</code> while npm serves <code>4.3.1</code> — six releases of drift, live now.</p>
+
+<table>
+  <tr><th>Location</th><th>What it is</th><th>Reaches</th></tr>
+  <tr><td><code>docs/src/layouts/Base.astro:37</code></td><td>the site footer</td>
+      <td><strong>every page</strong> — <code>Base</code> wraps <code>DocsLayout</code>, which wraps all 22 others</td></tr>
+  <tr><td><code>docs/src/pages/index.astro:152</code></td><td>the hero fact chips</td>
+      <td>the home page</td></tr>
+</table>
+
+<p>Measured against the built output: <strong>17 stale version strings across 16 pages.</strong></p>
+
+<p><strong>The investigation that prompted this found only one of them.</strong> It grepped
+   <code>index.astro</code>, found the hero, and stopped — so it reported a single line in a single
+   file. The footer went unnoticed until the guard was dry-run against the whole built site. A fix
+   scoped to that report would have corrected the hero and left every page's footer wrong.</p>
+
+<p>The hero also carries <code>Node 18+</code>, which contradicts <code>package.json</code>'s
+   <code>engines: "&gt;=16"</code>. The README badge renders from that field and says 16+, so two
+   published surfaces disagree — and CI tests only 18, 20 and 22, meaning <code>&gt;=16</code> is
+   claimed and never exercised. That string is genuinely hero-only.</p>
+
+<p>This is the third hand-restated fact on this site to drift, after "five slash commands" and a
+   meta description that omitted a command. The pattern is the problem.</p>
+
+<h2>Approach</h2>
+
+<p>Derive both facts once, in a shared module, and import it in both places.</p>
+
+<table>
+  <tr><th>Option</th><th>Verdict</th></tr>
+  <tr><td>A shared <code>src/pkg.ts</code></td>
+      <td><strong>Chosen.</strong> <code>src/nav.ts</code> is the existing precedent for a shared
+          build-time module at <code>src/</code> root, imported by layouts. One read, one transform,
+          two consumers.</td></tr>
+  <tr><td><code>readFileSync</code> in each file's frontmatter</td>
+      <td>Rejected. Works, but duplicates the read and the transform across two files — repeating in
+          the fix the exact habit that caused the bug.</td></tr>
+  <tr><td><code>import pkg from '../../package.json'</code></td>
+      <td>Rejected. The path leaves <code>docs/</code>, and Vite's serving allow-list rejects paths
+          outside the project root — it risks passing the build and failing <code>npm run dev</code>.</td></tr>
+</table>
+
+<h2>Design</h2>
+
+<p><strong><code>docs/src/pkg.ts</code></strong> — the single source:</p>
+
+<pre>import { readFileSync } from 'node:fs';
+
+const pkg = JSON.parse(
+  readFileSync(new URL('../../package.json', import.meta.url), 'utf8')
+);
+
+/** The published version, e.g. "4.3.1". */
+export const version: string = pkg.version;
+
+/** The engines floor as a display string: "&gt;=16" -&gt; "16+", "&gt;=18.0.0" -&gt; "18+". */
+export const nodeFloor: string =
+  `${pkg.engines.node.replace(/[^0-9.]/g, '').split('.')[0]}+`;</pre>
+
+<p>Both facts are derived, not just the version. <code>Node 18+</code> drifted the same way; a
+   corrected literal would only reset the clock.</p>
+
+<p><strong><code>Base.astro</code></strong> imports <code>version</code> and renders
+   <code>v{version}</code> in the footer. <strong><code>index.astro</code></strong> imports both and
+   renders the hero chips. Neither file computes anything.</p>
+
+<p><strong>The guard</strong>, <code>.github/scripts/check-docs-facts.mjs</code>, follows the link and
+   accessible-name checks in structure: ESM, run from <code>docs/</code> against the built
+   <code>dist/</code>, one <code>::error file=…::</code> per finding, non-zero exit. It matches
+   <code>&lt;span&gt;vN.N.N&lt;/span&gt;</code> and fails on any that disagrees with
+   <code>package.json</code>. The narrow pattern is deliberate: the changelog page legitimately lists
+   every past release, and a looser match would flag all of them.</p>
+
+<p><strong>CI gains Node 16</strong>, so the floor the package claims is the floor CI tests.</p>
+
+<p><strong>This may fail, and that is useful.</strong> <code>node --test</code> arrived in Node 16.17
+   and was experimental until 18. A red <code>test (16)</code> job is evidence that
+   <code>&gt;=16</code> is a false claim and <code>engines</code> should be raised. Either result
+   settles it with evidence. If it fails, report it and let the user choose — do not quietly drop 16
+   from the matrix.</p>
+
+<h2>Testing</h2>
+
+<p><strong>Red before green, against the real site.</strong> The guard must report
+   <strong>17</strong> findings across 16 pages before the fix and <strong>0</strong> after. That
+   number is measured, not estimated — it comes from dry-running the guard against the current
+   build.</p>
+
+<ul>
+  <li><strong>Both surfaces must be checked in the rendered output.</strong> The footer on a page
+      that is not the home page, and the hero chips on the home page. Grepping the source is what
+      missed the footer in the first place.</li>
+  <li><strong><code>npm run dev</code> must still serve the page.</strong> The rejected import
+      approach fails exactly there, so a green build alone would not catch it.</li>
+  <li>The existing suite (43 tests), the docs build, the link check and the accessible-name guard
+      must stay green.</li>
+</ul>
+
+<h2>Out of scope</h2>
+<ul>
+  <li>The 3-step quickstart block and a copy button on the hero's <code>npx slashforge</code>
+      snippet — reasonable suggestions from the same review, but product decisions rather than
+      defects.</li>
+  <li>Raising <code>engines</code>, unless CI proves 16 unsupportable.</li>
+  <li>The <code>MIT</code> chips in the hero and footer. Also literals, but a licence does not change
+      with releases, so they carry no drift risk.</li>
+</ul>
+
+
+</body>
+</html>

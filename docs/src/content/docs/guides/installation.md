@@ -13,6 +13,27 @@ npx slashforge
 Claude Code in any repo and type `/` — you should see `/slashforge:setup`,
 `/slashforge:code`, `/slashforge:investigate`, and `/slashforge:review-pr`.
 
+### Using Cursor or Codex
+
+```bash
+npx slashforge --target cursor
+```
+
+That installs to `~/.agents/skills/`, which ==Cursor and Codex both read== — one
+install covers the two. Type `/` in Cursor and you should see
+`/slashforge-code`, `/slashforge-investigate` and `/slashforge-review-pr`.
+
+Two differences worth knowing before you start:
+
+- ==On Cursor and Codex the commands are hyphenated== — `/slashforge-code`, not
+  `/slashforge:code` — because neither supports the `:` namespace. In Codex they are
+  invoked as `$slashforge-code`, and that path is not yet verified end to end.
+- ==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
+  structure that has no equivalent on the other targets. Everything below assumes
+  Claude Code for step 3; on Cursor, skip it and start at step 4.
+
+See [the CLI reference](/slashforge/reference/cli/) for the full target list.
+
 ## Your first run
 
 Start to finish, for a repo that has never used SlashForge.

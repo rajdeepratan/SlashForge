@@ -24,7 +24,14 @@
 
 Installs four commands on any machine — `/slashforge:setup` to scaffold a repo, `/slashforge:code` for freeform development (add `-quick` for lean small-change work), `/slashforge:investigate` for read-only research, and `/slashforge:review-pr` to review someone else's PR against your repo's rules.
 
-Currently supports **Claude Code**. Cursor and Codex targets are planned.
+Supports **Claude Code**, and **Cursor** via `npx slashforge --target cursor`.
+**Codex** reads the same `.agents/skills/` directory and invokes the commands as
+`$slashforge-code`, though that path is not yet verified.
+
+On Cursor and Codex the commands are hyphenated — `/slashforge-code`, not
+`/slashforge:code` — because neither supports the `:` namespace. `/slashforge:setup`
+is Claude Code only for now; it provisions `.claude/` structure that has no equivalent
+on the other targets.
 
 > ### ⚠️ Breaking changes in v4.0.0
 >
@@ -111,11 +118,29 @@ slashforge status      # Show installed version, guide count, and available upda
 slashforge --help      # Full usage
 slashforge --project    # Install into ./.claude/ in the current repo (committable, no global install needed)
 slashforge uninstall    # Remove the kit's guides + commands (add --project for ./.claude)
+slashforge --target cursor   # Install for Cursor and Codex instead (see Targets below)
 ```
 
 `--yes` / `-y` is also enabled by `SLASHFORGE_YES=1` (or the deprecated `CLAUDE_SETUP_KIT_YES=1`) or when stdin is not a TTY — safe to use in CI, devcontainers, or anywhere the install shouldn't block on an interactive prompt.
 
 `--project` vendors both the guide files and the four command files into the repo's `./.claude/` with repo-relative paths — commit it and teammates get the commands with no global install. `uninstall` reverses either install (pass `--project` to target the repo copy).
+
+### Targets
+
+`--target` picks which agent to install for. It defaults to `claude`, and the Claude Code install is unchanged.
+
+| Target | Installs to | Commands look like |
+|---|---|---|
+| `claude` (default) | `~/.claude/commands/slashforge/` | `/slashforge:code` |
+| `cursor`, `codex`, `agents` | `~/.agents/skills/slashforge-code/SKILL.md` | `/slashforge-code` |
+
+`cursor` and `codex` are aliases for `agents` — one install serves both, since Cursor and Codex each read `.agents/skills/`.
+
+The names differ because neither Cursor nor Codex supports a `:` namespace: a skill is named by the folder holding its `SKILL.md`. The prefix has to live in the name, otherwise the commands would install as bare `/code` and `/plan` and collide with everything else in your skills directory. Cross-references inside the installed files are rewritten to match.
+
+`/slashforge-setup` is **not** installed on those targets — it provisions `.claude/` rules, agents and hooks plus `CLAUDE.md`, which have no equivalent there. Codex invokes the skills as `$slashforge-code`; that path is not yet verified end to end.
+
+Uninstall is careful with `.agents/skills/`, which you likely share with other tools: it removes only the `slashforge-*` directories it created, and removes `skills/` itself only if nothing else remains.
 
 Every template is frontmatter-validated before any write — a broken guide (missing fences, missing `name` / `description`) will fail the install cleanly rather than half-write it.
 
@@ -123,14 +148,17 @@ Every template is frontmatter-validated before any write — a broken guide (mis
 
 ## What gets installed
 
-| What | Where |
+| What | Where (default `claude` target) |
 |---|---|
 | Guide files | `~/.claude/setup/slashforge/` |
-| `/slashforge:setup` command | `~/.claude/commands/forge/setup.md` |
-| `/slashforge:code` command | `~/.claude/commands/forge/code.md` |
-| `/slashforge:investigate` command | `~/.claude/commands/forge/investigate.md` |
+| `/slashforge:setup` command | `~/.claude/commands/slashforge/setup.md` |
+| `/slashforge:code` command | `~/.claude/commands/slashforge/code.md` |
+| `/slashforge:investigate` command | `~/.claude/commands/slashforge/investigate.md` |
+| `/slashforge:review-pr` command | `~/.claude/commands/slashforge/review-pr.md` |
 
-Commands live in a `forge/` subdirectory — that is what produces the `/slashforge:` namespace and keeps them from colliding with your own commands. `-quick` is a mode of `/slashforge:code`, not a separate command; it loads one extra guide file.
+On the `cursor` / `codex` target the guides land in `~/.agents/setup/slashforge/` and each command becomes `~/.agents/skills/slashforge-<name>/SKILL.md`, minus `setup`.
+
+Commands live in a `slashforge/` subdirectory — that is what produces the `/slashforge:` namespace and keeps them from colliding with your own commands. `-quick` is a mode of `/slashforge:code`, not a separate command; it loads one extra guide file.
 
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification

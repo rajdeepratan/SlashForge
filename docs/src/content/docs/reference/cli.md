@@ -1,14 +1,15 @@
 ---
 title: CLI reference
-description: The three things the npm package itself does, outside Claude Code.
+description: The three things the npm package itself does, and the targets it installs to.
 ---
 
-==The slash commands run inside Claude Code.== The package has a small CLI of its
-own for getting them on and off your machine.
+==The slash commands run inside your coding agent.== The package has a small CLI of
+its own for getting them on and off your machine.
 
 | Command | What it does |
 | --- | --- |
 | `npx slashforge` | Installs guide files, the four commands, and the nine discipline skills into `~/.claude/` |
+| `npx slashforge --target cursor` | Installs into `~/.agents/skills/`, where Cursor and Codex find them |
 | `npx slashforge status` | Reports what is installed, at which version, without changing anything |
 | `npx slashforge uninstall` | Removes the guides and commands it installed |
 
@@ -16,7 +17,8 @@ own for getting them on and off your machine.
 
 | Flag | Effect |
 | --- | --- |
-| `--project` | Install into `./.claude/` of the current repo instead of `~/.claude/` |
+| `--project` | Install into the current repo instead of your home directory |
+| `--target <name>` | `claude` (default), `cursor`, `codex`, or `agents` |
 | `--dry-run` | Print planned file writes without touching the filesystem |
 | `--yes`, `-y` | Non-interactive; auto-confirm the update prompt |
 | `--help`, `-h` | Full usage |
@@ -28,6 +30,48 @@ on a prompt work without the flag==.
 ```bash
 SLASHFORGE_YES=1 npx slashforge
 ```
+
+## Targets
+
+SlashForge installs to one target at a time. ==The default is Claude Code, and
+nothing about it has changed.==
+
+| Target | Installs to | Commands look like |
+| --- | --- | --- |
+| `claude` (default) | `~/.claude/commands/slashforge/` | `/slashforge:code` |
+| `cursor`, `codex`, `agents` | `~/.agents/skills/slashforge-code/SKILL.md` | `/slashforge-code` |
+
+`cursor` and `codex` are aliases for `agents` — ==one install serves both==,
+because Cursor and Codex both read `.agents/skills/`.
+
+```bash
+npx slashforge --target cursor      # or --target=cursor
+```
+
+### Why the names differ
+
+==On Cursor and Codex the commands are hyphenated== — `/slashforge-code`, not
+`/slashforge:code` — because neither supports the `:` namespace.
+
+A skill there is named by the folder that holds its `SKILL.md`, and nesting does
+not change that. The prefix has to live in the name itself, or the commands would
+install as bare `/code` and `/plan` and collide with everything else in your
+skills directory.
+
+Cross-references inside the installed files are rewritten to match, so a
+workflow that hands off to another command names one that exists on your target.
+
+### What is not installed on `cursor` / `codex`
+
+==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
+structure that has no equivalent on the other targets. The installer says so when
+it finishes. Run it from Claude Code if you want a repo scaffolded.
+
+:::caution
+Codex reads `.agents/skills/` and invokes the commands as `$slashforge-code`
+rather than `/slashforge-code`. ==That path is not yet verified end to end== —
+the install is tested against Cursor.
+:::
 
 ## install
 
@@ -81,11 +125,13 @@ Reports the installed version, the guide files present, the commands registered,
 It changes nothing.
 
 ```bash
-npx slashforge status
+npx slashforge status                 # the claude target
+npx slashforge status --target cursor # the agents target
 ```
 
 ```
 slashforge status
+  Target:                    claude
   Package version (current): v4.4.2
   Installed version:         v4.4.2
   Installed at:              2026-08-01T15:37:54.153Z
@@ -116,8 +162,9 @@ absent.
 ## uninstall
 
 ```bash
-npx slashforge uninstall              # from ~/.claude/
-npx slashforge uninstall --project    # from ./.claude/
+npx slashforge uninstall                    # from ~/.claude/
+npx slashforge uninstall --project          # from ./.claude/
+npx slashforge uninstall --target cursor    # from ~/.agents/skills/
 ```
 
 ==Removes only the files SlashForge installed==, and recognises the v2 and v3
@@ -133,3 +180,7 @@ a repo, and only on the repo you run it in.
 
 ==If you have added your own commands under `~/.claude/commands/slashforge/`, they
 are left alone and the directory is kept.==
+
+The same care applies to `.agents/skills/`, which you likely share with other
+tools: uninstall removes ==only the `slashforge-*` directories it created==, and
+removes the `skills/` directory itself only if nothing else is left in it.

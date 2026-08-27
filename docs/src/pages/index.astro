@@ -66,7 +66,7 @@ const commands = [
   {
     name: '/slashforge:setup',
     href: 'commands/slashforge-setup',
-    desc: 'One-time repo setup. Explores the codebase, asks clarifying questions, then generates CLAUDE.md, rules, skills, agents, commands, and hooks tailored to it.',
+    desc: 'One-time repo setup. Explores the codebase, asks clarifying questions, then generates CLAUDE.md, rules, skills, agents, commands, and hooks tailored to it. Claude Code only — everything it generates is Claude Code structure.',
   },
   {
     name: '/slashforge:code',
@@ -125,7 +125,7 @@ const costs = [
 
 <Base
   title="SlashForge — workflow slash commands for AI coding agents"
-  description="Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate, /slashforge:review-pr."
+  description="Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate, /slashforge:review-pr. For Claude Code, Cursor and Codex."
   rawTitle
 >
   <main>
@@ -150,7 +150,7 @@ const costs = [
             <div class="label">Install</div>
             <div class="rail__cmd"><i>$ </i>npx slashforge</div>
             <p class="rail__note">
-              Supports <strong>Claude Code</strong> today. Cursor and Codex targets are planned.
+              Supports <strong>Claude Code</strong>, plus <strong>Cursor</strong> and <strong>Codex</strong> via <strong>--target cursor</strong>.
             </p>
             <div class="rail__facts"><span>Node {nodeFloor}</span><span>MIT</span><span>v{version}</span></div>
           </div>
@@ -222,6 +222,13 @@ const costs = [
             ))
           }
         </div>
+        <p class="caveat">
+          Names above are the Claude Code form. On Cursor and Codex the commands are
+          hyphenated — <code>/slashforge-code</code>, not <code>/slashforge:code</code> — because
+          neither supports the <code>:</code> namespace, and Codex invokes them as <code>$slashforge-code</code>.{' '}
+          <code>/slashforge:setup</code> is Claude Code only for now; it provisions{' '}
+          <code>.claude/</code> structure that has no equivalent on the other targets.
+        </p>
       </div>
     </section>
 
