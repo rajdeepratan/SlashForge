@@ -13,6 +13,13 @@ questions, then ==generates a `.claude/` configuration tailored to what it found
 Handles both fresh repos and partial setups — ==if `.claude/` already exists, it
 fills gaps rather than overwriting==.
 
+:::caution
+==Claude Code only.== This command is not installed on the `cursor` / `codex`
+target, because everything it generates — `.claude/rules/`, `.claude/agents/`,
+hooks, `CLAUDE.md` — is Claude Code structure with no equivalent there. The other
+three commands are available on every target.
+:::
+
 ## What it creates
 
 | Output | Purpose |

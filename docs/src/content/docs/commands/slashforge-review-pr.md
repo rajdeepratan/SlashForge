@@ -11,6 +11,12 @@ description: Review a pull request against your repo's own rules and conventions
 /slashforge:review-pr --all        # all three, grouped
 ```
 
+:::note
+==On Cursor and Codex this is `/slashforge-review-pr`.== Those targets have no `:` namespace, so the
+prefix lives in the name. Codex invokes it as `$slashforge-review-pr`. See
+[Targets](/slashforge/reference/cli/#targets).
+:::
+
 ==Reviews a pull request against **your repo's** standards== — `CLAUDE.md`, `.claude/rules/`, and the
 conventions actually in the surrounding code — then posts line-level comments or an approval.
 

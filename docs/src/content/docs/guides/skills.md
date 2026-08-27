@@ -3,8 +3,11 @@ title: Skills
 description: SlashForge ships every discipline skill the workflow uses. No plugin is required, and none is checked for.
 ---
 
-SlashForge ships **its own discipline skills**. They install with the package, live under the
-`slashforge:` namespace, and ==are always available — no plugin, no marketplace, nothing to add==.
+SlashForge ships **its own discipline skills**. They install with the package and ==are always
+available — no plugin, no marketplace, nothing to add==. On Claude Code they live under the
+`slashforge:` namespace; on the `cursor` / `codex` target they are named `slashforge-brainstorm`,
+`slashforge-plan` and so on, since neither tool supports a `:` namespace. The table below uses
+the Claude Code form.
 
 The [superpowers](https://github.com/obra/superpowers) plugin used to be a preflight gate: every
 command stopped, checked for it, and warned about degraded mode if it was missing. ==That is no

@@ -9,6 +9,12 @@ description: End-to-end development workflow — plan, confirm, branch, implemen
 /slashforge:code [file]
 ```
 
+:::note
+==On Cursor and Codex this is `/slashforge-code`.== Those targets have no `:` namespace, so the
+prefix lives in the name. Codex invokes it as `$slashforge-code`. See
+[Targets](/slashforge/reference/cli/#targets).
+:::
+
 The full development workflow, from an idea to a merged PR. ==Ten phases, run in
 order, with four points where it stops and waits for you.==
 
