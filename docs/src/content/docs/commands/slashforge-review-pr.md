@@ -12,8 +12,8 @@ description: Review a pull request against your repo's own rules and conventions
 ```
 
 :::note
-==On Cursor and Codex this is `/slashforge-review-pr`.== Those targets have no `:` namespace, so the
-prefix lives in the name. Codex invokes it as `$slashforge-review-pr`. See
+==On Cursor and Codex the commands are hyphenated== — `/slashforge-review-pr`, not `/slashforge:review-pr` —
+because neither supports the `:` namespace. Codex invokes it as `$slashforge-review-pr`. See
 [Targets](/slashforge/reference/cli/#targets).
 :::
 

@@ -14,10 +14,9 @@ Handles both fresh repos and partial setups — ==if `.claude/` already exists, 
 fills gaps rather than overwriting==.
 
 :::caution
-==Claude Code only.== This command is not installed on the `cursor` / `codex`
-target, because everything it generates — `.claude/rules/`, `.claude/agents/`,
-hooks, `CLAUDE.md` — is Claude Code structure with no equivalent there. The other
-three commands are available on every target.
+==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
+structure that has no equivalent on the other targets, so it is not installed
+there. The other three commands are available on every target.
 :::
 
 ## What it creates

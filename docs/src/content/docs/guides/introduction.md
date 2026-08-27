@@ -136,7 +136,10 @@ what runs at each phase.
 `/slashforge:` namespace in v3.0.0 was groundwork for exactly that.
 
 Install for Cursor with `npx slashforge --target cursor`. That writes
-`.agents/skills/`, the directory Codex reads as well. Neither tool supports the `:`
-namespace, so the commands are hyphenated there — `/slashforge-code`, not
-`/slashforge:code`. `/slashforge:setup` stays Claude Code only for now.
+`.agents/skills/`, the directory Codex reads as well.
+
+On Cursor and Codex the commands are hyphenated — `/slashforge-code`, not
+`/slashforge:code` — because neither supports the `:` namespace.
+`/slashforge:setup` is Claude Code only for now; it provisions `.claude/`
+structure that has no equivalent on the other targets.
 
