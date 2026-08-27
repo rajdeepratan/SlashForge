@@ -66,7 +66,7 @@ const commands = [
   {
     name: '/slashforge:setup',
     href: 'commands/slashforge-setup',
-    desc: 'One-time repo setup. Explores the codebase, asks clarifying questions, then generates CLAUDE.md, rules, skills, agents, commands, and hooks tailored to it.',
+    desc: 'One-time repo setup. Explores the codebase, asks clarifying questions, then generates CLAUDE.md, rules, skills, agents, commands, and hooks tailored to it. Claude Code only — everything it generates is Claude Code structure.',
   },
   {
     name: '/slashforge:code',
@@ -125,7 +125,7 @@ const costs = [
 
 <Base
   title="SlashForge — workflow slash commands for AI coding agents"
-  description="Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate, /slashforge:review-pr."
+  description="Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate, /slashforge:review-pr. For Claude Code, Cursor and Codex."
   rawTitle
 >
   <main>
@@ -222,6 +222,12 @@ const costs = [
             ))
           }
         </div>
+        <p class="caveat">
+          Names above are the Claude Code form. On Cursor and Codex the same commands are
+          hyphenated — <code>/slashforge-code</code> — because neither supports a <code>:</code> namespace,
+          and Codex invokes them as <code>$slashforge-code</code>. Three of the four install
+          there; <code>/slashforge:setup</code> is Claude Code only.
+        </p>
       </div>
     </section>
 
