@@ -16,7 +16,9 @@ fills gaps rather than overwriting==.
 :::caution
 ==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
 structure that has no equivalent on the other targets, so it is not installed
-there. The other three commands are available on every target.
+there. The other three commands are available on every target, hyphenated as
+`/slashforge-code`, `/slashforge-investigate` and `/slashforge-review-pr`. See
+[Targets](/slashforge/reference/cli/#targets).
 :::
 
 ## What it creates
@@ -28,7 +30,7 @@ there. The other three commands are available on every target.
 | `.claude/skills/` | Repo-specific procedures |
 | `.claude/agents/` | Specialist agents, plus shared `git` and `code-reviewer` |
 | `.claude/commands/` | Repo-specific commands |
-| `.claude/hooks/` | Automated behaviours |
+| `.claude/settings.json` | Automated behaviours, configured as hooks |
 
 In a monorepo it creates shared rules and root `CLAUDE.md`, then app-specific
 rules, skills, agents, and per-app `CLAUDE.md` files.
