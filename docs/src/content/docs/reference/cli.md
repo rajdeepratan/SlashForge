@@ -50,22 +50,22 @@ npx slashforge --target cursor      # or --target=cursor
 
 ### Why the names differ
 
-Claude Code gets `/slashforge:code`. Cursor and Codex get `/slashforge-code`.
+==On Cursor and Codex the commands are hyphenated== — `/slashforge-code`, not
+`/slashforge:code` — because neither supports the `:` namespace.
 
-==Neither Cursor nor Codex supports a `:` namespace== — a skill is named by the
-folder that holds its `SKILL.md`, and nesting does not change that. The prefix
-has to live in the name itself, or the commands would install as bare `/code`
-and `/plan` and collide with everything else in your skills directory.
+A skill there is named by the folder that holds its `SKILL.md`, and nesting does
+not change that. The prefix has to live in the name itself, or the commands would
+install as bare `/code` and `/plan` and collide with everything else in your
+skills directory.
 
 Cross-references inside the installed files are rewritten to match, so a
 workflow that hands off to another command names one that exists on your target.
 
 ### What is not installed on `cursor` / `codex`
 
-==`/slashforge-setup` is Claude Code only for now.== It provisions `.claude/`
-rules, agents and hooks plus `CLAUDE.md`, none of which have an equivalent on the
-other targets. The installer says so when it finishes. Run `/slashforge:setup`
-from Claude Code if you want a repo scaffolded.
+==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
+structure that has no equivalent on the other targets. The installer says so when
+it finishes. Run it from Claude Code if you want a repo scaffolded.
 
 :::caution
 Codex reads `.agents/skills/` and invokes the commands as `$slashforge-code`

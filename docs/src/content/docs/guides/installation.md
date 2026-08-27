@@ -25,12 +25,12 @@ install covers the two. Type `/` in Cursor and you should see
 
 Two differences worth knowing before you start:
 
-- ==The commands are hyphenated, not namespaced== — `/slashforge-code`, because
-  neither tool supports the `:` form. In Codex they are invoked as
-  `$slashforge-code`, and that path is not yet verified end to end.
-- ==`/slashforge-setup` is not installed.== It scaffolds `.claude/` structure that
-  only Claude Code has. Everything below assumes Claude Code for step 3; on Cursor,
-  skip it and start at step 4.
+- ==On Cursor and Codex the commands are hyphenated== — `/slashforge-code`, not
+  `/slashforge:code` — because neither supports the `:` namespace. In Codex they are
+  invoked as `$slashforge-code`, and that path is not yet verified end to end.
+- ==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
+  structure that has no equivalent on the other targets. Everything below assumes
+  Claude Code for step 3; on Cursor, skip it and start at step 4.
 
 See [the CLI reference](/slashforge/reference/cli/) for the full target list.
 

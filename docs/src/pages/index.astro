@@ -223,10 +223,11 @@ const costs = [
           }
         </div>
         <p class="caveat">
-          Names above are the Claude Code form. On Cursor and Codex the same commands are
-          hyphenated — <code>/slashforge-code</code> — because neither supports a <code>:</code> namespace,
-          and Codex invokes them as <code>$slashforge-code</code>. Three of the four install
-          there; <code>/slashforge:setup</code> is Claude Code only.
+          Names above are the Claude Code form. On Cursor and Codex the commands are
+          hyphenated — <code>/slashforge-code</code>, not <code>/slashforge:code</code> — because
+          neither supports the <code>:</code> namespace, and Codex invokes them as <code>$slashforge-code</code>.{' '}
+          <code>/slashforge:setup</code> is Claude Code only for now; it provisions{' '}
+          <code>.claude/</code> structure that has no equivalent on the other targets.
         </p>
       </div>
     </section>

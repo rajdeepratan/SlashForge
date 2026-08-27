@@ -10,8 +10,8 @@ description: End-to-end development workflow — plan, confirm, branch, implemen
 ```
 
 :::note
-==On Cursor and Codex this is `/slashforge-code`.== Those targets have no `:` namespace, so the
-prefix lives in the name. Codex invokes it as `$slashforge-code`. See
+==On Cursor and Codex the commands are hyphenated== — `/slashforge-code`, not `/slashforge:code` —
+because neither supports the `:` namespace. Codex invokes it as `$slashforge-code`. See
 [Targets](/slashforge/reference/cli/#targets).
 :::
 

@@ -9,8 +9,8 @@ description: Read-only research — reproduce and root-cause a bug, then produce
 ```
 
 :::note
-==On Cursor and Codex this is `/slashforge-investigate`.== Those targets have no `:` namespace, so the
-prefix lives in the name. Codex invokes it as `$slashforge-investigate`. See
+==On Cursor and Codex the commands are hyphenated== — `/slashforge-investigate`, not `/slashforge:investigate` —
+because neither supports the `:` namespace. Codex invokes it as `$slashforge-investigate`. See
 [Targets](/slashforge/reference/cli/#targets).
 :::
 

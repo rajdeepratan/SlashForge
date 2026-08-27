@@ -21,16 +21,16 @@ description: The handful of things that actually go wrong, and what to do about 
 :::steps
 1. **Check you installed the right target.** A plain `npx slashforge` installs for Claude Code only. You need `npx slashforge --target cursor`.
 2. Run `npx slashforge status --target cursor` — note the `--target`, or it reports on the Claude install instead and will say "not installed" even when the agents install is fine.
-3. **The names are hyphenated, not namespaced.** Type `/slashforge-code`, not `/slashforge:code`. Nothing on these targets supports the `:` form.
+3. **On Cursor and Codex the commands are hyphenated** — `/slashforge-code`, not `/slashforge:code` — because neither supports the `:` namespace.
 4. **In Codex, use `$`.** The skills are invoked as `$slashforge-code` rather than with a slash.
 5. **Restart the editor.** Skills are discovered at session start.
 6. Confirm the files are on disk: `ls ~/.agents/skills/`. You should see a `slashforge-code` directory containing `SKILL.md`.
 :::
 
 :::note
-==`/slashforge-setup` is missing on purpose.== It provisions `.claude/` rules,
-agents and hooks plus `CLAUDE.md`, which have no equivalent on Cursor or Codex.
-Run `/slashforge:setup` from Claude Code to scaffold a repo.
+==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
+structure that has no equivalent on the other targets. Run it from Claude Code to
+scaffold a repo.
 :::
 
 ## It installed an old version
