@@ -1192,3 +1192,67 @@ test('rendering only removes whole lines, never rewrites them', () => {
     }
   }
 });
+
+// --- Task 4: core workflow guides ---------------------------------------------
+
+test('core workflow guides dispatch no agents on the agents target', () => {
+  const rendered = renderAll('agents');
+  for (const file of ['forge-workflow.md', 'forge-workflow-agents.md']) {
+    const body = rendered[file];
+    assert.ok(!/Invoke the `git` agent/.test(body), `${file}: git agent dispatch`);
+    assert.ok(!/`code-reviewer` agent/.test(body), `${file}: code-reviewer dispatch`);
+    assert.ok(!/\.claude\/agents\//.test(body), `${file}: names .claude/agents/`);
+    assert.ok(!/create it on the fly|create it silently/.test(body), `${file}: creates agents`);
+  }
+});
+
+test('core workflow guides keep agent dispatch on the claude target', () => {
+  const rendered = renderAll('claude');
+  assert.match(rendered['forge-workflow.md'], /Invoke the `git` agent to push/);
+  assert.match(rendered['forge-workflow.md'], /`code-reviewer` agent/);
+  assert.match(rendered['forge-workflow-agents.md'], /\.claude\/agents\//);
+});
+
+// Frontmatter is YAML, so a fenced description is only valid once the
+// non-matching block is stripped. Validation therefore has to check each
+// target's rendered frontmatter, not the raw source.
+test('validateTemplates accepts a fenced frontmatter description', () => {
+  const dir = tmp();
+  fs.writeFileSync(
+    path.join(dir, 'ok.md'),
+    [
+      '---',
+      'name: /slashforge:thing',
+      '<!--target:claude-->',
+      'description: the claude wording',
+      '<!--/target-->',
+      '<!--target:agents-->',
+      'description: the agents wording',
+      '<!--/target-->',
+      '---',
+      '',
+      'body',
+      '',
+    ].join('\n')
+  );
+  assert.doesNotThrow(() => validateTemplates(['ok.md'], dir));
+});
+
+test('validateTemplates still rejects frontmatter broken for one target only', () => {
+  const dir = tmp();
+  fs.writeFileSync(
+    path.join(dir, 'half.md'),
+    [
+      '---',
+      '<!--target:claude-->',
+      'name: /slashforge:thing',
+      'description: only claude gets a name',
+      '<!--/target-->',
+      '---',
+      '',
+      'body',
+      '',
+    ].join('\n')
+  );
+  assert.throws(() => validateTemplates(['half.md'], dir), /Refusing to install/);
+});

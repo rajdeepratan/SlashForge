@@ -188,8 +188,17 @@ function validateTemplates(files, dir) {
     }
     try {
       const content = fs.readFileSync(filePath, 'utf8');
-      parseFrontmatter(content, file);
-      for (const err of findTargetBlockErrors(content, file)) errors.push(err);
+      const blockErrors = findTargetBlockErrors(content, file);
+      for (const err of blockErrors) errors.push(err);
+      // Frontmatter is YAML, so a fenced `description:` is only valid once the
+      // non-matching block is gone. What has to parse is each target's rendered
+      // frontmatter, not the raw source. Skipped when the markers themselves are
+      // malformed, since stripping would then be meaningless.
+      if (blockErrors.length === 0) {
+        for (const name of VALID_TARGET_NAMES) {
+          parseFrontmatter(stripTargetBlocks(content, name), file);
+        }
+      }
     } catch (err) {
       errors.push(err.message);
     }
