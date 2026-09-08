@@ -220,11 +220,13 @@ function validateTemplates(files, dir) {
   }
 }
 
-function renderTemplate(content, { installPath, version, pkgName }) {
-  return content
+function renderTemplate(content, { installPath, version, pkgName, targetName }) {
+  const substituted = content
     .replace(/\{\{INSTALL_PATH\}\}/g, installPath)
     .replace(/\{\{KIT_VERSION\}\}/g, version)
     .replace(/\{\{KIT_PACKAGE\}\}/g, pkgName);
+  // Stripped last, so a marker can never be introduced by a substitution.
+  return stripTargetBlocks(substituted, targetName);
 }
 
 // 'slashforge/code.md' -> 'slashforge-code'.
@@ -375,6 +377,7 @@ function installFiles(target, {
       installPath: target.installPath,
       version,
       pkgName,
+      targetName: target.target,
     });
     if (target.layout === 'skills') {
       rendered = toSkillCommandRefs(rendered, target.namePrefix);
@@ -398,6 +401,7 @@ function installFiles(target, {
       installPath: target.installPath,
       version,
       pkgName,
+      targetName: target.target,
     });
     let dest;
     if (target.layout === 'skills') {
