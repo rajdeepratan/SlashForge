@@ -28,6 +28,7 @@ const {
   parseTargetArg,
   plannedWrites,
   stripTargetBlocks,
+  findTargetBlockErrors,
 } = require('../bin/install.js');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
@@ -1082,4 +1083,45 @@ test('stripTargetBlocks handles a block at end of file with no trailing newline'
 test('stripTargetBlocks removes multi-line bodies entirely', () => {
   const src = 'x\n<!--target:claude-->\n1\n2\n3\n<!--/target-->\ny\n';
   assert.equal(stripTargetBlocks(src, 'agents'), 'x\ny\n');
+});
+
+// --- Task 2: malformed markers fail the install closed ------------------------
+
+test('findTargetBlockErrors accepts a well-formed file', () => {
+  const ok = 'a\n<!--target:claude-->\nb\n<!--/target-->\nc\n';
+  assert.deepEqual(findTargetBlockErrors(ok, 'x.md'), []);
+});
+
+test('findTargetBlockErrors rejects an unclosed block', () => {
+  const errs = findTargetBlockErrors('<!--target:claude-->\nb\n', 'x.md');
+  assert.equal(errs.length, 1);
+  assert.match(errs[0], /x\.md/);
+  assert.match(errs[0], /unclosed/i);
+});
+
+test('findTargetBlockErrors rejects an orphan close', () => {
+  const errs = findTargetBlockErrors('b\n<!--/target-->\n', 'x.md');
+  assert.equal(errs.length, 1);
+  assert.match(errs[0], /unopened|no open block/i);
+});
+
+test('findTargetBlockErrors rejects a nested block', () => {
+  const src = '<!--target:claude-->\n<!--target:agents-->\nb\n<!--/target-->\n<!--/target-->\n';
+  const errs = findTargetBlockErrors(src, 'x.md');
+  assert.ok(errs.some((e) => /nested/i.test(e)), 'expected a nested-block error');
+});
+
+test('findTargetBlockErrors rejects an unknown target name', () => {
+  const errs = findTargetBlockErrors('<!--target:cursor-->\nb\n<!--/target-->\n', 'x.md');
+  assert.equal(errs.length, 1);
+  assert.match(errs[0], /cursor/);
+});
+
+test('validateTemplates refuses a template with a malformed target block', () => {
+  const dir = tmp();
+  fs.writeFileSync(
+    path.join(dir, 'bad.md'),
+    '---\nname: bad\ndescription: d\n---\n\n<!--target:claude-->\nunclosed\n'
+  );
+  assert.throws(() => validateTemplates(['bad.md'], dir), /Refusing to install/);
 });
