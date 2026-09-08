@@ -242,6 +242,23 @@ function toSkillCommandRefs(content, prefix) {
   return content.replace(/\/slashforge:([a-z][a-z-]*)/g, `/${prefix}$1`);
 }
 
+// Passages that differ between install targets are fenced in the templates:
+//   <!--target:claude--> ... <!--/target-->
+// Everything unfenced is shared. One source per file is what stops the two
+// variants drifting; the alternative was a near-duplicate of every guide, and
+// prose duplicated across files does not stay in sync.
+//
+// The `m` flag anchors both fences to their own lines, so a marker quoted
+// inside a fenced code sample in the docs is not mistaken for a real fence.
+const TARGET_BLOCK_RE =
+  /^[ \t]*<!--target:([a-z-]+)-->[ \t]*\n([\s\S]*?)^[ \t]*<!--\/target-->[ \t]*\n?/gm;
+
+function stripTargetBlocks(content, targetName) {
+  return content.replace(TARGET_BLOCK_RE, (_match, name, body) =>
+    (name === targetName ? body : '')
+  );
+}
+
 // 'forge/setup.md' -> '/slashforge:setup'. A command file's path under the commands
 // dir determines how it is invoked; a subdirectory becomes a `:` namespace. The
 // skills layout has no namespace, so the prefix lives in the directory name instead.
@@ -810,6 +827,7 @@ module.exports = {
   skillDirName,
   toSkillFrontmatter,
   toSkillCommandRefs,
+  stripTargetBlocks,
   commandPath,
   parseTargetArg,
   plannedWrites,
