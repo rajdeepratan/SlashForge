@@ -1247,3 +1247,21 @@ test('validateTemplates still rejects frontmatter broken for one target only', (
   );
   assert.throws(() => validateTemplates(['half.md'], dir), /Refusing to install/);
 });
+
+// --- Task 5: remaining guides and code.md -------------------------------------
+
+test('remaining guides and code.md dispatch no agents on the agents target', () => {
+  const rendered = renderAll('agents');
+  const files = [
+    'forge-workflow-quick.md',
+    'forge-workflow-investigation.md',
+    'forge-workflow-review-pr.md',
+    path.join('slashforge', 'code.md'),
+  ];
+  for (const file of files) {
+    const body = rendered[file];
+    assert.ok(!/`code-reviewer` agent/.test(body), `${file}: code-reviewer dispatch`);
+    assert.ok(!/the `git` agent/.test(body), `${file}: git agent dispatch`);
+    assert.ok(!/Agent Selection Table/.test(body), `${file}: names the agent table`);
+  }
+});

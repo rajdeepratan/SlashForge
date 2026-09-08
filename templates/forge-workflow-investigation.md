@@ -7,7 +7,12 @@ description: Read-only investigation flow used by /slashforge:investigate — re
 
 Short, research-only flow used by `/slashforge:investigate`. No branching, no PR, no verification phase. Output is a findings report. Companion file:
 
+<!--target:claude-->
 - `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
+<!--/target-->
+<!--target:agents-->
+- `forge-workflow-agents.md` — how task types are handled + self-sufficiency rules (loaded by every workflow command)
+<!--/target-->
 
 This file is loaded by `/slashforge:investigate`.
 
