@@ -1,0 +1,227 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design — target-aware workflow prose for Cursor and Codex (2026-09-08)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — target-aware workflow prose for Cursor and Codex</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> stop the twelve commands that ship on the Cursor/Codex target from
+  instructing the model to dispatch subagents and write Claude Code config that cannot exist there —
+  by making the workflow prose target-aware from a single source.
+</div>
+
+<h2>Problem</h2>
+
+<p>The <code>agents</code> target installs twelve of SlashForge's thirteen commands into
+   <code>~/.agents/skills/</code>. The prose inside them still assumes Claude Code's subagent
+   dispatch and hook system, neither of which Cursor or Codex has.</p>
+
+<p><strong>The concrete failure.</strong> A Cursor user runs <code>/slashforge-code</code>. At Phase 7
+   the workflow says <em>"hand off to the <code>code-reviewer</code> agent against the checklist
+   below"</em> (<code>forge-workflow.md:115</code>). At Phase 8, <em>"invoke the <code>git</code>
+   agent to push"</em> (<code>:133</code>). Neither agent exists and neither can be dispatched.</p>
+
+<p><strong>One instruction is actively harmful rather than merely inert.</strong>
+   <code>forge-workflow-agents.md</code> says <em>"If the required agent does not exist in
+   <code>.claude/agents/</code>, create it on the fly and notify the user"</em>, and its
+   self-sufficiency rules repeat it: <em>"If a needed agent is missing, create it silently and
+   notify the user after."</em> Followed literally on Cursor, that writes Claude Code agent
+   definitions into the user's repository — files nothing on that machine will ever read. The
+   likeliest outcomes are a model improvising a review it then reports as an agent pass, or a
+   spurious <code>.claude/agents/</code> directory appearing in a repo that has no Claude Code setup.</p>
+
+<p>The density is concentrated, which is what makes this tractable:</p>
+
+<table>
+  <tr><th>File</th><th>Agent refs</th><th>Nature of the change</th></tr>
+  <tr><td><code>forge-workflow-agents.md</code></td><td>18</td><td>The selection table and the create-on-the-fly rule</td></tr>
+  <tr><td><code>forge-workflow.md</code></td><td>14</td><td>Six dispatch sentences across Phases 4, 5, 7, 8, 10</td></tr>
+  <tr><td><code>forge-workflow-quick.md</code></td><td>6</td><td>Phase 7 row; already has an inline replacement</td></tr>
+  <tr><td><code>slashforge/parallel.md</code></td><td>17</td><td>Built entirely on one-agent-per-task</td></tr>
+  <tr><td><code>slashforge/code.md</code></td><td>5</td><td>Phase 7/8 lines in the skills-per-phase list</td></tr>
+  <tr><td><code>forge-workflow-investigation.md</code>, <code>-review-pr.md</code></td><td>3 each</td><td>A companion-file description line</td></tr>
+</table>
+
+<h2>Approach</h2>
+
+<p><strong>Chosen: conditional target blocks in one source, stripped at install time.</strong> Each
+   guide and command stays a single file. Passages that differ per target are fenced with HTML
+   comments and the installer keeps only the block matching the target it is writing.</p>
+
+<pre><code>1. Invoke the `git` agent to push.        &lt;- unfenced: both targets
+
+&lt;!--target:claude--&gt;
+2. Hand off to the `code-reviewer` agent against the checklist below.
+&lt;!--/target--&gt;
+&lt;!--target:agents--&gt;
+2. Review the diff yourself against the checklist below, as a separate
+   pass after implementation rather than while writing the code.
+&lt;!--/target--&gt;</code></pre>
+
+<p>This wins on three counts. There is one source of truth, so the two variants cannot drift. The
+   diff shows both wordings adjacent, so a reviewer sees exactly what each target receives. And
+   Claude Code's rendered output is unchanged by construction — an unfenced file renders
+   byte-identically to today, which is the branch's stated constraint.</p>
+
+<p>Two alternatives were rejected:</p>
+
+<ul>
+  <li><strong>Extending the existing regex rewrite.</strong> <code>toSkillCommandRefs</code>
+      (<code>bin/install.js:239</code>) already rewrites command references per target, so more
+      patterns is the cheapest start. But agent references need sentence surgery, not noun swaps:
+      <em>"Invoke the <code>git</code> agent to execute the branching"</em> must become
+      <em>"Execute the branching"</em>. Regexes over English prose are invisible in review and
+      silently miss every line rephrased later.</li>
+  <li><strong>Separate per-target guide files.</strong> Maximally explicit, but duplicates roughly
+      1,000 lines of workflow prose that must stay in sync forever — the precise drift this repo
+      already designs against elsewhere (the report shell exists so the CSS is never regenerated
+      per document).</li>
+</ul>
+
+<h2>Design</h2>
+
+<p><strong>1. The stripping function.</strong> A new <code>stripTargetBlocks(content, targetName)</code>
+   in <code>bin/install.js</code>, applied to both guides and commands alongside the existing
+   <code>toSkillCommandRefs</code> call. Blocks whose name matches the current target have their
+   fences removed and body kept; all other blocks are removed entirely. Unfenced content is
+   untouched, so every file not carrying a marker is unaffected on both targets.</p>
+
+<p><strong>2. Fail closed, at validation time.</strong> <code>validateTemplates()</code> already
+   refuses to install on bad frontmatter. It gains the same treatment for markers: an unclosed
+   block, a stray <code>&lt;!--/target--&gt;</code>, a nested block, or a target name that is not
+   <code>claude</code> or <code>agents</code> aborts the install with a named file. A silently
+   mis-stripped guide is far worse than a failed install, because the damage is prose a model then
+   follows.</p>
+
+<p><strong>3. What each phase becomes on the agents target.</strong> The work of every phase is
+   preserved; only the delegation disappears.</p>
+
+<table>
+  <tr><th>Phase</th><th>Claude Code</th><th>Cursor / Codex</th></tr>
+  <tr><td>4 — Branch</td><td>Invoke the <code>git</code> agent</td><td>Run the branch commands directly</td></tr>
+  <tr><td>5 — Implement</td><td>Select a specialist agent; create one if missing</td><td>Implement directly; no agent selection, no file creation</td></tr>
+  <tr><td>7 — Review</td><td>Hand off to <code>code-reviewer</code></td><td>Review the diff yourself against the same checklist, as a distinct pass</td></tr>
+  <tr><td>8 — Push &amp; PR</td><td>Invoke the <code>git</code> agent</td><td>Run push and <code>gh pr create</code> directly</td></tr>
+  <tr><td>10 — Cleanup</td><td>Invoke the <code>git</code> agent</td><td>Run the cleanup commands directly</td></tr>
+</table>
+
+<p><strong>Phase 7 needs almost no new prose</strong>, which is the happy discovery here. The review
+   criteria are already written out inline at <code>forge-workflow.md:116-121</code> — the agent was
+   only ever the executor, never the source of the checklist. Only the dispatch sentence changes.
+   Lean mode also already ships a working precedent for exactly this substitution: an
+   <em>"Inline self-review checklist (replaces Phase 7 agent pass)"</em> at
+   <code>forge-workflow-quick.md:57</code>. The agents target keeps the fuller Phase 7 criteria
+   rather than the deliberately shallower lean list.</p>
+
+<p><strong>4. <code>forge-workflow-agents.md</code>.</strong> The Agent Selection Table maps task type
+   to agent; on the agents target it becomes a short statement that the model handles all task types
+   itself, and the mandatory-multiple-agents rule and the create-on-the-fly rule are dropped. This is
+   the file where the harmful instruction lives, so it carries the largest fenced block.</p>
+
+<p><strong>5. <code>parallel.md</code>.</strong> The most affected command, and the one that degrades
+   most honestly. Its independence test and its review-between-tasks discipline are both
+   tool-independent and survive intact. Dispatch becomes sequence: work the units one at a time,
+   starting each with clean context rather than a fresh agent, reviewing between each. The
+   description in its frontmatter changes accordingly, since that is what the user reads when
+   choosing it.</p>
+
+<p><strong>6. Guide set stays identical across targets.</strong> All sixteen guides continue to install
+   on both, matching Claude Code exactly. Eight of them are reachable only from <code>setup</code>
+   and therefore unreferenced on the agents target; they are left in place and unmodified.</p>
+
+<h2>Testing</h2>
+
+<p><strong>Unit — <code>stripTargetBlocks</code>.</strong> Keeps the matching block and drops the
+   others; leaves unfenced content untouched; handles a file with no markers, adjacent blocks, and a
+   block at end-of-file without a trailing newline.</p>
+
+<p><strong>Unit — validation rejects malformed markers.</strong> Unclosed block, orphan close, nested
+   block, and unknown target name each abort with the offending filename.</p>
+
+<p><strong>The regression guard that matters most: Claude Code output is byte-identical.</strong>
+   Render all sixteen guides and thirteen commands for the <code>claude</code> target and compare
+   against the current install byte for byte. This is the assertion that proves the change is
+   additive, and it would have to fail before any Claude Code user could be affected.</p>
+
+<p><strong>Integration — the defect is actually gone.</strong> After an agents-target install, no
+   rendered file contains <code>code-reviewer</code> agent dispatch, <code>git</code> agent dispatch,
+   <code>.claude/agents/</code>, or the create-an-agent instruction. This is the test that encodes
+   the bug, and it fails today.</p>
+
+<p><strong>Unchanged:</strong> the five existing tests asserting <code>setup</code> is omitted on the
+   agents target must still pass untouched.</p>
+
+<h2>Out of scope</h2>
+<ul>
+  <li>Porting <code>/slashforge:setup</code> to Cursor/Codex — deferred piece 6, and the larger of the two options the investigation offered</li>
+  <li>Filtering the eight setup-only guides off the agents target — parity with Claude Code was chosen deliberately</li>
+  <li>Any equivalent for hooks or subagents. These are harness capabilities; nothing SlashForge writes can create them</li>
+  <li>Codex's <code>$name</code> invocation form beyond the documentation note already on the branch</li>
+  <li>Any change to Claude Code behaviour, command names, or the on-disk template layout</li>
+</ul>
+
+
+</body>
+</html>
