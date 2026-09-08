@@ -9,7 +9,12 @@ Ten-phase change-shipping flow used by `/slashforge:code` (full and trivial path
 
 - `forge-workflow-investigation.md` — Investigation Flow I1–I3 (loaded by `/slashforge:investigate` only — it does not load this file)
 - `forge-workflow-review-pr.md` — PR Review Flow R1–R7 (loaded by `/slashforge:review-pr` only; it applies the Phase 7 checklist below as its review standard, but does not load the rest of this file)
+<!--target:claude-->
 - `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
+<!--/target-->
+<!--target:agents-->
+- `forge-workflow-agents.md` — how task types are handled + self-sufficiency rules (loaded by every workflow command)
+<!--/target-->
 
 Every phase with a named skill MUST invoke it via the `Skill` tool — do not paraphrase. Every skill the workflow names ships with SlashForge, so all of them are always available. There are no optional dependencies. The flow runs without user intervention **except for four mandatory gates**: plan confirmation (Phase 3), branch decision (Phase 4), PR target + reviewers (Phase 8), and branch cleanup after merge (Phase 10).
 
@@ -70,7 +75,12 @@ Every phase with a named skill MUST invoke it via the `Skill` tool — do not pa
    - Verify the working tree is clean (same check as above)
    - Fetch the latest remote state; if the base branch is behind its remote, warn: **"[branch] is behind its remote by N commit(s). Should I pull the latest before branching?"** Wait for confirmation
 4. For larger changes or risky refactors — or when a dev server must stay up on the current branch — invoke `slashforge:worktree` to isolate the workspace
+<!--target:claude-->
 5. Invoke the `git` agent to execute the branching
+<!--/target-->
+<!--target:agents-->
+5. Run the branch commands directly
+<!--/target-->
 
 ---
 
@@ -81,13 +91,23 @@ Every phase with a named skill MUST invoke it via the `Skill` tool — do not pa
 | Task shape | Skill |
 |---|---|
 | Bug fix (intake established the intent is bug) | `slashforge:debug` — reproduce, root-cause, **write a failing regression test first**, then fix until it passes (red → green) |
+<!--target:claude-->
 | Feature/task with 2+ truly independent parallelisable units in the plan | `slashforge:parallel` — dispatch the units; each agent works test-first. Most plans are not parallel; the skill's independence test decides |
+<!--/target-->
+<!--target:agents-->
+| Feature/task with 2+ truly independent units in the plan | `slashforge:parallel` — work the units one at a time, each test-first, with clean context per unit. Most plans are not independent; the skill's test decides |
+<!--/target-->
 | Everything else that is testable (features, tasks, refactors) | `slashforge:tdd` |
 | Genuinely not testable (docs, config, infra-only tweaks) | No Phase 5 skill — state *why* TDD was skipped, then implement |
 
 When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code -quick` always lands in row 3 or 4 — never `slashforge:debug`, never `slashforge:parallel`.
 
+<!--target:claude-->
 1. Select the appropriate specialist coding agent based on the task type (see Agent Selection Table in `forge-workflow-agents.md`). If no suitable agent exists, create it on the fly and notify the user: *"I created a `[name]` agent to handle this — saved to `.claude/agents/[name].md`"*
+<!--/target-->
+<!--target:agents-->
+1. Implement the task yourself. There is no agent to select and none to create — do not write agent definition files.
+<!--/target-->
 2. Invoke the selected Phase 5 skill (or state why no skill applies), then implement.
 3. Implement strictly to the approved plan — if the plan turns out wrong mid-implementation, stop and return to the intake phase.
 
@@ -112,7 +132,12 @@ When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code 
 
 **Skill:** `slashforge:request-review`
 
+<!--target:claude-->
 1. Invoke `slashforge:request-review`, then hand off to the `code-reviewer` agent against the checklist below
+<!--/target-->
+<!--target:agents-->
+1. Invoke `slashforge:request-review`, then review the diff yourself against the checklist below — as a distinct pass after implementation, not while writing the code
+<!--/target-->
 2. Review must check:
    - Matches the approved plan — no scope creep, no missing pieces
    - No duplicate code, no dead code, no debug leftovers, no hardcoded secrets
@@ -130,7 +155,12 @@ When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code 
 
 **Skill:** none — Phases 8 and 10 below are SlashForge's own branch-completion flow, and are more specific than a generic one.
 
+<!--target:claude-->
 1. Invoke the `git` agent to push. If push is rejected because the remote diverged, rebase on the latest; if conflict is not auto-resolvable, stop and ask the user.
+<!--/target-->
+<!--target:agents-->
+1. Push the branch. If push is rejected because the remote diverged, rebase on the latest; if conflict is not auto-resolvable, stop and ask the user.
+<!--/target-->
 2. Ask: **"Which branch should I target for this PR?"** and **"Who should I assign as reviewer(s)?"** — do not guess either (or read from a repo config if one exists).
 3. Create the PR with this structure:
    - **Title:** short imperative <70 chars
@@ -160,6 +190,11 @@ Runs only after the user confirms the PR merged. Cleans up the feature branch lo
 
 1. Ask: **"PR merged. Clean up the feature branch `<branch>`? This deletes it locally and on the remote. (y/n)"** — skip the phase if the user declines
 2. **Verify the PR is actually merged** before deleting anything. Use `gh pr view <branch> --json state,mergedAt` (or the repo's equivalent) and confirm `state == MERGED`. If it isn't merged (draft, closed, or unknown), stop and warn the user — do not delete.
+<!--target:claude-->
 3. Invoke the `git` agent to perform the cleanup. Expected steps: fetch latest from the remote; checkout the PR's base branch and pull; delete the local feature branch (prefer `git branch -d`; fall back to `-D` only if the PR was merged via squash/rebase and step 2 confirmed MERGED — explain when falling back); delete the remote feature branch `git push origin --delete <branch>` (treat "remote ref does not exist" as success); prune stale remote-tracking refs (`git remote prune origin`).
+<!--/target-->
+<!--target:agents-->
+3. Perform the cleanup. Expected steps: fetch latest from the remote; checkout the PR's base branch and pull; delete the local feature branch (prefer `git branch -d`; fall back to `-D` only if the PR was merged via squash/rebase and step 2 confirmed MERGED — explain when falling back); delete the remote feature branch `git push origin --delete <branch>` (treat "remote ref does not exist" as success); prune stale remote-tracking refs (`git remote prune origin`).
+<!--/target-->
 4. **Never delete** `main`, `master`, `production`, `develop`, `staging`, or any branch the repo's `.claude/rules/git.md` marks as protected. If the PR branch name matches a protected pattern, stop and warn.
 5. Confirm cleanup complete: **"Cleaned up branch `<branch>`. You are now on `<base>`."** If anything fails mid-cleanup (push rejected, local delete fails, base branch pull conflicts), stop at the failure and hand back to the user with the exact error. Do not continue on the assumption something worked.
