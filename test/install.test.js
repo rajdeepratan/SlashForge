@@ -27,6 +27,7 @@ const {
   skillDirName,
   parseTargetArg,
   plannedWrites,
+  stripTargetBlocks,
 } = require('../bin/install.js');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
@@ -1046,4 +1047,39 @@ test('the completion message does not name the wrong vendor', () => {
   assert.ok(!/Open Cursor/.test(codex), 'a codex install must not tell the user to open Cursor');
   assert.match(codex, /Cursor and Codex/);
   assert.match(run('cursor'), /Cursor and Codex/);
+});
+
+// --- Task 1: per-target prose blocks -----------------------------------------
+
+test('stripTargetBlocks keeps the matching block and drops the other', () => {
+  const src = [
+    'line A',
+    '<!--target:claude-->',
+    'claude line',
+    '<!--/target-->',
+    '<!--target:agents-->',
+    'agents line',
+    '<!--/target-->',
+    'line B',
+    '',
+  ].join('\n');
+  assert.equal(stripTargetBlocks(src, 'claude'), 'line A\nclaude line\nline B\n');
+  assert.equal(stripTargetBlocks(src, 'agents'), 'line A\nagents line\nline B\n');
+});
+
+test('stripTargetBlocks leaves a file with no markers byte-identical', () => {
+  const src = 'nothing to see\nhere at all\n';
+  assert.equal(stripTargetBlocks(src, 'claude'), src);
+  assert.equal(stripTargetBlocks(src, 'agents'), src);
+});
+
+test('stripTargetBlocks handles a block at end of file with no trailing newline', () => {
+  const src = 'a\n<!--target:agents-->\nb\n<!--/target-->';
+  assert.equal(stripTargetBlocks(src, 'agents'), 'a\nb\n');
+  assert.equal(stripTargetBlocks(src, 'claude'), 'a\n');
+});
+
+test('stripTargetBlocks removes multi-line bodies entirely', () => {
+  const src = 'x\n<!--target:claude-->\n1\n2\n3\n<!--/target-->\ny\n';
+  assert.equal(stripTargetBlocks(src, 'agents'), 'x\ny\n');
 });
