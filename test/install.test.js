@@ -1134,3 +1134,61 @@ test('validateTemplates refuses a template with a malformed target block', () =>
   );
   assert.throws(() => validateTemplates(['bad.md'], dir), /Refusing to install/);
 });
+
+// --- Task 3: stripping is wired into rendering --------------------------------
+
+const TEMPLATES = path.join(__dirname, '..', 'templates');
+
+function renderAll(targetName) {
+  const out = {};
+  const walk = (dir, rel = '') => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) walk(full, path.join(rel, e.name));
+      else if (e.name.endsWith('.md')) {
+        out[path.join(rel, e.name)] = renderTemplate(fs.readFileSync(full, 'utf8'), {
+          installPath: '/p', version: '0.0.0', pkgName: 'slashforge', targetName,
+        });
+      }
+    }
+  };
+  walk(TEMPLATES);
+  return out;
+}
+
+test('renderTemplate strips target blocks for the given target', () => {
+  const src = 'a\n<!--target:claude-->\nC\n<!--/target-->\n<!--target:agents-->\nA\n<!--/target-->\n';
+  const opts = { installPath: '/p', version: '0.0.0', pkgName: 'slashforge' };
+  assert.equal(renderTemplate(src, { ...opts, targetName: 'claude' }), 'a\nC\n');
+  assert.equal(renderTemplate(src, { ...opts, targetName: 'agents' }), 'a\nA\n');
+});
+
+test('no target marker survives into any rendered file', () => {
+  for (const targetName of ['claude', 'agents']) {
+    for (const [file, body] of Object.entries(renderAll(targetName))) {
+      assert.ok(!body.includes('<!--target:'), `${file} kept an open marker on ${targetName}`);
+      assert.ok(!body.includes('<!--/target-->'), `${file} kept a close marker on ${targetName}`);
+    }
+  }
+});
+
+// The real regression guard for Claude Code: rendering may only ever delete
+// whole lines, never rewrite one. If a claude-variant line is reworded rather
+// than fenced, this fails.
+test('rendering only removes whole lines, never rewrites them', () => {
+  for (const targetName of ['claude', 'agents']) {
+    for (const [file, body] of Object.entries(renderAll(targetName))) {
+      const src = fs.readFileSync(path.join(TEMPLATES, file), 'utf8')
+        .replace(/\{\{INSTALL_PATH\}\}/g, '/p')
+        .replace(/\{\{KIT_VERSION\}\}/g, '0.0.0')
+        .replace(/\{\{KIT_PACKAGE\}\}/g, 'slashforge')
+        .split('\n');
+      let i = 0;
+      for (const line of body.split('\n')) {
+        while (i < src.length && src[i] !== line) i += 1;
+        assert.ok(i < src.length, `${file} (${targetName}): rendered line not in source: ${line}`);
+        i += 1;
+      }
+    }
+  }
+});
