@@ -189,6 +189,7 @@ function validateTemplates(files, dir) {
     try {
       const content = fs.readFileSync(filePath, 'utf8');
       parseFrontmatter(content, file);
+      for (const err of findTargetBlockErrors(content, file)) errors.push(err);
     } catch (err) {
       errors.push(err.message);
     }
@@ -257,6 +258,43 @@ function stripTargetBlocks(content, targetName) {
   return content.replace(TARGET_BLOCK_RE, (_match, name, body) =>
     (name === targetName ? body : '')
   );
+}
+
+// 'cursor' and 'codex' are rejected on purpose: they are aliases resolved to
+// 'agents' long before rendering, so a marker naming one would silently match
+// nothing and its body would vanish from every target.
+const VALID_TARGET_NAMES = ['claude', 'agents'];
+const TARGET_TOKEN_RE = /<!--target:([a-z-]+)-->|<!--\/target-->/g;
+
+// A guide that loses half a sentence is worse than a failed install, because
+// the damage is prose a model then follows. So malformed markers stop the
+// install rather than being stripped on a best-effort basis.
+function findTargetBlockErrors(content, file) {
+  const errors = [];
+  let open = null;
+  let match;
+  TARGET_TOKEN_RE.lastIndex = 0;
+  while ((match = TARGET_TOKEN_RE.exec(content)) !== null) {
+    const name = match[1];
+    const line = content.slice(0, match.index).split('\n').length;
+    if (name === undefined) {
+      if (open === null) errors.push(`${file}:${line}: <!--/target--> with no open block`);
+      else open = null;
+      continue;
+    }
+    if (open !== null) {
+      errors.push(`${file}:${line}: nested target block (inside '${open}')`);
+      continue;
+    }
+    if (!VALID_TARGET_NAMES.includes(name)) {
+      errors.push(
+        `${file}:${line}: unknown target '${name}' — use ${VALID_TARGET_NAMES.join(' or ')}`
+      );
+    }
+    open = name;
+  }
+  if (open !== null) errors.push(`${file}: unclosed target block '${open}'`);
+  return errors;
 }
 
 // 'forge/setup.md' -> '/slashforge:setup'. A command file's path under the commands
@@ -828,6 +866,7 @@ module.exports = {
   toSkillFrontmatter,
   toSkillCommandRefs,
   stripTargetBlocks,
+  findTargetBlockErrors,
   commandPath,
   parseTargetArg,
   plannedWrites,
