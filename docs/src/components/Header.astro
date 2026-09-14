@@ -45,19 +45,43 @@ const nav = [
   <div class="hdr__right">
     {/* The only target control on the seven pages that mention commands but
         contain no code block. Shaped like the theme button beside it: a flat
-        ruled control, not a second accent block competing with the nav. The
-        label is a sibling rather than part of each option so it can drop on
-        narrow screens, leaving "CLAUDE" — about as wide as "DARK". */}
+        ruled control, not a second accent block competing with the nav.
+
+        A real menu rather than a <select>, because the native popup is drawn
+        by the OS — rounded, shadowed, floating — and cannot be styled. This
+        site's rule is that nothing is round and nothing floats.
+
+        The label is a sibling of the value so it can drop on narrow screens,
+        leaving "CLAUDE" — about as wide as "DARK". */}
     <div class="agentsw">
-      <span class="agentsw__label">Agent:</span>
-      <select class="agentsw__select" data-target-select aria-label="Coding agent">
+      <button
+        class="agentsw__btn"
+        type="button"
+        aria-haspopup="true"
+        aria-expanded="false"
+        aria-controls="agent-menu"
+        data-agent-trigger
+      >
+        <span class="agentsw__label">Agent:</span>
+        <span class="agentsw__value" data-target-value>{TARGET_LABELS[DEFAULT_TARGET]}</span>
+        <span class="agentsw__caret" aria-hidden="true"></span>
+      </button>
+
+      <div class="agentsw__menu" id="agent-menu" role="menu" aria-label="Coding agent" hidden>
         {
           TARGETS.map((t) => (
-            <option value={t} selected={t === DEFAULT_TARGET}>{TARGET_LABELS[t]}</option>
+            <button
+              class="agentsw__item"
+              type="button"
+              role="menuitemradio"
+              data-target-opt={t}
+              aria-checked={String(t === DEFAULT_TARGET)}
+            >
+              {TARGET_LABELS[t]}
+            </button>
           ))
         }
-      </select>
-      <span class="agentsw__caret" aria-hidden="true"></span>
+      </div>
     </div>
 
     <button class="search-btn" type="button" data-open-search aria-label="Search">
