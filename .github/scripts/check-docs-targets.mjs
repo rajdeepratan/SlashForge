@@ -12,7 +12,7 @@
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { SWITCHABLE, COMMAND_RE } from '../../docs/src/targets.mjs';
+import { SWITCHABLE, COMMAND_RE, wholeLabelCommand } from '../../docs/src/targets.mjs';
 
 const base = process.env.DOCS_BASE_PATH ?? '/slashforge';
 const root = join(process.cwd(), 'dist' + base);
@@ -51,8 +51,13 @@ for (const page of pages) {
   }
 
   // The changelog is generated from /CHANGELOG.md and is a historical record.
-  if (rel.startsWith('/changelog') && /data-cmd=/.test(html)) {
-    fail('changelog must not be rewritten — it records what actually shipped');
+  // Scoped to <main>: the sidebar and header are shared chrome on every page,
+  // and their command labels switch legitimately even here.
+  if (rel.startsWith('/changelog')) {
+    const main = /<main class="main">([\s\S]*?)<\/main>/.exec(html);
+    if (main && /data-cmd=/.test(main[1])) {
+      fail('changelog prose must not be rewritten — it records what actually shipped');
+    }
   }
 
   for (const pre of html.match(/<pre[^>]*>[\s\S]*?<\/pre>/g) ?? []) {
@@ -60,6 +65,18 @@ for (const page of pages) {
     const flagged = /data-has-cmd/.test(pre);
     if (hasCmd && !flagged) fail(`${rel}: block with commands is missing data-has-cmd`);
     if (!hasCmd && flagged) fail(`${rel}: block without commands is flagged`);
+  }
+
+  // A page whose title is exactly a switchable command switches too, or the
+  // heading contradicts the block directly beneath it. setup is excluded by
+  // wholeLabelCommand returning null, which is what keeps its title in the
+  // Claude Code form on every target.
+  const h1 = /<h1[^>]*>([\s\S]*?)<\/h1>/.exec(html);
+  if (h1) {
+    const titleText = h1[1].replace(/<[^>]*>/g, '').trim();
+    if (wholeLabelCommand(titleText) && !/data-cmd=/.test(h1[1])) {
+      fail(`${rel}: command page title is not switchable`);
+    }
   }
 
   // A flagged block carries a tablist in its bar; a plain one keeps its
