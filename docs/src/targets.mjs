@@ -51,6 +51,31 @@ const alternation = [...SWITCHABLE].sort((a, b) => b.length - a.length).join('|'
 
 export const COMMAND_RE = new RegExp(`/slashforge:(${alternation})\\b`, 'g');
 
+/**
+ * Splits text into plain and command parts.
+ *
+ * The rehype plugin does this over hast nodes for markdown. Astro templates —
+ * the landing page's command cards and terminal replays — are not markdown and
+ * never reach that plugin, so they call this instead. One regex, one rule, two
+ * renderers.
+ *
+ * Returns parts as { text } or { text, cmd }.
+ */
+export function splitCommandText(value) {
+  const parts = [];
+  const str = String(value);
+  let last = 0;
+  let m;
+  COMMAND_RE.lastIndex = 0;
+  while ((m = COMMAND_RE.exec(str)) !== null) {
+    if (m.index > last) parts.push({ text: str.slice(last, m.index) });
+    parts.push({ text: m[0], cmd: m[1] });
+    last = m.index + m[0].length;
+  }
+  if (last < str.length) parts.push({ text: str.slice(last) });
+  return parts;
+}
+
 const WHOLE_LABEL_RE = new RegExp(`^/slashforge:(${alternation})$`);
 
 /**

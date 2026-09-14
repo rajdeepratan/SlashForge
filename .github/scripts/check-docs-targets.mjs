@@ -119,6 +119,14 @@ for (const src of sources) {
   }
 }
 
+// The landing page is an .astro template, so the rehype plugin never sees it.
+// It carries the command cards and the two terminal replays, which is the first
+// thing most readers see.
+const home = readFileSync(join(root, 'index.html'), 'utf8');
+if (!/data-cmd=/.test(home)) {
+  fail('landing page: command names are not switchable');
+}
+
 console.log(`checked ${pages.length} pages, ${expected} with switchable commands`);
 if (bad) {
   console.error(`${bad} problem(s)`);
