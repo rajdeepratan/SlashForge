@@ -64,3 +64,27 @@ test('splitCommandText separates commands from surrounding text', async () => {
   assert.deepEqual(splitCommandText('/slashforge:setup'), [{ text: '/slashforge:setup' }]);
   assert.deepEqual(splitCommandText('no commands here'), [{ text: 'no commands here' }]);
 });
+
+test('renderReplayLine substitutes the command and keeps the prompt', async () => {
+  const { renderReplayLine } = await load();
+  assert.equal(renderReplayLine('$ /slashforge:code', 'claude'), '$ /slashforge:code');
+  assert.equal(renderReplayLine('$ /slashforge:code', 'cursor'), '$ /slashforge-code');
+});
+
+// Codex invokes with $, so keeping the mock's own prompt would render
+// "$ $slashforge-code", which reads as a typo.
+test('renderReplayLine drops the prompt for codex', async () => {
+  const { renderReplayLine } = await load();
+  assert.equal(renderReplayLine('$ /slashforge:code', 'codex'), '$slashforge-code');
+  assert.equal(renderReplayLine('$ /slashforge:review-pr', 'codex'), '$slashforge-review-pr');
+});
+
+test('renderReplayLine leaves lines without commands alone', async () => {
+  const { renderReplayLine } = await load();
+  for (const t of ['claude', 'cursor', 'codex']) {
+    assert.equal(renderReplayLine('> add rate limiting', t), '> add rate limiting');
+    assert.equal(renderReplayLine('PHASE 2 · PLAN', t), 'PHASE 2 · PLAN');
+    // A bare $ prompt with no command keeps its prompt on every target.
+    assert.equal(renderReplayLine('$ npx slashforge', t), '$ npx slashforge');
+  }
+});

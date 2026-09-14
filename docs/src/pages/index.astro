@@ -182,7 +182,7 @@ const costs = [
                 <div class="term__body" data-replay-body>
                   {
                     DEMO.map(([kind, text]) => (
-                      <div class={kind}>
+                      <div class={kind} data-line={text}>
                         {
                           splitCommandText(text).map((p, i) =>
                             p.cmd ? (
@@ -217,7 +217,7 @@ const costs = [
                 <div class="term__body" data-replay-body>
                   {
                     REVIEW_DEMO.map(([kind, text]) => (
-                      <div class={kind}>
+                      <div class={kind} data-line={text}>
                         {
                           splitCommandText(text).map((p, i) =>
                             p.cmd ? (

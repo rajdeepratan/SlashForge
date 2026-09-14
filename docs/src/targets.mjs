@@ -76,6 +76,27 @@ export function splitCommandText(value) {
   return parts;
 }
 
+/**
+ * One line of the landing page's terminal replay, rendered for a target.
+ *
+ * The replay animates by writing textContent, which flattens any child
+ * elements — so the span-and-CSS approach used everywhere else survives only
+ * until the animation starts. Both the command substitution and the prompt
+ * rule therefore have to happen in text, here.
+ *
+ * Codex invokes commands with `$` rather than `/`, so the mock's own `$ `
+ * prompt would render "$ $slashforge-code" and read as a typo. It is dropped
+ * for that target, and only on a line that actually carries a command — a
+ * shell line like "$ npx slashforge" keeps its prompt everywhere.
+ */
+export function renderReplayLine(src, target) {
+  const parts = splitCommandText(src);
+  if (!parts.some((p) => p.cmd)) return String(src);
+
+  const text = parts.map((p) => (p.cmd ? commandForm(p.cmd, target) : p.text)).join('');
+  return target === 'codex' && text.startsWith('$ $') ? text.slice(2) : text;
+}
+
 const WHOLE_LABEL_RE = new RegExp(`^/slashforge:(${alternation})$`);
 
 /**
