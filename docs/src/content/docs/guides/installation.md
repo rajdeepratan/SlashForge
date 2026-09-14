@@ -25,9 +25,9 @@ install covers the two. Type `/` in Cursor and you should see
 
 Two differences worth knowing before you start:
 
-- ==On Cursor and Codex the commands are hyphenated== — `/slashforge-code`, not
-  `/slashforge:code` — because neither supports the `:` namespace. In Codex they are
-  invoked as `$slashforge-code`, and that path is not yet verified end to end.
+- ==Commands are spelled differently per agent.== Use the switcher in the header, or the
+  tabs on any command block, and the docs show the form your agent takes. In Codex they are
+  invoked with `$` rather than `/`, and ==that path is not yet verified end to end==.
 - ==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
   structure that has no equivalent on the other targets. Everything below assumes
   Claude Code for step 3; on Cursor, skip it and start at step 4.

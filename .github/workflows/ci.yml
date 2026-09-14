@@ -61,6 +61,10 @@ jobs:
         working-directory: docs
         run: node ../.github/scripts/check-docs-links.mjs
 
+      - name: Check per-target command markup
+        working-directory: docs
+        run: node ../.github/scripts/check-docs-targets.mjs
+
       # An icon-only control with no accessible name renders correctly, so it
       # survives review. The header socials shipped unnamed on every page.
       - name: Check interactive elements have accessible names
