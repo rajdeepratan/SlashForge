@@ -981,13 +981,19 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 
 /* The header control is shaped like .theme-btn beside it — same rule, same
    uppercase text, same ember hover — so the two read as a pair rather than the
-   agent picker shouting over the nav. The border wraps the label and the select
-   together, so it reads as one button. */
-.agentsw {
+   agent picker shouting over the nav.
+
+   The panel is a real element rather than a native <select> popup, which the
+   OS draws rounded, shadowed and floating. Here: a hard 2px rule, a flat
+   surface, no radius, no shadow. */
+.agentsw { position: relative; }
+
+.agentsw__btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   border: 2px solid var(--rule);
+  background: transparent;
   padding: 6px 10px;
   color: var(--text);
   font-family: var(--font);
@@ -998,36 +1004,19 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   cursor: pointer;
 }
 
-.agentsw:hover,
-.agentsw:focus-within {
+.agentsw__btn:hover,
+.agentsw__btn[aria-expanded='true'] {
   background: var(--ember);
   border-color: var(--ember);
   color: #f3f2f2;
 }
 
 .agentsw__label { color: var(--muted); }
-.agentsw:hover .agentsw__label,
-.agentsw:focus-within .agentsw__label { color: #f3f2f2; }
+.agentsw__btn:hover .agentsw__label,
+.agentsw__btn[aria-expanded='true'] .agentsw__label { color: #f3f2f2; }
 
-.agentsw__select {
-  appearance: none;
-  -webkit-appearance: none;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
-  padding: 0;
-  cursor: pointer;
-}
-
-/* The native popup is drawn by the OS, so it needs telling which theme it is
-   in — the site's own toggle is an attribute, not a colour-scheme change. */
-[data-theme='dark'] .agentsw__select { color-scheme: dark; }
-
-/* A chevron, drawn from two borders rather than an SVG so it inherits
-   currentColor through the ember hover. */
+/* A chevron drawn from two borders rather than an SVG, so it inherits
+   currentColor through the ember state. */
 .agentsw__caret {
   width: 6px;
   height: 6px;
@@ -1035,6 +1024,48 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   border-bottom: 2px solid currentColor;
   transform: translateY(-2px) rotate(45deg);
   pointer-events: none;
+}
+
+.agentsw__btn[aria-expanded='true'] .agentsw__caret {
+  transform: translateY(1px) rotate(-135deg);
+}
+
+.agentsw__menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 30;
+  min-width: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Overlaps the trigger's bottom rule so the two share one line. */
+  margin-top: -2px;
+  border: 2px solid var(--rule);
+  background: var(--surface);
+}
+
+.agentsw__item {
+  border: 0;
+  background: transparent;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Hover is a quiet fill and the current choice is the ember one, so the two
+   never read as the same state. */
+.agentsw__item:hover { background: var(--code-bg); }
+
+.agentsw__item[aria-checked='true'] {
+  background: var(--ember);
+  color: #f3f2f2;
 }
 
 /* Same budget reasoning as the socials row below: at this width the label is

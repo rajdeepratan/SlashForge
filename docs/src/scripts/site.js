@@ -50,13 +50,14 @@ import { TARGETS, DEFAULT_TARGET, STORAGE_KEY, commandForm } from '../targets.mj
     document.querySelectorAll('[data-cmd]').forEach(function (el) {
       el.textContent = commandForm(el.getAttribute('data-cmd'), t);
     });
-    /* The block tab strips. */
+    /* Block tabs are tablist options; the header menu holds radio items. */
     document.querySelectorAll('[data-target-opt]').forEach(function (b) {
-      b.setAttribute('aria-selected', String(b.getAttribute('data-target-opt') === t));
+      var on = String(b.getAttribute('data-target-opt') === t);
+      if (b.getAttribute('role') === 'menuitemradio') b.setAttribute('aria-checked', on);
+      else b.setAttribute('aria-selected', on);
     });
-    /* The header dropdown. */
-    document.querySelectorAll('[data-target-select]').forEach(function (sel) {
-      if (sel.value !== t) sel.value = t;
+    document.querySelectorAll('[data-target-value]').forEach(function (el) {
+      el.textContent = t.charAt(0).toUpperCase() + t.slice(1);
     });
   }
 
@@ -72,20 +73,68 @@ import { TARGETS, DEFAULT_TARGET, STORAGE_KEY, commandForm } from '../targets.mj
     if (btn) setTarget(btn.getAttribute('data-target-opt'));
   });
 
-  document.addEventListener('change', function (e) {
-    var sel = e.target.closest('[data-target-select]');
-    if (sel) setTarget(sel.value);
-  });
+  /* The header menu. A real panel rather than a native select popup, so the
+     open/close behaviour has to be written: outside click, Escape, and closing
+     after a choice. */
+  var trigger = document.querySelector('[data-agent-trigger]');
+  var menu = document.getElementById('agent-menu');
 
-  /* Arrow keys move between tabs, as the tablist pattern expects. */
+  function openMenu(open) {
+    if (!trigger || !menu) return;
+    trigger.setAttribute('aria-expanded', String(open));
+    menu.hidden = !open;
+  }
+
+  if (trigger && menu) {
+    trigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      openMenu(trigger.getAttribute('aria-expanded') !== 'true');
+    });
+
+    menu.addEventListener('click', function () {
+      openMenu(false);
+      trigger.focus();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!menu.hidden && !menu.contains(e.target) && e.target !== trigger) openMenu(false);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || menu.hidden) return;
+      openMenu(false);
+      trigger.focus();
+    });
+
+    /* Down from the trigger opens the menu and lands on the first item. */
+    trigger.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      openMenu(true);
+      var first = menu.querySelector('[data-target-opt]');
+      if (first) first.focus();
+    });
+  }
+
+  /* Arrow keys. A tablist activates on arrow — that is the automatic-activation
+     pattern and it is what makes the block tabs feel immediate. A menu must not:
+     arrowing through options is browsing, and committing on the way past would
+     rewrite the page under the reader. So the menu moves focus only, and the
+     choice is made by activating the item. */
   document.addEventListener('keydown', function (e) {
     var btn = e.target.closest('[data-target-opt]');
     if (!btn) return;
+
+    var isMenu = btn.getAttribute('role') === 'menuitemradio';
+    var forward = isMenu ? 'ArrowDown' : 'ArrowRight';
+    var back = isMenu ? 'ArrowUp' : 'ArrowLeft';
+
     var i = TARGETS.indexOf(btn.getAttribute('data-target-opt'));
-    var next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : -1;
+    var next = e.key === forward ? i + 1 : e.key === back ? i - 1 : -1;
     if (next < 0 || next >= TARGETS.length) return;
+
     e.preventDefault();
-    setTarget(TARGETS[next]);
+    if (!isMenu) setTarget(TARGETS[next]);
     var sel = btn.parentNode.querySelector('[data-target-opt="' + TARGETS[next] + '"]');
     if (sel) sel.focus();
   });
