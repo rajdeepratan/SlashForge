@@ -7,6 +7,7 @@
  */
 import Base from './Base.astro';
 import { NAV, groupOf, neighbours } from '../nav';
+import { wholeLabelCommand } from '../targets.mjs';
 import { lastModified } from '../lastModified';
 
 interface Props {
@@ -36,6 +37,10 @@ const href = (s: string) => `${base}/${s}/`;
 const { prev, next } = neighbours(slug, base);
 const kicker = groupOf(slug);
 
+// A page titled exactly after a command switches with the target, or the
+// heading contradicts the code block directly beneath it.
+const titleCmd = wholeLabelCommand(title);
+
 // Only h2 goes in the rail. h3 would double its length on the longer pages for
 // very little navigational value, and the reference shows one flat list.
 const toc = headings.filter((h) => h.depth === 2);
@@ -56,7 +61,11 @@ const toc = headings.filter((h) => h.depth === 2);
               {group.items.map((item) => (
                 <li>
                   <a href={href(item.slug)} aria-current={item.slug === slug ? 'page' : undefined}>
-                    {item.label}
+                    {
+                      wholeLabelCommand(item.label)
+                        ? <span data-cmd={wholeLabelCommand(item.label)}>{item.label}</span>
+                        : item.label
+                    }
                   </a>
                 </li>
               ))}
@@ -68,7 +77,7 @@ const toc = headings.filter((h) => h.depth === 2);
 
     <main class="main">
       {kicker && <div class="kicker">{kicker}</div>}
-      <h1>{title}</h1>
+      <h1>{titleCmd ? <span data-cmd={titleCmd}>{title}</span> : title}</h1>
       {description && <p class="lede">{description}</p>}
       <hr class="rule" />
 
