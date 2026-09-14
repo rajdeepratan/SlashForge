@@ -11,6 +11,8 @@
 import Base from '../layouts/Base.astro';
 import { version, nodeFloor } from '../pkg';
 
+import { splitCommandText } from '../targets.mjs';
+
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 // Kept in sync with the phases on /slashforge:code. This is the shape of a run,
@@ -178,7 +180,13 @@ const costs = [
                   <span class="term__status" data-replay-status>complete</span>
                 </div>
                 <div class="term__body" data-replay-body>
-                  {DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
+                  {
+                    DEMO.map(([kind, text]) => (
+                      <div class={kind}>
+                        {splitCommandText(text).map((p) => (p.cmd ? <span data-cmd={p.cmd}>{p.text}</span> : p.text))}
+                      </div>
+                    ))
+                  }
                 </div>
               </div>
             </div>
@@ -197,7 +205,13 @@ const costs = [
                   <span class="term__status" data-replay-status>complete</span>
                 </div>
                 <div class="term__body" data-replay-body>
-                  {REVIEW_DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
+                  {
+                    REVIEW_DEMO.map(([kind, text]) => (
+                      <div class={kind}>
+                        {splitCommandText(text).map((p) => (p.cmd ? <span data-cmd={p.cmd}>{p.text}</span> : p.text))}
+                      </div>
+                    ))
+                  }
                 </div>
               </div>
             </div>
@@ -216,18 +230,20 @@ const costs = [
           {
             commands.map((c) => (
               <a class="cell cell--link" href={`${base}/${c.href}/`}>
-                <code>{c.name}</code>
+                <code>
+                  {splitCommandText(c.name).map((p) => (p.cmd ? <span data-cmd={p.cmd}>{p.text}</span> : p.text))}
+                </code>
                 <p>{c.desc}</p>
               </a>
             ))
           }
         </div>
         <p class="caveat">
-          Names above are the Claude Code form. On Cursor and Codex the commands are
-          hyphenated — <code>/slashforge-code</code>, not <code>/slashforge:code</code> — because
-          neither supports the <code>:</code> namespace, and Codex invokes them as <code>$slashforge-code</code>.{' '}
-          <code>/slashforge:setup</code> is Claude Code only for now; it provisions{' '}
-          <code>.claude/</code> structure that has no equivalent on the other targets.
+          Names follow the agent picked in the header. Codex invokes them with{' '}
+          <code>$</code> rather than <code>/</code>, and that path is not yet verified end to
+          end. <code>/slashforge:setup</code> is Claude Code only for now — it provisions{' '}
+          <code>.claude/</code> structure that has no equivalent on the other targets, so it
+          keeps its Claude Code spelling whichever agent you pick.
         </p>
       </div>
     </section>

@@ -50,3 +50,17 @@ test('wholeLabelCommand only fires when the label is exactly one command', async
   assert.equal(wholeLabelCommand('Run /slashforge:code now'), null);
   assert.equal(wholeLabelCommand('/slashforge:setup'), null);
 });
+
+test('splitCommandText separates commands from surrounding text', async () => {
+  const { splitCommandText } = await load();
+  assert.deepEqual(splitCommandText('$ /slashforge:code'), [
+    { text: '$ ' },
+    { text: '/slashforge:code', cmd: 'code' },
+  ]);
+  assert.deepEqual(splitCommandText('/slashforge:code'), [
+    { text: '/slashforge:code', cmd: 'code' },
+  ]);
+  // setup is not switchable, so it stays plain text on every target.
+  assert.deepEqual(splitCommandText('/slashforge:setup'), [{ text: '/slashforge:setup' }]);
+  assert.deepEqual(splitCommandText('no commands here'), [{ text: 'no commands here' }]);
+});
