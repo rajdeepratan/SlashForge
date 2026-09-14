@@ -183,7 +183,17 @@ const costs = [
                   {
                     DEMO.map(([kind, text]) => (
                       <div class={kind}>
-                        {splitCommandText(text).map((p) => (p.cmd ? <span data-cmd={p.cmd}>{p.text}</span> : p.text))}
+                        {
+                          splitCommandText(text).map((p, i) =>
+                            p.cmd ? (
+                              <span data-cmd={p.cmd}>{p.text}</span>
+                            ) : kind === 't-cmd' && i === 0 ? (
+                              <span class="t-prompt">{p.text}</span>
+                            ) : (
+                              p.text
+                            )
+                          )
+                        }
                       </div>
                     ))
                   }
@@ -208,7 +218,17 @@ const costs = [
                   {
                     REVIEW_DEMO.map(([kind, text]) => (
                       <div class={kind}>
-                        {splitCommandText(text).map((p) => (p.cmd ? <span data-cmd={p.cmd}>{p.text}</span> : p.text))}
+                        {
+                          splitCommandText(text).map((p, i) =>
+                            p.cmd ? (
+                              <span data-cmd={p.cmd}>{p.text}</span>
+                            ) : kind === 't-cmd' && i === 0 ? (
+                              <span class="t-prompt">{p.text}</span>
+                            ) : (
+                              p.text
+                            )
+                          )
+                        }
                       </div>
                     ))
                   }
