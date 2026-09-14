@@ -1,0 +1,214 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design — per-target command names in the docs (2026-09-14)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — per-target command names in the docs</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> a reader picks Claude Code, Cursor or Codex once, and every command name on
+  the docs site — in code blocks and in sentences — shows the form that actually works in their tool.
+</div>
+
+<h2>Problem</h2>
+
+<p>The same command is spelled three ways. <code>/slashforge:code</code> on Claude Code,
+   <code>/slashforge-code</code> on Cursor, <code>$slashforge-code</code> on Codex. The docs show only
+   the first, in <strong>187 places across 14 pages</strong>.</p>
+
+<p>A Cursor user reading the install guide is told to type a command that does not exist in their
+   tool. Today the only mitigation is a hand-written <code>:::note</code> on a few pages explaining
+   the difference in prose — which scales badly, is easy to forget on a new page, and still leaves
+   the wrong name as the thing the reader copies.</p>
+
+<p>The naming difference is not the only divergence, but it is the one that appears everywhere.
+   <code>/slashforge:parallel</code> also <em>behaves</em> differently per target — concurrent
+   subagents on Claude Code, sequential with clean context per task elsewhere — and
+   <code>/slashforge:setup</code> does not exist on Cursor or Codex at all. Those are prose problems;
+   this design handles the naming.</p>
+
+<h2>Approach</h2>
+
+<p><strong>Chosen: derive all three forms from one authored source, mark them at build time, and swap
+   them client-side from a single stored preference.</strong> The author writes the Claude Code form
+   once, as today. A rehype plugin finds command references in both fenced blocks and inline
+   <code>&lt;code&gt;</code> spans and tags them with the bare command name. A small script rewrites
+   every tagged node when the reader picks a target.</p>
+
+<p>Two controls drive it, kept in sync: a tab strip in each command block's existing bar — the
+   pattern the user cited from MUI's JS/TS toggle — and a persistent switcher in the site header, so
+   the seven pages that mention commands but contain no code block still have something to click.</p>
+
+<table>
+  <tr><th>Target</th><th>Form</th><th>Derivation from the authored name</th></tr>
+  <tr><td>Claude Code</td><td><code>/slashforge:code</code></td><td>as authored</td></tr>
+  <tr><td>Cursor</td><td><code>/slashforge-code</code></td><td><code>:</code> becomes <code>-</code></td></tr>
+  <tr><td>Codex</td><td><code>$slashforge-code</code></td><td>same, and <code>/</code> becomes <code>$</code></td></tr>
+</table>
+
+<p>Deriving rather than authoring three times is the whole point: 187 references written out per
+   target is 561 strings to keep in sync, and they would drift the first time a command is renamed.
+   This mirrors <code>toSkillCommandRefs</code> at <code>bin/install.js:253</code>, which already
+   does exactly this transformation when installing to the agents target — the docs and the installer
+   end up applying the same rule.</p>
+
+<p>Two alternatives were rejected:</p>
+
+<ul>
+  <li><strong>Separate URL trees per target</strong> (<code>/slashforge/cursor/…</code>). Explicit and
+      works without JavaScript, but triples the built pages, splits every inbound link and search
+      result three ways, and means a reader who switches loses their place.</li>
+  <li><strong>A chooser gate on Get Started and the nav</strong>, the first shape discussed. Blocking
+      content behind "which tool?" penalises the common case — someone arriving on a deep link from a
+      search result — and a reader who does not yet know the answer cannot proceed. The header
+      control gives the same power without the wall.</li>
+</ul>
+
+<h2>Design</h2>
+
+<p><strong>1. Detection is narrow on purpose.</strong> The plugin matches
+   <code>/slashforge:&lt;name&gt;</code> where <code>&lt;name&gt;</code> is one of the thirteen known
+   commands, read from a shared list rather than a loose pattern. Anything else — prose about
+   namespaces, a URL containing the string, a changelog entry — is left alone. Every command-bearing
+   fence in the site is plaintext (14 of 14, verified), so Shiki emits one text node per line and the
+   rewrite does not have to reach inside syntax-highlight tokens.</p>
+
+<p><strong>2. What the plugin emits.</strong> A matched reference becomes
+   <code>&lt;span data-cmd="code"&gt;/slashforge:code&lt;/span&gt;</code>. The element ships with the
+   Claude Code form already rendered, so the page is correct before any script runs and correct if
+   scripts never run. A block containing at least one match gets <code>data-has-cmd</code> on its
+   <code>.code</code> wrapper, which is what tells the frame to render tabs instead of the language
+   label.</p>
+
+<p><strong>3. The block tab strip.</strong> <code>rehype-code-frame.mjs</code>
+   (<code>src/plugins/rehype-code-frame.mjs</code>, 57 lines) already builds the bar with a language
+   label on the left and Copy on the right. On a block with <code>data-has-cmd</code> the label slot
+   becomes a three-button <code>role="tablist"</code>; every other block keeps its label exactly as
+   now. Copy is untouched, and copies whatever form is currently shown.</p>
+
+<p><strong>4. The header switcher.</strong> A compact control in <code>.hdr__right</code> in
+   <code>src/components/Header.astro:41</code>, alongside the existing search button and social
+   links. It is the only control on the seven block-less pages, and the discoverable entry point
+   everywhere else. On narrow viewports it collapses to the active target's short label to avoid
+   crowding the header, which is already a three-column grid.</p>
+
+<p><strong>5. State.</strong> One value — <code>claude</code>, <code>cursor</code> or
+   <code>agents</code>-style key — in <code>localStorage</code> under <code>slashforge:target</code>,
+   read on load and written on change. Every read and write is wrapped, because a private window or
+   blocked site data makes the accessor itself throw; on failure the page simply stays on Claude Code
+   for that visit. Selection applies across pages, so a reader sets it once.</p>
+
+<p><strong>6. <code>/slashforge:setup</code> is deliberately not switched yet.</strong> It has no
+   Cursor or Codex form — the command does not exist there — so deriving one would print a command
+   that fails. Until that page is dealt with, <code>setup</code> is excluded from the known-command
+   list, which means every reference to it stays in Claude Code form on every target. That is wrong
+   in a small way and visibly so, which is better than wrong in a way that looks right.</p>
+
+<p><strong>7. <code>changelog.md</code> is excluded entirely.</strong> It is generated from
+   <code>CHANGELOG.md</code> and is a historical record; rewriting <code>/slashforge:code</code>
+   inside a v4.0.0 entry would misstate what shipped. It holds 22 references, the largest single
+   concentration, which is exactly why it needs saying out loud.</p>
+
+<p><strong>8. Search is indexed in one form, and that is accepted.</strong> Pagefind indexes the built
+   HTML, so it sees the Claude Code spelling. A reader searching the literal string
+   <code>slashforge-code</code> will still match on the tokens <em>slashforge</em> and <em>code</em>,
+   so results are found; the excerpt may show a spelling their target does not use. Emitting hidden
+   alternate spellings purely for the index would pollute copy-to-clipboard and screen-reader output
+   for a marginal gain.</p>
+
+<h2>Testing</h2>
+
+<p><strong>Unit — the derivation.</strong> Each of the thirteen commands maps to the three expected
+   forms; an unknown name is left untouched; <code>setup</code> is not in the switchable set.</p>
+
+<p><strong>Build — the plugin marks the right things.</strong> Against the real content: every
+   command-bearing fence gets <code>data-has-cmd</code>; no fence without a command gets it; the
+   inline count matches the known reference count per page; <code>changelog.md</code> is untouched;
+   no <code>setup</code> reference is marked.</p>
+
+<p><strong>The regression guard that matters: the default output does not change.</strong> With no
+   script running, the rendered HTML text must read exactly as it does today — the Claude Code form
+   everywhere. This is the assertion that proves the change is additive for existing readers and for
+   anyone with JavaScript disabled.</p>
+
+<p><strong>Accessibility.</strong> The existing <code>check-docs-a11y.mjs</code> already asserts every
+   interactive element has an accessible name, and the new tabs and header control must pass it
+   unmodified. Beyond that: the tablist is keyboard-operable with arrow keys, the selected tab carries
+   <code>aria-selected</code>, and the control is reachable in tab order.</p>
+
+<p><strong>Existing checks stay green:</strong> <code>check-docs-links.mjs</code>,
+   <code>check-docs-facts.mjs</code>, the docs build, and the root <code>npm test</code> suite.</p>
+
+<h2>Out of scope</h2>
+<ul>
+  <li>The <code>/slashforge:setup</code> page and how it presents a command that does not exist on two of the three targets — parked by agreement, to be handled next</li>
+  <li>Per-target <em>prose</em> beyond command names — notably that <code>/slashforge:parallel</code> runs sequentially on Cursor and Codex, and that Plan mode and <code>/init</code> are Claude Code features. Those need writing, not switching</li>
+  <li>Varying the sidebar, the reading order, or which pages exist per target</li>
+  <li>Any change to what the installer writes, to command names themselves, or to the on-disk template layout</li>
+  <li>The nine discipline-skill pages, which are separate authoring work that will use this mechanism once it exists</li>
+</ul>
+
+
+</body>
+</html>
