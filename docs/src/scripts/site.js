@@ -1,5 +1,8 @@
-/* Reference behaviour: theme toggle, search modal, terminal replay.
-   Plain JS, no build step. Port the behaviour, not necessarily the code. */
+/* Reference behaviour: theme toggle, target switcher, search modal, terminal
+   replay. Plain JS, no build step. Port the behaviour, not necessarily the
+   code. */
+
+import { TARGETS, DEFAULT_TARGET, STORAGE_KEY, commandForm } from '../targets.mjs';
 
 (function () {
   var root = document.documentElement;
@@ -24,6 +27,57 @@
       try { localStorage.setItem('sf-theme', next); } catch (e) {}
       syncLabel();
     });
+  });
+
+  /* ---- coding-agent target ---- */
+
+  /* Command names ship in the Claude Code form and are rewritten here, so the
+     page is already correct before this runs and stays correct without it.
+     Both controls — the tab strip in each command block and the header
+     switcher — carry data-target-opt, so one delegated listener drives them
+     all and they cannot fall out of sync. */
+  function readTarget() {
+    try {
+      var v = localStorage.getItem(STORAGE_KEY);
+      return TARGETS.indexOf(v) >= 0 ? v : DEFAULT_TARGET;
+    } catch (e) {
+      return DEFAULT_TARGET;
+    }
+  }
+
+  function applyTarget(t) {
+    root.setAttribute('data-target', t);
+    document.querySelectorAll('[data-cmd]').forEach(function (el) {
+      el.textContent = commandForm(el.getAttribute('data-cmd'), t);
+    });
+    document.querySelectorAll('[data-target-opt]').forEach(function (b) {
+      b.setAttribute('aria-selected', String(b.getAttribute('data-target-opt') === t));
+    });
+  }
+
+  function setTarget(t) {
+    applyTarget(t);
+    try { localStorage.setItem(STORAGE_KEY, t); } catch (e) {}
+  }
+
+  applyTarget(readTarget());
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-target-opt]');
+    if (btn) setTarget(btn.getAttribute('data-target-opt'));
+  });
+
+  /* Arrow keys move between tabs, as the tablist pattern expects. */
+  document.addEventListener('keydown', function (e) {
+    var btn = e.target.closest('[data-target-opt]');
+    if (!btn) return;
+    var i = TARGETS.indexOf(btn.getAttribute('data-target-opt'));
+    var next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : -1;
+    if (next < 0 || next >= TARGETS.length) return;
+    e.preventDefault();
+    setTarget(TARGETS[next]);
+    var sel = btn.parentNode.querySelector('[data-target-opt="' + TARGETS[next] + '"]');
+    if (sel) sel.focus();
   });
 
   /* ---- search modal ---- */
