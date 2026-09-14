@@ -10,9 +10,8 @@ description: End-to-end development workflow — plan, confirm, branch, implemen
 ```
 
 :::note
-==On Cursor and Codex the commands are hyphenated== — `/slashforge-code`, not `/slashforge:code` —
-because neither supports the `:` namespace. Codex invokes it as `$slashforge-code`. See
-[Targets](/slashforge/reference/cli/#targets).
+==Using Cursor or Codex? Switch the tabs above== and every command on this page changes
+with them. See [Targets](/slashforge/reference/cli/#targets) for what else differs.
 :::
 
 The full development workflow, from an idea to a merged PR. ==Ten phases, run in

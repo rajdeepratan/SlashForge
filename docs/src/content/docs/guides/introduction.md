@@ -138,8 +138,8 @@ what runs at each phase.
 Install for Cursor with `npx slashforge --target cursor`. That writes
 `.agents/skills/`, the directory Codex reads as well.
 
-On Cursor and Codex the commands are hyphenated — `/slashforge-code`, not
-`/slashforge:code` — because neither supports the `:` namespace.
-`/slashforge:setup` is Claude Code only for now; it provisions `.claude/`
-structure that has no equivalent on the other targets.
+Commands are spelled differently on each agent. Pick yours in the header and
+every command in these docs changes to match. `/slashforge:setup` is Claude Code
+only for now — it provisions `.claude/` structure that has no equivalent on the
+other targets, so it keeps its Claude Code spelling whichever agent you pick.
 

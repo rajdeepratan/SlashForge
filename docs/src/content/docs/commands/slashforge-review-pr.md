@@ -12,9 +12,8 @@ description: Review a pull request against your repo's own rules and conventions
 ```
 
 :::note
-==On Cursor and Codex the commands are hyphenated== — `/slashforge-review-pr`, not `/slashforge:review-pr` —
-because neither supports the `:` namespace. Codex invokes it as `$slashforge-review-pr`. See
-[Targets](/slashforge/reference/cli/#targets).
+==Using Cursor or Codex? Switch the tabs above== and every command on this page changes
+with them. See [Targets](/slashforge/reference/cli/#targets) for what else differs.
 :::
 
 ==Reviews a pull request against **your repo's** standards== — `CLAUDE.md`, `.claude/rules/`, and the
