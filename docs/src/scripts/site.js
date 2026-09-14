@@ -50,8 +50,13 @@ import { TARGETS, DEFAULT_TARGET, STORAGE_KEY, commandForm } from '../targets.mj
     document.querySelectorAll('[data-cmd]').forEach(function (el) {
       el.textContent = commandForm(el.getAttribute('data-cmd'), t);
     });
+    /* The block tab strips. */
     document.querySelectorAll('[data-target-opt]').forEach(function (b) {
       b.setAttribute('aria-selected', String(b.getAttribute('data-target-opt') === t));
+    });
+    /* The header dropdown. */
+    document.querySelectorAll('[data-target-select]').forEach(function (sel) {
+      if (sel.value !== t) sel.value = t;
     });
   }
 
@@ -65,6 +70,11 @@ import { TARGETS, DEFAULT_TARGET, STORAGE_KEY, commandForm } from '../targets.mj
   document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-target-opt]');
     if (btn) setTarget(btn.getAttribute('data-target-opt'));
+  });
+
+  document.addEventListener('change', function (e) {
+    var sel = e.target.closest('[data-target-select]');
+    if (sel) setTarget(sel.value);
   });
 
   /* Arrow keys move between tabs, as the tablist pattern expects. */
