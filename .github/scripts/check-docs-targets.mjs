@@ -61,6 +61,15 @@ for (const page of pages) {
     if (hasCmd && !flagged) fail(`${rel}: block with commands is missing data-has-cmd`);
     if (!hasCmd && flagged) fail(`${rel}: block without commands is flagged`);
   }
+
+  // A flagged block carries a tablist in its bar; a plain one keeps its
+  // language label instead.
+  for (const frame of html.match(/<div class="code">[\s\S]*?<\/pre><\/div>/g) ?? []) {
+    const flagged = /data-has-cmd/.test(frame);
+    const tabbed = /role="tablist"/.test(frame);
+    if (flagged && !tabbed) fail(`${rel}: command block has no tablist`);
+    if (!flagged && tabbed) fail(`${rel}: plain block should not have a tablist`);
+  }
 }
 
 // The assertions above only inspect markup that exists, so they pass vacuously
