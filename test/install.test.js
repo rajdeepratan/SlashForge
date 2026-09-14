@@ -1265,3 +1265,40 @@ test('remaining guides and code.md dispatch no agents on the agents target', () 
     assert.ok(!/Agent Selection Table/.test(body), `${file}: names the agent table`);
   }
 });
+
+// --- Task 6: parallel.md, and the whole-feature sweep -------------------------
+
+test('no rendered file dispatches an agent on the agents target', () => {
+  const banned = [
+    /\bdispatch(?:ing|es)? (?:one |a |an )?(?:fresh )?agents?\b/i,
+    /`code-reviewer` agent/,
+    /the `git` agent/,
+    /\.claude\/agents\//,
+    /create it on the fly/i,
+    /create it silently/i,
+  ];
+  // Scoped to what a model on this target can actually reach. The eight
+  // setup-only guides ship unmodified by decision — parity with Claude Code —
+  // and nothing on the agents target references them, since setup is omitted.
+  // forge-coverage.md is reachable and still Claude-specific; that one is an
+  // open question, not an oversight.
+  const unreachable = new Set([
+    'forge-instructions.md', 'forge-rules.md', 'forge-skills.md', 'forge-agents.md',
+    'forge-commands.md', 'forge-hooks.md', 'forge-claude-md.md', 'forge-memory.md',
+    'forge-coverage.md',
+  ]);
+  for (const [file, body] of Object.entries(renderAll('agents'))) {
+    if (unreachable.has(file) || file === path.join('slashforge', 'setup.md')) continue;
+    for (const re of banned) {
+      assert.ok(!re.test(body), `${file} still matches ${re}`);
+    }
+  }
+});
+
+test('parallel.md keeps its independence test and review discipline on both targets', () => {
+  for (const targetName of ['claude', 'agents']) {
+    const body = renderAll(targetName)[path.join('slashforge', 'parallel.md')];
+    assert.match(body, /The test for "independent"/);
+    assert.match(body, /Reviewing between tasks/);
+  }
+});
