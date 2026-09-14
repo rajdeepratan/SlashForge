@@ -336,6 +336,33 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 }
 
 /* Callouts: an ember frame with a solid ember label. Never a tinted panel. */
+/* Pages, sidebar entries and pager cells whose subject exists only on Claude
+   Code. Hidden once another agent is selected; before the script runs there is
+   no data-target and everything shows, which is the Claude Code view and the
+   correct default. */
+[data-target='cursor'] [data-claude-only],
+[data-target='codex'] [data-claude-only] {
+  display: none;
+}
+
+/* The page itself stays reachable — deep links and search results still land
+   here — so instead of hiding it, it leads with the fact. Inverted against the
+   ember frame of .note so it reads as a statement about the page rather than
+   an aside within it. */
+.claudeonly {
+  display: none;
+  border: 2px solid var(--rule);
+  background: var(--code-bg);
+  padding: 16px 20px;
+  margin: 0 0 32px;
+  font-size: 15px;
+}
+
+[data-target='cursor'] .claudeonly,
+[data-target='codex'] .claudeonly {
+  display: block;
+}
+
 .note {
   border: 2px solid var(--ember);
   padding: 18px 20px;
