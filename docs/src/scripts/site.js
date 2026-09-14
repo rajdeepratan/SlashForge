@@ -2,7 +2,13 @@
    replay. Plain JS, no build step. Port the behaviour, not necessarily the
    code. */
 
-import { TARGETS, DEFAULT_TARGET, STORAGE_KEY, commandForm } from '../targets.mjs';
+import {
+  TARGETS,
+  DEFAULT_TARGET,
+  STORAGE_KEY,
+  commandForm,
+  renderReplayLine,
+} from '../targets.mjs';
 
 (function () {
   var root = document.documentElement;
@@ -59,6 +65,10 @@ import { TARGETS, DEFAULT_TARGET, STORAGE_KEY, commandForm } from '../targets.mj
     document.querySelectorAll('[data-target-value]').forEach(function (el) {
       el.textContent = t.charAt(0).toUpperCase() + t.slice(1);
     });
+    /* The terminal replay animates by writing textContent, so its lines are
+       plain text by the time anyone switches — it cannot be updated by walking
+       [data-cmd] like everything else. It rebuilds itself on this event. */
+    document.dispatchEvent(new CustomEvent('sf:target', { detail: t }));
   }
 
   function setTarget(t) {
@@ -192,12 +202,27 @@ import { TARGETS, DEFAULT_TARGET, STORAGE_KEY, commandForm } from '../targets.mj
     if (!body) return;
 
     var lines = Array.prototype.slice.call(body.children);
-    lines.forEach(function (el) { el.dataset.full = el.textContent; });
-    var total = lines.reduce(function (n, el) { return n + el.dataset.full.length + 1; }, 0);
+    var total = 0;
+
+    /* data-line carries the canonical Claude Code text. The rendered form is
+       derived from it every time, so switching target after the animation has
+       flattened the markup still produces the right line. */
+    function rebuild(target) {
+      lines.forEach(function (el) {
+        var src = el.getAttribute('data-line');
+        el.dataset.full = src === null ? el.textContent : renderReplayLine(src, target);
+      });
+      total = lines.reduce(function (n, el) { return n + el.dataset.full.length + 1; }, 0);
+    }
+
+    rebuild(readTarget());
 
     var timer = 0;
+    var painted = 0;
+    var started = false;
 
     function paint(budget) {
+      painted = budget;
       var left = budget;
       lines.forEach(function (el) {
         var full = el.dataset.full;
@@ -210,6 +235,7 @@ import { TARGETS, DEFAULT_TARGET, STORAGE_KEY, commandForm } from '../targets.mj
     }
 
     function play() {
+      started = true;
       clearInterval(timer);
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         paint(total);
@@ -223,6 +249,18 @@ import { TARGETS, DEFAULT_TARGET, STORAGE_KEY, commandForm } from '../targets.mj
         else paint(n);
       }, 26);
     }
+
+    /* Rebuild in place: the reader keeps their position in the animation
+       rather than having it restart under them. */
+    document.addEventListener('sf:target', function (e) {
+      /* Before the replay runs, the lines still hold their server-rendered
+         markup and [data-cmd] has already been updated like everywhere else.
+         Repainting then would blank the terminal, so only the cached text is
+         rebuilt. */
+      var done = painted >= total;
+      rebuild(e.detail);
+      if (started) paint(done ? total : painted);
+    });
 
     if (button) button.addEventListener('click', play);
 
