@@ -1,0 +1,101 @@
+#!/usr/bin/env node
+/**
+ * Asserts the per-target command markup in dist/ is present and correct.
+ *
+ * Run from docs/ after a build, alongside the other check-docs-* scripts:
+ *   node ../.github/scripts/check-docs-targets.mjs
+ *
+ * The rule this enforces is that the built HTML always ships the Claude Code
+ * spelling. Switching happens client-side, so the default output has to be
+ * correct on its own — for readers without JavaScript, and for the moment
+ * before the script runs.
+ */
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative, sep } from 'node:path';
+import { SWITCHABLE, COMMAND_RE } from '../../docs/src/targets.mjs';
+
+const base = process.env.DOCS_BASE_PATH ?? '/slashforge';
+const root = join(process.cwd(), 'dist' + base);
+const content = join(process.cwd(), 'src', 'content', 'docs');
+
+const pages = [];
+(function walk(dir) {
+  for (const entry of readdirSync(dir)) {
+    const p = join(dir, entry);
+    if (statSync(p).isDirectory()) walk(p);
+    else if (entry === 'index.html') pages.push(p);
+  }
+})(root);
+
+let bad = 0;
+const fail = (msg) => {
+  console.error('  ✗ ' + msg);
+  bad += 1;
+};
+
+for (const page of pages) {
+  const html = readFileSync(page, 'utf8');
+  const rel = page.slice(root.length);
+
+  for (const m of html.matchAll(/<span data-cmd="([a-z-]+)">([^<]*)<\/span>/g)) {
+    if (m[2] !== '/slashforge:' + m[1]) {
+      fail(`${rel}: ${m[1]} rendered as "${m[2]}", expected the Claude Code form`);
+    }
+    if (!SWITCHABLE.includes(m[1])) {
+      fail(`${rel}: marked a non-switchable command "${m[1]}"`);
+    }
+  }
+
+  if (/data-cmd="setup"/.test(html)) {
+    fail(`${rel}: setup must not be switchable — it does not exist on cursor or codex`);
+  }
+
+  // The changelog is generated from /CHANGELOG.md and is a historical record.
+  if (rel.startsWith('/changelog') && /data-cmd=/.test(html)) {
+    fail('changelog must not be rewritten — it records what actually shipped');
+  }
+
+  for (const pre of html.match(/<pre[^>]*>[\s\S]*?<\/pre>/g) ?? []) {
+    const hasCmd = /data-cmd=/.test(pre);
+    const flagged = /data-has-cmd/.test(pre);
+    if (hasCmd && !flagged) fail(`${rel}: block with commands is missing data-has-cmd`);
+    if (!hasCmd && flagged) fail(`${rel}: block without commands is flagged`);
+  }
+}
+
+// The assertions above only inspect markup that exists, so they pass vacuously
+// when nothing is marked at all. This one is the positive expectation: a page
+// whose source mentions a switchable command must carry the markup for it.
+const sources = [];
+(function walk(dir) {
+  for (const entry of readdirSync(dir)) {
+    const p = join(dir, entry);
+    if (statSync(p).isDirectory()) walk(p);
+    else if (entry.endsWith('.md')) sources.push(p);
+  }
+})(content);
+
+let expected = 0;
+for (const src of sources) {
+  const slug = relative(content, src).replace(/\.md$/, '').split(sep).join('/');
+  if (slug === 'changelog') continue;
+
+  // Frontmatter titles are whole-label commands handled separately from prose.
+  const body = readFileSync(src, 'utf8').replace(/^---\n[\s\S]*?\n---\n/, '');
+  COMMAND_RE.lastIndex = 0;
+  if (!COMMAND_RE.test(body)) continue;
+  expected += 1;
+
+  const built = join(root, slug, 'index.html');
+  const html = readFileSync(built, 'utf8');
+  if (!/data-cmd=/.test(html)) {
+    fail(`${slug}: source mentions a switchable command but nothing is marked`);
+  }
+}
+
+console.log(`checked ${pages.length} pages, ${expected} with switchable commands`);
+if (bad) {
+  console.error(`${bad} problem(s)`);
+  process.exit(1);
+}
+console.log('per-target command markup is correct');
