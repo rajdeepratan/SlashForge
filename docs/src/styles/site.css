@@ -945,6 +945,56 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 .code__copy:hover { color: var(--text); }
 .code__copy[data-copied] { color: var(--ember); }
 
+/* ---------- target switcher ---------- */
+
+/* One rule set serves both the tab strip in a command block's bar and the
+   control in the header, so the two can never drift apart visually. Colours
+   come from the tokens, so dark mode follows without a second block. */
+.code__tabs { display: flex; }
+
+.code__tabs button {
+  font-family: var(--font);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  cursor: pointer;
+  border: 1px solid var(--hairline);
+  border-right-width: 0;
+  background: transparent;
+  color: var(--muted);
+}
+
+.code__tabs button:last-child { border-right-width: 1px; }
+.code__tabs button:hover { color: var(--text); }
+
+.code__tabs button[aria-selected='true'] {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: #f3f2f2;
+}
+
+/* The selected tab owns the shared edge, or its neighbour's grey border cuts
+   across the ember block. */
+.code__tabs button[aria-selected='true'] + button { border-left-color: var(--ember); }
+
+.targetsw { display: flex; align-items: center; gap: 7px; }
+
+.targetsw__label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The header is already a three-column grid carrying search and socials, so
+   the label is the first thing to go when width runs out. */
+@media (max-width: 720px) {
+  .targetsw__label { display: none; }
+}
+
 /* Shiki emits both themes inline and switches on a CSS variable, so the code
    colours follow the theme toggle without a second stylesheet. */
 [data-theme='dark'] .astro-code,
