@@ -8,6 +8,10 @@
  * `currentColor` and follow the theme, while the ember slash stays ember. An
  * external SVG loaded through <img> inherits nothing.
  */
+import { TARGETS, DEFAULT_TARGET } from '../targets.mjs';
+
+const TARGET_LABELS = { claude: 'Claude', cursor: 'Cursor', codex: 'Codex' };
+
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const path = Astro.url.pathname;
 
@@ -39,6 +43,21 @@ const nav = [
   </nav>
 
   <div class="hdr__right">
+    {/* The only target control on the seven pages that mention commands but
+        contain no code block. Elsewhere it stays in sync with the block tabs. */}
+    <div class="targetsw">
+      <span class="targetsw__label">Agent</span>
+      <div class="code__tabs" role="tablist" aria-label="Coding agent">
+        {
+          TARGETS.map((t) => (
+            <button type="button" role="tab" data-target-opt={t} aria-selected={String(t === DEFAULT_TARGET)}>
+              {TARGET_LABELS[t]}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
     <button class="search-btn" type="button" data-open-search aria-label="Search">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"
         ><circle cx="11" cy="11" r="7"></circle><path d="M20 20 L16.2 16.2"></path></svg
