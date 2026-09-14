@@ -64,7 +64,7 @@ body {
 a { color: inherit; text-decoration: none; }
 ::selection { background: var(--ember); color: #f3f2f2; }
 
-:is(a, button, summary, input, [tabindex]):focus-visible {
+:is(a, button, summary, input, select, [tabindex]):focus-visible {
   outline: 2px solid var(--ember);
   outline-offset: 2px;
 }
@@ -979,20 +979,68 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
    across the ember block. */
 .code__tabs button[aria-selected='true'] + button { border-left-color: var(--ember); }
 
-.targetsw { display: flex; align-items: center; gap: 7px; }
-
-.targetsw__label {
-  font-family: var(--mono);
-  font-size: 9.5px;
-  letter-spacing: 0.08em;
+/* The header control is shaped like .theme-btn beside it — same rule, same
+   uppercase text, same ember hover — so the two read as a pair rather than the
+   agent picker shouting over the nav. The border wraps the label and the select
+   together, so it reads as one button. */
+.agentsw {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 2px solid var(--rule);
+  padding: 6px 10px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--muted);
+  cursor: pointer;
 }
 
-/* The header is already a three-column grid carrying search and socials, so
-   the label is the first thing to go when width runs out. */
-@media (max-width: 720px) {
-  .targetsw__label { display: none; }
+.agentsw:hover,
+.agentsw:focus-within {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: #f3f2f2;
+}
+
+.agentsw__label { color: var(--muted); }
+.agentsw:hover .agentsw__label,
+.agentsw:focus-within .agentsw__label { color: #f3f2f2; }
+
+.agentsw__select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* The native popup is drawn by the OS, so it needs telling which theme it is
+   in — the site's own toggle is an attribute, not a colour-scheme change. */
+[data-theme='dark'] .agentsw__select { color-scheme: dark; }
+
+/* A chevron, drawn from two borders rather than an SVG so it inherits
+   currentColor through the ember hover. */
+.agentsw__caret {
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  pointer-events: none;
+}
+
+/* Same budget reasoning as the socials row below: at this width the label is
+   the part that can go, leaving "CLAUDE" — about as wide as "DARK". */
+@media (max-width: 640px) {
+  .agentsw__label { display: none; }
 }
 
 /* Shiki emits both themes inline and switches on a CSS variable, so the code

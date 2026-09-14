@@ -44,18 +44,20 @@ const nav = [
 
   <div class="hdr__right">
     {/* The only target control on the seven pages that mention commands but
-        contain no code block. Elsewhere it stays in sync with the block tabs. */}
-    <div class="targetsw">
-      <span class="targetsw__label">Agent</span>
-      <div class="code__tabs" role="tablist" aria-label="Coding agent">
+        contain no code block. Shaped like the theme button beside it: a flat
+        ruled control, not a second accent block competing with the nav. The
+        label is a sibling rather than part of each option so it can drop on
+        narrow screens, leaving "CLAUDE" — about as wide as "DARK". */}
+    <div class="agentsw">
+      <span class="agentsw__label">Agent:</span>
+      <select class="agentsw__select" data-target-select aria-label="Coding agent">
         {
           TARGETS.map((t) => (
-            <button type="button" role="tab" data-target-opt={t} aria-selected={String(t === DEFAULT_TARGET)}>
-              {TARGET_LABELS[t]}
-            </button>
+            <option value={t} selected={t === DEFAULT_TARGET}>{TARGET_LABELS[t]}</option>
           ))
         }
-      </div>
+      </select>
+      <span class="agentsw__caret" aria-hidden="true"></span>
     </div>
 
     <button class="search-btn" type="button" data-open-search aria-label="Search">
