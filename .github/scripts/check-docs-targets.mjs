@@ -127,6 +127,13 @@ if (!/data-cmd=/.test(home)) {
   fail('landing page: command names are not switchable');
 }
 
+// Codex invokes with $, so the terminal mock's own $ prompt would read as a
+// typo — "$ $slashforge-code". The prompt is marked so CSS can drop it for
+// that target alone.
+if (!/class="t-prompt"/.test(home)) {
+  fail('landing page: terminal prompts are not marked, so Codex renders "$ $slashforge-code"');
+}
+
 console.log(`checked ${pages.length} pages, ${expected} with switchable commands`);
 if (bad) {
   console.error(`${bad} problem(s)`);

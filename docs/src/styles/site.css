@@ -677,6 +677,11 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   overflow-x: auto;
 }
 .term__body div { white-space: pre-wrap; min-height: 1.7em; }
+/* Codex invokes commands with $ rather than /, so the mock's own $ prompt
+   would render as "$ $slashforge-code" and read like a typo. Dropped for that
+   target only; every other target keeps the prompt. */
+[data-target='codex'] .t-prompt { display: none; }
+
 .t-cmd { color: #ec3013; }
 .t-you { color: #f3f2f2; font-weight: 500; }
 .t-phase { color: #ff6a4d; font-weight: 500; }
