@@ -33,27 +33,6 @@ On Cursor and Codex the commands are hyphenated — `/slashforge-code`, not
 is Claude Code only for now; it provisions `.claude/` structure that has no equivalent
 on the other targets.
 
-> ### ⚠️ Breaking changes in v4.0.0
->
-> **The command namespace moved from `/forge:` to `/slashforge:`.** `forge` is a
-> common word and was liable to collide with other tools' commands.
->
-> | v3 | v4 |
-> |---|---|
-> | `/forge:setup` | `/slashforge:setup` |
-> | `/forge:code` | `/slashforge:code` |
-> | `/forge:investigate` | `/slashforge:investigate` |
->
-> **Coming from v2?** Commands were `/setup-claude`, `/code`, `/quick` and
-> `/investigate`; `/quick` is now a mode — `/slashforge:code -quick`. See
-> [Migrating to v3](https://www.rajdeepratan.com/slashforge/guides/migrating-to-v3/),
-> then this table.
->
-> **Upgrading:** run `npx slashforge`. It installs the new layout and lists any
-> older files still on disk — it will not delete them for you. Remove them
-> yourself, or run `npx slashforge uninstall` to clear every layout and
-> reinstall clean.
-
 ---
 
 ## What it does
@@ -430,7 +409,7 @@ npx slashforge
 Both `npx slashforge` and `npx slashforge status` check npm afterwards and say so if a newer release exists:
 
 ```
-⚠  This is v4.4.1. The current release is v4.4.2.
+⚠  This is v4.4.2. The current release is v4.4.3.
    `npx slashforge` runs a global install if you have one, and never checks npm:
      npm uninstall -g slashforge     # then re-run npx, or
      npm install -g slashforge@latest

@@ -6,6 +6,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.4.3] - 2026-09-14
+
+Docs site only. No change to any command, skill, or installed file — the
+published package is identical to 4.4.2.
+
+### Changed
+- **Docs site dependencies updated.** `astro` 7.1.6 → 7.2.8, `sharp` 0.35.3 → 0.35.4, `svgo` 4.0.2 → 4.1.0, `js-yaml` 4.3.1 → 4.3.2, `nanoid` 3.3.16 → 3.3.19. All within-major; the docs build, the internal-link check and the accessible-name check pass on all of them.
+- **The v4.0.0 breaking-changes notice is gone from the README.** The `/forge:` → `/slashforge:` rename shipped four minor versions ago and the notice was the first thing a new reader met. The [migration guide](https://www.rajdeepratan.com/slashforge/reference/migrating/) still covers it.
+
 ## [4.4.2] - 2026-08-14
 
 ### Changed
