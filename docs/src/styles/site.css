@@ -1044,6 +1044,12 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   background: var(--surface);
 }
 
+/* The panel sets an explicit display, and an author display always beats the
+   UA rule behind the `hidden` attribute — without this the menu is visible at
+   load and stays open after a choice, however faithfully the script toggles
+   the attribute. */
+.agentsw__menu[hidden] { display: none; }
+
 .agentsw__item {
   border: 0;
   background: transparent;
