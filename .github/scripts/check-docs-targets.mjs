@@ -12,7 +12,12 @@
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { SWITCHABLE, COMMAND_RE, wholeLabelCommand } from '../../docs/src/targets.mjs';
+import {
+  SWITCHABLE,
+  COMMAND_RE,
+  wholeLabelCommand,
+  installPathFor,
+} from '../../docs/src/targets.mjs';
 
 const base = process.env.DOCS_BASE_PATH ?? '/slashforge';
 const root = join(process.cwd(), 'dist' + base);
@@ -44,6 +49,12 @@ for (const page of pages) {
     if (!SWITCHABLE.includes(m[1])) {
       fail(`${rel}: marked a non-switchable command "${m[1]}"`);
     }
+  }
+
+  // Install paths ship in the Claude Code form too, for the same reason.
+  for (const m of html.matchAll(/<span data-path="([a-z]+)">([^<]*)<\/span>/g)) {
+    const want = installPathFor(m[1], 'claude');
+    if (m[2] !== want) fail(`${rel}: ${m[1]} path rendered "${m[2]}", expected "${want}"`);
   }
 
   if (/data-cmd="setup"/.test(html)) {

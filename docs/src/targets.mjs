@@ -52,6 +52,43 @@ const alternation = [...SWITCHABLE].sort((a, b) => b.length - a.length).join('|'
 export const COMMAND_RE = new RegExp(`/slashforge:(${alternation})\\b`, 'g');
 
 /**
+ * Where an install actually lands, per target.
+ *
+ * Not a simple .claude -> .agents rename: on the agents target the commands
+ * are Agent Skills, so they live in `skills/` with one directory each rather
+ * than in a `commands/slashforge/` namespace. A test asserts these against
+ * resolveTarget in bin/install.js, so the docs cannot drift from the
+ * installer.
+ */
+export const INSTALL_PATHS = {
+  guides: { claude: '~/.claude/setup/slashforge/', agents: '~/.agents/setup/slashforge/' },
+  commands: { claude: '~/.claude/commands/slashforge/', agents: '~/.agents/skills/' },
+  root: { claude: '~/.claude/', agents: '~/.agents/' },
+};
+
+export function installPathFor(kind, target) {
+  const set = INSTALL_PATHS[kind];
+  if (!set) return '';
+  return target === 'claude' ? set.claude : set.agents;
+}
+
+// Longest first, or `~/.claude/` swallows the prefix of the other two.
+const PATH_ALTERNATION = Object.entries(INSTALL_PATHS)
+  .map(([kind, set]) => [kind, set.claude])
+  .sort((a, b) => b[1].length - a[1].length);
+
+export const PATH_RE = new RegExp(
+  '(' + PATH_ALTERNATION.map(([, v]) => v.replace(/[.\\/~]/g, '\\$&')).join('|') + ')',
+  'g'
+);
+
+/** The kind of install path a matched string is, or null. */
+export function pathKind(value) {
+  const hit = PATH_ALTERNATION.find(([, v]) => v === value);
+  return hit ? hit[0] : null;
+}
+
+/**
  * Splits text into plain and command parts.
  *
  * The rehype plugin does this over hast nodes for markdown. Astro templates —
