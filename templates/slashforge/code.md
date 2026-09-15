@@ -60,10 +60,18 @@ The same classification also governs Graphify usage when installed: **full flow*
 - Phase 4 — `slashforge:worktree` (only when isolation is warranted)
 - Phase 5 — **exactly one** of: `slashforge:debug` (bug) · `slashforge:parallel` (genuinely independent units) · `slashforge:tdd` (everything else testable). See Phase 5 table in the workflow file.
 - Phase 6 — `slashforge:verify`
+<!--target:claude-->
 - Phase 7 — `slashforge:request-review`, then the `code-reviewer` agent against the Phase 7 checklist
 - Phase 8 — the `git` agent (no skill; Phases 8 and 10 are SlashForge's own flow)
 - Phase 9 — `slashforge:review-feedback`
 - Phase 10 — (no skill; `git` agent handles the cleanup)
+<!--/target-->
+<!--target:agents-->
+- Phase 7 — `slashforge:request-review`, then review the diff yourself against the Phase 7 checklist
+- Phase 8 — push and open the PR directly (no skill; Phases 8 and 10 are SlashForge's own flow)
+- Phase 9 — `slashforge:review-feedback`
+- Phase 10 — (no skill; do the branch cleanup directly)
+<!--/target-->
 
 Every skill the workflow names ships with SlashForge. There is nothing to install and nothing that degrades when a plugin is absent.
 

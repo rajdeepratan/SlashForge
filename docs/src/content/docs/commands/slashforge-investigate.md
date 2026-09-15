@@ -8,6 +8,11 @@ description: Read-only research — reproduce and root-cause a bug, then produce
 /slashforge:investigate [symptom]
 ```
 
+:::note
+==Using Cursor or Codex? Switch the tabs above== and every command on this page changes
+with them. See [Targets](/slashforge/reference/cli/#targets) for what else differs.
+:::
+
 Read-only research. ==Reproduces a suspected bug, finds the root cause, and writes
 a findings report.==
 

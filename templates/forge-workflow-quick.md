@@ -1,6 +1,11 @@
 ---
 name: Lean Mode Overrides
+<!--target:claude-->
 description: Overrides applied on top of the standard workflow when /slashforge:code is invoked with -quick. Skips brainstorming, uses a minimal plan, and replaces the agent-driven Phase 7 review with an inline self-review checklist. Every user gate and Phase 6 verification is preserved.
+<!--/target-->
+<!--target:agents-->
+description: Overrides applied on top of the standard workflow when /slashforge:code is invoked with -quick. Skips brainstorming, uses a minimal plan, and narrows the Phase 7 review to an inline self-review checklist. Every user gate and Phase 6 verification is preserved.
+<!--/target-->
 ---
 
 Read only when `/slashforge:code` was invoked with `-quick`. Apply these overrides on
@@ -47,14 +52,29 @@ brainstorming and go straight to a short plan.)"**
 | **2 Plan** | Full template: Changes, Affected surface, Env vars, Breaking changes, Risks, Test strategy | **LEAN** — include only **Changes** and **Test strategy**. If a section genuinely applies (e.g. a new env var was added), include it; otherwise omit it. Do not write "N/A" — a missing section *is* the N/A. |
 | **3 Confirm plan** | User gate | **KEEP** |
 | **4 Branch decision** | User gate | **KEEP** |
+<!--target:claude-->
 | **5 Implement** | TDD + systematic-debugging + subagent-driven as applicable | **ONE SKILL ONLY** — `slashforge:tdd` if the change is testable, else straight implement. Do not invoke `slashforge:debug` (lean mode is not a bug flow). Do not invoke `slashforge:parallel` (tasks are single-threaded by assumption) |
+<!--/target-->
+<!--target:agents-->
+| **5 Implement** | TDD + systematic-debugging as applicable | **ONE SKILL ONLY** — `slashforge:tdd` if the change is testable, else straight implement. Do not invoke `slashforge:debug` (lean mode is not a bug flow). Do not invoke `slashforge:parallel` (tasks are single-threaded by assumption) |
+<!--/target-->
 | **6 Verify** | lint + test + build | **KEEP** — cheap, catches real regressions |
+<!--target:claude-->
 | **7 Code review** | `slashforge:request-review` + `code-reviewer` agent | **REPLACE** with the inline self-review checklist below |
+<!--/target-->
+<!--target:agents-->
+| **7 Code review** | `slashforge:request-review` + a full review pass | **REPLACE** with the inline self-review checklist below |
+<!--/target-->
 | **8 Push + PR** | User gate | **KEEP** |
 | **9 PR feedback** | `slashforge:review-feedback` if reviewer comments | **KEEP** (applies only if human reviewer comments) |
 | **10 Cleanup** | User gate | **KEEP** |
 
+<!--target:claude-->
 ## Inline self-review checklist (replaces Phase 7 agent pass)
+<!--/target-->
+<!--target:agents-->
+## Inline self-review checklist (replaces the full Phase 7 pass)
+<!--/target-->
 
 Before handing off to Phase 8, check every item against the staged diff:
 
@@ -66,8 +86,14 @@ Before handing off to Phase 8, check every item against the staged diff:
 
 If **any** item fails → return to Phase 5 and fix. If **2 or more** items fail on
 the same task → stop and tell the user: *"This change isn't as small as lean mode
+<!--target:claude-->
 assumed. Recommend restarting with `/slashforge:code` (no `-quick`) so the full plan +
 code-reviewer pass runs."*
+<!--/target-->
+<!--target:agents-->
+assumed. Recommend restarting with `/slashforge:code` (no `-quick`) so the full plan +
+full review pass runs."*
+<!--/target-->
 
 ## When to bail out of lean mode mid-run
 
@@ -88,7 +114,12 @@ Lean mode typically runs in the **40–70k token** range for a small change, vs
 
 - skipping brainstorming (~10–15k)
 - lean plan format (~3–5k)
+<!--target:claude-->
 - replacing the agent-driven Phase 7 review with the inline checklist (~10–25k)
+<!--/target-->
+<!--target:agents-->
+- narrowing the Phase 7 review to the inline checklist (~10–25k)
+<!--/target-->
 
 The gates, Phase 5 TDD, and Phase 6 verification are preserved as-is — that's
 where most of the remaining token cost sits, and also most of the safety.

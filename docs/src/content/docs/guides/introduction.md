@@ -132,6 +132,14 @@ what runs at each phase.
 
 ## Supported tools
 
-==Claude Code today. Cursor and Codex are planned== — the rename to the vendor-neutral
+==Claude Code and Cursor today; Codex unverified== — the rename to the vendor-neutral
 `/slashforge:` namespace in v3.0.0 was groundwork for exactly that.
+
+Install for Cursor with `npx slashforge --target cursor`. That writes
+`.agents/skills/`, the directory Codex reads as well.
+
+Commands are spelled differently on each agent. Pick yours in the header and
+every command in these docs changes to match. `/slashforge:setup` is Claude Code
+only for now — it provisions `.claude/` structure that has no equivalent on the
+other targets, so it keeps its Claude Code spelling whichever agent you pick.
 

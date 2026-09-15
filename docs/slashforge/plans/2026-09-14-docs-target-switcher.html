@@ -1,0 +1,732 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — per-target command names in the docs (2026-09-14)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Plan — per-target command names in the docs</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> a reader picks Claude Code, Cursor or Codex once, and every switchable
+  command name on the docs site — code blocks, sentences, page titles and sidebar labels — shows the
+  form that works in their tool.
+</div>
+
+<h2>Architecture</h2>
+
+<p>One shared module owns the command list and the three spellings. A rehype plugin wraps every
+   matching reference in <code>&lt;span data-cmd="name"&gt;</code> at build time, already rendered in
+   the Claude Code form, so the page is correct before any script runs. A client script rewrites those
+   spans when the reader picks a target and stores the choice.</p>
+
+<p>Two controls, kept in sync from the same state: a tab strip in each command block's existing bar,
+   and a persistent switcher in the site header for the seven pages that mention commands but contain
+   no code block.</p>
+
+<h2>Tech stack</h2>
+<p>Astro 7 with Shiki, plain ESM plugins over hast (<code>unist-util-visit</code>), framework-free
+   client JavaScript, and the repo's existing <code>.github/scripts/check-docs-*.mjs</code> pattern for
+   build-output assertions. Root tests are <code>node --test</code> with <code>node:assert</code>.</p>
+
+<h2>Global constraints</h2>
+<ul>
+  <li><strong>The shared module must be <code>.mjs</code>, not <code>.ts</code>.</strong> <code>astro.config.mjs</code> imports the rehype plugin in Node during the build, where TypeScript cannot be imported; Vite resolves <code>.mjs</code> for the client bundle. One file has to serve both.</li>
+  <li><strong>The default rendered output must not change.</strong> With no script running, every page must read exactly as it does today — the Claude Code form everywhere.</li>
+  <li><strong><code>setup</code> is not switchable.</strong> It has no Cursor or Codex form; deriving one would print a command that does not exist. It stays out of the command list entirely.</li>
+  <li><strong><code>changelog.md</code> is excluded.</strong> Generated from <code>CHANGELOG.md</code> and a historical record; rewriting a v4.0.0 entry would misstate what shipped.</li>
+  <li><strong>Storage key is <code>sf-target</code></strong>, matching the existing <code>sf-theme</code> convention in <code>src/scripts/site.js:9</code>. Every read and write wrapped in try/catch — a private window makes the accessor itself throw.</li>
+  <li><strong>Do not run <code>npm install</code> in <code>docs/</code>.</strong> Regenerating the lockfile on macOS drops Linux-only optional dependencies and breaks CI's <code>npm ci</code>. No dependency changes are needed here.</li>
+  <li>Run <code>npm test</code> from the repo root; docs checks run from <code>docs/</code>.</li>
+</ul>
+
+<h2>Task 1: The shared target module</h2>
+
+<p><strong>Files</strong></p>
+<ul>
+  <li>Create: <code>docs/src/targets.mjs</code></li>
+  <li>Test: <code>test/docs-targets.test.js</code></li>
+</ul>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: nothing.</li>
+  <li>Produces: <code>TARGETS: string[]</code> (<code>['claude','cursor','codex']</code>),
+      <code>DEFAULT_TARGET: 'claude'</code>, <code>STORAGE_KEY: 'sf-target'</code>,
+      <code>SWITCHABLE: string[]</code> (12 names, no <code>setup</code>),
+      <code>commandForm(name, target) =&gt; string</code>,
+      <code>COMMAND_RE: RegExp</code> (global),
+      <code>wholeLabelCommand(label) =&gt; string | null</code>.</li>
+</ul>
+
+<ul>
+  <li>☐ <strong>Step 1: Write the failing tests</strong><br>
+      Root tests are CommonJS, so the ESM module is loaded with a dynamic import.
+<pre><code>const { test } = require('node:test');
+const assert = require('node:assert');
+
+const load = () =&gt; import('../docs/src/targets.mjs');
+
+test('commandForm renders the three spellings', async () =&gt; {
+  const { commandForm } = await load();
+  assert.equal(commandForm('code', 'claude'), '/slashforge:code');
+  assert.equal(commandForm('code', 'cursor'), '/slashforge-code');
+  assert.equal(commandForm('code', 'codex'), '$slashforge-code');
+  assert.equal(commandForm('review-pr', 'cursor'), '/slashforge-review-pr');
+});
+
+test('setup is deliberately not switchable', async () =&gt; {
+  const { SWITCHABLE } = await load();
+  assert.ok(!SWITCHABLE.includes('setup'), 'setup has no cursor/codex form');
+});
+
+test('SWITCHABLE covers every other shipped command', async () =&gt; {
+  const { SWITCHABLE } = await load();
+  const { COMMAND_FILES, SKILL_FILES } = require('../bin/install.js');
+  const shipped = [...COMMAND_FILES, ...SKILL_FILES]
+    .map((f) =&gt; f.split(require('path').sep).pop().replace(/\.md$/, ''))
+    .filter((n) =&gt; n !== 'setup');
+  assert.deepEqual([...SWITCHABLE].sort(), shipped.sort());
+});
+
+test('COMMAND_RE matches the longer name when two share a prefix', async () =&gt; {
+  const { COMMAND_RE } = await load();
+  COMMAND_RE.lastIndex = 0;
+  assert.deepEqual(
+    '/slashforge:review-feedback and /slashforge:review-pr'.match(COMMAND_RE),
+    ['/slashforge:review-feedback', '/slashforge:review-pr']
+  );
+});
+
+test('COMMAND_RE ignores unknown names and hyphenated URLs', async () =&gt; {
+  const { COMMAND_RE } = await load();
+  COMMAND_RE.lastIndex = 0;
+  assert.equal('/slashforge:nope /slashforge-code'.match(COMMAND_RE), null);
+});
+
+test('wholeLabelCommand only fires when the label is exactly one command', async () =&gt; {
+  const { wholeLabelCommand } = await load();
+  assert.equal(wholeLabelCommand('/slashforge:code'), 'code');
+  assert.equal(wholeLabelCommand('Run /slashforge:code now'), null);
+  assert.equal(wholeLabelCommand('/slashforge:setup'), null);
+});</code></pre></li>
+
+  <li>☐ <strong>Step 2: Run and confirm they FAIL</strong><br>
+      Run: <code>npm test</code> — expected: cannot find module <code>../docs/src/targets.mjs</code>.</li>
+
+  <li>☐ <strong>Step 3: Write the module</strong>
+<pre><code>/**
+ * The command names the docs can switch between targets, and the three
+ * spellings of each. Imported by the build (astro.config.mjs -&gt; the rehype
+ * plugin, in Node) and by the client bundle (src/scripts/site.js, via Vite),
+ * which is why this is .mjs and not .ts.
+ *
+ * The same transformation lives in bin/install.js as toSkillCommandRefs: the
+ * installer rewrites cross-references when writing the agents target. Keeping
+ * one rule in two places is deliberate — the packages ship separately — but
+ * they must agree, and a test asserts the command list does.
+ */
+export const TARGETS = ['claude', 'cursor', 'codex'];
+export const DEFAULT_TARGET = 'claude';
+export const STORAGE_KEY = 'sf-target';
+
+// setup is absent here on purpose. It is not installed on cursor or codex, so
+// there is no form to switch to; deriving one would print a command that does
+// not exist. Every reference to it stays in the Claude Code spelling on every
+// target — visibly wrong rather than plausibly wrong.
+export const SWITCHABLE = [
+  'code', 'investigate', 'review-pr',
+  'brainstorm', 'plan', 'debug', 'tdd', 'verify',
+  'review-feedback', 'request-review', 'worktree', 'parallel',
+];
+
+export function commandForm(name, target) {
+  if (target === 'cursor') return `/slashforge-${name}`;
+  if (target === 'codex') return `$slashforge-${name}`;
+  return `/slashforge:${name}`;
+}
+
+// Longest first, so `review-pr` can never win against `review-feedback`.
+const alternation = [...SWITCHABLE].sort((a, b) =&gt; b.length - a.length).join('|');
+
+export const COMMAND_RE = new RegExp(`/slashforge:(${alternation})\\b`, 'g');
+
+/** The command name when a label is exactly one command, else null. */
+export function wholeLabelCommand(label) {
+  const re = new RegExp(`^/slashforge:(${alternation})$`);
+  const m = re.exec(String(label).trim());
+  return m ? m[1] : null;
+}</code></pre></li>
+
+  <li>☐ <strong>Step 4: Run and confirm all six PASS</strong><br>
+      Run: <code>npm test</code></li>
+
+  <li>☐ <strong>Step 5: Commit</strong> — <code>feat(docs): add the shared target and command-form module</code></li>
+</ul>
+
+<h2>Task 2: Mark command references during the build</h2>
+
+<p><strong>Files</strong></p>
+<ul>
+  <li>Create: <code>docs/src/plugins/rehype-command-names.mjs</code></li>
+  <li>Modify: <code>docs/astro.config.mjs</code> — the <code>rehypePlugins</code> array</li>
+  <li>Create: <code>.github/scripts/check-docs-targets.mjs</code></li>
+</ul>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: <code>COMMAND_RE</code>, <code>commandForm</code>, <code>DEFAULT_TARGET</code> from Task 1.</li>
+  <li>Produces: <code>&lt;span data-cmd="name"&gt;</code> around every match, and
+      <code>data-has-cmd</code> on any <code>&lt;pre&gt;</code> containing at least one. Task 3 reads
+      <code>data-has-cmd</code>; Task 5 reads <code>data-cmd</code>.</li>
+</ul>
+
+<ul>
+  <li>☐ <strong>Step 1: Write the check script that will fail</strong><br>
+      This is the build-output assertion; it follows the existing
+      <code>check-docs-links.mjs</code> shape and is run from <code>docs/</code>.
+<pre><code>#!/usr/bin/env node
+/** Asserts the per-target command markup is present and correct in dist/. */
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { SWITCHABLE } from '../../docs/src/targets.mjs';
+
+const base = process.env.DOCS_BASE_PATH ?? '/slashforge';
+const root = join(process.cwd(), 'dist' + base);
+
+const pages = [];
+(function walk(d) {
+  for (const e of readdirSync(d)) {
+    const p = join(d, e);
+    if (statSync(p).isDirectory()) walk(p);
+    else if (e === 'index.html') pages.push(p);
+  }
+})(root);
+
+let bad = 0;
+const fail = (m) =&gt; { console.error('  ✗ ' + m); bad += 1; };
+
+for (const p of pages) {
+  const html = readFileSync(p, 'utf8');
+  const rel = p.slice(root.length);
+
+  // Every marked span ships the Claude Code spelling.
+  for (const m of html.matchAll(/&lt;span data-cmd="([a-z-]+)"&gt;([^&lt;]*)&lt;\/span&gt;/g)) {
+    if (m[2] !== '/slashforge:' + m[1]) fail(`${rel}: ${m[1]} rendered as "${m[2]}"`);
+    if (!SWITCHABLE.includes(m[1])) fail(`${rel}: marked a non-switchable command "${m[1]}"`);
+  }
+
+  // setup must never be marked.
+  if (/data-cmd="setup"/.test(html)) fail(`${rel}: setup must not be switchable`);
+
+  // The changelog is a historical record and is left alone.
+  if (rel.startsWith('/changelog') &amp;&amp; /data-cmd=/.test(html)) {
+    fail('changelog must not be rewritten');
+  }
+
+  // A pre containing a marked command must be flagged for the tab strip.
+  for (const pre of html.match(/&lt;pre[^&gt;]*&gt;[\s\S]*?&lt;\/pre&gt;/g) ?? []) {
+    const has = /data-cmd=/.test(pre);
+    const flagged = /data-has-cmd/.test(pre);
+    if (has &amp;&amp; !flagged) fail(`${rel}: block with commands is missing data-has-cmd`);
+    if (!has &amp;&amp; flagged) fail(`${rel}: block without commands is flagged`);
+  }
+}
+
+console.log(`checked ${pages.length} pages`);
+if (bad) { console.error(`${bad} problem(s)`); process.exit(1); }
+console.log('per-target command markup is correct');</code></pre></li>
+
+  <li>☐ <strong>Step 2: Run it and confirm it FAILS</strong><br>
+      From <code>docs/</code>: <code>npm run build &amp;&amp; node ../.github/scripts/check-docs-targets.mjs</code>
+      — expected: it reports blocks with commands missing <code>data-has-cmd</code>, because nothing
+      marks them yet.</li>
+
+  <li>☐ <strong>Step 3: Write the plugin</strong><br>
+      One pass splits matching text nodes; a second flags the enclosing blocks. The text pass covers
+      inline <code>&lt;code&gt;</code> and fenced blocks alike, because both are text nodes by the time
+      rehype runs — Shiki emits one text node per line for plaintext blocks, and all 14
+      command-bearing fences in the site are plaintext.
+<pre><code>import { visit } from 'unist-util-visit';
+import { COMMAND_RE, commandForm, DEFAULT_TARGET } from '../targets.mjs';
+
+export function rehypeCommandNames() {
+  return (tree, file) =&gt; {
+    // The changelog is generated from /CHANGELOG.md and is a historical
+    // record: rewriting a v4.0.0 entry would misstate what shipped.
+    const path = String(file?.path ?? file?.history?.[0] ?? '');
+    if (path.endsWith('changelog.md')) return;
+
+    visit(tree, 'text', (node, index, parent) =&gt; {
+      if (!parent || index === null) return;
+      COMMAND_RE.lastIndex = 0;
+      if (!COMMAND_RE.test(node.value)) return;
+
+      const out = [];
+      let last = 0;
+      let m;
+      COMMAND_RE.lastIndex = 0;
+      while ((m = COMMAND_RE.exec(node.value)) !== null) {
+        if (m.index &gt; last) {
+          out.push({ type: 'text', value: node.value.slice(last, m.index) });
+        }
+        out.push({
+          type: 'element',
+          tagName: 'span',
+          properties: { 'data-cmd': m[1] },
+          children: [{ type: 'text', value: commandForm(m[1], DEFAULT_TARGET) }],
+        });
+        last = m.index + m[0].length;
+      }
+      if (last &lt; node.value.length) {
+        out.push({ type: 'text', value: node.value.slice(last) });
+      }
+
+      parent.children.splice(index, 1, ...out);
+      // Continue after what was inserted, or visit() walks the new spans.
+      return index + out.length;
+    });
+
+    visit(tree, 'element', (node) =&gt; {
+      if (node.tagName !== 'pre') return;
+      let has = false;
+      visit(node, 'element', (n) =&gt; {
+        if (n.properties &amp;&amp; n.properties['data-cmd'] !== undefined) has = true;
+      });
+      if (has) node.properties = { ...(node.properties ?? {}), 'data-has-cmd': '' };
+    });
+  };
+}</code></pre></li>
+
+  <li>☐ <strong>Step 4: Register it before the code frame</strong><br>
+      In <code>astro.config.mjs</code>, add the import beside the existing plugin imports and put it
+      first in the array — the frame needs the blocks already flagged when it runs.
+<pre><code>import { rehypeCommandNames } from './src/plugins/rehype-command-names.mjs';
+
+// …
+rehypePlugins: [rehypeCommandNames, rehypeCodeFrame, rehypeTableWrap],</code></pre></li>
+
+  <li>☐ <strong>Step 5: Rebuild and confirm the check still fails on one thing only</strong><br>
+      From <code>docs/</code>: <code>npm run build &amp;&amp; node ../.github/scripts/check-docs-targets.mjs</code>
+      — the span assertions now pass; blocks still report missing <code>data-has-cmd</code> only if
+      Task 3 is outstanding. If any span reports a non-Claude spelling, the derivation is wrong.</li>
+
+  <li>☐ <strong>Step 6: Commit</strong> — <code>feat(docs): mark switchable command names at build time</code></li>
+</ul>
+
+<h2>Task 3: Tabs in the code block bar</h2>
+
+<p><strong>Files</strong></p>
+<ul>
+  <li>Modify: <code>docs/src/plugins/rehype-code-frame.mjs</code> — the bar's left slot</li>
+</ul>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: <code>data-has-cmd</code> from Task 2; <code>TARGETS</code> from Task 1.</li>
+  <li>Produces: a <code>role="tablist"</code> in <code>.code__bar</code> whose buttons carry
+      <code>data-target-opt="claude|cursor|codex"</code>. Task 5 binds to that attribute.</li>
+</ul>
+
+<ul>
+  <li>☐ <strong>Step 1: Extend the check script</strong><br>
+      Append to <code>.github/scripts/check-docs-targets.mjs</code>, inside the per-page loop:
+<pre><code>  // A flagged block carries a tablist; an unflagged one keeps its language label.
+  for (const frame of html.match(/&lt;div class="code"&gt;[\s\S]*?&lt;\/div&gt;\s*&lt;\/div&gt;/g) ?? []) {
+    const flagged = /data-has-cmd/.test(frame);
+    const tabbed = /role="tablist"/.test(frame);
+    if (flagged &amp;&amp; !tabbed) fail(`${rel}: command block has no tablist`);
+    if (!flagged &amp;&amp; tabbed) fail(`${rel}: plain block should not have a tablist`);
+  }</code></pre></li>
+
+  <li>☐ <strong>Step 2: Run and confirm it FAILS</strong><br>
+      From <code>docs/</code>: <code>npm run build &amp;&amp; node ../.github/scripts/check-docs-targets.mjs</code>
+      — expected: "command block has no tablist".</li>
+
+  <li>☐ <strong>Step 3: Render tabs when the block has commands</strong><br>
+      In <code>rehype-code-frame.mjs</code>, import the target list and replace the single label span
+      with a conditional. Everything else in the file — the wrapper, the Copy button — is untouched.
+<pre><code>import { TARGETS, DEFAULT_TARGET } from '../targets.mjs';
+
+const LABELS = { claude: 'Claude', cursor: 'Cursor', codex: 'Codex' };
+
+function tablist() {
+  return {
+    type: 'element',
+    tagName: 'div',
+    properties: { class: 'code__tabs', role: 'tablist', 'aria-label': 'Coding agent' },
+    children: TARGETS.map((t) =&gt; ({
+      type: 'element',
+      tagName: 'button',
+      properties: {
+        type: 'button',
+        role: 'tab',
+        'data-target-opt': t,
+        'aria-selected': String(t === DEFAULT_TARGET),
+      },
+      children: [{ type: 'text', value: LABELS[t] }],
+    })),
+  };
+}</code></pre>
+      Then, where the bar's first child is built, swap the label for the tablist on a flagged block:
+<pre><code>const hasCmd = node.properties?.['data-has-cmd'] !== undefined;
+const left = hasCmd
+  ? tablist()
+  : { type: 'element', tagName: 'span', properties: {},
+      children: [{ type: 'text', value: String(lang) }] };</code></pre>
+      and use <code>left</code> in place of the existing label span in the bar's children.</li>
+
+  <li>☐ <strong>Step 4: Run and confirm the check PASSES</strong><br>
+      From <code>docs/</code>: <code>npm run build &amp;&amp; node ../.github/scripts/check-docs-targets.mjs</code></li>
+
+  <li>☐ <strong>Step 5: Commit</strong> — <code>feat(docs): render target tabs on command code blocks</code></li>
+</ul>
+
+<h2>Task 4: The header switcher and its styles</h2>
+
+<p><strong>Files</strong></p>
+<ul>
+  <li>Modify: <code>docs/src/components/Header.astro:41</code> — inside <code>.hdr__right</code>, before the search button</li>
+  <li>Modify: <code>docs/src/styles/site.css</code> — after the <code>.code__copy</code> rules</li>
+</ul>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: <code>TARGETS</code>, <code>DEFAULT_TARGET</code> from Task 1.</li>
+  <li>Produces: a second <code>role="tablist"</code> with the same
+      <code>data-target-opt</code> attributes, so Task 5 drives both with one selector.</li>
+</ul>
+
+<ul>
+  <li>☐ <strong>Step 1: Add the control</strong><br>
+      In <code>Header.astro</code>, above the markup:
+<pre><code>import { TARGETS, DEFAULT_TARGET } from '../targets.mjs';
+const LABELS = { claude: 'Claude', cursor: 'Cursor', codex: 'Codex' };</code></pre>
+      and as the first child of <code>&lt;div class="hdr__right"&gt;</code>:
+<pre><code>&lt;div class="targetsw"&gt;
+  &lt;span class="targetsw__label"&gt;Agent&lt;/span&gt;
+  &lt;div class="code__tabs" role="tablist" aria-label="Coding agent"&gt;
+    {TARGETS.map((t) =&gt; (
+      &lt;button type="button" role="tab" data-target-opt={t}
+              aria-selected={String(t === DEFAULT_TARGET)}&gt;{LABELS[t]}&lt;/button&gt;
+    ))}
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre></li>
+
+  <li>☐ <strong>Step 2: Style both the block tabs and the header control</strong><br>
+      One rule set serves both, since both use <code>.code__tabs</code>. Colours come from the
+      existing tokens, so dark mode follows without a second block. Zero radius, matching
+      "nothing is round, nothing floats".
+<pre><code>.code__tabs { display: flex; }
+.code__tabs button {
+  font-family: var(--font);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  cursor: pointer;
+  border: 1px solid var(--hairline);
+  border-right-width: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.code__tabs button:last-child { border-right-width: 1px; }
+.code__tabs button:hover { color: var(--text); }
+.code__tabs button[aria-selected='true'] {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: #f3f2f2;
+}
+.code__tabs button[aria-selected='true'] + button { border-left-color: var(--ember); }
+
+.targetsw { display: flex; align-items: center; gap: 7px; }
+.targetsw__label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The header is already a three-column grid; below the search breakpoint the
+   label goes and only the tabs remain. */
+@media (max-width: 720px) {
+  .targetsw__label { display: none; }
+}</code></pre></li>
+
+  <li>☐ <strong>Step 3: Rebuild and check it renders in both themes</strong><br>
+      From <code>docs/</code>: <code>npm run build &amp;&amp; npm run preview</code>, then load
+      <code>http://localhost:4321/slashforge/guides/introduction/</code> and toggle the theme. The
+      selected tab must be ember-on-paper in light and ember-on-ink in dark, and the header must not
+      wrap at 720px or 375px wide.</li>
+
+  <li>☐ <strong>Step 4: Confirm accessible names</strong><br>
+      From <code>docs/</code>: <code>node ../.github/scripts/check-docs-a11y.mjs</code> — every
+      interactive element must still have an accessible name, the new buttons included.</li>
+
+  <li>☐ <strong>Step 5: Commit</strong> — <code>feat(docs): add the header target switcher</code></li>
+</ul>
+
+<h2>Task 5: Wire the preference client-side</h2>
+
+<p><strong>Files</strong></p>
+<ul>
+  <li>Modify: <code>docs/src/scripts/site.js</code> — a new section after the theme block at <code>:9-25</code></li>
+</ul>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: <code>TARGETS</code>, <code>DEFAULT_TARGET</code>, <code>STORAGE_KEY</code>,
+      <code>commandForm</code> from Task 1; <code>data-cmd</code> from Task 2;
+      <code>data-target-opt</code> from Tasks 3 and 4.</li>
+  <li>Produces: <code>data-target</code> on <code>&lt;html&gt;</code>, for any future CSS that needs it.</li>
+</ul>
+
+<ul>
+  <li>☐ <strong>Step 1: Add the import and the block</strong><br>
+      Follows the existing theme code exactly: same storage convention, same try/catch, same
+      attribute-on-root shape.
+<pre><code>import { TARGETS, DEFAULT_TARGET, STORAGE_KEY, commandForm } from '../targets.mjs';
+
+/* ---- coding-agent target ---- */
+(function () {
+  var root = document.documentElement;
+
+  function read() {
+    try {
+      var v = localStorage.getItem(STORAGE_KEY);
+      return TARGETS.indexOf(v) &gt;= 0 ? v : DEFAULT_TARGET;
+    } catch (e) {
+      return DEFAULT_TARGET;
+    }
+  }
+
+  function apply(t) {
+    root.setAttribute('data-target', t);
+    document.querySelectorAll('[data-cmd]').forEach(function (el) {
+      el.textContent = commandForm(el.getAttribute('data-cmd'), t);
+    });
+    document.querySelectorAll('[data-target-opt]').forEach(function (b) {
+      b.setAttribute('aria-selected', String(b.getAttribute('data-target-opt') === t));
+    });
+  }
+
+  function set(t) {
+    apply(t);
+    try { localStorage.setItem(STORAGE_KEY, t); } catch (e) {}
+  }
+
+  apply(read());
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-target-opt]');
+    if (btn) set(btn.getAttribute('data-target-opt'));
+  });
+
+  // Arrow keys move between tabs, as the tablist pattern expects.
+  document.addEventListener('keydown', function (e) {
+    var btn = e.target.closest('[data-target-opt]');
+    if (!btn) return;
+    var i = TARGETS.indexOf(btn.getAttribute('data-target-opt'));
+    var next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : -1;
+    if (next &lt; 0 || next &gt;= TARGETS.length) return;
+    e.preventDefault();
+    set(TARGETS[next]);
+    var sel = btn.parentNode.querySelector('[data-target-opt="' + TARGETS[next] + '"]');
+    if (sel) sel.focus();
+  });
+})();</code></pre></li>
+
+  <li>☐ <strong>Step 2: Verify by hand in the browser</strong><br>
+      From <code>docs/</code>: <code>npm run build &amp;&amp; npm run preview</code>. On
+      <code>/slashforge/commands/slashforge-code/</code> click <em>Cursor</em> and confirm the block
+      shows <code>/slashforge-code</code> <strong>and</strong> the sentence below shows
+      <code>/slashforge-investigate</code>. Click <em>Codex</em> and confirm
+      <code>$slashforge-code</code>. Then navigate to
+      <code>/slashforge/guides/introduction/</code> and confirm the choice persisted and the header
+      control shows it selected.</li>
+
+  <li>☐ <strong>Step 3: Verify Copy copies the shown form</strong><br>
+      With Cursor selected, press Copy on the block and paste. It must read
+      <code>/slashforge-code</code>. No change to the copy handler is needed —
+      <code>site.js:158</code> reads <code>pre.textContent</code>, which is what was rewritten.</li>
+
+  <li>☐ <strong>Step 4: Verify the no-JavaScript path</strong><br>
+      Disable JavaScript and reload
+      <code>/slashforge/commands/slashforge-code/</code>. Every command must read
+      <code>/slashforge:…</code> and the page must be fully legible. This is the guarantee that the
+      change is additive.</li>
+
+  <li>☐ <strong>Step 5: Commit</strong> — <code>feat(docs): switch command names from a stored target preference</code></li>
+</ul>
+
+<h2>Task 6: Page titles and sidebar labels</h2>
+
+<p>These are command names too — <code>/slashforge:code</code> is the page's <code>&lt;h1&gt;</code>
+   and its sidebar entry — but they come from frontmatter and <code>src/nav.ts</code>, not from
+   markdown, so the rehype plugin never sees them. Left alone they would put a colon-form heading
+   directly above a hyphen-form block.</p>
+
+<p><strong>Files</strong></p>
+<ul>
+  <li>Modify: <code>docs/src/layouts/DocsLayout.astro</code> — where the title is rendered</li>
+  <li>Modify: <code>docs/src/layouts/DocsLayout.astro:52-60</code> — the sidebar item loop</li>
+</ul>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: <code>wholeLabelCommand</code> from Task 1.</li>
+  <li>Produces: the same <code>data-cmd</code> spans Task 5 already rewrites — no new client code.</li>
+</ul>
+
+<ul>
+  <li>☐ <strong>Step 1: Extend the check script</strong><br>
+      Append inside the per-page loop in <code>.github/scripts/check-docs-targets.mjs</code>:
+<pre><code>  // A page whose title is exactly a command carries a switchable heading.
+  const h1 = /&lt;h1[^&gt;]*&gt;([\s\S]*?)&lt;\/h1&gt;/.exec(html);
+  if (h1 &amp;&amp; /\/slashforge:/.test(h1[1]) &amp;&amp; !/data-cmd=/.test(h1[1])) {
+    fail(`${rel}: command page title is not switchable`);
+  }</code></pre></li>
+
+  <li>☐ <strong>Step 2: Run and confirm it FAILS</strong><br>
+      From <code>docs/</code>: <code>npm run build &amp;&amp; node ../.github/scripts/check-docs-targets.mjs</code>
+      — expected: three failures, for the code, investigate and review-pr pages. The setup page must
+      <strong>not</strong> fail, because <code>wholeLabelCommand</code> returns null for it.</li>
+
+  <li>☐ <strong>Step 3: Make the title switchable</strong><br>
+      In <code>DocsLayout.astro</code>, import the helper and wrap the heading:
+<pre><code>import { wholeLabelCommand } from '../targets.mjs';
+const titleCmd = wholeLabelCommand(title);</code></pre>
+<pre><code>&lt;h1&gt;{titleCmd ? &lt;span data-cmd={titleCmd}&gt;{title}&lt;/span&gt; : title}&lt;/h1&gt;</code></pre></li>
+
+  <li>☐ <strong>Step 4: Make the sidebar labels switchable</strong><br>
+      In the <code>group.items.map</code> loop at <code>:56-60</code>, replace the bare
+      <code>{item.label}</code> with the same conditional:
+<pre><code>&lt;a href={href(item.slug)} aria-current={item.slug === slug ? 'page' : undefined}&gt;
+  {wholeLabelCommand(item.label)
+    ? &lt;span data-cmd={wholeLabelCommand(item.label)}&gt;{item.label}&lt;/span&gt;
+    : item.label}
+&lt;/a&gt;</code></pre></li>
+
+  <li>☐ <strong>Step 5: Run and confirm the check PASSES, then check the pager</strong><br>
+      From <code>docs/</code>: <code>npm run build &amp;&amp; node ../.github/scripts/check-docs-targets.mjs</code>.
+      Then load a command page and confirm the sidebar entries switch with the tabs, and that the
+      <code>/slashforge:setup</code> entry stays in colon form on every target.</li>
+
+  <li>☐ <strong>Step 6: Commit</strong> — <code>feat(docs): switch page titles and sidebar labels per target</code></li>
+</ul>
+
+<h2>Task 7: Wire the check into CI and verify end to end</h2>
+
+<p><strong>Files</strong></p>
+<ul>
+  <li>Modify: <code>.github/workflows/ci.yml</code> — the <code>docs</code> job, after the existing link check</li>
+  <li>Modify: <code>commands/slashforge-code.md</code>, <code>commands/slashforge-investigate.md</code>,
+      <code>commands/slashforge-review-pr.md</code>, <code>guides/installation.md</code>,
+      <code>guides/introduction.md</code> — all under <code>docs/src/content/docs/</code>, removing the
+      now-redundant <code>:::note</code></li>
+</ul>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: <code>.github/scripts/check-docs-targets.mjs</code> from Tasks 2, 3 and 6.</li>
+  <li>Produces: nothing.</li>
+</ul>
+
+<ul>
+  <li>☐ <strong>Step 1: Add the CI step</strong><br>
+      In the <code>docs</code> job, immediately after the "Check internal links resolve" step and in
+      the same style:
+<pre><code>      - name: Check per-target command markup
+        working-directory: docs
+        run: node ../.github/scripts/check-docs-targets.mjs</code></pre></li>
+
+  <li>☐ <strong>Step 2: Remove the hand-written naming notes</strong><br>
+      The <code>:::note</code> in <code>commands/slashforge-code.md</code> at lines 12-16 exists only
+      to explain that Cursor and Codex hyphenate. The tabs now show it directly, so the note is
+      redundant and would contradict a reader who has selected Cursor. It appears in five files, all
+      of which must be updated: <code>commands/slashforge-code.md</code>,
+      <code>commands/slashforge-investigate.md</code>, <code>commands/slashforge-review-pr.md</code>,
+      <code>guides/installation.md</code> and <code>guides/introduction.md</code>. Keep the Targets
+      link by moving it into the surrounding prose. <strong>Do not</strong> remove the Codex <code>:::caution</code> in
+      <code>reference/cli.md</code> — that documents the unverified <code>$</code> invocation, which
+      is a separate fact and still true.</li>
+
+  <li>☐ <strong>Step 3: Full verification</strong><br>
+      From the repo root: <code>npm test</code>. From <code>docs/</code>: <code>npm run build</code>,
+      then <code>node ../.github/scripts/check-docs-links.mjs</code>,
+      <code>node ../.github/scripts/check-docs-facts.mjs</code>,
+      <code>node ../.github/scripts/check-docs-a11y.mjs</code> and
+      <code>node ../.github/scripts/check-docs-targets.mjs</code>. All five must pass.</li>
+
+  <li>☐ <strong>Step 4: Confirm the count</strong><br>
+      Run <code>grep -c 'data-cmd=' dist/slashforge/guides/introduction/index.html</code> and confirm
+      it is non-zero, proving a block-less page is covered. Run
+      <code>grep -c 'data-cmd=' dist/slashforge/changelog/index.html</code> and confirm it is zero.</li>
+
+  <li>☐ <strong>Step 5: Commit</strong> — <code>ci(docs): check per-target command markup on every build</code></li>
+</ul>
+
+
+</body>
+</html>

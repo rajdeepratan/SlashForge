@@ -11,6 +11,11 @@ description: Review a pull request against your repo's own rules and conventions
 /slashforge:review-pr --all        # all three, grouped
 ```
 
+:::note
+==Using Cursor or Codex? Switch the tabs above== and every command on this page changes
+with them. See [Targets](/slashforge/reference/cli/#targets) for what else differs.
+:::
+
 ==Reviews a pull request against **your repo's** standards== — `CLAUDE.md`, `.claude/rules/`, and the
 conventions actually in the surrounding code — then posts line-level comments or an approval.
 

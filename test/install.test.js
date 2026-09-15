@@ -21,6 +21,13 @@ const {
   SKILL_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
+  TARGETS,
+  resolveTargetName,
+  skillDirName,
+  parseTargetArg,
+  plannedWrites,
+  stripTargetBlocks,
+  findTargetBlockErrors,
 } = require('../bin/install.js');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
@@ -263,6 +270,29 @@ test('CLI uninstall --project --yes is a graceful no-op when nothing is installe
     stdout.includes('not installed at this location'),
     '"not installed at this location" message expected in: ' + stdout,
   );
+});
+
+test('CLI --dry-run reports every file a real install would write, including skills and assets', () => {
+  const tmpRepo = tmp();
+  const stdout = execFileSync('node', [BIN, '--project', '--dry-run'], {
+    cwd: tmpRepo,
+    encoding: 'utf8',
+  });
+
+  for (const f of SKILL_FILES) {
+    assert.ok(
+      stdout.includes(path.basename(f)),
+      `dry-run output should mention skill file ${f}, got: ${stdout}`,
+    );
+  }
+  for (const f of ASSET_FILES) {
+    assert.ok(
+      stdout.includes(f),
+      `dry-run output should mention asset file ${f}, got: ${stdout}`,
+    );
+  }
+
+  assert.ok(!fs.existsSync(path.join(tmpRepo, '.claude')), '--dry-run must not create any files');
 });
 
 test('commandName maps a namespaced file to its slash invocation', () => {
@@ -751,4 +781,533 @@ test('isNewerVersion only fires on a certainly-newer release', () => {
     assert.equal(isNewerVersion(junk, '4.2.0'), false, `junk candidate: ${JSON.stringify(junk)}`);
   }
   assert.equal(isNewerVersion('4.3.1', 'unknown'), false, 'junk current');
+});
+
+// ---------------------------------------------------------------------------
+// Install targets (Cursor / Codex)
+// ---------------------------------------------------------------------------
+
+test('resolveTarget agents global uses ~/.agents and the skills layout', () => {
+  const t = resolveTarget({ target: 'agents', homeDir: '/home/u', cwd: '/repo' });
+  assert.equal(t.guidesDir, path.join('/home/u', '.agents', 'setup', 'slashforge'));
+  assert.equal(t.commandsDir, path.join('/home/u', '.agents', 'skills'));
+  assert.equal(t.installPath, '/home/u/.agents/setup/slashforge');
+  assert.equal(t.layout, 'skills');
+  assert.equal(t.namePrefix, 'slashforge-');
+});
+
+test('resolveTarget agents project uses cwd', () => {
+  const t = resolveTarget({ target: 'agents', project: true, homeDir: '/home/u', cwd: '/repo' });
+  assert.equal(t.commandsDir, path.join('/repo', '.agents', 'skills'));
+  assert.equal(t.installPath, '.agents/setup/slashforge');
+  assert.equal(t.mode, 'project');
+});
+
+test('cursor and codex are aliases for the agents target', () => {
+  for (const name of ['cursor', 'codex', 'CURSOR', ' codex ']) {
+    assert.equal(resolveTarget({ target: name, homeDir: '/h', cwd: '/r' }).target, 'agents');
+  }
+});
+
+test('claude stays the default and keeps the commands layout', () => {
+  const t = resolveTarget({ homeDir: '/home/u', cwd: '/repo' });
+  assert.equal(t.target, 'claude');
+  assert.equal(t.layout, 'commands');
+  assert.equal(t.namePrefix, '');
+  assert.equal(t.commandsDir, path.join('/home/u', '.claude', 'commands'));
+});
+
+test('only the claude target carries a legacy guides dir', () => {
+  assert.ok(resolveTarget({ homeDir: '/h', cwd: '/r' }).legacyGuidesDir);
+  assert.equal(resolveTarget({ target: 'cursor', homeDir: '/h', cwd: '/r' }).legacyGuidesDir, null);
+});
+
+test('unknown target throws with the valid names listed', () => {
+  assert.throws(() => resolveTarget({ target: 'vscode' }), /claude, cursor, codex, agents/);
+});
+
+test('resolveTargetName normalises aliases and rejects unknowns', () => {
+  assert.equal(resolveTargetName('cursor'), 'agents');
+  assert.equal(resolveTargetName(undefined), 'claude');
+  assert.equal(resolveTargetName(null), 'claude');
+  assert.throws(() => resolveTargetName('emacs'), /Unknown target/);
+});
+
+test('agents target omits setup', () => {
+  assert.ok(TARGETS.agents.omit.includes(path.join('slashforge', 'setup.md')));
+  assert.deepEqual(TARGETS.claude.omit, []);
+});
+
+test('agents install writes SKILL.md dirs with a rewritten name', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+  const body = fs.readFileSync(
+    path.join(home, '.agents', 'skills', 'slashforge-code', 'SKILL.md'), 'utf8');
+  assert.match(body, /^name: slashforge-code$/m);
+  assert.ok(!body.includes('/slashforge:code'), 'the Claude command form must be rewritten');
+});
+
+test('every installed SKILL.md name is valid and matches its parent dir', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+  const root = path.join(home, '.agents', 'skills');
+  const dirs = fs.readdirSync(root);
+  assert.equal(dirs.length, COMMAND_FILES.length + SKILL_FILES.length - 1, 'setup is omitted');
+  for (const dir of dirs) {
+    const fm = parseFrontmatter(fs.readFileSync(path.join(root, dir, 'SKILL.md'), 'utf8'), dir);
+    assert.match(fm.name, /^[a-z0-9-]+$/, `${dir}: name must be lowercase-hyphen only`);
+    assert.equal(fm.name, dir, `${dir}: name must match its parent directory`);
+  }
+});
+
+test('setup is omitted on the agents target but present on claude', () => {
+  const home = tmp();
+  installFiles(resolveTarget({ target: 'cursor', homeDir: home, cwd: home }), {});
+  assert.ok(!fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-setup')));
+
+  const home2 = tmp();
+  installFiles(resolveTarget({ homeDir: home2, cwd: home2 }), {});
+  assert.ok(fs.existsSync(path.join(home2, '.claude', 'commands', 'slashforge', 'setup.md')));
+});
+
+test('agents skills render with no leftover placeholder', () => {
+  const home = tmp();
+  installFiles(resolveTarget({ target: 'cursor', homeDir: home, cwd: home }), {});
+  const body = fs.readFileSync(
+    path.join(home, '.agents', 'skills', 'slashforge-code', 'SKILL.md'), 'utf8');
+  assert.ok(!body.includes('{{INSTALL_PATH}}'));
+  assert.ok(body.includes('.agents/setup/slashforge'));
+});
+
+test('agents guides are installed alongside the skills', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+  for (const f of GUIDE_FILES) {
+    assert.ok(fs.existsSync(path.join(target.guidesDir, f)), `missing guide ${f}`);
+  }
+  for (const f of ASSET_FILES) {
+    assert.ok(fs.existsSync(path.join(target.guidesDir, f)), `missing asset ${f}`);
+  }
+});
+
+test('meta.json records the target and installed command names', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'codex', homeDir: home, cwd: home });
+  installFiles(target, {});
+  const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
+  assert.equal(meta.target, 'agents');
+  assert.deepEqual(meta.commands,
+    ['/slashforge-code', '/slashforge-investigate', '/slashforge-review-pr']);
+});
+
+test('claude meta.json keeps the colon command names', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
+  assert.equal(meta.target, 'claude');
+  assert.ok(meta.commands.includes('/slashforge:setup'));
+});
+
+test('skillDirName maps a template path to a prefixed dir name', () => {
+  assert.equal(skillDirName(path.join('slashforge', 'code.md'), 'slashforge-'), 'slashforge-code');
+  assert.equal(skillDirName(path.join('slashforge', 'code.md')), 'code');
+});
+
+test('skills layout rewrites in-body command references to the hyphen form', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+
+  const skill = fs.readFileSync(
+    path.join(home, '.agents', 'skills', 'slashforge-investigate', 'SKILL.md'), 'utf8');
+  assert.ok(skill.includes('/slashforge-code'), 'hand-off must name the hyphenated command');
+  assert.ok(!skill.includes('/slashforge:'), 'no colon form may survive on this target');
+
+  const guide = fs.readFileSync(path.join(target.guidesDir, 'forge-workflow.md'), 'utf8');
+  assert.ok(!guide.includes('/slashforge:'), 'guides must be rewritten too');
+});
+
+test('claude layout leaves command references untouched', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  const guide = fs.readFileSync(path.join(target.guidesDir, 'forge-workflow.md'), 'utf8');
+  assert.ok(guide.includes('/slashforge:code'), 'the colon form is correct on Claude Code');
+  assert.ok(!guide.includes('/slashforge-code'));
+});
+
+test('uninstall removes only slashforge dirs from the shared skills root', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+
+  const foreign = path.join(home, '.agents', 'skills', 'someone-elses-skill');
+  fs.mkdirSync(foreign, { recursive: true });
+  fs.writeFileSync(path.join(foreign, 'SKILL.md'), '---\nname: someone-elses-skill\ndescription: x\n---\n');
+
+  uninstallFiles(target, {});
+
+  assert.ok(fs.existsSync(foreign), 'a foreign skill must survive uninstall');
+  assert.ok(!fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code')));
+  assert.ok(!fs.existsSync(target.guidesDir), 'guides must be removed');
+});
+
+test('uninstall prunes the skills root only when it is left empty', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+  uninstallFiles(target, {});
+  assert.ok(!fs.existsSync(path.join(home, '.agents', 'skills')),
+    'an emptied skills root should be pruned');
+});
+
+test('uninstall on the agents target never touches .claude', () => {
+  const home = tmp();
+  const claude = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(claude, {});
+  const agents = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(agents, {});
+
+  uninstallFiles(agents, {});
+
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')),
+    'the Claude install must be untouched');
+  assert.ok(fs.existsSync(claude.guidesDir));
+});
+
+test('parseTargetArg reads both flag forms and defaults to claude', () => {
+  assert.equal(parseTargetArg(['--target', 'cursor']), 'cursor');
+  assert.equal(parseTargetArg(['--target=codex']), 'codex');
+  assert.equal(parseTargetArg(['--project']), 'claude');
+  assert.equal(parseTargetArg([]), 'claude');
+});
+
+test('plannedWrites for the agents target names skill paths and skips setup', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  const writes = plannedWrites(target, {});
+  assert.ok(writes.some((w) => w.dest.endsWith(path.join('slashforge-code', 'SKILL.md'))));
+  assert.ok(!writes.some((w) => w.dest.includes('slashforge-setup')));
+  assert.ok(writes.some((w) => w.kind === 'asset'), 'assets must be listed');
+  assert.ok(writes.some((w) => w.kind === 'meta'));
+});
+
+test('dry-run with --target cursor writes nothing', () => {
+  const home = tmp();
+  const out = execFileSync(process.execPath, [BIN, '--dry-run', '--target', 'cursor'], {
+    encoding: 'utf8',
+    env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' },
+  });
+  assert.match(out, /slashforge-code/);
+  assert.ok(!out.includes('slashforge-setup'), 'setup is omitted on this target');
+  assert.ok(!fs.existsSync(path.join(home, '.agents')), 'dry-run must not create files');
+});
+
+test('an unknown target exits 1 with the valid names', () => {
+  assert.throws(
+    () => execFileSync(process.execPath, [BIN, '--target', 'vscode'], {
+      encoding: 'utf8', stdio: 'pipe',
+      env: { ...process.env, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' },
+    }),
+    (err) => {
+      assert.equal(err.status, 1);
+      assert.match(err.stderr, /claude, cursor, codex, agents/);
+      return true;
+    });
+});
+
+test('status reports the agents target after installing to it', () => {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  execFileSync(process.execPath, [BIN, '--target', 'cursor'], { encoding: 'utf8', env });
+  const out = execFileSync(process.execPath, [BIN, 'status', '--target', 'cursor'], { encoding: 'utf8', env });
+  assert.match(out, /Target:\s+agents/);
+  assert.match(out, /\/slashforge-code/);
+  assert.ok(!out.includes('/slashforge:code'));
+});
+
+test('install summary lists the paths it actually wrote', () => {
+  const home = tmp();
+  const out = execFileSync(process.execPath, [BIN, '--target', 'cursor'], {
+    encoding: 'utf8',
+    env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' },
+  });
+  const listed = out.split('\n').filter((l) => l.startsWith('✓ Command:'));
+  assert.ok(listed.length > 0, 'commands should be listed');
+  for (const line of listed) {
+    const p = line.replace('✓ Command:', '').trim();
+    assert.ok(fs.existsSync(p), `summary names a path that was not written: ${p}`);
+  }
+  assert.ok(!out.includes('slashforge-setup/SKILL.md'), 'omitted command must not be listed');
+});
+
+test('the completion message does not name the wrong vendor', () => {
+  const run = (t) => {
+    const home = tmp();
+    return execFileSync(process.execPath, [BIN, '--target', t], {
+      encoding: 'utf8',
+      env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' },
+    });
+  };
+  const codex = run('codex');
+  assert.ok(!/Open Cursor/.test(codex), 'a codex install must not tell the user to open Cursor');
+  assert.match(codex, /Cursor and Codex/);
+  assert.match(run('cursor'), /Cursor and Codex/);
+});
+
+// --- Task 1: per-target prose blocks -----------------------------------------
+
+test('stripTargetBlocks keeps the matching block and drops the other', () => {
+  const src = [
+    'line A',
+    '<!--target:claude-->',
+    'claude line',
+    '<!--/target-->',
+    '<!--target:agents-->',
+    'agents line',
+    '<!--/target-->',
+    'line B',
+    '',
+  ].join('\n');
+  assert.equal(stripTargetBlocks(src, 'claude'), 'line A\nclaude line\nline B\n');
+  assert.equal(stripTargetBlocks(src, 'agents'), 'line A\nagents line\nline B\n');
+});
+
+test('stripTargetBlocks leaves a file with no markers byte-identical', () => {
+  const src = 'nothing to see\nhere at all\n';
+  assert.equal(stripTargetBlocks(src, 'claude'), src);
+  assert.equal(stripTargetBlocks(src, 'agents'), src);
+});
+
+test('stripTargetBlocks handles a block at end of file with no trailing newline', () => {
+  const src = 'a\n<!--target:agents-->\nb\n<!--/target-->';
+  assert.equal(stripTargetBlocks(src, 'agents'), 'a\nb\n');
+  assert.equal(stripTargetBlocks(src, 'claude'), 'a\n');
+});
+
+test('stripTargetBlocks removes multi-line bodies entirely', () => {
+  const src = 'x\n<!--target:claude-->\n1\n2\n3\n<!--/target-->\ny\n';
+  assert.equal(stripTargetBlocks(src, 'agents'), 'x\ny\n');
+});
+
+// --- Task 2: malformed markers fail the install closed ------------------------
+
+test('findTargetBlockErrors accepts a well-formed file', () => {
+  const ok = 'a\n<!--target:claude-->\nb\n<!--/target-->\nc\n';
+  assert.deepEqual(findTargetBlockErrors(ok, 'x.md'), []);
+});
+
+test('findTargetBlockErrors rejects an unclosed block', () => {
+  const errs = findTargetBlockErrors('<!--target:claude-->\nb\n', 'x.md');
+  assert.equal(errs.length, 1);
+  assert.match(errs[0], /x\.md/);
+  assert.match(errs[0], /unclosed/i);
+});
+
+test('findTargetBlockErrors rejects an orphan close', () => {
+  const errs = findTargetBlockErrors('b\n<!--/target-->\n', 'x.md');
+  assert.equal(errs.length, 1);
+  assert.match(errs[0], /unopened|no open block/i);
+});
+
+test('findTargetBlockErrors rejects a nested block', () => {
+  const src = '<!--target:claude-->\n<!--target:agents-->\nb\n<!--/target-->\n<!--/target-->\n';
+  const errs = findTargetBlockErrors(src, 'x.md');
+  assert.ok(errs.some((e) => /nested/i.test(e)), 'expected a nested-block error');
+});
+
+test('findTargetBlockErrors rejects an unknown target name', () => {
+  const errs = findTargetBlockErrors('<!--target:cursor-->\nb\n<!--/target-->\n', 'x.md');
+  assert.equal(errs.length, 1);
+  assert.match(errs[0], /cursor/);
+});
+
+test('validateTemplates refuses a template with a malformed target block', () => {
+  const dir = tmp();
+  fs.writeFileSync(
+    path.join(dir, 'bad.md'),
+    '---\nname: bad\ndescription: d\n---\n\n<!--target:claude-->\nunclosed\n'
+  );
+  assert.throws(() => validateTemplates(['bad.md'], dir), /Refusing to install/);
+});
+
+// --- Task 3: stripping is wired into rendering --------------------------------
+
+const TEMPLATES = path.join(__dirname, '..', 'templates');
+
+function renderAll(targetName) {
+  const out = {};
+  const walk = (dir, rel = '') => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) walk(full, path.join(rel, e.name));
+      else if (e.name.endsWith('.md')) {
+        out[path.join(rel, e.name)] = renderTemplate(fs.readFileSync(full, 'utf8'), {
+          installPath: '/p', version: '0.0.0', pkgName: 'slashforge', targetName,
+        });
+      }
+    }
+  };
+  walk(TEMPLATES);
+  return out;
+}
+
+test('renderTemplate strips target blocks for the given target', () => {
+  const src = 'a\n<!--target:claude-->\nC\n<!--/target-->\n<!--target:agents-->\nA\n<!--/target-->\n';
+  const opts = { installPath: '/p', version: '0.0.0', pkgName: 'slashforge' };
+  assert.equal(renderTemplate(src, { ...opts, targetName: 'claude' }), 'a\nC\n');
+  assert.equal(renderTemplate(src, { ...opts, targetName: 'agents' }), 'a\nA\n');
+});
+
+test('no target marker survives into any rendered file', () => {
+  for (const targetName of ['claude', 'agents']) {
+    for (const [file, body] of Object.entries(renderAll(targetName))) {
+      assert.ok(!body.includes('<!--target:'), `${file} kept an open marker on ${targetName}`);
+      assert.ok(!body.includes('<!--/target-->'), `${file} kept a close marker on ${targetName}`);
+    }
+  }
+});
+
+// The real regression guard for Claude Code: rendering may only ever delete
+// whole lines, never rewrite one. If a claude-variant line is reworded rather
+// than fenced, this fails.
+test('rendering only removes whole lines, never rewrites them', () => {
+  for (const targetName of ['claude', 'agents']) {
+    for (const [file, body] of Object.entries(renderAll(targetName))) {
+      const src = fs.readFileSync(path.join(TEMPLATES, file), 'utf8')
+        .replace(/\{\{INSTALL_PATH\}\}/g, '/p')
+        .replace(/\{\{KIT_VERSION\}\}/g, '0.0.0')
+        .replace(/\{\{KIT_PACKAGE\}\}/g, 'slashforge')
+        .split('\n');
+      let i = 0;
+      for (const line of body.split('\n')) {
+        while (i < src.length && src[i] !== line) i += 1;
+        assert.ok(i < src.length, `${file} (${targetName}): rendered line not in source: ${line}`);
+        i += 1;
+      }
+    }
+  }
+});
+
+// --- Task 4: core workflow guides ---------------------------------------------
+
+test('core workflow guides dispatch no agents on the agents target', () => {
+  const rendered = renderAll('agents');
+  for (const file of ['forge-workflow.md', 'forge-workflow-agents.md']) {
+    const body = rendered[file];
+    assert.ok(!/Invoke the `git` agent/.test(body), `${file}: git agent dispatch`);
+    assert.ok(!/`code-reviewer` agent/.test(body), `${file}: code-reviewer dispatch`);
+    assert.ok(!/\.claude\/agents\//.test(body), `${file}: names .claude/agents/`);
+    assert.ok(!/create it on the fly|create it silently/.test(body), `${file}: creates agents`);
+  }
+});
+
+test('core workflow guides keep agent dispatch on the claude target', () => {
+  const rendered = renderAll('claude');
+  assert.match(rendered['forge-workflow.md'], /Invoke the `git` agent to push/);
+  assert.match(rendered['forge-workflow.md'], /`code-reviewer` agent/);
+  assert.match(rendered['forge-workflow-agents.md'], /\.claude\/agents\//);
+});
+
+// Frontmatter is YAML, so a fenced description is only valid once the
+// non-matching block is stripped. Validation therefore has to check each
+// target's rendered frontmatter, not the raw source.
+test('validateTemplates accepts a fenced frontmatter description', () => {
+  const dir = tmp();
+  fs.writeFileSync(
+    path.join(dir, 'ok.md'),
+    [
+      '---',
+      'name: /slashforge:thing',
+      '<!--target:claude-->',
+      'description: the claude wording',
+      '<!--/target-->',
+      '<!--target:agents-->',
+      'description: the agents wording',
+      '<!--/target-->',
+      '---',
+      '',
+      'body',
+      '',
+    ].join('\n')
+  );
+  assert.doesNotThrow(() => validateTemplates(['ok.md'], dir));
+});
+
+test('validateTemplates still rejects frontmatter broken for one target only', () => {
+  const dir = tmp();
+  fs.writeFileSync(
+    path.join(dir, 'half.md'),
+    [
+      '---',
+      '<!--target:claude-->',
+      'name: /slashforge:thing',
+      'description: only claude gets a name',
+      '<!--/target-->',
+      '---',
+      '',
+      'body',
+      '',
+    ].join('\n')
+  );
+  assert.throws(() => validateTemplates(['half.md'], dir), /Refusing to install/);
+});
+
+// --- Task 5: remaining guides and code.md -------------------------------------
+
+test('remaining guides and code.md dispatch no agents on the agents target', () => {
+  const rendered = renderAll('agents');
+  const files = [
+    'forge-workflow-quick.md',
+    'forge-workflow-investigation.md',
+    'forge-workflow-review-pr.md',
+    path.join('slashforge', 'code.md'),
+  ];
+  for (const file of files) {
+    const body = rendered[file];
+    assert.ok(!/`code-reviewer` agent/.test(body), `${file}: code-reviewer dispatch`);
+    assert.ok(!/the `git` agent/.test(body), `${file}: git agent dispatch`);
+    assert.ok(!/Agent Selection Table/.test(body), `${file}: names the agent table`);
+  }
+});
+
+// --- Task 6: parallel.md, and the whole-feature sweep -------------------------
+
+test('no rendered file dispatches an agent on the agents target', () => {
+  const banned = [
+    /\bdispatch(?:ing|es)? (?:one |a |an )?(?:fresh )?agents?\b/i,
+    /`code-reviewer` agent/,
+    /the `git` agent/,
+    /\.claude\/agents\//,
+    /create it on the fly/i,
+    /create it silently/i,
+  ];
+  // Scoped to what a model on this target can actually reach. The eight
+  // setup-only guides ship unmodified by decision — parity with Claude Code —
+  // and nothing on the agents target references them, since setup is omitted.
+  // forge-coverage.md is reachable and still Claude-specific; that one is an
+  // open question, not an oversight.
+  const unreachable = new Set([
+    'forge-instructions.md', 'forge-rules.md', 'forge-skills.md', 'forge-agents.md',
+    'forge-commands.md', 'forge-hooks.md', 'forge-claude-md.md', 'forge-memory.md',
+    'forge-coverage.md',
+  ]);
+  for (const [file, body] of Object.entries(renderAll('agents'))) {
+    if (unreachable.has(file) || file === path.join('slashforge', 'setup.md')) continue;
+    for (const re of banned) {
+      assert.ok(!re.test(body), `${file} still matches ${re}`);
+    }
+  }
+});
+
+test('parallel.md keeps its independence test and review discipline on both targets', () => {
+  for (const targetName of ['claude', 'agents']) {
+    const body = renderAll(targetName)[path.join('slashforge', 'parallel.md')];
+    assert.match(body, /The test for "independent"/);
+    assert.match(body, /Reviewing between tasks/);
+  }
 });

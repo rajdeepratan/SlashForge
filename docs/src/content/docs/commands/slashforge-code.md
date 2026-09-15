@@ -9,6 +9,11 @@ description: End-to-end development workflow — plan, confirm, branch, implemen
 /slashforge:code [file]
 ```
 
+:::note
+==Using Cursor or Codex? Switch the tabs above== and every command on this page changes
+with them. See [Targets](/slashforge/reference/cli/#targets) for what else differs.
+:::
+
 The full development workflow, from an idea to a merged PR. ==Ten phases, run in
 order, with four points where it stops and waits for you.==
 

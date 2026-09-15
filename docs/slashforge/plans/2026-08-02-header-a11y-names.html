@@ -1,0 +1,300 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — accessible names for the header social links (2026-08-02)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Plan — accessible names for the header social links</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> Give the four header social links an accessible name, and add a CI guard
+  that fails the build if any interactive element loses one again.
+</div>
+
+<h2>Architecture</h2>
+
+<p>Two tasks, in a deliberate order. The guard is written and proven to <em>fail</em> against the
+   current build first; only then are the labels added and the guard proven to pass. A check that
+   has only ever passed is not evidence that it can fail.</p>
+
+<p>The guard follows <code>.github/scripts/check-docs-links.mjs</code> in structure, style and
+   conventions — an ESM script run from <code>docs/</code> against the built <code>dist/</code>,
+   emitting <code>::error file=…::</code> annotations and exiting non-zero on findings.</p>
+
+<h2>Tech stack</h2>
+
+<p>Node built-ins only — <code>node:fs</code> and <code>node:path</code>, ESM. No parser library
+   and no test framework: the repo root has zero dependencies and its CI runs <code>npm test</code>
+   with no install step.</p>
+
+<h2>Global constraints</h2>
+<ul>
+  <li><strong>Zero dependencies.</strong> No package may be added to run this check.</li>
+  <li><strong>The guard treats <code>title</code> as insufficient.</strong> Stricter than the
+      specification requires, and the entire point — accepting it passes the shipped bug.</li>
+  <li><strong>Do not modify <code>docs/package-lock.json</code>.</strong> A macOS-regenerated
+      lockfile omits Linux optional dependencies and breaks CI's <code>npm ci</code>.</li>
+  <li><strong>Keep <code>aria-hidden="true"</code> on the SVGs</strong> and keep the existing
+      <code>title</code> attributes — the artwork stays hidden, the tooltip stays working.</li>
+  <li>The existing suite (43 tests), the docs build, and the link check must all stay green.</li>
+</ul>
+
+<h2>File map</h2>
+<table>
+  <tr><th>File</th><th>Responsibility</th></tr>
+  <tr><td>Create <code>.github/scripts/check-docs-a11y.mjs</code></td>
+      <td>The guard. Walks the built output, reports any interactive element with no accessible name.</td></tr>
+  <tr><td>Modify <code>docs/src/components/Header.astro</code></td>
+      <td>The fix. Four <code>aria-label</code> attributes on the social links.</td></tr>
+  <tr><td>Modify <code>.github/workflows/ci.yml</code></td>
+      <td>Runs the guard in the existing <code>docs</code> job, after the link check.</td></tr>
+</table>
+
+<h2>Task 1: Write the guard and prove it catches the bug</h2>
+
+<p><strong>Files</strong></p>
+<ul>
+  <li>Create: <code>.github/scripts/check-docs-a11y.mjs</code></li>
+</ul>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: the built <code>docs/dist/</code> tree. Run from <code>docs/</code>.</li>
+  <li>Produces: an executable checked by Task 2 and wired into CI there. Exit 0 when clean,
+      exit 1 with one <code>::error</code> annotation per finding.</li>
+</ul>
+
+<ul>
+  <li>☑ <strong>Step 1: Build, so there is something to check</strong><br>
+      Run: <code>cd docs &amp;&amp; npm run build</code><br>
+      If it fails with <code>astro: command not found</code>, <code>docs/node_modules</code> is
+      missing — restore with <code>npm ci</code>, never <code>npm install</code>, so the lockfile
+      is read rather than rewritten.</li>
+
+  <li>☑ <strong>Step 2: Write the guard</strong>
+<pre><code>#!/usr/bin/env node
+/**
+ * Fails if any interactive element in the built docs has no accessible name.
+ *
+ * An icon-only &lt;a&gt; or &lt;button&gt; whose only child is an aria-hidden &lt;svg&gt; exposes
+ * nothing to a screen reader. `title` deliberately does not count: it is the
+ * last-resort fallback in the accessible-name computation, is announced
+ * inconsistently, and never reaches keyboard or touch users at all. Accepting it
+ * would mean passing on the exact bug this check exists to catch.
+ *
+ * Run from docs/ after `npm run build`.
+ */
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
+
+const DIST = 'dist';
+
+if (!existsSync(DIST)) {
+  console.error(`::error::${DIST}/ not found — run the build first`);
+  process.exit(1);
+}
+
+const pages = [];
+(function walk(dir) {
+  for (const entry of readdirSync(dir)) {
+    const p = join(dir, entry);
+    if (statSync(p).isDirectory()) walk(p);
+    else if (p.endsWith('.html')) pages.push(p);
+  }
+})(DIST);
+
+// Non-greedy match of a whole element. Nesting would confuse this, but an &lt;a&gt;
+// inside an &lt;a&gt; is invalid HTML and the same holds for &lt;button&gt;, so the shape
+// being checked cannot legally nest.
+const ELEMENT = /&lt;(a|button)\b([^&gt;]*)&gt;([\s\S]*?)&lt;\/\1&gt;/g;
+
+let unnamed = 0;
+for (const page of pages) {
+  const filehtml = readFileSync(page, 'utf8');
+
+  for (const [, tag, attrs, inner] of filehtml.matchAll(ELEMENT)) {
+    if (!/&lt;svg/i.test(inner)) continue;                 // not icon-only
+    const text = inner.replace(/&lt;[^&gt;]*&gt;/g, ' ').replace(/&amp;[a-z#0-9]+;/gi, ' ').trim();
+    if (text) continue;                                 // has visible text
+    if (/\saria-label\s*=/i.test(attrs)) continue;      // named directly
+    if (/\saria-labelledby\s*=/i.test(attrs)) continue; // named by reference
+    if (/&lt;title[\s&gt;]/i.test(inner)) continue;           // named by the svg
+
+    const href = (attrs.match(/href="([^"]*)"/) || [])[1];
+    const hint = (attrs.match(/title="([^"]*)"/) || [])[1];
+    console.error(
+      `::error file=docs/${relative('.', page)}::&lt;${tag}&gt; has no accessible name` +
+        `${href ? ` (href ${href})` : ''}` +
+        `${hint ? ` — title="${hint}" does not count` : ''}`
+    );
+    unnamed++;
+  }
+}
+
+console.log(`checked ${pages.length} pages`);
+
+if (unnamed &gt; 0) {
+  console.error(`${unnamed} interactive element(s) with no accessible name`);
+  process.exit(1);
+}
+
+console.log('every interactive element has an accessible name');
+</code></pre></li>
+
+  <li>☑ <strong>Step 3: Run it and confirm it FAILS with exactly 4 findings</strong><br>
+      Run: <code>cd docs &amp;&amp; node ../.github/scripts/check-docs-a11y.mjs</code><br>
+      Expected: exit 1, and four annotations naming GitHub, npm, Sponsor and Buy me a coffee.
+      Anything other than 4 means the rule is wrong — too broad if more, too narrow if fewer —
+      and must be fixed before continuing.</li>
+
+  <li>☑ <strong>Step 4: Confirm it does not flag the already-named controls</strong><br>
+      The search button, sections toggle and theme toggle carry names or visible text. None may
+      appear in the output. A checker with false positives is worse than none.</li>
+
+  <li>☑ <strong>Step 5: Commit</strong>
+<pre><code>git add .github/scripts/check-docs-a11y.mjs
+git commit -m "test(docs): add an accessible-name guard for interactive elements"</code></pre></li>
+</ul>
+
+<h2>Task 2: Name the links and turn the guard green</h2>
+
+<p><strong>Files</strong></p>
+<ul>
+  <li>Modify: <code>docs/src/components/Header.astro</code> — the four social anchors</li>
+  <li>Modify: <code>.github/workflows/ci.yml</code> — the <code>docs</code> job</li>
+</ul>
+
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Consumes: <code>.github/scripts/check-docs-a11y.mjs</code> from Task 1.</li>
+  <li>Produces: nothing later tasks depend on.</li>
+</ul>
+
+<ul>
+  <li>☑ <strong>Step 1: Add the four labels</strong><br>
+      Add <code>aria-label</code> to each anchor, leaving <code>title</code>,
+      <code>target</code>, <code>rel</code> and the <code>aria-hidden</code> SVG untouched:
+<pre><code>&lt;a href="https://github.com/rajdeepratan/SlashForge" title="GitHub"
+   aria-label="GitHub (opens in a new tab)" target="_blank" rel="noopener"</code></pre>
+      and the same shape for the remaining three:
+<pre><code>aria-label="npm (opens in a new tab)"
+aria-label="Sponsor (opens in a new tab)"
+aria-label="Buy me a coffee (opens in a new tab)"</code></pre></li>
+
+  <li>☑ <strong>Step 2: Rebuild</strong><br>
+      Run: <code>cd docs &amp;&amp; npm run build</code> — the guard reads the built output, so a
+      stale <code>dist/</code> would report the old result and look like a pass.</li>
+
+  <li>☑ <strong>Step 3: Run the guard and confirm it PASSES</strong><br>
+      Run: <code>cd docs &amp;&amp; node ../.github/scripts/check-docs-a11y.mjs</code><br>
+      Expected: exit 0 and
+      <code>every interactive element has an accessible name</code>.</li>
+
+  <li>☑ <strong>Step 4: Confirm the labels reached the rendered page</strong><br>
+      Run: <code>grep -o 'aria-label="[^"]*"' docs/dist/slashforge/index.html | sort -u</code><br>
+      Expected: the four new labels alongside the existing Search and Sections ones.</li>
+
+  <li>☑ <strong>Step 5: Wire it into CI</strong><br>
+      In <code>.github/workflows/ci.yml</code>, add a step to the <code>docs</code> job after the
+      link check. It goes in now rather than in Task 1, so CI is never wired to a check that is
+      knowingly red:
+<pre><code>      - name: Check internal links resolve
+        working-directory: docs
+        run: node ../.github/scripts/check-docs-links.mjs
+
+      - name: Check interactive elements have accessible names
+        working-directory: docs
+        run: node ../.github/scripts/check-docs-a11y.mjs</code></pre></li>
+
+  <li>☑ <strong>Step 6: Full verification</strong><br>
+      Run all four and confirm before claiming completion:
+<pre><code>npm test                                          # 43/43
+cd docs &amp;&amp; npm run build                          # exit 0
+node ../.github/scripts/check-docs-links.mjs      # all internal links resolve
+node ../.github/scripts/check-docs-a11y.mjs       # every element has a name
+git status --porcelain docs/package-lock.json     # no output</code></pre></li>
+
+  <li>☑ <strong>Step 7: Commit</strong>
+<pre><code>git add docs/src/components/Header.astro .github/workflows/ci.yml
+git commit -m "fix(docs): give the header social links accessible names"</code></pre></li>
+</ul>
+
+<h2>Verification of the whole change</h2>
+
+<p>The red-green evidence is the point, and it must be observed rather than assumed:
+   the guard reports <strong>4</strong> before Task 2 and <strong>0</strong> after. If it was never
+   seen failing, it is not known to work.</p>
+
+<p>To re-prove it later, revert the labels, rebuild, run the guard, restore, rebuild, run again.</p>
+
+<h2>Out of scope</h2>
+<ul>
+  <li>The other three categories in the audit report — only the missing-name rule is in scope.</li>
+  <li>Broader accessibility work: colour contrast, focus order, landmark structure.</li>
+  <li>The search, sections and theme controls, which are already named.</li>
+  <li>Whether these links should open new tabs at all — a product decision, not an accessibility fix.</li>
+</ul>
+
+
+</body>
+</html>

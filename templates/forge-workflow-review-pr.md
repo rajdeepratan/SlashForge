@@ -7,7 +7,12 @@ description: Read-only PR review flow used by /slashforge:review-pr — discover
 
 Seven-phase read-only flow used by `/slashforge:review-pr`. No branching, no commits, no edits to application code. The only writes are to GitHub, and only after the user approves the exact text. Companion files:
 
+<!--target:claude-->
 - `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
+<!--/target-->
+<!--target:agents-->
+- `forge-workflow-agents.md` — how task types are handled + self-sufficiency rules (loaded by every workflow command)
+<!--/target-->
 - `forge-workflow.md` — the ten-phase change-shipping flow. Its **Phase 7 checklist** is the review standard applied in Phase R3 (this file does not otherwise load it)
 
 This file is loaded by `/slashforge:review-pr`.

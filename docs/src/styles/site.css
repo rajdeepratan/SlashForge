@@ -64,7 +64,7 @@ body {
 a { color: inherit; text-decoration: none; }
 ::selection { background: var(--ember); color: #f3f2f2; }
 
-:is(a, button, summary, input, [tabindex]):focus-visible {
+:is(a, button, summary, input, select, [tabindex]):focus-visible {
   outline: 2px solid var(--ember);
   outline-offset: 2px;
 }
@@ -336,6 +336,33 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 }
 
 /* Callouts: an ember frame with a solid ember label. Never a tinted panel. */
+/* Pages, sidebar entries and pager cells whose subject exists only on Claude
+   Code. Hidden once another agent is selected; before the script runs there is
+   no data-target and everything shows, which is the Claude Code view and the
+   correct default. */
+[data-target='cursor'] [data-claude-only],
+[data-target='codex'] [data-claude-only] {
+  display: none;
+}
+
+/* The page itself stays reachable — deep links and search results still land
+   here — so instead of hiding it, it leads with the fact. Inverted against the
+   ember frame of .note so it reads as a statement about the page rather than
+   an aside within it. */
+.claudeonly {
+  display: none;
+  border: 2px solid var(--rule);
+  background: var(--code-bg);
+  padding: 16px 20px;
+  margin: 0 0 32px;
+  font-size: 15px;
+}
+
+[data-target='cursor'] .claudeonly,
+[data-target='codex'] .claudeonly {
+  display: block;
+}
+
 .note {
   border: 2px solid var(--ember);
   padding: 18px 20px;
@@ -677,6 +704,11 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   overflow-x: auto;
 }
 .term__body div { white-space: pre-wrap; min-height: 1.7em; }
+/* Codex invokes commands with $ rather than /, so the mock's own $ prompt
+   would render as "$ $slashforge-code" and read like a typo. Dropped for that
+   target only; every other target keeps the prompt. */
+[data-target='codex'] .t-prompt { display: none; }
+
 .t-cmd { color: #ec3013; }
 .t-you { color: #f3f2f2; font-weight: 500; }
 .t-phase { color: #ff6a4d; font-weight: 500; }
@@ -944,6 +976,141 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 
 .code__copy:hover { color: var(--text); }
 .code__copy[data-copied] { color: var(--ember); }
+
+/* ---------- target switcher ---------- */
+
+/* One rule set serves both the tab strip in a command block's bar and the
+   control in the header, so the two can never drift apart visually. Colours
+   come from the tokens, so dark mode follows without a second block. */
+.code__tabs { display: flex; }
+
+.code__tabs button {
+  font-family: var(--font);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  cursor: pointer;
+  border: 1px solid var(--hairline);
+  border-right-width: 0;
+  background: transparent;
+  color: var(--muted);
+}
+
+.code__tabs button:last-child { border-right-width: 1px; }
+.code__tabs button:hover { color: var(--text); }
+
+.code__tabs button[aria-selected='true'] {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: #f3f2f2;
+}
+
+/* The selected tab owns the shared edge, or its neighbour's grey border cuts
+   across the ember block. */
+.code__tabs button[aria-selected='true'] + button { border-left-color: var(--ember); }
+
+/* The header control is shaped like .theme-btn beside it — same rule, same
+   uppercase text, same ember hover — so the two read as a pair rather than the
+   agent picker shouting over the nav.
+
+   The panel is a real element rather than a native <select> popup, which the
+   OS draws rounded, shadowed and floating. Here: a hard 2px rule, a flat
+   surface, no radius, no shadow. */
+.agentsw { position: relative; }
+
+.agentsw__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 2px solid var(--rule);
+  background: transparent;
+  padding: 6px 10px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.agentsw__btn:hover,
+.agentsw__btn[aria-expanded='true'] {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: #f3f2f2;
+}
+
+.agentsw__label { color: var(--muted); }
+.agentsw__btn:hover .agentsw__label,
+.agentsw__btn[aria-expanded='true'] .agentsw__label { color: #f3f2f2; }
+
+/* A chevron drawn from two borders rather than an SVG, so it inherits
+   currentColor through the ember state. */
+.agentsw__caret {
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  pointer-events: none;
+}
+
+.agentsw__btn[aria-expanded='true'] .agentsw__caret {
+  transform: translateY(1px) rotate(-135deg);
+}
+
+.agentsw__menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 30;
+  min-width: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Overlaps the trigger's bottom rule so the two share one line. */
+  margin-top: -2px;
+  border: 2px solid var(--rule);
+  background: var(--surface);
+}
+
+/* The panel sets an explicit display, and an author display always beats the
+   UA rule behind the `hidden` attribute — without this the menu is visible at
+   load and stays open after a choice, however faithfully the script toggles
+   the attribute. */
+.agentsw__menu[hidden] { display: none; }
+
+.agentsw__item {
+  border: 0;
+  background: transparent;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Hover is a quiet fill and the current choice is the ember one, so the two
+   never read as the same state. */
+.agentsw__item:hover { background: var(--code-bg); }
+
+.agentsw__item[aria-checked='true'] {
+  background: var(--ember);
+  color: #f3f2f2;
+}
+
+/* Same budget reasoning as the socials row below: at this width the label is
+   the part that can go, leaving "CLAUDE" — about as wide as "DARK". */
+@media (max-width: 640px) {
+  .agentsw__label { display: none; }
+}
 
 /* Shiki emits both themes inline and switches on a CSS variable, so the code
    colours follow the theme toggle without a second stylesheet. */
