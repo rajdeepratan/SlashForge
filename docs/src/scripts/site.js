@@ -8,6 +8,7 @@ import {
   STORAGE_KEY,
   commandForm,
   renderReplayLine,
+  installPathFor,
 } from '../targets.mjs';
 
 (function () {
@@ -55,6 +56,9 @@ import {
     root.setAttribute('data-target', t);
     document.querySelectorAll('[data-cmd]').forEach(function (el) {
       el.textContent = commandForm(el.getAttribute('data-cmd'), t);
+    });
+    document.querySelectorAll('[data-path]').forEach(function (el) {
+      el.textContent = installPathFor(el.getAttribute('data-path'), t);
     });
     /* Block tabs are tablist options; the header menu holds radio items. */
     document.querySelectorAll('[data-target-opt]').forEach(function (b) {
