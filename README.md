@@ -26,12 +26,14 @@ Installs four commands on any machine — `/slashforge:setup` to scaffold a repo
 
 Supports **Claude Code**, and **Cursor** via `npx slashforge --target cursor`.
 **Codex** reads the same `.agents/skills/` directory and invokes the commands as
-`$slashforge-code`, though that path is not yet verified.
+`$slashforge-code`.
 
 On Cursor and Codex the commands are hyphenated — `/slashforge-code`, not
-`/slashforge:code` — because neither supports the `:` namespace. `/slashforge:setup`
-is Claude Code only for now; it provisions `.claude/` structure that has no equivalent
-on the other targets.
+`/slashforge:code` — because neither supports the `:` namespace. All four commands,
+`setup` included, run on every target: setup writes each host's own layout —
+`.cursor/rules/*.mdc` and `.cursor/agents/` on Cursor, nested `AGENTS.md` and
+`.codex/agents/*.toml` on Codex — and never writes `CLAUDE.md` or `.claude/` on a
+vendor target.
 
 ---
 
@@ -111,13 +113,17 @@ slashforge --target cursor   # Install for Cursor and Codex instead (see Targets
 | Target | Installs to | Commands look like |
 |---|---|---|
 | `claude` (default) | `~/.claude/commands/slashforge/` | `/slashforge:code` |
-| `cursor`, `codex`, `agents` | `~/.agents/skills/slashforge-code/SKILL.md` | `/slashforge-code` |
+| `cursor` | `~/.agents/skills/slashforge-code/SKILL.md` | `/slashforge-code` |
+| `codex` | `~/.agents/skills/slashforge-code/SKILL.md` | `$slashforge-code` |
+| `agents` | `~/.agents/skills/slashforge-code/SKILL.md` | `/slashforge-code` |
 
-`cursor` and `codex` are aliases for `agents` — one install serves both, since Cursor and Codex each read `.agents/skills/`.
+All three non-Claude targets install to the same directory, since Cursor and Codex each read `.agents/skills/`. They are still separate targets, because setup writes each host's own layout and those layouts differ: Cursor rules must be `.mdc` (a plain `.md` there is silently ignored), Codex has no rules directory at all and uses nested `AGENTS.md`, and Codex subagents are TOML rather than markdown. Use `agents` only when you do not know which host will run the commands.
 
 The names differ because neither Cursor nor Codex supports a `:` namespace: a skill is named by the folder holding its `SKILL.md`. The prefix has to live in the name, otherwise the commands would install as bare `/code` and `/plan` and collide with everything else in your skills directory. Cross-references inside the installed files are rewritten to match.
 
-`/slashforge-setup` is **not** installed on those targets — it provisions `.claude/` rules, agents and hooks plus `CLAUDE.md`, which have no equivalent there. Codex invokes the skills as `$slashforge-code`; that path is not yet verified end to end.
+`/slashforge-setup` is installed on `cursor` and `codex` and scaffolds each host natively. It is omitted only on `agents`, the vendor-neutral fallback, where no host is known and so there is no layout to scaffold.
+
+If setup finds a `CLAUDE.md` while setting up a repo for Cursor or Codex, it asks before touching it — collapse to a one-line `@AGENTS.md` import, leave it alone, or mirror into both.
 
 Uninstall is careful with `.agents/skills/`, which you likely share with other tools: it removes only the `slashforge-*` directories it created, and removes `skills/` itself only if nothing else remains.
 

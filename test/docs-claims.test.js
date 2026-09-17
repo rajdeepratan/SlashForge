@@ -17,6 +17,10 @@ const STALE = [
   /Cursor and Codex targets are planned/i,
   /Currently supports \*{0,2}Claude Code/i,
   /Cursor and Codex (?:support )?(?:is|are) planned/i,
+  // setup now installs on both vendors and scaffolds each host's own layout.
+  /setup.{0,20}is Claude Code only/i,
+  /not yet verified end to end/i,
+  /aliases for `agents`/i,
 ];
 
 function walk(dir, out = []) {
@@ -46,4 +50,25 @@ test('no user-facing surface still advertises Cursor or Codex as planned', () =>
 
   assert.deepEqual(offenders, [],
     `stale support claim(s) found:\n  ${offenders.join('\n  ')}`);
+});
+
+// --- setup on cursor and codex ---
+
+test('the CLI reference documents setup on both vendor targets', () => {
+  const cli = fs.readFileSync(
+    path.join(ROOT, 'docs/src/content/docs/reference/cli.md'), 'utf8');
+  assert.match(cli, /\$slashforge-setup/, 'must show the Codex spelling');
+  assert.match(cli, /\/slashforge-setup/, 'must show the Cursor spelling');
+  assert.match(cli, /\.cursor\/rules/, 'must name what Cursor gets');
+  assert.match(cli, /\.codex\/agents/, 'must name what Codex gets');
+  assert.ok(!/is Claude Code only/i.test(cli), 'the old limitation must be gone');
+});
+
+test('every target in the docs table is a real install target', () => {
+  const { TARGETS } = require('../bin/install.js');
+  const cli = fs.readFileSync(
+    path.join(ROOT, 'docs/src/content/docs/reference/cli.md'), 'utf8');
+  for (const name of Object.keys(TARGETS)) {
+    assert.ok(cli.includes('`' + name + '`'), `cli.md should document the ${name} target`);
+  }
 });

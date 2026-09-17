@@ -27,10 +27,11 @@ Two differences worth knowing before you start:
 
 - ==Commands are spelled differently per agent.== Use the switcher in the header, or the
   tabs on any command block, and the docs show the form your agent takes. In Codex they are
-  invoked with `$` rather than `/`, and ==that path is not yet verified end to end==.
-- ==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
-  structure that has no equivalent on the other targets. Everything below assumes
-  Claude Code for step 3; on Cursor, skip it and start at step 4.
+  invoked with `$` rather than `/`.
+- ==Setup scaffolds your host's own layout.== On Cursor that is `.cursor/rules/*.mdc`
+  and `.cursor/agents/`; on Codex, nested `AGENTS.md` and `.codex/agents/*.toml`. It
+  never writes `CLAUDE.md` or `.claude/` on a vendor target. Every step below applies
+  to all three hosts.
 
 See [the CLI reference](/slashforge/reference/cli/) for the full target list.
 

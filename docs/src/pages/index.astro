@@ -260,10 +260,10 @@ const costs = [
         </div>
         <p class="caveat">
           Names follow the agent picked in the header. Codex invokes them with{' '}
-          <code>$</code> rather than <code>/</code>, and that path is not yet verified end to
-          end. <code>/slashforge:setup</code> is Claude Code only for now — it provisions{' '}
-          <code>.claude/</code> structure that has no equivalent on the other targets, so it
-          keeps its Claude Code spelling whichever agent you pick.
+          <code>$</code> rather than <code>/</code>. All four run on every agent —{' '}
+          <code>setup</code> writes each host's own layout, so on Cursor you get{' '}
+          <code>.cursor/rules/*.mdc</code> and on Codex nested <code>AGENTS.md</code> plus{' '}
+          <code>.codex/agents/*.toml</code>, never <code>.claude/</code>.
         </p>
       </div>
     </section>

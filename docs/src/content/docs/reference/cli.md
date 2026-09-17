@@ -9,7 +9,8 @@ its own for getting them on and off your machine.
 | Command | What it does |
 | --- | --- |
 | `npx slashforge` | Installs guide files, the four commands, and the nine discipline skills into `~/.claude/` |
-| `npx slashforge --target cursor` | Installs into `~/.agents/skills/`, where Cursor and Codex find them |
+| `npx slashforge --target cursor` | Installs into `~/.agents/skills/` for Cursor |
+| `npx slashforge --target codex` | Same directory, rendered for Codex |
 | `npx slashforge status` | Reports what is installed, at which version, without changing anything |
 | `npx slashforge uninstall` | Removes the guides and commands it installed |
 
@@ -40,10 +41,18 @@ nothing about it has changed.==
 | Target | Installs to | Commands look like |
 | --- | --- | --- |
 | `claude` (default) | `~/.claude/commands/slashforge/` | `/slashforge:code` |
-| `cursor`, `codex`, `agents` | `~/.agents/skills/slashforge-code/SKILL.md` | `/slashforge-code` |
+| `cursor` | `~/.agents/skills/slashforge-code/SKILL.md` | `/slashforge-code` |
+| `codex` | `~/.agents/skills/slashforge-code/SKILL.md` | `$slashforge-code` |
+| `agents` | `~/.agents/skills/slashforge-code/SKILL.md` | `/slashforge-code` |
 
-`cursor` and `codex` are aliases for `agents` — ==one install serves both==,
-because Cursor and Codex both read `.agents/skills/`.
+==All three non-Claude targets install to the same place==, because Cursor and
+Codex both read `.agents/skills/`. They are separate targets anyway, because
+`/slashforge:setup` writes each host's own layout and those layouts genuinely
+differ — see [What setup writes on each target](#what-setup-writes-on-each-target).
+
+Pick `agents` only when you do not know which host will run the commands. It is
+the vendor-neutral fallback, and it is the one target where setup is unavailable:
+with no host known, there is no layout to scaffold.
 
 ```bash
 npx slashforge --target cursor      # or --target=cursor
@@ -62,17 +71,52 @@ skills directory.
 Cross-references inside the installed files are rewritten to match, so a
 workflow that hands off to another command names one that exists on your target.
 
-### What is not installed on `cursor` / `codex`
+### What setup writes on each target
 
-==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
-structure that has no equivalent on the other targets. The installer says so when
-it finishes. Run it from Claude Code if you want a repo scaffolded.
+==`/slashforge:setup` runs on all three hosts== and scaffolds each one's native
+layout. It never writes `CLAUDE.md` or `.claude/` on a vendor target.
 
-:::caution
-Codex reads `.agents/skills/` and invokes the commands as `$slashforge-code`
-rather than `/slashforge-code`. ==That path is not yet verified end to end== —
-the install is tested against Cursor.
+| Layer | Claude Code | Cursor | Codex |
+| --- | --- | --- | --- |
+| Entry file | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` |
+| Rules | `.claude/rules/*.md` | `.cursor/rules/*.mdc` | nested `AGENTS.md` |
+| Skills | `.claude/skills/` | `.cursor/skills/` | `.agents/skills/` |
+| Subagents | `.claude/agents/*.md` | `.cursor/agents/*.md` | `.codex/agents/*.toml` |
+| Commands | `.claude/commands/*.md` | `.cursor/commands/*.md` | none — write a skill |
+| Hooks | `.claude/settings.json` | `.cursor/hooks.json` | `.codex/hooks.json` |
+
+Three differences are worth knowing before you run it:
+
+- ==Cursor rules must be `.mdc`.== A plain `.md` file in `.cursor/rules/` is
+  silently ignored, because the rules system needs frontmatter to know when to
+  apply it. Setup writes `.mdc` with `description`, `globs` and `alwaysApply`.
+- ==Codex has no rules directory.== Its equivalent is nested `AGENTS.md`: Codex
+  loads every one from the repo root down to the file being edited, closest
+  first. Setup puts a rule in the directory it governs.
+- ==Codex subagents are TOML==, with the prompt in a `developer_instructions`
+  string rather than a markdown body.
+
+If setup finds a `CLAUDE.md` in a repo you are setting up for Cursor or Codex, it
+asks before touching it — collapse it to a one-line `@AGENTS.md` import, leave it
+alone, or mirror the content into both. It never rewrites it silently.
+
+:::note
+Codex invokes skills as `$slashforge-setup` rather than `/slashforge-setup`.
+Switch the tabs on any command block and the docs show the form your host uses.
 :::
+
+### Graphify on each target
+
+If you accept the Graphify offer during setup, it wires itself in per host:
+
+| Target | Command | What it writes |
+| --- | --- | --- |
+| `claude` | `graphify claude install` | `CLAUDE.md` section + a PreToolUse hook |
+| `cursor` | `graphify cursor install` | `.cursor/rules/graphify.mdc` |
+| `codex` | `graphify codex install` | `AGENTS.md` section + a PreToolUse hook |
+
+Setup always writes its own files first and runs Graphify's step last, so
+Graphify's addition survives and is left alone on future re-runs.
 
 ## install
 

@@ -10,15 +10,18 @@ description: One-time repo setup — generates CLAUDE.md plus tailored rules, sk
 One-time setup for a repository. Explores the codebase, asks clarifying
 questions, then ==generates a `.claude/` configuration tailored to what it found==.
 
-Handles both fresh repos and partial setups — ==if `.claude/` already exists, it
+Handles both fresh repos and partial setups — ==if a setup already exists, it
 fills gaps rather than overwriting==.
 
-:::caution
-==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
-structure that has no equivalent on the other targets, so it is not installed
-there. The other three commands are available on every target, hyphenated as
-`/slashforge-code`, `/slashforge-investigate` and `/slashforge-review-pr`. See
-[Targets](/slashforge/reference/cli/#targets).
+:::note
+==This command runs on all three hosts== and writes each one's native layout —
+`.cursor/rules/*.mdc` and `.cursor/agents/` on Cursor, nested `AGENTS.md` and
+`.codex/agents/*.toml` on Codex. It never writes `CLAUDE.md` or `.claude/` on a
+vendor target. See
+[What setup writes on each target](/slashforge/reference/cli/#what-setup-writes-on-each-target).
+
+It is unavailable only on `--target agents`, the vendor-neutral fallback: with no
+host known there is no layout to scaffold.
 :::
 
 ## What it creates

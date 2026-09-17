@@ -28,9 +28,13 @@ description: The handful of things that actually go wrong, and what to do about 
 :::
 
 :::note
-==`/slashforge:setup` is Claude Code only for now== — it provisions `.claude/`
-structure that has no equivalent on the other targets. Run it from Claude Code to
-scaffold a repo.
+==`/slashforge-setup` runs here too== — `$slashforge-setup` in Codex. It scaffolds
+your host's own layout: `.cursor/rules/*.mdc` and `.cursor/agents/` on Cursor,
+nested `AGENTS.md` and `.codex/agents/*.toml` on Codex. It never writes `.claude/`.
+
+The one exception is `--target agents`, the vendor-neutral fallback. Setup is not
+installed there, because with no host known there is no layout to scaffold —
+install with `--target cursor` or `--target codex` instead.
 :::
 
 ## It installed an old version
