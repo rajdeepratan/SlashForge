@@ -22,6 +22,7 @@ const GUIDE_FILES = [
   'forge-rules.md',
   'forge-skills.md',
   'forge-agents.md',
+  'forge-agents-codex.md',
   'forge-commands.md',
   'forge-hooks.md',
   'forge-claude-md.md',
@@ -85,13 +86,17 @@ const TARGETS = {
     dirname: '.claude', commandsSubdir: 'commands', layout: 'commands',
     namePrefix: '', blocks: ['claude'],
     // The AGENTS.md entry-file guide is for the vendor targets.
-    omit: ['forge-agents-md.md'],
+    omit: ['forge-agents-md.md', 'forge-agents-codex.md'],
   },
   // The vendor-neutral target: no host is known, so setup has no layout to write.
   agents: {
     dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
-    namePrefix: 'slashforge-', blocks: ['agents'],
-    omit: [path.join('slashforge', 'setup.md'), 'forge-agents-md.md'],
+    // 'neutral' is declared only here, so a <!--target:neutral--> block renders on
+    // this target alone. 'agents' blocks are inherited by cursor and codex, which
+    // makes them useless as a vendor-neutral fallback — a neutral variant fenced as
+    // 'agents' would render alongside each vendor's own, duplicating the passage.
+    namePrefix: 'slashforge-', blocks: ['agents', 'neutral'],
+    omit: [path.join('slashforge', 'setup.md'), 'forge-agents-md.md', 'forge-agents-codex.md'],
   },
   // cursor and codex share the agents install location but render their own setup
   // guides: their file formats genuinely differ (.mdc vs nested AGENTS.md for rules,
@@ -100,12 +105,13 @@ const TARGETS = {
     dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
     namePrefix: 'slashforge-', blocks: ['agents', 'cursor'],
     // No memory layer on this vendor, and CLAUDE.md is not its entry file.
-    omit: [path.join('slashforge', 'setup.md'), 'forge-claude-md.md', 'forge-memory.md'],
+    omit: [path.join('slashforge', 'setup.md'), 'forge-claude-md.md', 'forge-memory.md', 'forge-agents-codex.md'],
   },
   codex: {
     dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
     namePrefix: 'slashforge-', blocks: ['agents', 'codex'],
-    omit: [path.join('slashforge', 'setup.md'), 'forge-claude-md.md', 'forge-memory.md'],
+    // Subagents here are TOML, so the markdown guide is replaced, not fenced.
+    omit: [path.join('slashforge', 'setup.md'), 'forge-claude-md.md', 'forge-memory.md', 'forge-agents.md'],
   },
 };
 
@@ -238,7 +244,10 @@ function validateTemplates(files, dir) {
       // frontmatter, not the raw source. Skipped when the markers themselves are
       // malformed, since stripping would then be meaningless.
       if (blockErrors.length === 0) {
-        for (const name of VALID_TARGET_NAMES) {
+        // Render for each real install target, not for every valid block name.
+        // 'neutral' is a block name only — nothing installs as 'neutral', and
+        // rendering for it would strip every target's frontmatter at once.
+        for (const name of Object.keys(TARGETS)) {
           parseFrontmatter(stripTargetBlocks(content, name), file);
         }
       }

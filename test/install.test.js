@@ -841,7 +841,7 @@ test('resolveTargetName normalises aliases and rejects unknowns', () => {
 test('agents target omits setup, claude omits no command', () => {
   assert.ok(TARGETS.agents.omit.includes(path.join('slashforge', 'setup.md')));
   // claude omits only the vendor entry-file guide, never a command.
-  assert.deepEqual(TARGETS.claude.omit, ['forge-agents-md.md']);
+  assert.deepEqual(TARGETS.claude.omit, ['forge-agents-md.md', 'forge-agents-codex.md']);
   assert.ok(!TARGETS.claude.omit.some((o) => o.includes('slashforge')));
 });
 
@@ -1305,6 +1305,10 @@ test('no rendered file dispatches an agent on the agents target', () => {
     'forge-instructions.md', 'forge-rules.md', 'forge-skills.md', 'forge-agents.md',
     'forge-commands.md', 'forge-hooks.md', 'forge-claude-md.md', 'forge-memory.md',
     'forge-coverage.md',
+    // Vendor-specific splits: both are in the agents target's omit list, so they
+    // are never installed here and cannot be reached. They describe real subagent
+    // systems (Cursor's and Codex's), which is exactly what this target lacks.
+    'forge-agents-md.md', 'forge-agents-codex.md',
   ]);
   for (const [file, body] of Object.entries(renderAll('agents'))) {
     if (unreachable.has(file) || file === path.join('slashforge', 'setup.md')) continue;
@@ -1326,7 +1330,7 @@ test('parallel.md keeps its independence test and review discipline on both targ
 
 test('blockNamesFor gives each vendor the shared agents blocks plus its own', () => {
   assert.deepEqual(blockNamesFor('claude'), ['claude']);
-  assert.deepEqual(blockNamesFor('agents'), ['agents']);
+  assert.deepEqual(blockNamesFor('agents'), ['agents', 'neutral']);
   assert.deepEqual(blockNamesFor('cursor'), ['agents', 'cursor']);
   assert.deepEqual(blockNamesFor('codex'), ['agents', 'codex']);
 });
@@ -1476,4 +1480,77 @@ test('the oversize list contains only files that are actually oversize', () => {
       .reduce((a, b) => Math.max(a, b), 0);
     assert.ok(worst > 200, `${stale} now renders at ${worst} lines — remove it from OVERSIZE_GUIDES`);
   }
+});
+
+// --- Task 7: subagent guide split ---
+
+test('codex gets the TOML subagent guide, the others get the markdown one', () => {
+  const home = tmp();
+  const codex = resolveTarget({ target: 'codex', homeDir: home, cwd: home });
+  installFiles(codex, {});
+  const body = fs.readFileSync(path.join(codex.guidesDir, 'forge-agents-codex.md'), 'utf8');
+  assert.match(body, /developer_instructions/, 'must document the TOML field');
+  assert.match(body, /\.codex\/agents\//);
+  assert.match(body, /\.toml/);
+  assert.ok(!fs.existsSync(path.join(codex.guidesDir, 'forge-agents.md')),
+    'codex must not receive the markdown subagent guide');
+
+  for (const name of ['claude', 'cursor', 'agents']) {
+    const h = tmp();
+    const t = resolveTarget({ target: name, homeDir: h, cwd: h });
+    installFiles(t, {});
+    assert.ok(fs.existsSync(path.join(t.guidesDir, 'forge-agents.md')), `${name} needs forge-agents.md`);
+    assert.ok(!fs.existsSync(path.join(t.guidesDir, 'forge-agents-codex.md')),
+      `${name} must not receive the codex guide`);
+  }
+});
+
+test('the markdown subagent guide names the right directory per target', () => {
+  const claude = renderAll('claude')['forge-agents.md'];
+  assert.match(claude, /\.claude\/agents\//);
+  assert.ok(!/\.cursor\//.test(claude), 'claude render must not mention .cursor');
+
+  const cursor = renderAll('cursor')['forge-agents.md'];
+  assert.match(cursor, /\.cursor\/agents\//);
+  assert.ok(!/CLAUDE\.md/.test(cursor), 'cursor render must not cite CLAUDE.md');
+  // One mention of .claude/agents/ is correct here: Cursor reads it too, and the
+  // guide has to say .cursor/ wins. What it must never do is send you there.
+  assert.ok(!/→ \.claude\//.test(cursor), 'cursor render must not target .claude in an example');
+  assert.ok(!/Read `\.claude\//.test(cursor), 'cursor render must not send you to read .claude');
+  assert.equal((cursor.match(/\.claude\//g) || []).length, 1,
+    'exactly one .claude mention, the precedence note');
+});
+
+// forge-coverage.md cites this guide, and coverage is read by forge-workflow.md —
+// so the vendor-neutral `agents` target reaches it through /slashforge:code and its
+// render has to stand on its own without naming any vendor directory.
+test('the markdown subagent guide still reads coherently on the agents target', () => {
+  const body = renderAll('agents')['forge-agents.md'];
+  assert.ok(!/\.claude\/|\.cursor\/|\.codex\//.test(body), 'agents render must name no vendor dir');
+  for (const heading of ['Global Agents', 'Specialist Agents', 'Reference Style', 'File Skeleton']) {
+    assert.ok(body.includes(heading), `agents render lost the "${heading}" section`);
+  }
+  assert.match(body, /code-reviewer/, 'agents render must keep the mandatory reviewer');
+});
+
+// A neutral block is the vendor-neutral fallback. It must NOT be inherited by the
+// vendors — that is the whole reason it exists rather than reusing 'agents'.
+test('a neutral block renders only on the vendor-neutral target', () => {
+  const src = [
+    'shared',
+    '<!--target:neutral-->', 'generic wording', '<!--/target-->',
+    '<!--target:cursor-->', 'cursor wording', '<!--/target-->',
+    '<!--target:claude-->', 'claude wording', '<!--/target-->',
+  ].join('\n') + '\n';
+  assert.equal(stripTargetBlocks(src, 'agents'), 'shared\ngeneric wording\n');
+  assert.equal(stripTargetBlocks(src, 'cursor'), 'shared\ncursor wording\n');
+  assert.equal(stripTargetBlocks(src, 'codex'), 'shared\n');
+  assert.equal(stripTargetBlocks(src, 'claude'), 'shared\nclaude wording\n');
+});
+
+test('neutral is a block name but never an install target', () => {
+  assert.ok(!Object.keys(TARGETS).includes('neutral'), 'nothing may install as neutral');
+  assert.throws(() => resolveTarget({ target: 'neutral' }), /Unknown target/);
+  const src = '<!--target:neutral-->\nx\n<!--/target-->\n';
+  assert.deepEqual(findTargetBlockErrors(src, 'f.md'), [], 'but it is a valid marker');
 });
