@@ -41,7 +41,18 @@ Every phase with a named skill MUST invoke it via the `Skill` tool — do not pa
 
 **Skill:** `slashforge:plan`
 
+<!--target:claude-->
 1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge:code -quick` and `/slashforge:code` trivial. Then invoke `slashforge:plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
+<!--/target-->
+<!--target:cursor-->
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **`.cursor/` coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge:code -quick` and `/slashforge:code` trivial. Then invoke `slashforge:plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
+<!--/target-->
+<!--target:codex-->
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **setup coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge:code -quick` and `/slashforge:code` trivial. Then invoke `slashforge:plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
+<!--/target-->
+<!--target:neutral-->
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **setup coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge:code -quick` and `/slashforge:code` trivial. Then invoke `slashforge:plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
+<!--/target-->
 2. **Full plan format** (default): cover every section, omitting only those that genuinely do not apply:
    - **Changes** — files/modules to be added, modified, or removed
    - **Affected surface** — public APIs, exported functions, shared interfaces, DB schemas, migrations
@@ -118,7 +129,18 @@ When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code 
 **Skill:** `slashforge:verify`
 
 1. Invoke `slashforge:verify` — no success claims without evidence
+<!--target:claude-->
 2. Verify that lint, test, and build commands are defined in `CLAUDE.md`. If any are missing, ask the user for them before continuing
+<!--/target-->
+<!--target:cursor-->
+2. Verify that lint, test, and build commands are defined in `AGENTS.md`. If any are missing, ask the user for them before continuing
+<!--/target-->
+<!--target:codex-->
+2. Verify that lint, test, and build commands are defined in `AGENTS.md`. If any are missing, ask the user for them before continuing
+<!--/target-->
+<!--target:neutral-->
+2. Verify that lint, test, and build commands are defined in the repo's entry file. If any are missing, ask the user for them before continuing
+<!--/target-->
 3. If new env vars were added, confirm they are in `.env.example` (or equivalent) before running anything
 4. Run lint/format — fix all errors before continuing
 5. Run tests — if any fail, return to Phase 5 with the failure output and loop until all pass
@@ -141,7 +163,18 @@ When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code 
 2. Review must check:
    - Matches the approved plan — no scope creep, no missing pieces
    - No duplicate code, no dead code, no debug leftovers, no hardcoded secrets
-   - Follows `.claude/rules/` and the user's coding style
+   <!--target:claude-->
+- Follows `.claude/rules/` and the user's coding style
+<!--/target-->
+<!--target:cursor-->
+- Follows `.cursor/rules/` and the user's coding style
+<!--/target-->
+<!--target:codex-->
+- Follows the nearest `AGENTS.md` and the user's coding style
+<!--/target-->
+<!--target:neutral-->
+- Follows the repo's rule files and the user's coding style
+<!--/target-->
    - No unintended breaking changes to public APIs, exports, or shared interfaces
    - Production-ready: error handling at boundaries, no unsafe assumptions
 3. **For bug fixes:** root cause is addressed, not just the symptom. The regression test meaningfully covers the bug.
@@ -196,5 +229,16 @@ Runs only after the user confirms the PR merged. Cleans up the feature branch lo
 <!--target:agents-->
 3. Perform the cleanup. Expected steps: fetch latest from the remote; checkout the PR's base branch and pull; delete the local feature branch (prefer `git branch -d`; fall back to `-D` only if the PR was merged via squash/rebase and step 2 confirmed MERGED — explain when falling back); delete the remote feature branch `git push origin --delete <branch>` (treat "remote ref does not exist" as success); prune stale remote-tracking refs (`git remote prune origin`).
 <!--/target-->
+<!--target:claude-->
 4. **Never delete** `main`, `master`, `production`, `develop`, `staging`, or any branch the repo's `.claude/rules/git.md` marks as protected. If the PR branch name matches a protected pattern, stop and warn.
+<!--/target-->
+<!--target:cursor-->
+4. **Never delete** `main`, `master`, `production`, `develop`, `staging`, or any branch the repo's `.cursor/rules/git.mdc` marks as protected. If the PR branch name matches a protected pattern, stop and warn.
+<!--/target-->
+<!--target:codex-->
+4. **Never delete** `main`, `master`, `production`, `develop`, `staging`, or any branch the repo's `AGENTS.md` git conventions mark as protected. If the PR branch name matches a protected pattern, stop and warn.
+<!--/target-->
+<!--target:neutral-->
+4. **Never delete** `main`, `master`, `production`, `develop`, `staging`, or any branch the repo's git rule marks as protected. If the PR branch name matches a protected pattern, stop and warn.
+<!--/target-->
 5. Confirm cleanup complete: **"Cleaned up branch `<branch>`. You are now on `<base>`."** If anything fails mid-cleanup (push rejected, local delete fails, base branch pull conflicts), stop at the failure and hand back to the user with the exact error. Do not continue on the assumption something worked.

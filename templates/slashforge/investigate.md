@@ -42,7 +42,18 @@ report.
 
 A findings report at `docs/slashforge/investigations/investigation-<YYYY-MM-DD-HHMM>.html` — five
 sections, written as a body fragment and spliced into the shipped report shell. Never regenerate
+<!--target:claude-->
 the shell's CSS, and never write the report under `.claude/`, which is hidden in Finder.
+<!--/target-->
+<!--target:cursor-->
+the shell's CSS, and never write the report under `.cursor/`, which is hidden in Finder.
+<!--/target-->
+<!--target:codex-->
+the shell's CSS, and never write the report under `.codex/`, which is hidden in Finder.
+<!--/target-->
+<!--target:neutral-->
+the shell's CSS, and never write the report under a dot-directory, which is hidden in Finder.
+<!--/target-->
 
 **Summarise in chat — never print the HTML.** The file is the report; the chat gets the one-line
 conclusion, the root cause, the path, and the hand-off line. Phase I3 carries the fragment spec,

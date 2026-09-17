@@ -32,9 +32,28 @@ and **do not run the freshness check** described in `forge-graph.md` Runtime
 section. The overhead (~2–5k tokens, plus ~50 for the freshness check) exceeds
 the value on tasks small enough to reach for lean mode.
 
+<!--target:claude-->
 **`.claude/` coverage check in lean mode:** also skipped. The coverage check
 (`forge-coverage.md`) detects when a feature introduces a new domain that needs
-new agents/rules/`CLAUDE.md` updates. Tasks small enough for lean mode (typos,
+new agents/rules/`CLAUDE.md` updates.
+<!--/target-->
+<!--target:cursor-->
+**Setup coverage check in lean mode:** also skipped. The coverage check
+(`forge-coverage.md`) detects when a feature introduces a new domain that needs
+new subagents/rules/`AGENTS.md` updates.
+<!--/target-->
+<!--target:codex-->
+**Setup coverage check in lean mode:** also skipped. The coverage check
+(`forge-coverage.md`) detects when a feature introduces a new domain that needs
+new subagents/rules/`AGENTS.md` updates.
+<!--/target-->
+<!--target:neutral-->
+**Setup coverage check in lean mode:** also skipped. The coverage check
+(`forge-coverage.md`) detects when a feature introduces a new domain that needs
+new agents, rules or entry-file updates.
+<!--/target-->
+
+Tasks small enough for lean mode (typos,
 copy changes, single-file refactors) don't introduce new domains by definition —
 running the matrix scan would just be overhead. If the change really does
 introduce a new domain, that's a signal to restart in full mode.
@@ -81,7 +100,18 @@ Before handing off to Phase 8, check every item against the staged diff:
 - [ ] **Plan match** — every change listed in the Phase 2 plan is implemented; nothing extra has been added
 - [ ] **No debug leftovers** — no `console.log` / `print` / commented-out blocks / `TODO` markers added in this change
 - [ ] **No hardcoded secrets or environment values** — URLs, tokens, paths, account IDs all come from config/env
+<!--target:claude-->
 - [ ] **Repo conventions** — naming, file placement, and imports follow `.claude/rules/`
+<!--/target-->
+<!--target:cursor-->
+- [ ] **Repo conventions** — naming, file placement, and imports follow `.cursor/rules/`
+<!--/target-->
+<!--target:codex-->
+- [ ] **Repo conventions** — naming, file placement, and imports follow the nearest `AGENTS.md`
+<!--/target-->
+<!--target:neutral-->
+- [ ] **Repo conventions** — naming, file placement, and imports follow the repo's rule files
+<!--/target-->
 - [ ] **No unintended public-API change** — for a lean-mode task there should be none; if there is, stop and re-run in full mode
 
 If **any** item fails → return to Phase 5 and fix. If **2 or more** items fail on

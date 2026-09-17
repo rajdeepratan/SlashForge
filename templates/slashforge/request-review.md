@@ -51,7 +51,18 @@ exactly the signal worth having.
 - **Matches the plan** — nothing missing, nothing extra. Scope creep is a finding.
 - **No duplicate or dead code**, no debug leftovers, no hardcoded secrets.
 - **No unintended breaking changes** to public APIs, exports, or shared interfaces.
+<!--target:claude-->
 - **Follows `.claude/rules/`** and the conventions already in the surrounding code.
+<!--/target-->
+<!--target:cursor-->
+- **Follows `.cursor/rules/`** and the conventions already in the surrounding code.
+<!--/target-->
+<!--target:codex-->
+- **Follows the nearest `AGENTS.md`** and the conventions already in the surrounding code.
+<!--/target-->
+<!--target:neutral-->
+- **Follows the repo's rule files** and the conventions already in the surrounding code.
+<!--/target-->
 - **Production-ready** — error handling at boundaries, no unsafe assumptions about input,
   ordering, or nullability.
 - **For a bug fix** — the root cause is addressed rather than the symptom, and the regression test

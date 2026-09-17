@@ -120,8 +120,30 @@ which ones you covered and which you did not. Never imply full coverage you did 
 The standard is the Phase 7 checklist from `forge-workflow.md`, plus whatever this repo already
 says about itself. Read, in this order:
 
+<!--target:claude-->
 1. `CLAUDE.md` — the repo's own instructions
+<!--/target-->
+<!--target:cursor-->
+1. `AGENTS.md` — the repo's own instructions
+<!--/target-->
+<!--target:codex-->
+1. `AGENTS.md` — the repo's own instructions, including any nested ones covering the changed files
+<!--/target-->
+<!--target:neutral-->
+1. The repo's entry file — its own instructions
+<!--/target-->
+<!--target:claude-->
 2. `.claude/rules/` — any rule whose path scope matches the changed files
+<!--/target-->
+<!--target:cursor-->
+2. `.cursor/rules/` — any rule whose `globs` scope matches the changed files
+<!--/target-->
+<!--target:codex-->
+2. Nested `AGENTS.md` files — any whose directory contains the changed files
+<!--/target-->
+<!--target:neutral-->
+2. The repo's rule files — any whose scope matches the changed files
+<!--/target-->
 3. The surrounding code — match the conventions actually in use, not the ones you would pick
 
 Then check:
@@ -131,7 +153,18 @@ Then check:
 - Breaking changes to public APIs, exports, or shared interfaces — called out or accidental?
 - Error handling at boundaries; unsafe assumptions about input, ordering, or nullability.
 - Tests: do they cover the change? For a bugfix, does a test actually fail without the fix?
+<!--target:claude-->
 - Does it follow `.claude/rules/` and the repo's existing style?
+<!--/target-->
+<!--target:cursor-->
+- Does it follow `.cursor/rules/` and the repo's existing style?
+<!--/target-->
+<!--target:codex-->
+- Does it follow the nearest `AGENTS.md` and the repo's existing style?
+<!--/target-->
+<!--target:neutral-->
+- Does it follow the repo's rule files and existing style?
+<!--/target-->
 
 **Severity matters more than volume.** Three findings that would break production beat twenty
 style nits. Sort by severity and say which are blocking.

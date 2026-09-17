@@ -1732,20 +1732,6 @@ test('no rendered guide names a foreign target directory', () => {
     // setup not to rewrite a Claude Code setup's entry file without asking.
     'forge-agents-md.md',
     path.join('slashforge', 'setup.md'),
-    // KNOWN GAP — still to fence. All four are reachable on every target through
-    // the workflow commands, so these ARE real leaks, not exemptions on principle.
-    // They already carry <!--target:agents--> blocks for the agent-dispatch
-    // differences, but their `.claude/rules/` path references were never fenced,
-    // because until vendors became real targets "agents" meant one neutral thing
-    // and nobody checked paths. Listed so the gap stays visible rather than hidden
-    // behind a narrower assertion.
-    'forge-workflow.md',
-    'forge-workflow-investigation.md',
-    'forge-workflow-quick.md',
-    'forge-workflow-review-pr.md',
-    path.join('slashforge', 'investigate.md'),
-    path.join('slashforge', 'request-review.md'),
-    path.join('slashforge', 'review-pr.md'),
   ]);
   for (const [name, bad] of Object.entries(foreign)) {
     // Only guides this target actually receives. A vendor-specific split names its

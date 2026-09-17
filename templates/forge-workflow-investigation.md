@@ -98,7 +98,18 @@ images. The finished file must render identically opened from disk with no netwo
 
 Write your body fragment to a scratch file, then splice it into the shipped shell. Create
 `docs/slashforge/investigations/` if it doesn't exist, parents included (`mkdir -p` handles this).
+<!--target:claude-->
 Not inside `.claude/`, because a dot-directory is hidden in Finder and these reports are meant to
+<!--/target-->
+<!--target:cursor-->
+Not inside `.cursor/`, because a dot-directory is hidden in Finder and these reports are meant to
+<!--/target-->
+<!--target:codex-->
+Not inside `.codex/`, because a dot-directory is hidden in Finder and these reports are meant to
+<!--/target-->
+<!--target:neutral-->
+Not inside a dot-directory, because those are hidden in Finder and these reports are meant to
+<!--/target-->
 be opened by a human without a code editor.
 
 ```bash
@@ -115,7 +126,18 @@ node "{{INSTALL_PATH}}/forge-splice.js" "$fragment" "$report" "Investigation —
 - It is a file rather than an inline `node -e` script so that a permission rule can allow exactly this path, not arbitrary node code.
 - Delete the scratch fragment afterwards. It is not part of the deliverable.
 
-If the shell or `forge-splice.js` is missing (an older install, or a hand-modified `.claude/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+<!--target:claude-->
+If the shell is missing (an older install, or a hand-modified `.claude/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+<!--/target-->
+<!--target:cursor-->
+If the shell is missing (an older install, or a hand-modified `.agents/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+<!--/target-->
+<!--target:codex-->
+If the shell is missing (an older install, or a hand-modified `.agents/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+<!--/target-->
+<!--target:neutral-->
+If the shell is missing (an older install, or a hand-modified install directory), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+<!--/target-->
 
 ### 2. Open it in the user's browser (best-effort)
 
