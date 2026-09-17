@@ -104,7 +104,7 @@ test('installPathFor gives each target its real directories', async () => {
 test('installPathFor matches what the installer actually does', async () => {
   const { installPathFor } = await load();
   const { resolveTarget } = require('../bin/install.js');
-  for (const [ui, real] of [['claude', 'claude'], ['cursor', 'agents']]) {
+  for (const [ui, real] of [['claude', 'claude'], ['cursor', 'cursor'], ['codex', 'codex']]) {
     const r = resolveTarget({ target: real, homeDir: '~' });
     assert.equal(installPathFor('guides', ui), r.guidesDir + '/');
     assert.equal(installPathFor('commands', ui).replace(/slashforge\/$/, ''), r.commandsDir + '/');

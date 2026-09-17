@@ -29,6 +29,7 @@ const {
   plannedWrites,
   stripTargetBlocks,
   findTargetBlockErrors,
+  blockNamesFor,
 } = require('../bin/install.js');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
@@ -794,9 +795,11 @@ test('resolveTarget agents project uses cwd', () => {
   assert.equal(t.mode, 'project');
 });
 
-test('cursor and codex are aliases for the agents target', () => {
-  for (const name of ['cursor', 'codex', 'CURSOR', ' codex ']) {
-    assert.equal(resolveTarget({ target: name, homeDir: '/h', cwd: '/r' }).target, 'agents');
+test('cursor and codex are distinct targets, still case- and space-insensitive', () => {
+  for (const [name, expected] of [
+    ['cursor', 'cursor'], ['codex', 'codex'], ['CURSOR', 'cursor'], [' codex ', 'codex'],
+  ]) {
+    assert.equal(resolveTarget({ target: name, homeDir: '/h', cwd: '/r' }).target, expected);
   }
 });
 
@@ -818,7 +821,9 @@ test('unknown target throws with the valid names listed', () => {
 });
 
 test('resolveTargetName normalises aliases and rejects unknowns', () => {
-  assert.equal(resolveTargetName('cursor'), 'agents');
+  assert.equal(resolveTargetName('cursor'), 'cursor');
+  assert.equal(resolveTargetName('codex'), 'codex');
+  assert.equal(resolveTargetName('agents'), 'agents');
   assert.equal(resolveTargetName(undefined), 'claude');
   assert.equal(resolveTargetName(null), 'claude');
   assert.throws(() => resolveTargetName('emacs'), /Unknown target/);
@@ -889,7 +894,7 @@ test('meta.json records the target and installed command names', () => {
   const target = resolveTarget({ target: 'codex', homeDir: home, cwd: home });
   installFiles(target, {});
   const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
-  assert.equal(meta.target, 'agents');
+  assert.equal(meta.target, 'codex');
   assert.deepEqual(meta.commands,
     ['/slashforge-code', '/slashforge-investigate', '/slashforge-review-pr']);
 });
@@ -1011,12 +1016,13 @@ test('an unknown target exits 1 with the valid names', () => {
     });
 });
 
-test('status reports the agents target after installing to it', () => {
+test('status reports the vendor target after installing to it', () => {
   const home = tmp();
   const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' };
   execFileSync(process.execPath, [BIN, '--target', 'cursor'], { encoding: 'utf8', env });
   const out = execFileSync(process.execPath, [BIN, 'status', '--target', 'cursor'], { encoding: 'utf8', env });
-  assert.match(out, /Target:\s+agents/);
+  // Names the vendor the user asked for, not the install layout it shares with codex.
+  assert.match(out, /Target:\s+cursor/);
   assert.match(out, /\/slashforge-code/);
   assert.ok(!out.includes('/slashforge:code'));
 });
@@ -1112,9 +1118,11 @@ test('findTargetBlockErrors rejects a nested block', () => {
 });
 
 test('findTargetBlockErrors rejects an unknown target name', () => {
-  const errs = findTargetBlockErrors('<!--target:cursor-->\nb\n<!--/target-->\n', 'x.md');
+  // 'cursor' and 'codex' are real targets now, so an unknown name has to be one
+  // no target declares — otherwise this asserts the opposite of what it means.
+  const errs = findTargetBlockErrors('<!--target:vscode-->\nb\n<!--/target-->\n', 'x.md');
   assert.equal(errs.length, 1);
-  assert.match(errs[0], /cursor/);
+  assert.match(errs[0], /vscode/);
 });
 
 test('validateTemplates refuses a template with a malformed target block', () => {
@@ -1300,5 +1308,101 @@ test('parallel.md keeps its independence test and review discipline on both targ
     const body = renderAll(targetName)[path.join('slashforge', 'parallel.md')];
     assert.match(body, /The test for "independent"/);
     assert.match(body, /Reviewing between tasks/);
+  }
+});
+
+// --- Task 1: target block inheritance ---
+
+test('blockNamesFor gives each vendor the shared agents blocks plus its own', () => {
+  assert.deepEqual(blockNamesFor('claude'), ['claude']);
+  assert.deepEqual(blockNamesFor('agents'), ['agents']);
+  assert.deepEqual(blockNamesFor('cursor'), ['agents', 'cursor']);
+  assert.deepEqual(blockNamesFor('codex'), ['agents', 'codex']);
+});
+
+test('a cursor render keeps agents blocks and its own, drops the rest', () => {
+  const src = [
+    'shared',
+    '<!--target:agents-->', 'both vendors', '<!--/target-->',
+    '<!--target:cursor-->', 'cursor only', '<!--/target-->',
+    '<!--target:codex-->', 'codex only', '<!--/target-->',
+    '<!--target:claude-->', 'claude only', '<!--/target-->',
+    'end',
+  ].join('\n') + '\n';
+  assert.equal(stripTargetBlocks(src, 'cursor'), 'shared\nboth vendors\ncursor only\nend\n');
+  assert.equal(stripTargetBlocks(src, 'codex'), 'shared\nboth vendors\ncodex only\nend\n');
+  assert.equal(stripTargetBlocks(src, 'agents'), 'shared\nboth vendors\nend\n');
+  assert.equal(stripTargetBlocks(src, 'claude'), 'shared\nclaude only\nend\n');
+});
+
+test('cursor and codex are accepted block names', () => {
+  const src = '<!--target:cursor-->\nx\n<!--/target-->\n';
+  assert.deepEqual(findTargetBlockErrors(src, 'f.md'), []);
+});
+
+test('cursor and codex share the agents install location', () => {
+  for (const name of ['cursor', 'codex', 'agents']) {
+    const t = resolveTarget({ target: name, homeDir: '/home/u', cwd: '/repo' });
+    assert.equal(t.guidesDir, path.join('/home/u', '.agents', 'setup', 'slashforge'));
+    assert.equal(t.commandsDir, path.join('/home/u', '.agents', 'skills'));
+    assert.equal(t.installPath, '/home/u/.agents/setup/slashforge');
+    assert.equal(t.layout, 'skills');
+    assert.equal(t.namePrefix, 'slashforge-');
+    assert.equal(t.legacyGuidesDir, null);
+  }
+});
+
+test('every vendor target renders every template cleanly', () => {
+  for (const name of ['claude', 'agents', 'cursor', 'codex']) {
+    const rendered = renderAll(name);
+    assert.ok(Object.keys(rendered).length > 0, name + ' rendered nothing');
+    for (const [file, body] of Object.entries(rendered)) {
+      assert.ok(!body.includes('<!--target:'), name + '/' + file + ' kept a marker');
+      assert.ok(!body.includes('<!--/target-->'), name + '/' + file + ' kept a close marker');
+    }
+  }
+});
+
+// --- Task 3: per-target guide omission ---
+
+test('a guide in the target omit list is not installed', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  target.omit = ['forge-memory.md'];
+  installFiles(target, {});
+  assert.ok(!fs.existsSync(path.join(target.guidesDir, 'forge-memory.md')),
+    'an omitted guide must not be written');
+  assert.ok(fs.existsSync(path.join(target.guidesDir, 'forge-rules.md')),
+    'guides not in the omit list still install');
+});
+
+test('omitting a guide does not omit the commands', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  target.omit = ['forge-memory.md'];
+  installFiles(target, {});
+  assert.ok(fs.existsSync(path.join(target.commandsDir, 'slashforge-code', 'SKILL.md')));
+});
+
+test('the install summary does not list an omitted guide', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  target.omit = ['forge-memory.md'];
+  const written = installFiles(target, {});
+  assert.ok(!written.some((w) => w.endsWith('forge-memory.md')),
+    'a skipped guide must not appear in the written list');
+});
+
+test('plannedWrites agrees with installFiles about omitted guides', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  target.omit = ['forge-memory.md'];
+  const planned = plannedWrites(target).map((w) => w.dest);
+  const actual = installFiles(target, {});
+  assert.ok(!planned.some((d) => d.endsWith('forge-memory.md')),
+    'the dry-run must not promise a guide the install skips');
+  // Everything the plan promises is actually written (meta aside, which both include).
+  for (const d of planned) {
+    assert.ok(actual.includes(d), `planned but not written: ${d}`);
   }
 });

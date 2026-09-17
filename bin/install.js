@@ -78,19 +78,37 @@ const REMOVED_GUIDE_FILES = [
 // layout to .agents/skills/, which both Cursor and Codex read. That layout has no
 // namespace of any kind, so the prefix has to be carried in the directory name instead.
 const TARGETS = {
-  claude: { dirname: '.claude', commandsSubdir: 'commands', layout: 'commands', namePrefix: '', omit: [] },
+  claude: {
+    dirname: '.claude', commandsSubdir: 'commands', layout: 'commands',
+    namePrefix: '', blocks: ['claude'], omit: [],
+  },
+  // The vendor-neutral target: no host is known, so setup has no layout to write.
   agents: {
-    dirname: '.agents',
-    commandsSubdir: 'skills',
-    layout: 'skills',
-    namePrefix: 'slashforge-',
-    // setup provisions .claude/agents, hooks and CLAUDE.md — none of which exist here.
+    dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
+    namePrefix: 'slashforge-', blocks: ['agents'],
+    omit: [path.join('slashforge', 'setup.md')],
+  },
+  // cursor and codex share the agents install location but render their own setup
+  // guides: their file formats genuinely differ (.mdc vs nested AGENTS.md for rules,
+  // YAML vs TOML for subagents), so one shared path cannot serve both.
+  cursor: {
+    dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
+    namePrefix: 'slashforge-', blocks: ['agents', 'cursor'],
+    omit: [path.join('slashforge', 'setup.md')],
+  },
+  codex: {
+    dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
+    namePrefix: 'slashforge-', blocks: ['agents', 'codex'],
     omit: [path.join('slashforge', 'setup.md')],
   },
 };
 
-// Users type the vendor they use, not the directory convention it happens to share.
-const TARGET_ALIASES = { cursor: 'agents', codex: 'agents' };
+// cursor and codex are real targets, not aliases. They share the `agents` install
+// location — one install serves both — but render their own setup guides, because
+// their layouts genuinely differ: `.cursor/rules/*.mdc` vs nested `AGENTS.md` for
+// rules, markdown+YAML vs TOML for subagents. `agents` remains as the
+// vendor-neutral target for callers that do not know which host will run.
+const TARGET_ALIASES = {};
 
 function resolveTargetName(name) {
   const key = String(name == null ? 'claude' : name).trim().toLowerCase();
@@ -284,16 +302,28 @@ function toSkillCommandRefs(content, prefix) {
 const TARGET_BLOCK_RE =
   /^[ \t]*<!--target:([a-z-]+)-->[ \t]*\n([\s\S]*?)^[ \t]*<!--\/target-->[ \t]*\n?/gm;
 
+// A target renders its own blocks plus any it inherits. Without inheritance,
+// rendering for 'cursor' would drop every <!--target:agents--> block in the workflow
+// guides and silently gut those files — prose a model then follows.
+function blockNamesFor(targetName) {
+  const spec = TARGETS[targetName];
+  return spec ? spec.blocks : [targetName];
+}
+
 function stripTargetBlocks(content, targetName) {
+  const keep = blockNamesFor(targetName);
   return content.replace(TARGET_BLOCK_RE, (_match, name, body) =>
-    (name === targetName ? body : '')
+    (keep.includes(name) ? body : '')
   );
 }
 
-// 'cursor' and 'codex' are rejected on purpose: they are aliases resolved to
-// 'agents' long before rendering, so a marker naming one would silently match
-// nothing and its body would vanish from every target.
-const VALID_TARGET_NAMES = ['claude', 'agents'];
+// Every block name any target accepts, derived from TARGETS so adding a target
+// cannot introduce a marker the validator then rejects. A vendor marker is valid
+// because the vendor is a real target: it renders for that vendor and is stripped
+// everywhere else, rather than matching nothing and vanishing from every target.
+const VALID_TARGET_NAMES = [
+  ...new Set(Object.values(TARGETS).flatMap((t) => t.blocks)),
+];
 const TARGET_TOKEN_RE = /<!--target:([a-z-]+)-->|<!--\/target-->/g;
 
 // A guide that loses half a sentence is worse than a failed install, because
@@ -377,10 +407,16 @@ function installFiles(target, {
   fs.mkdirSync(target.guidesDir, { recursive: true });
   fs.mkdirSync(target.commandsDir, { recursive: true });
   const written = [];
+  const omit = target.omit || [];
   // Guides are rendered like commands: a guide may name a sibling by absolute
   // path (forge-workflow-review-pr.md points at forge-report-shell.html), and a
   // copied-not-rendered guide would ship the literal {{INSTALL_PATH}}.
   for (const f of guideFiles) {
+    // A target may not receive every guide. The entry-file and subagent guides are
+    // vendor-specific splits rather than shared prose — a Codex install has no use
+    // for the CLAUDE.md guide, and shipping it would have the agent read a layout
+    // it cannot write.
+    if (omit.includes(f)) continue;
     const dest = path.join(target.guidesDir, f);
     let rendered = renderTemplate(fs.readFileSync(path.join(templatesDir, f), 'utf8'), {
       installPath: target.installPath,
@@ -401,10 +437,9 @@ function installFiles(target, {
     fs.copyFileSync(path.join(templatesDir, f), dest);
     written.push(dest);
   }
-  const omit = target.omit || [];
   for (const c of [...commandFiles, ...skillFiles]) {
-    // A target may not support every command; setup provisions Claude Code
-    // structure that has no equivalent under the skills layout.
+    // A target may not support every command; the vendor-neutral `agents` target
+    // omits setup because no host is known, so there is no layout to scaffold.
     if (omit.includes(c)) continue;
     let rendered = renderTemplate(fs.readFileSync(path.join(templatesDir, c), 'utf8'), {
       installPath: target.installPath,
@@ -700,6 +735,9 @@ function plannedWrites(target, {
   const omit = target.omit || [];
   const writes = [];
   for (const file of guideFiles) {
+    // Must match installFiles, or the dry-run listing promises a guide the install
+    // then skips — and the atomicity preflight checks a file that never arrives.
+    if (omit.includes(file)) continue;
     writes.push({ kind: 'guide', src: path.join(templatesDir, file), dest: path.join(target.guidesDir, file) });
   }
   for (const cmd of [...commandFiles, ...skillFiles]) {
@@ -940,6 +978,7 @@ module.exports = {
   toSkillFrontmatter,
   toSkillCommandRefs,
   stripTargetBlocks,
+  blockNamesFor,
   findTargetBlockErrors,
   commandPath,
   parseTargetArg,
