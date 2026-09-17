@@ -861,7 +861,8 @@ test('every installed SKILL.md name is valid and matches its parent dir', () => 
   installFiles(target, {});
   const root = path.join(home, '.agents', 'skills');
   const dirs = fs.readdirSync(root);
-  assert.equal(dirs.length, COMMAND_FILES.length + SKILL_FILES.length - 1, 'setup is omitted');
+  assert.equal(dirs.length, COMMAND_FILES.length + SKILL_FILES.length,
+    'setup installs on cursor, so every command and skill is present');
   for (const dir of dirs) {
     const fm = parseFrontmatter(fs.readFileSync(path.join(root, dir, 'SKILL.md'), 'utf8'), dir);
     assert.match(fm.name, /^[a-z0-9-]+$/, `${dir}: name must be lowercase-hyphen only`);
@@ -869,10 +870,16 @@ test('every installed SKILL.md name is valid and matches its parent dir', () => 
   }
 });
 
-test('setup is omitted on the agents target but present on claude', () => {
+test('setup is omitted on the vendor-neutral target but present elsewhere', () => {
   const home = tmp();
-  installFiles(resolveTarget({ target: 'cursor', homeDir: home, cwd: home }), {});
-  assert.ok(!fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-setup')));
+  installFiles(resolveTarget({ target: 'agents', homeDir: home, cwd: home }), {});
+  assert.ok(!fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-setup')),
+    'no host is known on the agents target');
+
+  const home3 = tmp();
+  installFiles(resolveTarget({ target: 'cursor', homeDir: home3, cwd: home3 }), {});
+  assert.ok(fs.existsSync(path.join(home3, '.agents', 'skills', 'slashforge-setup')),
+    'but cursor knows its host');
 
   const home2 = tmp();
   installFiles(resolveTarget({ homeDir: home2, cwd: home2 }), {});
@@ -907,7 +914,7 @@ test('meta.json records the target and installed command names', () => {
   const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
   assert.equal(meta.target, 'codex');
   assert.deepEqual(meta.commands,
-    ['/slashforge-code', '/slashforge-investigate', '/slashforge-review-pr']);
+    ['/slashforge-setup', '/slashforge-code', '/slashforge-investigate', '/slashforge-review-pr']);
 });
 
 test('claude meta.json keeps the colon command names', () => {
@@ -995,7 +1002,7 @@ test('parseTargetArg reads both flag forms and defaults to claude', () => {
 
 test('plannedWrites for the agents target names skill paths and skips setup', () => {
   const home = tmp();
-  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  const target = resolveTarget({ target: 'agents', homeDir: home, cwd: home });
   const writes = plannedWrites(target, {});
   assert.ok(writes.some((w) => w.dest.endsWith(path.join('slashforge-code', 'SKILL.md'))));
   assert.ok(!writes.some((w) => w.dest.includes('slashforge-setup')));
@@ -1010,7 +1017,7 @@ test('dry-run with --target cursor writes nothing', () => {
     env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' },
   });
   assert.match(out, /slashforge-code/);
-  assert.ok(!out.includes('slashforge-setup'), 'setup is omitted on this target');
+  assert.match(out, /slashforge-setup/, 'setup installs on cursor');
   assert.ok(!fs.existsSync(path.join(home, '.agents')), 'dry-run must not create files');
 });
 
@@ -1050,7 +1057,7 @@ test('install summary lists the paths it actually wrote', () => {
     const p = line.replace('✓ Command:', '').trim();
     assert.ok(fs.existsSync(p), `summary names a path that was not written: ${p}`);
   }
-  assert.ok(!out.includes('slashforge-setup/SKILL.md'), 'omitted command must not be listed');
+  assert.ok(out.includes('slashforge-setup'), 'setup is installed on cursor and must be listed');
 });
 
 test('the completion message does not name the wrong vendor', () => {
@@ -1553,4 +1560,86 @@ test('neutral is a block name but never an install target', () => {
   assert.throws(() => resolveTarget({ target: 'neutral' }), /Unknown target/);
   const src = '<!--target:neutral-->\nx\n<!--/target-->\n';
   assert.deepEqual(findTargetBlockErrors(src, 'f.md'), [], 'but it is a valid marker');
+});
+
+// --- Task 5: setup on the vendor targets ---
+
+test('setup installs as a skill on cursor and codex', () => {
+  for (const name of ['cursor', 'codex']) {
+    const home = tmp();
+    const target = resolveTarget({ target: name, homeDir: home, cwd: home });
+    installFiles(target, {});
+    const skill = path.join(target.commandsDir, 'slashforge-setup', 'SKILL.md');
+    assert.ok(fs.existsSync(skill), `${name} should install setup`);
+    assert.match(fs.readFileSync(skill, 'utf8'), /^name: slashforge-setup$/m);
+  }
+});
+
+test('setup stays omitted on the vendor-neutral agents target', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'agents', homeDir: home, cwd: home });
+  installFiles(target, {});
+  assert.ok(!fs.existsSync(path.join(target.commandsDir, 'slashforge-setup')),
+    'no host is known on this target, so there is no layout to scaffold');
+});
+
+// The strongest guard on the read list: a guide named in the rendered setup must
+// be a guide this target actually receives, or the agent is sent to read a file
+// that is not on disk.
+test('every guide setup tells you to read is installed for that target', () => {
+  for (const name of ['claude', 'cursor', 'codex']) {
+    const home = tmp();
+    const target = resolveTarget({ target: name, homeDir: home, cwd: home });
+    installFiles(target, {});
+    const body = fs.readFileSync(
+      target.layout === 'skills'
+        ? path.join(target.commandsDir, 'slashforge-setup', 'SKILL.md')
+        : path.join(target.commandsDir, 'slashforge', 'setup.md'),
+      'utf8');
+    const referenced = [...body.matchAll(/forge-[a-z0-9-]+\.md/g)].map((m) => m[0]);
+    assert.ok(referenced.length > 5, `${name}: expected a real read list`);
+    for (const guide of new Set(referenced)) {
+      assert.ok(fs.existsSync(path.join(target.guidesDir, guide)),
+        `${name}: setup reads ${guide}, which is not installed here`);
+    }
+  }
+});
+
+test('rendered setup names each target own layout', () => {
+  const cursor = renderAll('cursor')[path.join('slashforge', 'setup.md')];
+  assert.match(cursor, /\.cursor\/rules\//);
+  assert.match(cursor, /\.mdc/);
+  assert.ok(!/\.claude\//.test(cursor), 'cursor setup must not write .claude');
+  assert.ok(!/forge-claude-md\.md/.test(cursor), 'cursor setup must not read the CLAUDE.md guide');
+
+  const codex = renderAll('codex')[path.join('slashforge', 'setup.md')];
+  assert.match(codex, /\.codex\/agents\//);
+  assert.match(codex, /\.toml/);
+  assert.match(codex, /AGENTS\.md/);
+  assert.ok(!/\.claude\//.test(codex), 'codex setup must not write .claude');
+  assert.ok(!/forge-agents\.md/.test(codex), 'codex setup must read the TOML subagent guide');
+});
+
+test('the vendor flows collapse the graphify hook-in phase', () => {
+  const claude = renderAll('claude')[path.join('slashforge', 'setup.md')];
+  assert.match(claude, /Phase 5 — Verify/, 'claude keeps five phases');
+  assert.match(claude, /graphify claude install/);
+
+  for (const name of ['cursor', 'codex']) {
+    const body = renderAll(name)[path.join('slashforge', 'setup.md')];
+    assert.match(body, /Phase 4 — Verify/, `${name} renumbers verify to phase 4`);
+    assert.ok(!/Phase 5/.test(body), `${name} must not leave a phase 5`);
+    assert.ok(!/graphify claude install/.test(body),
+      `${name} must not run a command that does not exist on it`);
+  }
+});
+
+test('the vendor flows never claim five phases', () => {
+  for (const name of ['cursor', 'codex']) {
+    const body = renderAll(name)[path.join('slashforge', 'setup.md')];
+    assert.ok(!/five phases|five-phase/.test(body), `${name} still claims five phases`);
+    assert.match(body, /four phases/, `${name} should say four phases`);
+  }
+  const claude = renderAll('claude')[path.join('slashforge', 'setup.md')];
+  assert.match(claude, /five phases/, 'claude keeps five');
 });

@@ -13,19 +13,23 @@ test('commandForm renders the three spellings', async () => {
   assert.equal(commandForm('review-pr', 'cursor'), '/slashforge-review-pr');
 });
 
-test('setup is deliberately not switchable', async () => {
-  const { SWITCHABLE } = await load();
-  assert.ok(!SWITCHABLE.includes('setup'), 'setup has no cursor/codex form');
+test('setup is switchable now that it installs on both vendors', async () => {
+  const { SWITCHABLE, commandForm } = await load();
+  assert.ok(SWITCHABLE.includes('setup'), 'setup has cursor and codex forms');
+  assert.equal(commandForm('setup', 'claude'), '/slashforge:setup');
+  assert.equal(commandForm('setup', 'cursor'), '/slashforge-setup');
+  assert.equal(commandForm('setup', 'codex'), '$slashforge-setup');
 });
 
 // The drift guard: adding a command to the installer without adding it here
 // fails, so the docs cannot silently fall behind what actually ships.
-test('SWITCHABLE covers every other shipped command', async () => {
+test('SWITCHABLE covers every shipped command', async () => {
   const { SWITCHABLE } = await load();
   const { COMMAND_FILES, SKILL_FILES } = require('../bin/install.js');
+  // setup is no longer excluded: it installs on cursor and codex, so it has a
+  // form on every target the docs describe.
   const shipped = [...COMMAND_FILES, ...SKILL_FILES]
-    .map((f) => f.split(path.sep).pop().replace(/\.md$/, ''))
-    .filter((n) => n !== 'setup');
+    .map((f) => f.split(path.sep).pop().replace(/\.md$/, ''));
   assert.deepEqual([...SWITCHABLE].sort(), shipped.sort());
 });
 
@@ -48,7 +52,9 @@ test('wholeLabelCommand only fires when the label is exactly one command', async
   const { wholeLabelCommand } = await load();
   assert.equal(wholeLabelCommand('/slashforge:code'), 'code');
   assert.equal(wholeLabelCommand('Run /slashforge:code now'), null);
-  assert.equal(wholeLabelCommand('/slashforge:setup'), null);
+  assert.equal(wholeLabelCommand('/slashforge:setup'), 'setup');
+  // An unknown name is still not a command.
+  assert.equal(wholeLabelCommand('/slashforge:deploy'), null);
 });
 
 test('splitCommandText separates commands from surrounding text', async () => {
@@ -60,8 +66,12 @@ test('splitCommandText separates commands from surrounding text', async () => {
   assert.deepEqual(splitCommandText('/slashforge:code'), [
     { text: '/slashforge:code', cmd: 'code' },
   ]);
-  // setup is not switchable, so it stays plain text on every target.
-  assert.deepEqual(splitCommandText('/slashforge:setup'), [{ text: '/slashforge:setup' }]);
+  // setup switches now that it installs on cursor and codex.
+  assert.deepEqual(splitCommandText('/slashforge:setup'), [
+    { text: '/slashforge:setup', cmd: 'setup' },
+  ]);
+  // A name the kit does not ship stays plain text.
+  assert.deepEqual(splitCommandText('/slashforge:deploy'), [{ text: '/slashforge:deploy' }]);
   assert.deepEqual(splitCommandText('no commands here'), [{ text: 'no commands here' }]);
 });
 

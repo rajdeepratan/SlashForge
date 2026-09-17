@@ -20,11 +20,12 @@ export const DEFAULT_TARGET = 'claude';
 /** Matches the existing `sf-theme` convention in src/scripts/site.js. */
 export const STORAGE_KEY = 'sf-target';
 
-// setup is absent here on purpose. It is not installed on cursor or codex, so
-// there is no form to switch to, and deriving one would print a command that
-// does not exist. Every reference to it therefore stays in the Claude Code
-// spelling on every target — visibly wrong rather than plausibly wrong.
+// setup is switchable: it installs on cursor and codex, scaffolding each host's
+// own layout rather than .claude/. The vendor-neutral `agents` target is the one
+// place it is still omitted — no host is known there, so there is no layout to
+// write — but the docs describe the vendors, not that fallback.
 export const SWITCHABLE = [
+  'setup',
   'code',
   'investigate',
   'review-pr',

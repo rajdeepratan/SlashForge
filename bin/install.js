@@ -105,13 +105,13 @@ const TARGETS = {
     dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
     namePrefix: 'slashforge-', blocks: ['agents', 'cursor'],
     // No memory layer on this vendor, and CLAUDE.md is not its entry file.
-    omit: [path.join('slashforge', 'setup.md'), 'forge-claude-md.md', 'forge-memory.md', 'forge-agents-codex.md'],
+    omit: ['forge-claude-md.md', 'forge-memory.md', 'forge-agents-codex.md'],
   },
   codex: {
     dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
     namePrefix: 'slashforge-', blocks: ['agents', 'codex'],
     // Subagents here are TOML, so the markdown guide is replaced, not fenced.
-    omit: [path.join('slashforge', 'setup.md'), 'forge-claude-md.md', 'forge-memory.md', 'forge-agents.md'],
+    omit: ['forge-claude-md.md', 'forge-memory.md', 'forge-agents.md'],
   },
 };
 
