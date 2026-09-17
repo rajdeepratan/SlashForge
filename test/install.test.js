@@ -39,6 +39,14 @@ function tmp() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'csk-test-'));
 }
 
+// Guides a given target actually receives. Not every target gets every guide:
+// the entry-file and subagent guides are vendor-specific splits, so a test that
+// walks GUIDE_FILES blindly asserts a file the install deliberately skipped.
+function guidesFor(target) {
+  const omit = target.omit || [];
+  return GUIDE_FILES.filter((g) => !omit.includes(g));
+}
+
 // A command that ships as a dispatcher plus a workflow file is read by the agent
 // as one instruction, so a guarantee it makes may be carried by either half.
 // These tests assert against the concatenation rather than against whichever file
@@ -107,7 +115,7 @@ test('installFiles global writes guides, rendered commands, and meta', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
   const written = installFiles(target, {});
-  for (const g of GUIDE_FILES) {
+  for (const g of guidesFor(target)) {
     assert.ok(fs.existsSync(path.join(target.guidesDir, g)), `guide ${g} missing`);
   }
   for (const c of COMMAND_FILES) {
@@ -144,7 +152,7 @@ test('guide files are rendered, leaving no unsubstituted placeholders', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
   installFiles(target, {});
-  for (const g of GUIDE_FILES) {
+  for (const g of guidesFor(target)) {
     const body = fs.readFileSync(path.join(target.guidesDir, g), 'utf8');
     assert.ok(!/\{\{[A-Z_]+\}\}/.test(body), `guide ${g} shipped an unrendered placeholder`);
   }
@@ -225,7 +233,8 @@ test('CLI --project --yes install writes guide files, command files, and meta.js
   const commandsDir = path.join(tmpRepo, '.claude', 'commands');
 
   assert.ok(fs.existsSync(guidesDir), 'guidesDir should exist after install');
-  for (const g of GUIDE_FILES) {
+  // Default target is claude, which omits the vendor entry-file guide.
+  for (const g of guidesFor(resolveTarget({ project: true, cwd: tmpRepo }))) {
     assert.ok(fs.existsSync(path.join(guidesDir, g)), `guide file ${g} should be installed`);
   }
   for (const c of COMMAND_FILES) {
@@ -829,9 +838,11 @@ test('resolveTargetName normalises aliases and rejects unknowns', () => {
   assert.throws(() => resolveTargetName('emacs'), /Unknown target/);
 });
 
-test('agents target omits setup', () => {
+test('agents target omits setup, claude omits no command', () => {
   assert.ok(TARGETS.agents.omit.includes(path.join('slashforge', 'setup.md')));
-  assert.deepEqual(TARGETS.claude.omit, []);
+  // claude omits only the vendor entry-file guide, never a command.
+  assert.deepEqual(TARGETS.claude.omit, ['forge-agents-md.md']);
+  assert.ok(!TARGETS.claude.omit.some((o) => o.includes('slashforge')));
 });
 
 test('agents install writes SKILL.md dirs with a rewritten name', () => {
@@ -881,7 +892,7 @@ test('agents guides are installed alongside the skills', () => {
   const home = tmp();
   const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
   installFiles(target, {});
-  for (const f of GUIDE_FILES) {
+  for (const f of guidesFor(target)) {
     assert.ok(fs.existsSync(path.join(target.guidesDir, f)), `missing guide ${f}`);
   }
   for (const f of ASSET_FILES) {
@@ -1404,5 +1415,65 @@ test('plannedWrites agrees with installFiles about omitted guides', () => {
   // Everything the plan promises is actually written (meta aside, which both include).
   for (const d of planned) {
     assert.ok(actual.includes(d), `planned but not written: ${d}`);
+  }
+});
+
+// --- Task 6: entry-file guide split ---
+
+test('each target receives only its own entry-file guide', () => {
+  const cases = {
+    claude: ['forge-claude-md.md', 'forge-agents-md.md'],
+    cursor: ['forge-agents-md.md', 'forge-claude-md.md'],
+    codex: ['forge-agents-md.md', 'forge-claude-md.md'],
+    agents: ['forge-claude-md.md', 'forge-agents-md.md'],
+  };
+  for (const [name, [present, absent]] of Object.entries(cases)) {
+    const home = tmp();
+    const target = resolveTarget({ target: name, homeDir: home, cwd: home });
+    installFiles(target, {});
+    assert.ok(fs.existsSync(path.join(target.guidesDir, present)), `${name} needs ${present}`);
+    assert.ok(!fs.existsSync(path.join(target.guidesDir, absent)), `${name} must not get ${absent}`);
+  }
+});
+
+test('the AGENTS.md guide never names a foreign vendor directory', () => {
+  for (const [name, bad] of [['cursor', /\.codex\//], ['codex', /\.cursor\//]]) {
+    const body = renderAll(name)['forge-agents-md.md'];
+    assert.ok(body, `${name} should render the guide`);
+    assert.ok(!bad.test(body), `${name} render leaks ${bad}`);
+    assert.ok(!/CLAUDE\.md is the entry point/.test(body), 'must not describe CLAUDE.md as the entry');
+  }
+});
+
+// forge-instructions.md's first golden rule caps every .md at 200 lines, and the
+// design decision for multi-target rendering is that the cap applies to the RENDERED
+// output — what an agent actually loads — not to the source, which carries every
+// target's branches.
+//
+// Two files predate that decision and break it. They are listed here rather than
+// silently skipped so the debt stays visible; the guard's job is to stop NEW files
+// joining them. Shrinking these two is its own change.
+const OVERSIZE_GUIDES = new Set([
+  'forge-graph.md',              // 217 rendered
+  'forge-workflow-review-pr.md', // 303 rendered
+]);
+
+test('no new rendered guide breaks the 200-line golden rule', () => {
+  for (const name of ['claude', 'agents', 'cursor', 'codex']) {
+    for (const [file, body] of Object.entries(renderAll(name))) {
+      if (OVERSIZE_GUIDES.has(path.basename(file))) continue;
+      const lines = body.split('\n').length;
+      assert.ok(lines <= 200, `${name}/${file} is ${lines} lines, over the 200-line cap`);
+    }
+  }
+});
+
+test('the oversize list contains only files that are actually oversize', () => {
+  // Keeps the exception list honest: shrink a file and the entry must go.
+  for (const stale of OVERSIZE_GUIDES) {
+    const worst = ['claude', 'agents', 'cursor', 'codex']
+      .map((n) => (renderAll(n)[stale] || '').split('\n').length)
+      .reduce((a, b) => Math.max(a, b), 0);
+    assert.ok(worst > 200, `${stale} now renders at ${worst} lines — remove it from OVERSIZE_GUIDES`);
   }
 });

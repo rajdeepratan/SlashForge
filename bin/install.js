@@ -25,6 +25,7 @@ const GUIDE_FILES = [
   'forge-commands.md',
   'forge-hooks.md',
   'forge-claude-md.md',
+  'forge-agents-md.md',
   'forge-memory.md',
 ];
 
@@ -82,13 +83,15 @@ const REMOVED_GUIDE_FILES = [
 const TARGETS = {
   claude: {
     dirname: '.claude', commandsSubdir: 'commands', layout: 'commands',
-    namePrefix: '', blocks: ['claude'], omit: [],
+    namePrefix: '', blocks: ['claude'],
+    // The AGENTS.md entry-file guide is for the vendor targets.
+    omit: ['forge-agents-md.md'],
   },
   // The vendor-neutral target: no host is known, so setup has no layout to write.
   agents: {
     dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
     namePrefix: 'slashforge-', blocks: ['agents'],
-    omit: [path.join('slashforge', 'setup.md')],
+    omit: [path.join('slashforge', 'setup.md'), 'forge-agents-md.md'],
   },
   // cursor and codex share the agents install location but render their own setup
   // guides: their file formats genuinely differ (.mdc vs nested AGENTS.md for rules,
@@ -96,12 +99,13 @@ const TARGETS = {
   cursor: {
     dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
     namePrefix: 'slashforge-', blocks: ['agents', 'cursor'],
-    omit: [path.join('slashforge', 'setup.md')],
+    // No memory layer on this vendor, and CLAUDE.md is not its entry file.
+    omit: [path.join('slashforge', 'setup.md'), 'forge-claude-md.md', 'forge-memory.md'],
   },
   codex: {
     dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
     namePrefix: 'slashforge-', blocks: ['agents', 'codex'],
-    omit: [path.join('slashforge', 'setup.md')],
+    omit: [path.join('slashforge', 'setup.md'), 'forge-claude-md.md', 'forge-memory.md'],
   },
 };
 
