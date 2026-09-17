@@ -77,15 +77,8 @@ nothing to it without an answer.
 
 **Fresh Setup — single-app repo:**
 
-<!--target:claude-->
 Run in five phases. **Collect every user decision in Phase 1**, then run the rest without interrupting the user. Do not write any file until Phase 3.
-<!--/target-->
-<!--target:cursor-->
-Run in four phases. **Collect every user decision in Phase 1**, then run the rest without interrupting the user. Do not write any file until Phase 3.
-<!--/target-->
-<!--target:codex-->
-Run in four phases. **Collect every user decision in Phase 1**, then run the rest without interrupting the user. Do not write any file until Phase 3.
-<!--/target-->
+
 
 *Phase 1 — Decide (explore + gather all consent; write nothing yet):*
 1. Explore the repo — tech stack, folder structure, key abstractions, build/test/lint commands
@@ -98,11 +91,11 @@ Run in four phases. **Collect every user decision in Phase 1**, then run the res
 <!--/target-->
 <!--target:cursor-->
 *Phase 2 — Provision (run approved installs; touches nothing in `.cursor/` or `AGENTS.md`):*
-4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/forge-graph.md` — the platform install (Branch A) and `graphify .` indexing. There is no separate hook-in step on this target: the `## graphify` section is written with `AGENTS.md` in Phase 3.
+4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/forge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before the hook-in command** — that step writes into files this setup manages and must wait for Phase 4.
 <!--/target-->
 <!--target:codex-->
 *Phase 2 — Provision (run approved installs; touches nothing in `.codex/` or `AGENTS.md`):*
-4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/forge-graph.md` — the platform install (Branch A) and `graphify .` indexing. There is no separate hook-in step on this target: the `## graphify` section is written with `AGENTS.md` in Phase 3.
+4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/forge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before the hook-in command** — that step writes into files this setup manages and must wait for Phase 4.
 <!--/target-->
 
 <!--target:claude-->
@@ -119,7 +112,7 @@ Run in four phases. **Collect every user decision in Phase 1**, then run the res
 6. Create skill files → `.cursor/skills/<name>/SKILL.md`
 7. Create subagent files → `.cursor/agents/*.md` — always more than one coding agent
 8. Create command files → `.cursor/commands/` if needed
-9. Create `AGENTS.md` in the repo root last, including the `## graphify` section if Graphify was provisioned
+9. Create `AGENTS.md` in the repo root last
 <!--/target-->
 <!--target:codex-->
 *Phase 3 — Generate kit files:*
@@ -127,7 +120,7 @@ Run in four phases. **Collect every user decision in Phase 1**, then run the res
 6. Create skill files → `.agents/skills/<name>/SKILL.md`
 7. Create subagent files → `.codex/agents/*.toml` — always more than one coding agent
 8. Do not create commands — custom prompts are deprecated; express each as a skill instead
-9. Create the root `AGENTS.md` last, including the `## graphify` section if Graphify was provisioned
+9. Create the root `AGENTS.md` last
 <!--/target-->
 
 <!--target:claude-->
@@ -138,33 +131,24 @@ Run in four phases. **Collect every user decision in Phase 1**, then run the res
 11. Run the verify step
 <!--/target-->
 <!--target:cursor-->
-*Phase 4 — Verify:*
-10. Run the verify step.
+*Phase 4 — Graphify hook-in (must run last):*
+10. If Graphify was provisioned in Phase 2, run its **Hook-in** half from `{{INSTALL_PATH}}/forge-graph.md` — `graphify cursor install` + SUMMARY.html synthesis. It writes `.cursor/rules/graphify.mdc`; running it after step 9 keeps it clear of the kit's own rule generation.
 
-There is no hook-in phase on this target: the `## graphify` section is written by
-step 9 above, so nothing appends to `AGENTS.md` after the kit does and no ordering
-constraint applies.
+*Phase 5 — Verify:*
+11. Run the verify step
 <!--/target-->
 <!--target:codex-->
-*Phase 4 — Verify:*
-10. Run the verify step.
+*Phase 4 — Graphify hook-in (the only Graphify step that appends to `AGENTS.md` / `hooks.json`; must run last):*
+10. If Graphify was provisioned in Phase 2, run its **Hook-in** half from `{{INSTALL_PATH}}/forge-graph.md` — `graphify codex install` + SUMMARY.html synthesis. Running it after step 9 keeps the kit's `AGENTS.md` write before Graphify's append, so Graphify's section survives and is treated as user-owned.
 
-There is no hook-in phase on this target: the `## graphify` section is written by
-step 9 above, so nothing appends to `AGENTS.md` after the kit does and no ordering
-constraint applies.
+*Phase 5 — Verify:*
+11. Run the verify step
 <!--/target-->
 
 **Fresh Setup — monorepo:**
 
-<!--target:claude-->
 Same five-phase shape as single-app — all decisions in Phase 1, Graphify offered **once at the root** (not per-app).
-<!--/target-->
-<!--target:cursor-->
-Same four-phase shape as single-app — all decisions in Phase 1, Graphify offered **once at the root** (not per-app).
-<!--/target-->
-<!--target:codex-->
-Same four-phase shape as single-app — all decisions in Phase 1, Graphify offered **once at the root** (not per-app).
-<!--/target-->
+
 
 *Phase 1 — Decide (write nothing yet):*
 1. Explore the repo — understand all apps, shared code, and root structure
@@ -176,10 +160,10 @@ Same four-phase shape as single-app — all decisions in Phase 1, Graphify offer
 4. If Graphify was approved, run its **Provision** half once at the root — CLI install (if needed) + `graphify .`. Stop before `graphify claude install`.
 <!--/target-->
 <!--target:cursor-->
-4. If Graphify was approved, run its **Provision** half once at the root — platform install (if needed) + `graphify .`. The `## graphify` section is written with the root `AGENTS.md` in Phase 3.
+4. If Graphify was approved, run its **Provision** half once at the root — CLI install (if needed) + `graphify .`. Stop before the hook-in command.
 <!--/target-->
 <!--target:codex-->
-4. If Graphify was approved, run its **Provision** half once at the root — platform install (if needed) + `graphify .`. The `## graphify` section is written with the root `AGENTS.md` in Phase 3.
+4. If Graphify was approved, run its **Provision** half once at the root — CLI install (if needed) + `graphify .`. Stop before the hook-in command.
 <!--/target-->
 
 <!--target:claude-->
@@ -209,31 +193,24 @@ Same four-phase shape as single-app — all decisions in Phase 1, Graphify offer
 9. Run the verify step for root and each app
 <!--/target-->
 <!--target:cursor-->
-*Phase 4 — Verify:*
-8. Run the verify step for root and each app.
+*Phase 4 — Graphify hook-in:*
+8. If Graphify was provisioned, run its **Hook-in** half once at the root — `graphify cursor install` + SUMMARY.html — AFTER all root and per-app `AGENTS.md` files are written.
 
-No hook-in phase: the `## graphify` section is written with the root `AGENTS.md`
-in step 5.
+*Phase 5 — Verify:*
+9. Run the verify step for root and each app
 <!--/target-->
 <!--target:codex-->
-*Phase 4 — Verify:*
-8. Run the verify step for root and each app.
+*Phase 4 — Graphify hook-in:*
+8. If Graphify was provisioned, run its **Hook-in** half once at the root — `graphify codex install` + SUMMARY.html — AFTER all root and per-app `AGENTS.md` files are written.
 
-No hook-in phase: the `## graphify` section is written with the root `AGENTS.md`
-in step 5.
+*Phase 5 — Verify:*
+9. Run the verify step for root and each app
 <!--/target-->
 
 **Update Existing Setup:**
 
-<!--target:claude-->
-Same five-phase shape — decisions first, file writes in the middle, Graphify's `CLAUDE.md` append (if any) last.
-<!--/target-->
-<!--target:cursor-->
-Same shape as a fresh run — decisions first, then file writes, then verify. Four phases on this target: the kit writes the `## graphify` section itself, so there is no append to order around.
-<!--/target-->
-<!--target:codex-->
-Same shape as a fresh run — decisions first, then file writes, then verify. Four phases on this target: the kit writes the `## graphify` section itself, so there is no append to order around.
-<!--/target-->
+Same five-phase shape — decisions first, file writes in the middle, Graphify's hook-in (if any) last.
+
 
 *Phase 1 — Decide (read + explore + gather consent; change nothing yet):*
 <!--target:claude-->
@@ -275,10 +252,10 @@ Same shape as a fresh run — decisions first, then file writes, then verify. Fo
 7. If Graphify was approved in step 5, run its **Provision** half — CLI install (Branch A) + `graphify .`, or the re-index (Branch C stale). Stop before `graphify claude install`.
 <!--/target-->
 <!--target:cursor-->
-7. If Graphify was approved in step 5, run its **Provision** half — platform install (Branch A) + `graphify .`, or the re-index (Branch C stale). No hook-in step follows on this target.
+7. If Graphify was approved in step 5, run its **Provision** half — CLI install (Branch A) + `graphify .`, or the re-index (Branch C stale). Stop before the hook-in command.
 <!--/target-->
 <!--target:codex-->
-7. If Graphify was approved in step 5, run its **Provision** half — platform install (Branch A) + `graphify .`, or the re-index (Branch C stale). No hook-in step follows on this target.
+7. If Graphify was approved in step 5, run its **Provision** half — CLI install (Branch A) + `graphify .`, or the re-index (Branch C stale). Stop before the hook-in command.
 <!--/target-->
 
 *Phase 3 — Generate kit files:*
@@ -302,16 +279,16 @@ Same shape as a fresh run — decisions first, then file writes, then verify. Fo
 12. Run the verify step
 <!--/target-->
 <!--target:cursor-->
-*Phase 4 — Verify:*
-11. Run the verify step.
+*Phase 4 — Graphify hook-in:*
+11. If a **first-time** install was provisioned in Phase 2 (Branch A or B), run its **Hook-in** half last — `graphify cursor install` + SUMMARY.html — after the edits in step 10. Branch C re-index needs no hook-in (the rule file already exists); just re-synthesise SUMMARY.html per the guide.
 
-No hook-in phase: if Graphify was provisioned, its `## graphify` section is part of
-the `AGENTS.md` the kit writes in step 10. Re-synthesise SUMMARY.html per the guide.
+*Phase 5 — Verify:*
+12. Run the verify step
 <!--/target-->
 <!--target:codex-->
-*Phase 4 — Verify:*
-11. Run the verify step.
+*Phase 4 — Graphify hook-in:*
+11. If a **first-time** install was provisioned in Phase 2 (Branch A or B), run its **Hook-in** half last — `graphify codex install` + SUMMARY.html — after the `AGENTS.md` edits in step 10. Branch C re-index needs no hook-in (the section already exists); just re-synthesise SUMMARY.html per the guide.
 
-No hook-in phase: if Graphify was provisioned, its `## graphify` section is part of
-the `AGENTS.md` the kit writes in step 10. Re-synthesise SUMMARY.html per the guide.
+*Phase 5 — Verify:*
+12. Run the verify step
 <!--/target-->

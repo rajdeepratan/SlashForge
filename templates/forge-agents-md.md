@@ -92,20 +92,22 @@ table alone.
 
 ## Graphify Section
 
-If Graphify was provisioned during setup, `AGENTS.md` must carry a `## graphify` section instructing the agent to consult `graphify-out/graph.json` before answering codebase questions, and to rebuild the graph after code changes.
+If Graphify was provisioned during setup, **it writes its own section** — do not write
+one yourself, or the repo ends up with two.
 
-On the Claude target, `graphify claude install` appends this section itself. That command has no equivalent here, so **the kit writes the section** — which means it sits inside the kit's `generated_by` marker and is refreshed on re-run, rather than being left alone as user-owned content.
+<!--target:cursor-->
+`graphify cursor install` writes `.cursor/rules/graphify.mdc` with `alwaysApply: true`.
+That is a rule file, not a section of `AGENTS.md`, so it needs no space here — just list
+it in the Project References table.
+<!--/target-->
+<!--target:codex-->
+`graphify codex install` appends a `## graphify` section to `AGENTS.md` and registers a
+PreToolUse hook in `.codex/hooks.json`. It runs **after** the kit writes `AGENTS.md`, and
+it preserves existing content.
 
-```markdown
-## graphify
-
-This repo has a knowledge graph at `graphify-out/graph.json`.
-
-- Before answering a question about the codebase, its architecture, or how files
-  relate, query the graph first rather than grepping blind.
-- After changing code, rebuild it: `graphify update .`
-- The post-commit hook (`graphify hook install`) rebuilds it automatically on commit.
-```
+Its section carries no `generated_by` marker, which is deliberate: the kit's update flow
+reads a missing marker as user-owned and leaves the section alone on re-runs.
+<!--/target-->
 
 ---
 

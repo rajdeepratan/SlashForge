@@ -1629,28 +1629,43 @@ test('rendered setup names each target own layout', () => {
   assert.ok(!/forge-agents\.md/.test(codex), 'codex setup must read the TOML subagent guide');
 });
 
-test('the vendor flows collapse the graphify hook-in phase', () => {
-  const claude = renderAll('claude')[path.join('slashforge', 'setup.md')];
-  assert.match(claude, /Phase 5 — Verify/, 'claude keeps five phases');
-  assert.match(claude, /graphify claude install/);
-
-  for (const name of ['cursor', 'codex']) {
+// graphify has a native integration per host — `graphify cursor install` writes
+// .cursor/rules/graphify.mdc, `graphify codex install` appends the AGENTS.md section
+// and registers a PreToolUse hook. So the hook-in phase exists everywhere and the
+// kit must never author that section itself.
+test('every target keeps the graphify hook-in phase and its own install command', () => {
+  const expected = {
+    claude: 'graphify claude install',
+    cursor: 'graphify cursor install',
+    codex: 'graphify codex install',
+  };
+  for (const [name, cmd] of Object.entries(expected)) {
     const body = renderAll(name)[path.join('slashforge', 'setup.md')];
-    assert.match(body, /Phase 4 — Verify/, `${name} renumbers verify to phase 4`);
-    assert.ok(!/Phase 5/.test(body), `${name} must not leave a phase 5`);
-    assert.ok(!/graphify claude install/.test(body),
-      `${name} must not run a command that does not exist on it`);
+    assert.match(body, /Phase 5 — Verify/, `${name} keeps five phases`);
+    assert.match(body, /Phase 4 — Graphify hook-in/, `${name} keeps the hook-in phase`);
+    assert.ok(body.includes(cmd), `${name} should run ${cmd}`);
+    for (const other of Object.values(expected)) {
+      if (other !== cmd) {
+        assert.ok(!body.includes(other), `${name} must not run ${other}`);
+      }
+    }
   }
 });
 
-test('the vendor flows never claim five phases', () => {
-  for (const name of ['cursor', 'codex']) {
+test('setup never tells the kit to write the graphify section itself', () => {
+  for (const name of ['claude', 'cursor', 'codex']) {
     const body = renderAll(name)[path.join('slashforge', 'setup.md')];
-    assert.ok(!/five phases|five-phase/.test(body), `${name} still claims five phases`);
-    assert.match(body, /four phases/, `${name} should say four phases`);
+    assert.ok(!/including the `## graphify` section/.test(body),
+      `${name}: graphify writes its own section — the kit must not duplicate it`);
   }
-  const claude = renderAll('claude')[path.join('slashforge', 'setup.md')];
-  assert.match(claude, /five phases/, 'claude keeps five');
+});
+
+test('every target runs setup in five phases', () => {
+  for (const name of ['claude', 'cursor', 'codex']) {
+    const body = renderAll(name)[path.join('slashforge', 'setup.md')];
+    assert.match(body, /five phases/, `${name} should say five phases`);
+    assert.ok(!/four phases/.test(body), `${name} must not claim four`);
+  }
 });
 
 // --- Task 8: master instructions guide ---
@@ -1700,19 +1715,23 @@ test('every target keeps all seven golden rules and the core sections', () => {
 // --- Task 9: rules, skills, commands, hooks ---
 
 test('no rendered guide names a foreign target directory', () => {
+  // Covers both the config directory AND the entry-file name: a guide that says
+  // "after the kit's CLAUDE.md is written" is just as wrong on Codex as one naming
+  // .claude/, and the directory pattern alone does not catch it.
   const foreign = {
     claude: /\.cursor\/|\.codex\//,
-    cursor: /\.claude\/|\.codex\//,
-    codex: /\.claude\/|\.cursor\//,
-    agents: /\.claude\/|\.cursor\/|\.codex\//,
+    cursor: /\.claude\/|\.codex\/|CLAUDE\.md/,
+    codex: /\.claude\/|\.cursor\/|CLAUDE\.md/,
+    agents: /\.claude\/|\.cursor\/|\.codex\/|CLAUDE\.md/,
   };
   // forge-agents.md legitimately cites .claude/agents/ once on cursor, to say
   // .cursor/ wins on a name conflict. That precedence note is the only exemption.
   const exempt = new Set([
     'forge-agents.md',
-    // Graphify's guide is fenced in its own task: `graphify claude install` is a real
-    // command name, so its ordering section cannot be reworded in isolation.
-    'forge-graph.md',
+    // Name CLAUDE.md on purpose: the coexistence instruction tells the vendor
+    // setup not to rewrite a Claude Code setup's entry file without asking.
+    'forge-agents-md.md',
+    path.join('slashforge', 'setup.md'),
     // KNOWN GAP — still to fence. All four are reachable on every target through
     // the workflow commands, so these ARE real leaks, not exemptions on principle.
     // They already carry <!--target:agents--> blocks for the agent-dispatch
@@ -1780,5 +1799,39 @@ test('the skills guide names each host skills directory', () => {
   for (const name of ['cursor', 'codex']) {
     assert.match(renderAll(name)['forge-skills.md'], /must match the parent|match its parent/,
       `${name}: both vendors require name to match the directory`);
+  }
+});
+
+// --- Task 10: graphify per host ---
+
+test('the graphify guide names each host own install command', () => {
+  const expected = {
+    claude: 'graphify claude install',
+    cursor: 'graphify cursor install',
+    codex: 'graphify codex install',
+  };
+  for (const [name, cmd] of Object.entries(expected)) {
+    const body = renderAll(name)['forge-graph.md'];
+    assert.ok(body.includes(cmd), `${name} should run ${cmd}`);
+    for (const other of Object.values(expected)) {
+      if (other !== cmd) assert.ok(!body.includes(other), `${name} must not run ${other}`);
+    }
+  }
+});
+
+test('the graphify guide states what each host integration writes', () => {
+  const cursor = renderAll('cursor')['forge-graph.md'];
+  assert.match(cursor, /\.cursor\/rules\/graphify\.mdc/, 'cursor gets a rule file');
+
+  const codex = renderAll('codex')['forge-graph.md'];
+  assert.match(codex, /AGENTS\.md/, 'codex gets an AGENTS.md section');
+  assert.match(codex, /hooks\.json|PreToolUse/, 'and a PreToolUse hook');
+});
+
+test('the ordering rule survives on every target', () => {
+  for (const name of ['claude', 'cursor', 'codex']) {
+    const body = renderAll(name)['forge-graph.md'];
+    assert.match(body, /Hook-in/, `${name}: the hook-in half must still exist`);
+    assert.match(body, /LAST|last/, `${name}: and must still run last`);
   }
 });
