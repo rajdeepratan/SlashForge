@@ -1436,7 +1436,6 @@ test('each target receives only its own entry-file guide', () => {
     claude: ['forge-claude-md.md', 'forge-agents-md.md'],
     cursor: ['forge-agents-md.md', 'forge-claude-md.md'],
     codex: ['forge-agents-md.md', 'forge-claude-md.md'],
-    agents: ['forge-claude-md.md', 'forge-agents-md.md'],
   };
   for (const [name, [present, absent]] of Object.entries(cases)) {
     const home = tmp();
@@ -1444,6 +1443,16 @@ test('each target receives only its own entry-file guide', () => {
     installFiles(target, {});
     assert.ok(fs.existsSync(path.join(target.guidesDir, present)), `${name} needs ${present}`);
     assert.ok(!fs.existsSync(path.join(target.guidesDir, absent)), `${name} must not get ${absent}`);
+  }
+
+  // The vendor-neutral target ships neither: setup is omitted there, so no flow
+  // reaches an entry-file guide, and a Claude-specific one would just go stale.
+  const home = tmp();
+  const agents = resolveTarget({ target: 'agents', homeDir: home, cwd: home });
+  installFiles(agents, {});
+  for (const guide of ['forge-claude-md.md', 'forge-agents-md.md']) {
+    assert.ok(!fs.existsSync(path.join(agents.guidesDir, guide)),
+      `agents must not ship ${guide}`);
   }
 });
 
@@ -1685,5 +1694,91 @@ test('every target keeps all seven golden rules and the core sections', () => {
     assert.match(body, /actual patterns in this codebase/, `${name}: lost the no-generic rule`);
     assert.match(body, /never specific file paths|never specific files/,
       `${name}: lost the directories-not-paths rule`);
+  }
+});
+
+// --- Task 9: rules, skills, commands, hooks ---
+
+test('no rendered guide names a foreign target directory', () => {
+  const foreign = {
+    claude: /\.cursor\/|\.codex\//,
+    cursor: /\.claude\/|\.codex\//,
+    codex: /\.claude\/|\.cursor\//,
+    agents: /\.claude\/|\.cursor\/|\.codex\//,
+  };
+  // forge-agents.md legitimately cites .claude/agents/ once on cursor, to say
+  // .cursor/ wins on a name conflict. That precedence note is the only exemption.
+  const exempt = new Set([
+    'forge-agents.md',
+    // Graphify's guide is fenced in its own task: `graphify claude install` is a real
+    // command name, so its ordering section cannot be reworded in isolation.
+    'forge-graph.md',
+    // KNOWN GAP — still to fence. All four are reachable on every target through
+    // the workflow commands, so these ARE real leaks, not exemptions on principle.
+    // They already carry <!--target:agents--> blocks for the agent-dispatch
+    // differences, but their `.claude/rules/` path references were never fenced,
+    // because until vendors became real targets "agents" meant one neutral thing
+    // and nobody checked paths. Listed so the gap stays visible rather than hidden
+    // behind a narrower assertion.
+    'forge-workflow.md',
+    'forge-workflow-investigation.md',
+    'forge-workflow-quick.md',
+    'forge-workflow-review-pr.md',
+    path.join('slashforge', 'investigate.md'),
+    path.join('slashforge', 'request-review.md'),
+    path.join('slashforge', 'review-pr.md'),
+  ]);
+  for (const [name, bad] of Object.entries(foreign)) {
+    // Only guides this target actually receives. A vendor-specific split names its
+    // own vendor throughout — that is the point of it — and it is never installed
+    // anywhere else, so rendering it for another target proves nothing.
+    const omit = TARGETS[name].omit || [];
+    for (const [file, body] of Object.entries(renderAll(name))) {
+      const base = path.basename(file);
+      if (exempt.has(base) || exempt.has(file)) continue;
+      if (omit.includes(base) || omit.includes(file)) continue;
+      assert.ok(!bad.test(body), `${name}/${file} names a foreign target directory`);
+    }
+  }
+});
+
+test('the rules guide carries each host real rules mechanism', () => {
+  const cursor = renderAll('cursor')['forge-rules.md'];
+  assert.match(cursor, /\.mdc/, 'cursor rules are .mdc');
+  assert.match(cursor, /silently ignored|is ignored/, 'must warn that a plain .md is ignored');
+  assert.match(cursor, /alwaysApply/, 'must document the frontmatter');
+  assert.match(cursor, /globs/);
+
+  const codex = renderAll('codex')['forge-rules.md'];
+  assert.match(codex, /nested `AGENTS\.md`/, 'codex rules are nested AGENTS.md');
+  assert.match(codex, /no rules directory/, 'must say there is no rules dir');
+  assert.ok(!/\.mdc/.test(codex), 'codex has no .mdc');
+});
+
+test('the commands guide tells codex not to create commands', () => {
+  const codex = renderAll('codex')['forge-commands.md'];
+  assert.match(codex, /deprecated/, 'must say prompts are deprecated');
+  assert.match(codex, /skill/i, 'must redirect to skills');
+
+  const cursor = renderAll('cursor')['forge-commands.md'];
+  assert.match(cursor, /\.cursor\/commands\//);
+});
+
+test('the hooks guide carries each host hook file and gate', () => {
+  const cursor = renderAll('cursor')['forge-hooks.md'];
+  assert.match(cursor, /\.cursor\/hooks\.json/);
+
+  const codex = renderAll('codex')['forge-hooks.md'];
+  assert.match(codex, /\.codex\/hooks\.json/);
+  assert.match(codex, /codex_hooks = true/, 'must document the beta feature gate');
+  assert.match(codex, /beta/i);
+});
+
+test('the skills guide names each host skills directory', () => {
+  assert.match(renderAll('cursor')['forge-skills.md'], /\.cursor\/skills\//);
+  assert.match(renderAll('codex')['forge-skills.md'], /\.agents\/skills\//);
+  for (const name of ['cursor', 'codex']) {
+    assert.match(renderAll(name)['forge-skills.md'], /must match the parent|match its parent/,
+      `${name}: both vendors require name to match the directory`);
   }
 });

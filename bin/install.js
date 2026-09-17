@@ -96,7 +96,13 @@ const TARGETS = {
     // makes them useless as a vendor-neutral fallback — a neutral variant fenced as
     // 'agents' would render alongside each vendor's own, duplicating the passage.
     namePrefix: 'slashforge-', blocks: ['agents', 'neutral'],
-    omit: [path.join('slashforge', 'setup.md'), 'forge-agents-md.md', 'forge-agents-codex.md'],
+    // Setup is omitted here, so the entry-file and subagent guides are unreachable.
+    omit: [
+      path.join('slashforge', 'setup.md'),
+      'forge-agents-md.md', 'forge-agents-codex.md', 'forge-claude-md.md',
+      // Claude Code's memory system, reachable only from setup.
+      'forge-memory.md',
+    ],
   },
   // cursor and codex share the agents install location but render their own setup
   // guides: their file formats genuinely differ (.mdc vs nested AGENTS.md for rules,
