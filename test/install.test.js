@@ -1643,3 +1643,47 @@ test('the vendor flows never claim five phases', () => {
   const claude = renderAll('claude')[path.join('slashforge', 'setup.md')];
   assert.match(claude, /five phases/, 'claude keeps five');
 });
+
+// --- Task 8: master instructions guide ---
+
+test('rendered instructions name only the running target layout', () => {
+  const claude = renderAll('claude')['forge-instructions.md'];
+  assert.match(claude, /CLAUDE\.md/);
+  assert.match(claude, /\.claude\/rules\//);
+  assert.ok(!/\.cursor\/|\.codex\//.test(claude), 'claude render leaks a vendor dir');
+
+  const cursor = renderAll('cursor')['forge-instructions.md'];
+  assert.match(cursor, /AGENTS\.md/);
+  assert.match(cursor, /\.cursor\/rules\/\*\.mdc/);
+  assert.ok(!/\.claude\/|\.codex\//.test(cursor), 'cursor render leaks a foreign dir');
+
+  const codex = renderAll('codex')['forge-instructions.md'];
+  assert.match(codex, /AGENTS\.md/);
+  assert.match(codex, /\.codex\/agents\/\*\.toml/);
+  assert.ok(!/\.claude\/|\.cursor\//.test(codex), 'codex render leaks a foreign dir');
+});
+
+// Reachable on the vendor-neutral target through forge-coverage.md, so it has to
+// stand on its own there without naming any vendor directory.
+test('instructions stay coherent on the vendor-neutral target', () => {
+  const body = renderAll('agents')['forge-instructions.md'];
+  assert.ok(!/\.claude\/|\.cursor\/|\.codex\//.test(body), 'agents render must name no vendor dir');
+  assert.ok(!/CLAUDE\.md/.test(body), 'and must not name a vendor entry file');
+});
+
+test('every target keeps all seven golden rules and the core sections', () => {
+  for (const name of ['claude', 'agents', 'cursor', 'codex']) {
+    const body = renderAll(name)['forge-instructions.md'];
+    for (const section of [
+      'Golden Rules', 'File Structure', 'Generated File Markers', 'Creation Order',
+      'Step 1', 'Step 2', 'Updating an Existing Setup', 'When to Split a File',
+    ]) {
+      assert.ok(body.includes(section), `${name}: lost the "${section}" section`);
+    }
+    assert.match(body, /under 200 lines/, `${name}: lost the 200-line rule`);
+    assert.match(body, /generated_by/, `${name}: lost the marker rule`);
+    assert.match(body, /actual patterns in this codebase/, `${name}: lost the no-generic rule`);
+    assert.match(body, /never specific file paths|never specific files/,
+      `${name}: lost the directories-not-paths rule`);
+  }
+});
