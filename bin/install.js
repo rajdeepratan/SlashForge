@@ -64,9 +64,11 @@ const SKILL_FILES = [
   path.join('slashforge', 'parallel.md'),
 ];
 
-// Guide files dropped in a later version. Install overwrites what it ships but
-// does not clear the guides dir, so without this an upgrade leaves the old file
-// sitting there being read by nothing.
+// Guide files dropped in a later version. The stale-guide sweep in installFiles now
+// removes these automatically — anything matching `forge-*.md` that the current
+// target did not write — so nothing reads this list at install time. It is kept as
+// the changelog of what was dropped and when, and the upgrade tests assert against
+// it to prove the sweep still clears them.
 const REMOVED_GUIDE_FILES = [
   // v4.3.0: superpowers became fully optional, so the only preflight check had
   // nothing left to detect.
@@ -462,9 +464,22 @@ function installFiles(target, {
     fs.writeFileSync(dest, rendered);
     written.push(dest);
   }
-  for (const f of REMOVED_GUIDE_FILES) {
-    const stale = path.join(target.guidesDir, f);
-    if (fs.existsSync(stale)) fs.rmSync(stale);
+  // Any kit guide this install did not just write is stale: one dropped in a later
+  // version, or one belonging to another target — a 4.4.3 cursor install received
+  // every guide, including the Claude-only ones. Leaving them means the agent reads
+  // a guide describing a layout it cannot write, which is worse than a missing file
+  // because it is prose the model then follows.
+  //
+  // Scoped to the `forge-*.md` names this installer owns, so meta.json, the assets
+  // (forge-open.sh, forge-report-shell.html) and anything else sharing the directory
+  // are out of reach. This subsumes REMOVED_GUIDE_FILES.
+  const writtenGuides = new Set(
+    written.filter((w) => path.dirname(w) === target.guidesDir).map((w) => path.basename(w))
+  );
+  for (const entry of fs.readdirSync(target.guidesDir)) {
+    if (!/^forge-[a-z0-9-]*\.md$/.test(entry)) continue;
+    if (writtenGuides.has(entry)) continue;
+    fs.rmSync(path.join(target.guidesDir, entry));
   }
   const meta = JSON.stringify({
     package: pkgName,

@@ -143,3 +143,47 @@ test('combined upgrade: REMOVED_GUIDE_FILES cleared by re-install, legacy comman
     );
   }
 });
+
+// --- Task 4: target-aware stale-guide cleanup ---
+
+// A 4.4.3 cursor install received every guide, including the Claude-only ones.
+// After upgrading, those are no longer written — and nothing used to delete them,
+// so the agent kept reading a guide describing a layout it cannot write.
+test('upgrading a cursor install removes guides it no longer receives', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  fs.mkdirSync(target.guidesDir, { recursive: true });
+  fs.writeFileSync(path.join(target.guidesDir, 'forge-memory.md'), 'stale\n');
+  fs.writeFileSync(path.join(target.guidesDir, 'forge-claude-md.md'), 'stale\n');
+  target.omit = ['forge-memory.md', 'forge-claude-md.md'];
+  installFiles(target, {});
+  assert.ok(!fs.existsSync(path.join(target.guidesDir, 'forge-memory.md')));
+  assert.ok(!fs.existsSync(path.join(target.guidesDir, 'forge-claude-md.md')));
+  assert.ok(fs.existsSync(path.join(target.guidesDir, 'forge-rules.md')),
+    'a guide this target does receive must survive');
+});
+
+// The sweep deletes files on real machines, so prove what it cannot touch.
+test('the stale sweep never removes meta.json or the assets', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  target.omit = ['forge-memory.md'];
+  installFiles(target, {});
+  assert.ok(fs.existsSync(target.metaFile), 'meta.json must survive');
+  for (const asset of ['forge-open.sh', 'forge-report-shell.html']) {
+    assert.ok(fs.existsSync(path.join(target.guidesDir, asset)), `${asset} must survive`);
+  }
+});
+
+// Files that are not kit guides share the directory on a project-mode install.
+test('the stale sweep leaves non-guide files alone', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
+  installFiles(target, {});
+  const keepers = ['notes.md', 'README.md', 'forge-notes.txt'];
+  for (const f of keepers) fs.writeFileSync(path.join(target.guidesDir, f), 'mine\n');
+  installFiles(target, {});
+  for (const f of keepers) {
+    assert.ok(fs.existsSync(path.join(target.guidesDir, f)), `${f} must not be swept`);
+  }
+});
