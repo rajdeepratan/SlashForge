@@ -57,9 +57,6 @@ for (const page of pages) {
     if (m[2] !== want) fail(`${rel}: ${m[1]} path rendered "${m[2]}", expected "${want}"`);
   }
 
-  if (/data-cmd="setup"/.test(html)) {
-    fail(`${rel}: setup must not be switchable — it does not exist on cursor or codex`);
-  }
 
   // The changelog is generated from /CHANGELOG.md and is a historical record.
   // Scoped to <main>: the sidebar and header are shared chrome on every page,
@@ -79,9 +76,8 @@ for (const page of pages) {
   }
 
   // A page whose title is exactly a switchable command switches too, or the
-  // heading contradicts the block directly beneath it. setup is excluded by
-  // wholeLabelCommand returning null, which is what keeps its title in the
-  // Claude Code form on every target.
+  // heading contradicts the block directly beneath it. setup is included now
+  // that it installs on cursor and codex, so its title switches like the rest.
   const h1 = /<h1[^>]*>([\s\S]*?)<\/h1>/.exec(html);
   if (h1) {
     const titleText = h1[1].replace(/<[^>]*>/g, '').trim();

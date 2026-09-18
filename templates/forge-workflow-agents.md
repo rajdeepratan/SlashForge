@@ -24,7 +24,7 @@ description: How task types are handled and the self-sufficiency rules shared ac
 This file is loaded alongside `forge-workflow.md` by every workflow command (`/slashforge:code`, `/slashforge:code -quick`, `/slashforge:investigate`). It covers which agent handles which task type, and the rules that keep the workflow running without unnecessary user prompts.
 <!--/target-->
 <!--target:agents-->
-This file is loaded alongside `forge-workflow.md` by every workflow command (`/slashforge-code`, `/slashforge-code -quick`, `/slashforge-investigate`). It covers how task types are handled, and the rules that keep the workflow running without unnecessary user prompts.
+This file is loaded alongside `forge-workflow.md` by every workflow command (`/slashforge:code`, `/slashforge:code -quick`, `/slashforge:investigate`). It covers how task types are handled, and the rules that keep the workflow running without unnecessary user prompts.
 <!--/target-->
 
 ---

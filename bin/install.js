@@ -305,11 +305,17 @@ function commandPath(target, file) {
     : path.join(target.commandsDir, file);
 }
 
+// The sigil a host invokes a skill with. Cursor uses `/` like Claude Code; Codex
+// uses `$`. Getting this wrong ships prose naming a form the host rejects.
+const TARGET_SIGILS = { claude: '/', agents: '/', cursor: '/', codex: '$' };
+
 // The skills layout has no `:` namespace, so in-body references to sibling commands
 // must use the hyphenated form — otherwise every cross-reference in the workflow names
-// a command that does not exist on this target.
-function toSkillCommandRefs(content, prefix) {
-  return content.replace(/\/slashforge:([a-z][a-z-]*)/g, `/${prefix}$1`);
+// a command that does not exist on this target. The leading sigil is per host, and
+// must match what `commandForm` in docs/src/targets.mjs advertises.
+function toSkillCommandRefs(content, prefix, targetName = 'agents') {
+  const sigil = TARGET_SIGILS[targetName] || '/';
+  return content.replace(/\/slashforge:([a-z][a-z-]*)/g, `${sigil}${prefix}$1`);
 }
 
 // Passages that differ between install targets are fenced in the templates:
@@ -383,7 +389,9 @@ function findTargetBlockErrors(content, file) {
 // skills layout has no namespace, so the prefix lives in the directory name instead.
 function commandName(file, target = null) {
   if (target && target.layout === 'skills') {
-    return '/' + skillDirName(file, target.namePrefix);
+    // Per-host sigil: Codex invokes skills with `$`. meta.json feeds the `status`
+    // output and the install banner, so a `/` here misreports what the user types.
+    return (TARGET_SIGILS[target.target] || '/') + skillDirName(file, target.namePrefix);
   }
   return '/' + file.replace(/\.md$/, '').split(path.sep).join(':');
 }
@@ -446,7 +454,7 @@ function installFiles(target, {
       targetName: target.target,
     });
     if (target.layout === 'skills') {
-      rendered = toSkillCommandRefs(rendered, target.namePrefix);
+      rendered = toSkillCommandRefs(rendered, target.namePrefix, target.target);
     }
     fs.writeFileSync(dest, rendered);
     written.push(dest);
@@ -471,7 +479,7 @@ function installFiles(target, {
     let dest;
     if (target.layout === 'skills') {
       const name = skillDirName(c, target.namePrefix);
-      rendered = toSkillCommandRefs(rendered, target.namePrefix);
+      rendered = toSkillCommandRefs(rendered, target.namePrefix, target.target);
       rendered = toSkillFrontmatter(rendered, name);
       dest = path.join(target.commandsDir, name, 'SKILL.md');
     } else {
@@ -1011,6 +1019,7 @@ module.exports = {
   skillDirName,
   toSkillFrontmatter,
   toSkillCommandRefs,
+  TARGET_SIGILS,
   stripTargetBlocks,
   blockNamesFor,
   findTargetBlockErrors,

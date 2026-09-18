@@ -19,9 +19,14 @@ Claude Code in any repo and type `/` — you should see `/slashforge:setup`,
 npx slashforge --target cursor
 ```
 
-That installs to `~/.agents/skills/`, which ==Cursor and Codex both read== — one
-install covers the two. Type `/` in Cursor and you should see
-`/slashforge-code`, `/slashforge-investigate` and `/slashforge-review-pr`.
+That installs to `~/.agents/skills/`, which ==Cursor and Codex both read==. Type `/`
+in Cursor and you should see `/slashforge-setup`, `/slashforge-code`,
+`/slashforge-investigate` and `/slashforge-review-pr`. In Codex they are invoked with
+`$` — `$slashforge-code`.
+
+==Install for the agent you actually use.== `--target cursor` and `--target codex`
+write to the same directory but render different content, because setup scaffolds each
+host's own layout. Installing one after the other replaces the first.
 
 Two differences worth knowing before you start:
 

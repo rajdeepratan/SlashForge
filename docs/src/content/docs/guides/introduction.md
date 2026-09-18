@@ -139,7 +139,6 @@ Install for Cursor with `npx slashforge --target cursor`. That writes
 `.agents/skills/`, the directory Codex reads as well.
 
 Commands are spelled differently on each agent. Pick yours in the header and
-every command in these docs changes to match. `/slashforge:setup` is Claude Code
-only for now — it provisions `.claude/` structure that has no equivalent on the
-other targets, so it keeps its Claude Code spelling whichever agent you pick.
+every command in these docs changes to match — including `setup`, which runs on
+all three agents and scaffolds each one's own layout rather than `.claude/`.
 

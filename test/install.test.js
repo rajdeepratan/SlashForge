@@ -30,6 +30,7 @@ const {
   stripTargetBlocks,
   findTargetBlockErrors,
   blockNamesFor,
+  toSkillCommandRefs,
 } = require('../bin/install.js');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
@@ -913,8 +914,9 @@ test('meta.json records the target and installed command names', () => {
   installFiles(target, {});
   const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
   assert.equal(meta.target, 'codex');
+  // codex fixture: Codex invokes skills with `$`, so meta.json records that form.
   assert.deepEqual(meta.commands,
-    ['/slashforge-setup', '/slashforge-code', '/slashforge-investigate', '/slashforge-review-pr']);
+    ['$slashforge-setup', '$slashforge-code', '$slashforge-investigate', '$slashforge-review-pr']);
 });
 
 test('claude meta.json keeps the colon command names', () => {
@@ -1820,4 +1822,48 @@ test('the ordering rule survives on every target', () => {
     assert.match(body, /Hook-in/, `${name}: the hook-in half must still exist`);
     assert.match(body, /LAST|last/, `${name}: and must still run last`);
   }
+});
+
+// --- Codex invocation sigil ---
+
+// Codex invokes skills with `$`, not `/` — docs-targets.test.js asserts
+// commandForm('code','codex') === '$slashforge-code'. The installed prose has to
+// agree, or the guide names a form the host does not accept.
+test('codex cross-references use the $ sigil, cursor keeps /', () => {
+  assert.equal(toSkillCommandRefs('see /slashforge:code now', 'slashforge-', 'codex'),
+    'see $slashforge-code now');
+  assert.equal(toSkillCommandRefs('see /slashforge:code now', 'slashforge-', 'cursor'),
+    'see /slashforge-code now');
+  assert.equal(toSkillCommandRefs('see /slashforge:code now', 'slashforge-', 'agents'),
+    'see /slashforge-code now');
+});
+
+test('installed codex guides never name the slash form of a command', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'codex', homeDir: home, cwd: home });
+  installFiles(target, {});
+  for (const f of fs.readdirSync(target.guidesDir)) {
+    if (!f.endsWith('.md')) continue;
+    const body = fs.readFileSync(path.join(target.guidesDir, f), 'utf8');
+    assert.ok(!/\/slashforge-[a-z]/.test(body),
+      `${f}: names /slashforge-* but Codex invokes skills with $`);
+  }
+  const skill = path.join(target.commandsDir, 'slashforge-code', 'SKILL.md');
+  assert.ok(!/\/slashforge-[a-z]/.test(fs.readFileSync(skill, 'utf8')),
+    'SKILL.md bodies must use the $ form too');
+});
+
+test('meta.json and status report the host invocation form', () => {
+  const home = tmp();
+  const target = resolveTarget({ target: 'codex', homeDir: home, cwd: home });
+  installFiles(target, {});
+  const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
+  assert.deepEqual(meta.commands,
+    ['$slashforge-setup', '$slashforge-code', '$slashforge-investigate', '$slashforge-review-pr']);
+
+  const home2 = tmp();
+  const cursor = resolveTarget({ target: 'cursor', homeDir: home2, cwd: home2 });
+  installFiles(cursor, {});
+  const meta2 = JSON.parse(fs.readFileSync(cursor.metaFile, 'utf8'));
+  assert.equal(meta2.commands[1], '/slashforge-code', 'cursor keeps the slash');
 });
