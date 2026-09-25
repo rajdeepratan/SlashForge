@@ -614,8 +614,8 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   margin-top: 14px;
 }
 .rail__cmd i { color: var(--muted); font-style: normal; }
-.rail__note { font-size: 13.5px; line-height: 1.65; color: var(--muted); margin: 16px 0 0; }
-.rail__note strong { color: var(--text); font-weight: 600; }
+.rail__note { font-size: 17px; line-height: 1.65; color: var(--muted); margin: 18px 0 0; }
+.rail__note strong { color: var(--text); font-weight: 700; }
 
 /* Read once, in full, by screen readers; the ticker beside it is decorative. */
 .sr-only {
