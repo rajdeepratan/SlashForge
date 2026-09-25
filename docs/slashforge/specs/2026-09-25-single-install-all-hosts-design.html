@@ -97,7 +97,7 @@
 <h2>Install layout</h2>
 <table>
   <tr><th>For</th><th>Path</th><th>Contents</th></tr>
-  <tr><td>Claude Code</td><td><code>~/.claude/commands/slashforge/</code>, <code>~/.claude/setup/slashforge/</code></td><td>Unchanged from 4.5.0: <code>/slashforge:*</code> commands and skills, guides, assets, <code>meta.json</code>.</td></tr>
+  <tr><td>Claude Code</td><td><code>~/.claude/commands/slashforge/</code>, <code>~/.claude/setup/slashforge/</code></td><td>Unchanged by this redesign: <code>/slashforge:*</code> commands and skills, guides, assets, <code>meta.json</code>.</td></tr>
   <tr><td>Cursor + Codex</td><td><code>~/.agents/skills/slashforge-*/SKILL.md</code></td><td>One host-neutral skill set, all 13 entry points and skills, <code>setup</code> included.</td></tr>
   <tr><td>Cursor</td><td><code>~/.agents/setup/slashforge/cursor/</code></td><td>Guides rendered for Cursor, plus its own copy of the four assets.</td></tr>
   <tr><td>Codex</td><td><code>~/.agents/setup/slashforge/codex/</code></td><td>Guides rendered for Codex, plus its own copy of the four assets.</td></tr>
@@ -108,7 +108,7 @@
 
 <h2>Rendering</h2>
 <ul>
-  <li><strong>Claude render:</strong> blocks <code>[claude]</code>, into <code>~/.claude/</code>. The output must be byte-identical to 4.5.0.</li>
+  <li><strong>Claude render:</strong> blocks <code>[claude]</code>, into <code>~/.claude/</code>. The output must be byte-identical to the branch's Claude render before this redesign (commit <code>4d68b2d</code>). #58's earlier, deliberate edits to Claude's text already differ from 4.5.0 and stay.</li>
   <li><strong>Guide renders:</strong> blocks <code>[agents, cursor]</code> into <code>cursor/</code>, and <code>[agents, codex]</code> into <code>codex/</code>. <code>{{INSTALL_PATH}}</code> is the concrete host folder.</li>
   <li><strong>Skill render:</strong> blocks <code>[agents]</code> only, rendered once.
     <ul>
@@ -151,12 +151,12 @@ or both, ask the user once and use that answer for the rest of the session.</pre
 </ul>
 
 <h2>Upgrades</h2>
-<p>No user has a Cursor or Codex install, because #58 never shipped. A 4.5.0 install is only <code>~/.claude/</code>, which upgrading leaves identical and alongside which it adds <code>~/.agents/</code>. No migration is needed.</p>
+<p>No user has a Cursor or Codex install, because #58 never shipped. A 4.5.0 install is only <code>~/.claude/</code>. Upgrading refreshes it with #58's already-reviewed text changes and adds <code>~/.agents/</code> alongside. No migration is needed.</p>
 
 <h2>Testing</h2>
 <ul>
   <li><strong>Dry run and install:</strong> <code>plannedWrites</code> and <code>installFiles</code> list the same files in both directions, globally and with <code>--project</code>. A CLI test checks the dry run against the files on disk.</li>
-  <li><strong>Claude render:</strong> byte-identical to 4.5.0, compared against templates rendered from tag <code>v4.5.0</code>.</li>
+  <li><strong>Claude render:</strong> byte-identical to fixtures captured from the branch before any change (commit <code>4d68b2d</code>).</li>
   <li><strong>Skill render:</strong>
     <ul>
       <li>no <code>cursor</code> or <code>codex</code> block survives</li>
