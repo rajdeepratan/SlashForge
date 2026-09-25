@@ -210,5 +210,50 @@ or both, ask the user once and use that answer for the rest of the session.</pre
 </ul>
 
 
+<h2>Addendum (2026-09-25): the same command names on every host — 5.0.0</h2>
+<div class="summary">
+  <strong>Change:</strong> Claude Code's commands go from <code>/slashforge:name</code> to <code>/slashforge-name</code>, matching Cursor. Codex keeps <code>$slashforge-name</code>, because <code>$</code> is how Codex invokes every skill. This ships in the same release as the one-install change, as 5.0.0, so users migrate once.
+</div>
+
+<h2>Claude Code layout</h2>
+<ul>
+  <li><strong>Commands become flat files:</strong> <code>~/.claude/commands/slashforge-&lt;name&gt;.md</code>, all 13. The <code>commands/slashforge/</code> subfolder goes away, and with it the <code>:</code>.</li>
+  <li><strong>Why not skills:</strong> skills in <code>~/.claude/skills/</code> are ruled out, because Cursor also reads that folder and would list every command twice.</li>
+  <li><strong>Guides stay put</strong> in <code>~/.claude/setup/slashforge/</code>.</li>
+  <li><strong><code>--project</code></strong> uses <code>./.claude/commands/</code> in the same way.</li>
+</ul>
+
+<h2>One command form in the templates</h2>
+<ul>
+  <li><strong>The templates are written in the form users type:</strong> every <code>/slashforge:name</code> becomes <code>/slashforge-name</code>. Only that string is replaced, followed by a command name.</li>
+  <li><strong>Claude and the shared skills</strong> render the text as written.</li>
+  <li><strong>The Codex guide render</strong> swaps the leading <code>/</code> for <code>$</code>.</li>
+  <li><strong>Frontmatter:</strong> <code>name:</code> becomes <code>/slashforge-name</code>, which Claude Code ignores.</li>
+</ul>
+
+<h2>Upgrading from 4.x</h2>
+<ul>
+  <li><strong>Old files are removed by exact name:</strong> a 5.0 install deletes the 13 files the kit put in <code>commands/slashforge/</code>, removes the folder if it is empty, and says what it removed.</li>
+  <li><strong>User files are kept,</strong> and so is the folder, if it holds any.</li>
+  <li><strong>Why remove them at all:</strong> without this, users would see <code>/slashforge:code</code> next to <code>/slashforge-code</code>, and the old one would still be running outdated instructions.</li>
+  <li><strong><code>status</code> and <code>uninstall</code></strong> recognise the 4.x layout.</li>
+</ul>
+
+<h2>Docs and site</h2>
+<ul>
+  <li><strong>The command switcher:</strong> Claude Code and Cursor show <code>/slashforge-name</code>, Codex shows <code>$slashforge-name</code>.</li>
+  <li><strong>Pages and README:</strong> every page and the README use the new names.</li>
+  <li><strong>Migration guide:</strong> a new "4.x to 5.0" section.</li>
+  <li><strong>CHANGELOG:</strong> a <strong>Breaking</strong> entry.</li>
+  <li><strong>Version:</strong> 5.0.0, bumped in a separate release PR after #58, following the 4.5.0 process.</li>
+</ul>
+
+<h2>Testing</h2>
+<ul>
+  <li><strong>The Claude fixtures</strong> are regenerated on purpose for the new names and layout. The guard stays.</li>
+  <li><strong>Upgrading:</strong> a 4.x install is replaced by the flat files, and a user command left in <code>commands/slashforge/</code> survives.</li>
+  <li><strong>Command forms:</strong> no rendered file keeps the <code>/slashforge:</code> form. Codex guides use <code>$</code>; Claude files, Cursor guides and skills use <code>/</code>.</li>
+  <li><strong>Docs:</strong> the switcher tests are updated for the two forms.</li>
+</ul>
 </body>
 </html>
