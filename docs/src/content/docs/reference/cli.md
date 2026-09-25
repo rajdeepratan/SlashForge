@@ -18,12 +18,13 @@ own for getting them on and off your machine.
 | --- | --- |
 | `--project` | Install into `./.claude/` of the current repo instead of `~/.claude/` |
 | `--dry-run` | Print planned file writes without touching the filesystem |
-| `--yes`, `-y` | Non-interactive; auto-confirm the update prompt |
+| `--yes`, `-y` | Non-interactive; auto-confirm the update and uninstall prompts |
 | `--help`, `-h` | Full usage |
 
-`--yes` is also enabled by `SLASHFORGE_YES=1`, or automatically when stdin is
-not a TTY — ==so CI, devcontainers, and anywhere else the install must not block
-on a prompt work without the flag==.
+`--yes` is also enabled by `SLASHFORGE_YES=1`. When stdin is not a TTY the update
+prompt confirms itself — ==so CI, devcontainers, and anywhere else the install must
+not block on a prompt work without the flag==. Uninstall does not: with no terminal
+to ask on, it refuses and exits 1 unless `--yes` or `SLASHFORGE_YES=1` is given.
 
 ```bash
 SLASHFORGE_YES=1 npx slashforge
@@ -101,6 +102,11 @@ slashforge status
     • /slashforge:setup
 ```
 
+With `--project`, it also warns when SlashForge is installed globally as well.
+Claude Code prefers personal commands over project ones, so the global copy is the
+one that runs, not the one committed to the repo. A `--project` install prints the
+same warning.
+
 On a machine with nothing installed it says so, rather than reporting an empty
 install:
 
@@ -118,6 +124,7 @@ absent.
 ```bash
 npx slashforge uninstall              # from ~/.claude/
 npx slashforge uninstall --project    # from ./.claude/
+npx slashforge uninstall --yes        # in a script, where there is no prompt
 ```
 
 ==Removes only the files SlashForge installed==, and recognises the v2 and v3
