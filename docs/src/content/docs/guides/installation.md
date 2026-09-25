@@ -29,9 +29,9 @@ is work out which of the two it is running in; if it can't tell, it asks you onc
 
 Two differences worth knowing before you start:
 
-- ==Commands are spelled differently per agent.== Use the switcher in the header, or the
-  tabs on any command block, and the docs show the form your agent takes. In Codex they are
-  invoked with `$` rather than `/`.
+- ==Commands have the same name on every agent.== Only Codex invokes them with `$`
+  rather than `/`; the switcher in the header, or the tabs on any command block, show
+  the form your agent takes.
 - ==Setup scaffolds your host's own layout.== On Cursor that is `.cursor/rules/*.mdc`
   and `.cursor/agents/`; on Codex, nested `AGENTS.md` and `.codex/agents/*.toml`. It
   never writes `CLAUDE.md` or `.claude/` in Cursor or Codex. Every step below applies

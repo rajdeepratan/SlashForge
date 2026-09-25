@@ -9,7 +9,8 @@ one is self-contained, and if you are two hops back you can do both at once.
 :::note
 ==Your repo's own `.claude/` directory survives every migration on this page.==
 Only the files under `~/.claude/` are replaced. The configuration
-`/slashforge-setup` generated is yours.
+`/slashforge-setup` generated is yours — though after v4 to v5 it may still name the
+old commands; step 3 of that section covers it.
 :::
 
 ## v4 to v5
@@ -32,7 +33,14 @@ The nine discipline skills follow the same pattern: `slashforge:plan` becomes
    name== — the 13 files it put in `~/.claude/commands/slashforge/`, then the folder if
    nothing else is left. A command of your own in that folder is kept.
 2. Restart Claude Code, so it drops the old `/slashforge:` entries.
-3. Update anything of your own that types the old name: scripts, notes, team docs.
+3. In each repo you set up with v4, run `/slashforge-setup` to refresh the files it
+   generated — its `CLAUDE.md` routing table and `.claude/agents/` files still name
+   `/slashforge:code` and `slashforge:tdd`. Or replace `slashforge:` with `slashforge-`
+   in them yourself. `npx slashforge`, run inside such a repo, lists the files that
+   still need it.
+4. In a repo that committed a v4 project install (`.claude/commands/slashforge/`), run
+   `npx slashforge --project` and commit the result.
+5. Update anything else of your own that types the old name: scripts, notes, team docs.
 :::
 
 There is no `--target` any more. One install sets up Claude Code, Cursor and Codex;

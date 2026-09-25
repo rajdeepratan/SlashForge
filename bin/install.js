@@ -874,6 +874,42 @@ function warnIfShadowed(claude, agents) {
   }
 }
 
+// A repo set up under 4.x names /slashforge:code and slashforge:tdd in the files
+// setup generated, and those names are gone in 5.0. The kit cannot rewrite a
+// user's files, so it says which ones and how to refresh them.
+const V4_NAME_RE = /(?<![\w./~-])\/?slashforge:[a-z]/;
+
+function warnAboutV4Repo({ cwd = process.cwd(), homeDir = os.homedir(), project = false } = {}) {
+  if (path.resolve(cwd) === path.resolve(homeDir)) return;
+  const hits = [];
+  const check = (p) => {
+    try { if (V4_NAME_RE.test(fs.readFileSync(p, 'utf8'))) hits.push(path.relative(cwd, p)); } catch { /* unreadable: skip */ }
+  };
+  for (const f of ['CLAUDE.md', 'AGENTS.md']) check(path.join(cwd, f));
+  const claudeDir = path.join(cwd, '.claude');
+  const skip = new Set([path.join(claudeDir, 'setup'), path.join(claudeDir, 'commands', COMMAND_NAMESPACE)]);
+  (function walk(dir, depth) {
+    if (depth > 4 || skip.has(dir) || !fs.existsSync(dir)) return;
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p, depth + 1);
+      else if (e.name.endsWith('.md') && !/^slashforge-.*\.md$/.test(e.name)) check(p);
+    }
+  })(claudeDir, 0);
+  if (hits.length) {
+    console.log(`\n⚠  This repo still names the 4.x commands (/slashforge:code, slashforge:tdd, …), which 5.0 renamed:`);
+    for (const h of hits.slice(0, 8)) console.log(`     ${h}`);
+    if (hits.length > 8) console.log(`     … and ${hits.length - 8} more`);
+    console.log('   Run /slashforge-setup here to refresh the files it generated, or replace');
+    console.log('   `slashforge:` with `slashforge-` in them yourself.');
+  }
+  const v4Project = V4_COMMAND_FILES.some((c) => fs.existsSync(path.join(cwd, '.claude', 'commands', c)));
+  if (!project && v4Project) {
+    console.log('\n⚠  This repo has a committed 4.x project install (.claude/commands/slashforge/).');
+    console.log(`   Run \`npx ${pkg.name} --project\` here to replace it with 5.0.`);
+  }
+}
+
 async function printStatus({ project = false } = {}) {
   const claude = resolveTarget({ project });
   const agents = resolveAgents({ project });
@@ -1032,6 +1068,7 @@ async function install({ dryRun, assumeYes, project = false }) {
   }
 
   warnIfShadowed(claude, agents);
+  warnAboutV4Repo({ project });
   await warnIfOutdated();
 }
 

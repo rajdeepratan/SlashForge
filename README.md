@@ -25,11 +25,10 @@
 Installs four commands on any machine — `/slashforge-setup` to scaffold a repo, `/slashforge-code` for freeform development (add `-quick` for lean small-change work), `/slashforge-investigate` for read-only research, and `/slashforge-review-pr` to review someone else's PR against your repo's rules.
 
 One `npx slashforge` sets it up for **Claude Code**, **Cursor** and **Codex** together.
-The commands are `/slashforge-code` in Claude Code, `/slashforge-code` in Cursor and
-`$slashforge-code` in Codex.
+The commands have the same name everywhere: `/slashforge-code` in Claude Code and Cursor,
+`$slashforge-code` in Codex, which invokes every skill with `$`.
 
-On Cursor and Codex the commands are hyphenated — `/slashforge-code`, not
-`/slashforge-code` — because neither supports the `:` namespace. All four commands,
+All four commands,
 `setup` included, run on every host: setup writes each host's own layout —
 `.cursor/rules/*.mdc` and `.cursor/agents/` on Cursor, nested `AGENTS.md` and
 `.codex/agents/*.toml` on Codex — and never writes `CLAUDE.md` or `.claude/` in
@@ -117,9 +116,9 @@ One install serves all three. There is nothing to choose.
 
 Cursor and Codex both read `.agents/skills/`, so they share one set of skills. Each has its own guide folder, because setup writes each host's own layout and those layouts differ: Cursor rules must be `.mdc` (a plain `.md` there is silently ignored), Codex has no rules directory at all and uses nested `AGENTS.md`, and Codex subagents are TOML rather than markdown. The first thing each Cursor or Codex command does is work out which of the two it is running in and read that host's guides; if it can't tell, it asks you once.
 
-The names differ because neither Cursor nor Codex supports a `:` namespace: a skill is named by the folder holding its `SKILL.md`. The prefix has to live in the name, otherwise the commands would install as bare `/code` and `/plan` and collide with everything else in your skills directory. Cross-references inside the installed files are rewritten to match.
+Every name carries the `slashforge-` prefix, otherwise the commands would install as bare `/code` and `/plan` and collide with everything else in your commands or skills directory. In Codex's guides, cross-references use `$` to match.
 
-`/slashforge-setup` is installed on `cursor` and `codex` and scaffolds each host natively. It is omitted only on `agents`, the vendor-neutral fallback, where no host is known and so there is no layout to scaffold.
+`/slashforge-setup` runs on all three hosts and scaffolds each one natively.
 
 If setup finds a `CLAUDE.md` while setting up a repo for Cursor or Codex, it asks before touching it — collapse to a one-line `@AGENTS.md` import, leave it alone, or mirror into both.
 

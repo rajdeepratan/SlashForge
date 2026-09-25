@@ -50,18 +50,14 @@ running in and read that host's guides; if it can't tell, it asks you once.
 
 `--target` is gone. Passing it exits with a message saying it is no longer needed.
 
-### Why the names differ
+### Why every name is `slashforge-`
 
-==On Cursor and Codex the commands are hyphenated== — `/slashforge-code`, not
-`/slashforge-code` — because neither supports the `:` namespace.
-
-A skill there is named by the folder that holds its `SKILL.md`, and nesting does
-not change that. The prefix has to live in the name itself, or the commands would
-install as bare `/code` and `/plan` and collide with everything else in your
-skills directory.
-
-Cross-references inside the installed files are rewritten to match, so a
-workflow that hands off to another command names one that exists on your target.
+==The same name on every host.== Cursor and Codex name a skill by the folder that
+holds its `SKILL.md`, and neither supports a `:` namespace, so the prefix has to live
+in the name — otherwise the commands would install as bare `/code` and `/plan` and
+collide with everything else in your skills directory. Claude Code installs flat
+`slashforge-*.md` files to match. Only Codex differs: it invokes skills with `$`, and
+the cross-references in its guides use `$` too.
 
 ### What setup writes on each host
 

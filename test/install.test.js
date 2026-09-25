@@ -2334,3 +2334,31 @@ test('uninstall removes both the flat files and 4.x leftovers; status lists the 
   assert.ok(!fs.existsSync(ns));
   assert.ok(!fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge-code.md')));
 });
+
+// A repo set up under 4.x has CLAUDE.md and .claude/ files naming /slashforge:code
+// and slashforge:tdd, which no longer exist after the 5.0 rename. Installing from
+// inside such a repo should say so, and how to fix it.
+test('installing inside a repo set up with 4.x warns about the old names', () => {
+  const home = tmp();
+  const repo = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  fs.writeFileSync(path.join(repo, 'CLAUDE.md'), '| build X | `/slashforge:code` |\n');
+  fs.mkdirSync(path.join(repo, '.claude', 'agents'), { recursive: true });
+  fs.writeFileSync(path.join(repo, '.claude', 'agents', 'dev.md'), 'Invoke `slashforge:tdd`.\n');
+  const out = execFileSync('node', [BIN, '--yes'], { env, cwd: repo, encoding: 'utf8' });
+  assert.match(out, /still name(s)? the 4\.x commands/);
+  assert.match(out, /CLAUDE\.md/);
+  assert.match(out, /\/slashforge-setup/, 'names the fix');
+
+  // A committed 4.x project install in the repo, and a global install run there.
+  const repo2 = tmp();
+  const ns = path.join(repo2, '.claude', 'commands', 'slashforge');
+  fs.mkdirSync(ns, { recursive: true });
+  fs.writeFileSync(path.join(ns, 'code.md'), 'old');
+  const out2 = execFileSync('node', [BIN, '--yes'], { env, cwd: repo2, encoding: 'utf8' });
+  assert.match(out2, /npx slashforge --project/, 'tells them to refresh the project copy');
+
+  // And a clean repo gets no warning.
+  const clean = execFileSync('node', [BIN, '--yes'], { env, cwd: tmp(), encoding: 'utf8' });
+  assert.doesNotMatch(clean, /4\.x commands/);
+});
