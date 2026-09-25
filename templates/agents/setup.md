@@ -1,5 +1,5 @@
 ---
-name: /slashforge:setup
+name: /slashforge-setup
 description: One-time repo setup — explore the codebase, ask clarifying questions, and create AGENTS.md plus tailored rules, skills, subagents and hooks in your host's own layout. Handles both fresh repos and partial setups.
 ---
 

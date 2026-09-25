@@ -1,5 +1,5 @@
 ---
-name: /slashforge:plan
+name: /slashforge-plan
 description: Turn an approved spec into a step-by-step implementation plan. Use after a design is agreed and before touching code. Produces bite-sized tasks with real code, real commands, and no placeholders.
 ---
 

@@ -21,10 +21,10 @@ description: How task types are handled and the self-sufficiency rules shared ac
 <!--/target-->
 
 <!--target:claude-->
-This file is loaded alongside `forge-workflow.md` by every workflow command (`/slashforge:code`, `/slashforge:code -quick`, `/slashforge:investigate`). It covers which agent handles which task type, and the rules that keep the workflow running without unnecessary user prompts.
+This file is loaded alongside `forge-workflow.md` by every workflow command (`/slashforge-code`, `/slashforge-code -quick`, `/slashforge-investigate`). It covers which agent handles which task type, and the rules that keep the workflow running without unnecessary user prompts.
 <!--/target-->
 <!--target:agents-->
-This file is loaded alongside `forge-workflow.md` by every workflow command (`/slashforge:code`, `/slashforge:code -quick`, `/slashforge:investigate`). It covers how task types are handled, and the rules that keep the workflow running without unnecessary user prompts.
+This file is loaded alongside `forge-workflow.md` by every workflow command (`/slashforge-code`, `/slashforge-code -quick`, `/slashforge-investigate`). It covers how task types are handled, and the rules that keep the workflow running without unnecessary user prompts.
 <!--/target-->
 
 ---
@@ -82,5 +82,5 @@ catch the same class of mistake.
 <!--target:agents-->
 - You handle every task type yourself — never ask the user which agent to use, and never create agent files
 <!--/target-->
-- The change-shipping loop (`/slashforge:code`, `/slashforge:code -quick`) runs without user intervention except for the four mandatory gates: **plan confirmation** (Phase 3), **branch decision** (Phase 4), **PR target + reviewers** (Phase 8), and **branch cleanup** (Phase 10)
+- The change-shipping loop (`/slashforge-code`, `/slashforge-code -quick`) runs without user intervention except for the four mandatory gates: **plan confirmation** (Phase 3), **branch decision** (Phase 4), **PR target + reviewers** (Phase 8), and **branch cleanup** (Phase 10)
 - Every phase with a named skill MUST invoke it via the `Skill` tool before acting — do not paraphrase from memory. All of them ship with SlashForge

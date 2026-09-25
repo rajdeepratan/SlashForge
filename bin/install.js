@@ -258,7 +258,7 @@ function skillDirName(file, prefix = '') {
 
 // Cursor and Codex require `name` to be lowercase letters, digits and hyphens only,
 // and to match the skill's parent directory. Templates carry Claude Code's
-// '/slashforge:code' form, so that one line is rewritten. Bounded to the frontmatter
+// '/slashforge-code' form, and a skill's name has no slash, so that line is rewritten. Bounded to the frontmatter
 // block so a body line beginning 'name:' is never touched.
 function toSkillFrontmatter(content, skillName) {
   const lines = content.split(/\r?\n/);
@@ -281,13 +281,12 @@ function commandPath(target, file) {
 // uses `$`. Getting this wrong ships prose naming a form the host rejects.
 const TARGET_SIGILS = { claude: '/', cursor: '/', codex: '$', skills: '/' };
 
-// The skills layout has no `:` namespace, so in-body references to sibling commands
-// must use the hyphenated form — otherwise every cross-reference in the workflow names
-// a command that does not exist on this target. The leading sigil is per host, and
-// must match what `commandForm` in docs/src/targets.mjs advertises.
-function toSkillCommandRefs(content, prefix, targetName = 'agents') {
-  const sigil = TARGET_SIGILS[targetName] || '/';
-  return content.replace(/\/slashforge:([a-z][a-z-]*)/g, `${sigil}${prefix}$1`);
+// Templates name commands in the form Claude Code and Cursor use, /slashforge-name.
+// Codex invokes skills with `$`, so its render swaps the sigil, but never inside a
+// path: `.agents/skills/slashforge-code/` is a directory, not a command.
+function toHostCommandRefs(content, host) {
+  if (TARGET_SIGILS[host] !== '$') return content;
+  return content.replace(/(?<![\w./~-])\/slashforge-(?=[a-z])/g, () => '$slashforge-');
 }
 
 // Passages that differ between install targets are fenced in the templates:
@@ -356,10 +355,9 @@ function findTargetBlockErrors(content, file) {
   return errors;
 }
 
-// 'slashforge/setup.md' -> '/slashforge:setup'. A command file's path under the commands
-// dir determines how it is invoked; a subdirectory becomes a `:` namespace.
+// 'slashforge/code.md' -> '/slashforge-code'. The same name on every host.
 function commandName(file) {
-  return '/' + file.replace(/\.md$/, '').split(path.sep).join(':');
+  return '/slashforge-' + path.basename(file, '.md');
 }
 
 function resolveTarget({ project = false, homeDir = os.homedir(), cwd = process.cwd() } = {}) {
@@ -529,7 +527,6 @@ function renderSkill(src, dest, agents, { templatesDir = TEMPLATES_DIR, version 
   let out = renderTemplate(fs.readFileSync(path.join(templatesDir, src), 'utf8'), {
     installPath: agents.skillInstallPath, version, pkgName, targetName: 'skills',
   });
-  out = toSkillCommandRefs(out, 'slashforge-', 'skills');
   out = toSkillFrontmatter(out, skillDirName(dest, 'slashforge-'));
   return withPreamble(out);
 }
@@ -538,7 +535,7 @@ function renderHostGuide(src, host, { templatesDir = TEMPLATES_DIR, version = pk
   const out = renderTemplate(fs.readFileSync(path.join(templatesDir, src), 'utf8'), {
     installPath: host.installPath, version, pkgName, targetName: host.host,
   });
-  return toSkillCommandRefs(out, 'slashforge-', host.host);
+  return toHostCommandRefs(out, host.host);
 }
 
 function plannedAgentsWrites(agents, {
@@ -995,15 +992,15 @@ async function install({ dryRun, assumeYes, project = false }) {
 
   if (ok.claude) {
     reportLegacyLeftovers(claude);
-    console.log('\nDone! Open Claude Code in any repo:');
-    console.log('  • /slashforge:setup — one-time repo setup');
-    console.log('  • /slashforge:code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
-    console.log('  • /slashforge:code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
-    console.log('  • /slashforge:investigate [symptom] — read-only research, produces a findings report');
-    console.log('  • /slashforge:review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
+    console.log('\nDone! Open Claude Code or Cursor in any repo:');
+    console.log('  • /slashforge-setup — one-time repo setup');
+    console.log('  • /slashforge-code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
+    console.log('  • /slashforge-code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
+    console.log('  • /slashforge-investigate [symptom] — read-only research, produces a findings report');
+    console.log('  • /slashforge-review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
   }
   if (ok.agents) {
-    console.log(ok.claude ? '\nIn Cursor the same commands are /slashforge-setup, /slashforge-code, …' : '\nIn Cursor the commands are /slashforge-setup, /slashforge-code, …');
+    if (!ok.claude) console.log('\nIn Cursor the commands are /slashforge-setup, /slashforge-code, …');
     console.log('In Codex they are $slashforge-setup, $slashforge-code, …');
   }
 
@@ -1027,7 +1024,7 @@ function reportLegacyLeftovers(target) {
 
   console.log('\n⚠  Files from slashforge v2 are still present:');
   for (const p of stale) console.log(`     ${p}`);
-  console.log('   They are no longer used. Safe to delete once you have moved to /slashforge:* commands.');
+  console.log('   They are no longer used. Safe to delete once you have moved to /slashforge-* commands.');
 }
 
 async function uninstall({ project, assumeYes, interactive = true }) {
@@ -1155,7 +1152,7 @@ module.exports = {
   commandName,
   skillDirName,
   toSkillFrontmatter,
-  toSkillCommandRefs,
+  toHostCommandRefs,
   TARGET_SIGILS,
   stripTargetBlocks,
   blockNamesFor,

@@ -1,5 +1,5 @@
 ---
-name: /slashforge:brainstorm
+name: /slashforge-brainstorm
 description: Turn an idea into an agreed design before any code exists. Use before creating features, building components, adding functionality, or changing behaviour. Explores intent, constraints and success criteria, then produces a spec you approve.
 ---
 

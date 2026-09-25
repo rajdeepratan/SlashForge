@@ -1,5 +1,5 @@
 ---
-name: /slashforge:tdd
+name: /slashforge-tdd
 description: Write the test first, watch it fail, then write the minimal code to pass. Use when implementing any feature, bugfix, or behaviour change, before writing implementation code.
 ---
 

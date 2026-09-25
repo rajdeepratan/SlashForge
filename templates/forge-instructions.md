@@ -220,7 +220,7 @@ Read: manifest files, config files, and representative source files across diffe
 | `.claude/agents/` | Global agents: `git`, `code-reviewer` | Specialist agents: `frontend-developer`, `api-builder`, `debugger`, etc. |
 | `.claude/rules/` | Shared conventions (git, commit style) | App-specific coding standards |
 | `.claude/skills/` | — | App-specific recipes |
-| `.claude/commands/` | Shared commands (e.g. `/slashforge:setup`) | App-specific commands (e.g. `/run-checks`, `/add-metric`) |
+| `.claude/commands/` | Shared commands (e.g. `/slashforge-setup`) | App-specific commands (e.g. `/run-checks`, `/add-metric`) |
 <!--/target-->
 <!--target:cursor-->
 **If it's a monorepo:** create one `AGENTS.md` at the repo root (shared conventions, global subagents, repo map) and one `AGENTS.md` per app. Cursor reads `AGENTS.md` files up the directory tree, nearest first, and scopes nested skills to their directory — place each file at the level where its context applies:

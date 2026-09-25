@@ -1,5 +1,5 @@
 ---
-name: /slashforge:worktree
+name: /slashforge-worktree
 description: Create an isolated workspace for risky or long-running work, so the main checkout stays usable. Use when a change would disturb a running dev server, might be abandoned, or needs to run alongside the branch it came from.
 ---
 

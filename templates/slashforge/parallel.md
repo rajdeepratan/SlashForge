@@ -1,5 +1,5 @@
 ---
-name: /slashforge:parallel
+name: /slashforge-parallel
 <!--target:claude-->
 description: Execute an approved plan by dispatching one agent per task, reviewing between each. Use only when the plan has two or more genuinely independent units — tasks that share no state and no ordering.
 <!--/target-->
@@ -112,7 +112,7 @@ For each task, hand over exactly:
 Nothing else. No summary of the conversation, no "we decided earlier that…". If the agent needs
 it, the plan is missing it, and that is worth knowing now.
 
-Each agent works its own task test-first, exactly as `slashforge:tdd` describes.
+Each agent works its own task test-first, exactly as `slashforge-tdd` describes.
 <!--/target-->
 <!--target:agents-->
 ## Working each task
@@ -126,7 +126,7 @@ For each task, work from exactly:
 Nothing else. No "we decided earlier that…". If you find yourself needing it, the plan is missing
 it, and that is worth knowing now — add it to the plan rather than carrying it in your head.
 
-Work each task test-first, exactly as `slashforge:tdd` describes.
+Work each task test-first, exactly as `slashforge-tdd` describes.
 <!--/target-->
 
 ## Reviewing between tasks

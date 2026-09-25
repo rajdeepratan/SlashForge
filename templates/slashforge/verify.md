@@ -1,5 +1,5 @@
 ---
-name: /slashforge:verify
+name: /slashforge-verify
 description: Evidence before claims. Use before stating that anything is done, fixed, passing, or ready — and before committing, opening a PR, or handing off. Requires running the verification command and reading its output first.
 ---
 

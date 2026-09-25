@@ -1,16 +1,16 @@
 ---
 name: Claude Development Workflow — PR Review Flow
-description: Read-only PR review flow used by /slashforge:review-pr — discovery, review against the repo's own rules, the review document, and the posting gate
+description: Read-only PR review flow used by /slashforge-review-pr — discovery, review against the repo's own rules, the review document, and the posting gate
 ---
 
 # PR Review Flow
 
-Seven-phase read-only flow used by `/slashforge:review-pr`. No branching, no commits, no edits to application code. The only writes are to GitHub, and only after the user approves the exact text. Companion files:
+Seven-phase read-only flow used by `/slashforge-review-pr`. No branching, no commits, no edits to application code. The only writes are to GitHub, and only after the user approves the exact text. Companion files:
 
 - `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
 - `forge-workflow.md` — the ten-phase change-shipping flow. Its **Phase 7 checklist** is the review standard applied in Phase R3 (this file does not otherwise load it)
 
-This file is loaded by `/slashforge:review-pr`.
+This file is loaded by `/slashforge-review-pr`.
 
 The flow runs without user intervention **except for two mandatory gates**: PR selection (Phase R1) and the posting gate (Phase R5).
 

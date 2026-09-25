@@ -1,11 +1,11 @@
 ---
 name: Claude Development Workflow — Investigation Flow
-description: Read-only investigation flow used by /slashforge:investigate — reproduction, root-cause analysis, and findings report
+description: Read-only investigation flow used by /slashforge-investigate — reproduction, root-cause analysis, and findings report
 ---
 
 # Investigation Flow
 
-Short, research-only flow used by `/slashforge:investigate`. No branching, no PR, no verification phase. Output is a findings report. Companion file:
+Short, research-only flow used by `/slashforge-investigate`. No branching, no PR, no verification phase. Output is a findings report. Companion file:
 
 <!--target:claude-->
 - `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
@@ -14,7 +14,7 @@ Short, research-only flow used by `/slashforge:investigate`. No branching, no PR
 - `forge-workflow-agents.md` — how task types are handled + self-sufficiency rules (loaded by every workflow command)
 <!--/target-->
 
-This file is loaded by `/slashforge:investigate`.
+This file is loaded by `/slashforge-investigate`.
 
 ---
 
@@ -31,9 +31,9 @@ This file is loaded by `/slashforge:investigate`.
 
 ## Phase I2 — Investigate (Read-Only)
 
-**Skill:** `slashforge:debug`
+**Skill:** `slashforge-debug`
 
-1. Invoke `slashforge:debug`
+1. Invoke `slashforge-debug`
 2. **If a code graph is available** (`GRAPH_REPORT.md` exists at repo root — Graphify is installed), run the freshness check from `forge-graph.md` Runtime section first, then consult the graph before grep/glob. Investigation is the scenario the graph is built for — blast radius, call paths, affected surface. The `graphify` PreToolUse hook should surface graph context automatically before any Glob/Grep call; if it doesn't, read `GRAPH_REPORT.md` directly.
 3. Reproduce the issue — in code, in a test, or by tracing
 4. Bisect / trace / read the code to find the root cause
@@ -158,11 +158,11 @@ Print **only**:
 
 End with the report's **actual filename** substituted in — never emit a placeholder like `<path>` or `#FileName`:
 
-> *"Investigation complete → `docs/slashforge/investigations/investigation-2026-08-02-1432.html`. Want me to fix this? Run `/slashforge:code investigation-2026-08-02-1432.html` to start the fix."*
+> *"Investigation complete → `docs/slashforge/investigations/investigation-2026-08-02-1432.html`. Want me to fix this? Run `/slashforge-code investigation-2026-08-02-1432.html` to start the fix."*
 
 Two different forms, deliberately:
 
 - **The pointer** (after the arrow) is the full repo-root-relative path — it tells the user where the file lives and is clickable in most terminals.
-- **The command** takes the **bare filename only.** `/slashforge:code` Step 0b resolves it against `docs/slashforge/investigations/`, so the shorter form is what the user has to type or paste.
+- **The command** takes the **bare filename only.** `/slashforge-code` Step 0b resolves it against `docs/slashforge/investigations/`, so the shorter form is what the user has to type or paste.
 
 No `#` or `@` prefix on either. A bare filename is what Step 0b resolves.

@@ -1,5 +1,5 @@
 ---
-name: /slashforge:review-feedback
+name: /slashforge-review-feedback
 description: Evaluate code review feedback technically before implementing any of it. Use when receiving review comments, especially if a suggestion seems unclear or wrong — requires verification and reasoned pushback, not agreement.
 ---
 

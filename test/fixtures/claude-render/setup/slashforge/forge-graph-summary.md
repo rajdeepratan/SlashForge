@@ -1,11 +1,11 @@
 ---
 name: Claude Setup — SUMMARY.html Synthesis Prompt
-description: Prompt template for synthesising graphify-out/SUMMARY.html from graphify-out/GRAPH_REPORT.md. Runs automatically inside /slashforge:setup on the Graphify yes-path — no second prompt. Produces a human-readable interpretive summary as a self-contained HTML file, not a reformat.
+description: Prompt template for synthesising graphify-out/SUMMARY.html from graphify-out/GRAPH_REPORT.md. Runs automatically inside /slashforge-setup on the Graphify yes-path — no second prompt. Produces a human-readable interpretive summary as a self-contained HTML file, not a reformat.
 ---
 
 # SUMMARY.html Synthesis Prompt
 
-This guide is read by Claude during `/slashforge:setup` immediately after `graphify claude install` succeeds. The user already authorised Graphify; SUMMARY.html generation rides on that same yes — no additional y/n prompt.
+This guide is read by Claude during `/slashforge-setup` immediately after `graphify claude install` succeeds. The user already authorised Graphify; SUMMARY.html generation rides on that same yes — no additional y/n prompt.
 
 **One-time cost:** ~5–15k tokens, only on the yes-path. The synthesis turns a ~400-line machine dump into a human-readable HTML file (~250 lines, ~2-minute read) that opens cleanly in any browser.
 
@@ -70,7 +70,7 @@ The file is a complete standalone HTML document. Use the skeleton below verbatim
 
 <h1>Graph Summary — <repo name> (<YYYY-MM-DD>)</h1>
 <blockquote>Human-readable synthesis of <code>GRAPH_REPORT.md</code>. The report is auto-generated
-by <code>graphify .</code>; this file is hand-curated synthesis written once at <code>/slashforge:setup</code> time.</blockquote>
+by <code>graphify .</code>; this file is hand-curated synthesis written once at <code>/slashforge-setup</code> time.</blockquote>
 
 <h2>Size &amp; quality</h2>
 <ul>

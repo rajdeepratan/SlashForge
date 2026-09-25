@@ -29,7 +29,7 @@ const {
   stripTargetBlocks,
   findTargetBlockErrors,
   blockNamesFor,
-  toSkillCommandRefs,
+  toHostCommandRefs,
 } = require('../bin/install.js');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
@@ -307,9 +307,8 @@ test('CLI --dry-run reports every file a real install would write, including ski
 });
 
 test('commandName maps a namespaced file to its slash invocation', () => {
-  assert.equal(commandName(path.join('slashforge', 'setup.md')), '/slashforge:setup');
-  assert.equal(commandName(path.join('slashforge', 'code.md')), '/slashforge:code');
-  assert.equal(commandName('investigate.md'), '/investigate');
+  assert.equal(commandName(path.join('slashforge', 'setup.md')), '/slashforge-setup');
+  assert.equal(commandName(path.join('slashforge', 'code.md')), '/slashforge-code');
 });
 
 test('commands install into the slashforge namespace directory', () => {
@@ -324,7 +323,7 @@ test('commands install into the slashforge namespace directory', () => {
   }
   const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
   assert.deepEqual(meta.commands, COMMAND_FILES.map(commandName));
-  assert.ok(meta.commands.includes('/slashforge:review-pr'));
+  assert.ok(meta.commands.includes('/slashforge-review-pr'));
 });
 
 test('/slashforge:code dispatches lean mode and ships the override guide', () => {
@@ -407,8 +406,8 @@ test('skills carry an invocation name and are excluded from meta.json commands',
   for (const s of SKILL_FILES) {
     assert.ok(!meta.commands.includes(commandName(s)), `${s} leaked into meta.commands`);
   }
-  // Still namespaced, though — that is the whole point of the location.
-  assert.ok(commandName(SKILL_FILES[0]).startsWith('/slashforge:'));
+  // Still prefixed, though, so the kit's skills never collide with a user's own.
+  assert.ok(commandName(SKILL_FILES[0]).startsWith('/slashforge-'));
 });
 
 test('skills are frontmatter-validated, unlike assets', () => {
@@ -850,13 +849,13 @@ test('agents guides are installed alongside the skills', () => {
   }
 });
 
-test('claude meta.json keeps the colon command names', () => {
+test('claude meta.json records the hyphen command names', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
   installFiles(target, {});
   const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
   assert.equal(meta.target, 'claude');
-  assert.ok(meta.commands.includes('/slashforge:setup'));
+  assert.ok(meta.commands.includes('/slashforge-setup'));
 });
 
 test('skillDirName maps a template path to a prefixed dir name', () => {
@@ -877,13 +876,13 @@ test('skills layout rewrites in-body command references to the hyphen form', () 
   }
 });
 
-test('claude layout leaves command references untouched', () => {
+test('claude guides name commands in the hyphen form', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
   installFiles(target, {});
   const guide = fs.readFileSync(path.join(target.guidesDir, 'forge-workflow.md'), 'utf8');
-  assert.ok(guide.includes('/slashforge:code'), 'the colon form is correct on Claude Code');
-  assert.ok(!guide.includes('/slashforge-code'));
+  assert.ok(guide.includes('/slashforge-code'), 'the hyphen form is what Claude Code lists');
+  assert.ok(!guide.includes('/slashforge:code'));
 });
 
 test('uninstall removes only slashforge dirs from the shared skills root', () => {
@@ -1643,12 +1642,9 @@ test('the ordering rule survives on every target', () => {
 // commandForm('code','codex') === '$slashforge-code'. The installed prose has to
 // agree, or the guide names a form the host does not accept.
 test('codex cross-references use the $ sigil, cursor keeps /', () => {
-  assert.equal(toSkillCommandRefs('see /slashforge:code now', 'slashforge-', 'codex'),
-    'see $slashforge-code now');
-  assert.equal(toSkillCommandRefs('see /slashforge:code now', 'slashforge-', 'cursor'),
-    'see /slashforge-code now');
-  assert.equal(toSkillCommandRefs('see /slashforge:code now', 'slashforge-', 'agents'),
-    'see /slashforge-code now');
+  assert.equal(toHostCommandRefs('see /slashforge-code now', 'codex'), 'see $slashforge-code now');
+  assert.equal(toHostCommandRefs('see /slashforge-code now', 'cursor'), 'see /slashforge-code now');
+  assert.equal(toHostCommandRefs('see /slashforge-code now', 'skills'), 'see /slashforge-code now');
 });
 
 test('installed codex guides never name the slash form of a command', () => {
@@ -2146,7 +2142,7 @@ test('one install sets up both locations and names all three forms', () => {
   assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')));
   assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code', 'SKILL.md')));
   assert.ok(fs.existsSync(path.join(home, '.agents', 'setup', 'slashforge', 'codex', 'forge-workflow.md')));
-  for (const form of ['/slashforge:code', '/slashforge-code', '$slashforge-code']) {
+  for (const form of ['/slashforge-code', '$slashforge-code']) {
     assert.ok(r.stdout.includes(form), `closing message should show ${form}`);
   }
 });
@@ -2251,4 +2247,44 @@ test('a project install notes a global .agents install as well', () => {
   assert.match(r.stdout, /global install.*runs instead/is, 'Claude Code shadow warning');
   assert.match(r.stdout, /Cursor and Codex may list both copies/);
   assert.ok(fs.existsSync(path.join(repo, '.agents', 'skills', 'slashforge-code', 'SKILL.md')));
+});
+
+// --- 5.0: the same command names on every host ---
+
+test('no installed file names a command in the colon form', () => {
+  const home = tmp();
+  installFiles(resolveTarget({ homeDir: home, cwd: home }), {});
+  installAgentsFiles(resolveAgents({ homeDir: home, cwd: home }), {});
+  const hits = [];
+  (function walk(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (/\.md$/.test(e.name) && /(^|[^\w./~-])\/?slashforge:[a-z]/.test(fs.readFileSync(p, 'utf8'))) hits.push(p);
+    }
+  })(home);
+  assert.deepEqual(hits, [], `colon form left in:\n  ${hits.join('\n  ')}`);
+});
+
+// Review Focus 4: a bare skill name is the name the host actually has.
+test('skill names in running text match the installed skill names', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const body = fs.readFileSync(path.join(a.skillsDir, 'slashforge-code', 'SKILL.md'), 'utf8');
+  assert.match(body, /`slashforge-plan`/);
+  assert.ok(fs.existsSync(path.join(a.skillsDir, 'slashforge-plan')));
+});
+
+// Review Focus 1: the Codex swap leaves paths alone.
+test('toHostCommandRefs swaps the sigil for Codex and never touches a path', () => {
+  const src = 'Run /slashforge-code, then read ~/.agents/skills/slashforge-code/SKILL.md or .claude/commands/slashforge-plan.md.';
+  assert.equal(toHostCommandRefs(src, 'cursor'), src);
+  assert.equal(toHostCommandRefs(src, 'claude'), src);
+  assert.equal(toHostCommandRefs(src, 'codex'),
+    'Run $slashforge-code, then read ~/.agents/skills/slashforge-code/SKILL.md or .claude/commands/slashforge-plan.md.');
+});
+
+test('commandName is the hyphenated form', () => {
+  assert.equal(commandName(path.join('slashforge', 'code.md')), '/slashforge-code');
 });

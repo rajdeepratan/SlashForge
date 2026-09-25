@@ -1,5 +1,5 @@
 ---
-name: /slashforge:investigate
+name: /slashforge-investigate
 description: Research-only flow — reproduce and root-cause a bug or suspected issue. Produces a findings report. No branch, no PR, no code changes.
 ---
 
@@ -33,10 +33,10 @@ report.
 
 - **I1 — Investigation Intake:** parse input, extract expected vs. actual behaviour, ask clarifying questions until the scope is clear
 - **I2 — Investigate (read-only):** reproduce, bisect, trace, read code. Consults the code graph when Graphify is installed. **No edits to application code**
-- **I3 — Report & hand-off:** write the findings report, open it, summarise in chat, hand off to `/slashforge:code`
+- **I3 — Report & hand-off:** write the findings report, open it, summarise in chat, hand off to `/slashforge-code`
 
 **Skills per phase (use the `Skill` tool, do not paraphrase). It ships with SlashForge:**
-- Phase I2 — `slashforge:debug`
+- Phase I2 — `slashforge-debug`
 
 ## The deliverable
 

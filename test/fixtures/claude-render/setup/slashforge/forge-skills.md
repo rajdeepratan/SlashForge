@@ -11,7 +11,7 @@ Derive tasks from the repo's domain — think "add a new X", "create a Y", "wire
 
 ## Check What Already Ships
 
-Before creating a new skill, check whether SlashForge already ships one. `slashforge:brainstorm`, `slashforge:plan`, `slashforge:debug`, `slashforge:tdd`, `slashforge:verify`, `slashforge:request-review`, `slashforge:review-feedback`, `slashforge:worktree` and `slashforge:parallel` cover the general development disciplines. Skills you write should be about *this repo* — how to add an endpoint here, how to run a migration here — not general practice.
+Before creating a new skill, check whether SlashForge already ships one. `slashforge-brainstorm`, `slashforge-plan`, `slashforge-debug`, `slashforge-tdd`, `slashforge-verify`, `slashforge-request-review`, `slashforge-review-feedback`, `slashforge-worktree` and `slashforge-parallel` cover the general development disciplines. Skills you write should be about *this repo* — how to add an endpoint here, how to run a migration here — not general practice.
 
 ## What Deserves a Skill
 

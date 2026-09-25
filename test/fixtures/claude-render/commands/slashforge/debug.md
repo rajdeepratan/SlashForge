@@ -1,5 +1,5 @@
 ---
-name: /slashforge:debug
+name: /slashforge-debug
 description: Find the root cause before proposing any fix. Use for any bug, test failure, or unexpected behaviour — especially when the fix looks obvious or time is short. Requires a reproduction and a failing regression test before code changes.
 ---
 

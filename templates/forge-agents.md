@@ -109,14 +109,14 @@ Reference directories, never specific files — file paths go stale:
 
 ## Superpowers Skills Per Agent Type
 
-Each agent type must invoke these skills. `slashforge:` skills ship with SlashForge and are always available:
+Each agent type must invoke these skills. `slashforge-` skills ship with SlashForge and are always available:
 
 | Agent | Skills to invoke |
 |---|---|
-| `developer`, `frontend-developer`, `api-builder` | `slashforge:brainstorm` (new features), `slashforge:plan`, `slashforge:tdd`, `slashforge:verify` (before handoff) |
-| `debugger` | `slashforge:debug`, `slashforge:verify` |
-| `code-reviewer` | `slashforge:request-review` |
-| `test-writer` | `slashforge:tdd`, `slashforge:verify` |
+| `developer`, `frontend-developer`, `api-builder` | `slashforge-brainstorm` (new features), `slashforge-plan`, `slashforge-tdd`, `slashforge-verify` (before handoff) |
+| `debugger` | `slashforge-debug`, `slashforge-verify` |
+| `code-reviewer` | `slashforge-request-review` |
+| `test-writer` | `slashforge-tdd`, `slashforge-verify` |
 
 Every skill named here ships with SlashForge, so there is nothing to check for and nothing to skip.
 

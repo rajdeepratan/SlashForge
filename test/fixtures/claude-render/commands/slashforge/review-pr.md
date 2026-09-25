@@ -1,5 +1,5 @@
 ---
-name: /slashforge:review-pr
+name: /slashforge-review-pr
 description: Review a pull request against this repo's own rules and conventions, then post line-level comments or approve — only after you confirm. Lists PRs awaiting your review; pass --assigned, --mine or --all to change what it looks for.
 ---
 
