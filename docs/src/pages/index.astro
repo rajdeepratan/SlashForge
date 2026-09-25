@@ -9,6 +9,7 @@
  * physically could not reach the viewport edges.
  */
 import Base from '../layouts/Base.astro';
+import AgentSwitcher from '../components/AgentSwitcher.astro';
 import { version, nodeFloor } from '../pkg';
 
 import { splitCommandText } from '../targets.mjs';
@@ -126,6 +127,7 @@ const costs = [
 ---
 
 <Base
+  agentInHeader={false}
   title="SlashForge — workflow slash commands for AI coding agents"
   description="Workflow slash commands for AI coding agents — /slashforge-setup, /slashforge-code, /slashforge-investigate, /slashforge-review-pr. For Claude Code, Cursor and Codex."
   rawTitle
@@ -146,6 +148,11 @@ const costs = [
             >
               View on GitHub
             </a>
+          </div>
+
+          <div class="hero__agent">
+            <div class="label">Your agent</div>
+            <AgentSwitcher placement="hero" />
           </div>
 
           <div class="rail">
