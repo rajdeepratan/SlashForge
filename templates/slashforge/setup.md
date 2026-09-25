@@ -9,9 +9,6 @@ description: One-time repo setup — explore the codebase, ask clarifying questi
 <!--target:codex-->
 description: One-time repo setup — explore the codebase, ask clarifying questions, and create AGENTS.md plus nested rule files, skills in .agents/skills/, and subagents in .codex/agents/. Handles both fresh repos and partial setups.
 <!--/target-->
-<!--target:neutral-->
-description: One-time repo setup. Not available on this target — no host is known, so there is no layout to scaffold. Install with --target cursor or --target codex instead.
-<!--/target-->
 ---
 
 Then read all of the following files in full — together they are your complete guide:

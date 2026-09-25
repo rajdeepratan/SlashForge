@@ -11,10 +11,6 @@ description: How to create rule files in .cursor/rules/ when setting up Cursor f
 name: Agent Setup — Rule Files
 description: How to encode rules as nested AGENTS.md files when setting up Codex for a repo
 <!--/target-->
-<!--target:neutral-->
-name: Agent Setup — Rule Files
-description: How to create rule files when setting up a repo — one concern per file
-<!--/target-->
 ---
 
 # Creating Rule Files
@@ -39,9 +35,6 @@ repo-wide rule becomes a section of the root `AGENTS.md`.
 
 Do not create `.codex/rules/` — nothing reads it.
 <!--/target-->
-<!--target:neutral-->
-Rules = **how code must be written** in this repo. One file per concern.
-<!--/target-->
 
 Derive topics from what you observed in the codebase — do not copy a template. Common concerns:
 
@@ -65,9 +58,6 @@ Always create a `git.mdc` rule file (with `alwaysApply: true`) containing:
 <!--/target-->
 <!--target:codex-->
 Always cover git conventions in the root `AGENTS.md` — they apply repo-wide, so they do not belong in a nested file. Include:
-<!--/target-->
-<!--target:neutral-->
-Always create a git rule file containing:
 <!--/target-->
 
 - Branch naming pattern — ask the user for the project's preferred format (e.g. `feat/<short-description>`, `fix/<short-description>`)
@@ -145,20 +135,6 @@ A rule is a section of an `AGENTS.md`, so it carries no frontmatter of its own. 
 [code example]
 ```
 <!--/target-->
-<!--target:neutral-->
-Every rule file must start with frontmatter, including the generated-by marker (see `forge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
-
-```markdown
----
-name: [concern name]
-description: [one-line description of what this rule covers]
-generated_by: [package]@[version]
-generated_at: [ISO 8601 timestamp]
----
-
-[Rule stated plainly]
-```
-<!--/target-->
 
 Not every rule needs a code example. Location and naming rules can be stated plainly:
 
@@ -219,9 +195,6 @@ src/services/AGENTS.md    # applies only under src/services/
 
 A nested file is a complete entry point for its subtree, not a diff against the root. It
 should not repeat the root's stack table, but it must name anything that differs.
-<!--/target-->
-<!--target:neutral-->
-Rules can be scoped so the agent only loads them when working with matching files. This saves context and stops rules polluting unrelated work — check the host's rule format for whether that scoping is a glob field or the file's own location.
 <!--/target-->
 
 ---

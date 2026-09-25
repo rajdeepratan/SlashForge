@@ -9,9 +9,6 @@ description: How to create custom commands in .cursor/commands/ or as skills
 <!--target:codex-->
 description: Why Codex has no command files, and how to express a repo command as a skill instead
 <!--/target-->
-<!--target:neutral-->
-description: How to create custom commands, or express them as skills
-<!--/target-->
 ---
 
 # Creating Slash Commands
@@ -37,9 +34,6 @@ how the agent discovers it in place of a typed command name.
 
 The rest of this guide is about *deciding* whether something deserves to be a command at
 all. That judgement still applies — only the file format changes.
-<!--/target-->
-<!--target:neutral-->
-**Important:** prefer a skill. Commands and skills have merged on most hosts, and the skill format supports supporting files, richer frontmatter and auto-invocation.
 <!--/target-->
 
 ---
@@ -77,11 +71,6 @@ Two equivalent forms — prefer the directory form for new commands:
 .agents/skills/run-checks/SKILL.md      # The only form on this target
 ```
 <!--/target-->
-<!--target:neutral-->
-```
-<host config dir>/skills/run-checks/SKILL.md      # Preferred: directory with SKILL.md
-```
-<!--/target-->
 
 <!--target:claude-->
 User-level commands (apply to all projects): `~/.claude/skills/` or `~/.claude/commands/`.
@@ -91,9 +80,6 @@ User-level commands (apply to all projects): `~/.cursor/skills/` or `~/.agents/s
 <!--/target-->
 <!--target:codex-->
 User-level skills (apply to all projects): `~/.agents/skills/`. Keep repo conventions in the repo — a user-level file follows the user into unrelated projects.
-<!--/target-->
-<!--target:neutral-->
-User-level commands apply to all projects; keep repo conventions in the repo.
 <!--/target-->
 
 Command name = filename (or directory name). `run-checks` becomes `/run-checks`.
@@ -182,7 +168,4 @@ Do not create a command for:
 <!--/target-->
 <!--target:codex-->
 - Document team-shared skills in the root `AGENTS.md` routing table so teammates discover them
-<!--/target-->
-<!--target:neutral-->
-- Document team-shared commands in the entry file's routing table so teammates discover them
 <!--/target-->

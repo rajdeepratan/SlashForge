@@ -11,10 +11,6 @@ description: Entry point for setting up AGENTS.md, subagents, rules, and skills 
 name: Agent Setup Instructions
 description: Entry point for setting up AGENTS.md, subagents, rules, and skills in any repo — golden rules, creation order, and verification
 <!--/target-->
-<!--target:neutral-->
-name: Agent Setup Instructions
-description: Entry point for setting up a repo's entry file, agents, rules, and skills — golden rules, creation order, and verification
-<!--/target-->
 ---
 
 <!--target:claude-->
@@ -31,11 +27,6 @@ Reference this file whenever asked to create `AGENTS.md`, subagents, rules, or s
 # Agent Setup Instructions
 
 Reference this file whenever asked to create `AGENTS.md`, subagents, rules, or skills in any repo.
-<!--/target-->
-<!--target:neutral-->
-# Agent Setup Instructions
-
-Reference this file whenever asked to create the repo's entry file, agents, rules, or skills.
 <!--/target-->
 
 > **Also read:** [`forge-workflow.md`](forge-workflow.md) — required companion file covering the end-to-end intake-to-PR workflow. Read both before proceeding.
@@ -54,9 +45,6 @@ Reference this file whenever asked to create the repo's entry file, agents, rule
 <!--target:codex-->
 - `AGENTS.md` → repo root (and any subdirectory it governs). Subagents → `.codex/agents/`; skills → `.agents/skills/`. Never loose in root.
 <!--/target-->
-<!--target:neutral-->
-- The entry file → repo root. Agents / rules / skills → inside the host's own config directory only. Never in root.
-<!--/target-->
 - Rules and skills must reflect **actual patterns in this codebase**, not generic best practices.
 <!--target:claude-->
 - Agent files reference **directories** (`.claude/rules/`), never specific file paths — they go stale.
@@ -66,9 +54,6 @@ Reference this file whenever asked to create the repo's entry file, agents, rule
 <!--/target-->
 <!--target:codex-->
 - Subagent instructions reference **the nearest `AGENTS.md`** and directories, never specific file paths — they go stale.
-<!--/target-->
-<!--target:neutral-->
-- Agent files reference **directories**, never specific file paths — they go stale.
 <!--/target-->
 - No stale references — if a file is renamed or split, update every file that pointed to it.
 <!--target:claude-->
@@ -80,9 +65,6 @@ Reference this file whenever asked to create the repo's entry file, agents, rule
 <!--target:codex-->
 - The root `AGENTS.md` Project References table must list every rule (nested `AGENTS.md` or root section) and skill by name.
 <!--/target-->
-<!--target:neutral-->
-- The entry file's Project References table must list every rule and skill file by name.
-<!--/target-->
 <!--target:claude-->
 - **Every file you create or regenerate in `.claude/` or `CLAUDE.md` must carry a generated-by marker** (see below).
 <!--/target-->
@@ -91,9 +73,6 @@ Reference this file whenever asked to create the repo's entry file, agents, rule
 <!--/target-->
 <!--target:codex-->
 - **Every file you create or regenerate in `.codex/`, `.agents/skills/` or any `AGENTS.md` must carry a generated-by marker** (see below).
-<!--/target-->
-<!--target:neutral-->
-- **Every file you create or regenerate, including the entry file, must carry a generated-by marker** (see below).
 <!--/target-->
 
 ---
@@ -129,14 +108,6 @@ Reference this file whenever asked to create the repo's entry file, agents, rule
 | Commands | none — prompts are deprecated; write a skill |
 | Hooks | `.codex/hooks.json` (project hooks load once `.codex/` is trusted) |
 <!--/target-->
-<!--target:neutral-->
-| File | Location |
-|---|---|
-| Entry file | Repo root |
-| Agents | the host's agents directory |
-| Rules | the host's rules directory |
-| Skills | the host's skills directory |
-<!--/target-->
 
 ---
 
@@ -150,9 +121,6 @@ Every file you write into a target repo's `.cursor/` (rules, skills, subagents, 
 <!--/target-->
 <!--target:codex-->
 Every file you write into a target repo — subagents in `.codex/agents/`, skills in `.agents/skills/`, and every `AGENTS.md` — must include a marker that identifies the kit version that created it. This is what makes safe, non-destructive re-runs possible.
-<!--/target-->
-<!--target:neutral-->
-Every file you write into a target repo, including its entry file, must include a marker that identifies the kit version that created it. This is what makes safe, non-destructive re-runs possible.
 <!--/target-->
 
 **Read the kit's version first:** the installer writes `meta.json` at the root of the guides directory (same folder as this file). Read it to get `version`, `package`, and `installed_at`. Use those values as the `generated_by` and `generated_at` fields.
@@ -176,9 +144,6 @@ generated_at: <ISO 8601 timestamp>
 <!--/target-->
 <!--target:codex-->
 **For `AGENTS.md`** (which does not use YAML frontmatter), add an HTML comment as the very first line, then a blank line, then the normal content. **For `.codex/agents/*.toml`**, the marker is a pair of TOML keys instead — `generated_by` and `generated_at` alongside `name`:
-<!--/target-->
-<!--target:neutral-->
-**For the entry file** (which does not use YAML frontmatter), add an HTML comment as the very first line, then a blank line, then the normal content:
 <!--/target-->
 
 ```markdown
@@ -232,15 +197,6 @@ Follow this order — each step depends on the previous:
 There is no command step on this target: Codex custom prompts are deprecated, so a
 would-be command is expressed as a skill in step 4.
 <!--/target-->
-<!--target:neutral-->
-3. Create rule files → see [`forge-rules.md`](forge-rules.md)
-4. Create skill files → see [`forge-skills.md`](forge-skills.md)
-5. Create agent files → see [`forge-agents.md`](forge-agents.md)
-6. Create commands → see [`forge-commands.md`](forge-commands.md)
-7. Configure hooks if team wants automated behaviors → see [`forge-hooks.md`](forge-hooks.md)
-8. Create the repo's entry file last
-9. Verify (see Step 9 below)
-<!--/target-->
 
 ---
 
@@ -285,9 +241,6 @@ Read: manifest files, config files, and representative source files across diffe
 | `AGENTS.md` | Repo overview, repo-wide rules, links to apps | App-specific stack, commands, and rules |
 | `.codex/agents/` | Every subagent lives here | — Codex resolves `.codex/` from the project root, so per-app subagent dirs are not read |
 | `.agents/skills/` | Shared recipes | App-specific recipes |
-<!--/target-->
-<!--target:neutral-->
-**If it's a monorepo:** create one entry file at the repo root (shared conventions, global agents, repo map) and one per app. Hosts read entry files up the directory tree, nearest first — place each file at the level where its context applies. Global agents (`git`, `code-reviewer`) live at the root; specialist agents belong to the app they serve.
 <!--/target-->
 
 ---
@@ -351,13 +304,6 @@ ls .codex/agents/*.toml
 # Every file listed in the root AGENTS.md Project References table actually exists
 ```
 <!--/target-->
-<!--target:neutral-->
-```bash
-# No file over its limit (200 lines, 500 for a skill's SKILL.md) — check the entry file and every generated file
-# No stale file references — grep the entry file and the config directory
-# Every file listed in the entry file's Project References table actually exists
-```
-<!--/target-->
 
 Fix anything found before finishing.
 
@@ -378,9 +324,6 @@ Whether adding to a partially set up repo or making ongoing updates to a complet
 <!--target:codex-->
 3. For each file in the target repo's `.codex/agents/`, `.agents/skills/` and every `AGENTS.md`:
 <!--/target-->
-<!--target:neutral-->
-3. For each generated file in the target repo, including its entry file:
-<!--/target-->
    - If the file has a `generated_by` marker **matching the current kit version** → safe to refresh the generated content
    - If the marker is from an **older kit version** → the file is kit-generated but stale. Propose a refresh; ask the user before overwriting
    - If the marker is **missing or edited** → treat as user-owned. Edit to fill gaps only; do not overwrite
@@ -393,9 +336,6 @@ Whether adding to a partially set up repo or making ongoing updates to a complet
 <!--target:codex-->
 4. Identify gaps — missing subagents, outdated rules, incomplete `AGENTS.md` sections
 <!--/target-->
-<!--target:neutral-->
-4. Identify gaps — missing agents, outdated rules, incomplete entry-file sections
-<!--/target-->
 5. Do not overwrite user-owned files wholesale — edit to fill gaps and preserve what is correct
 6. Every file you create or refresh gets a fresh marker with the current version and timestamp
 <!--target:claude-->
@@ -407,9 +347,6 @@ Whether adding to a partially set up repo or making ongoing updates to a complet
 <!--target:codex-->
 7. New rule/skill/subagent added → update the root `AGENTS.md` Project References table
 <!--/target-->
-<!--target:neutral-->
-7. New rule/skill/agent added → update the entry file's Project References table
-<!--/target-->
 8. File renamed or split → grep for all references and update them
 9. Always re-run the verify step after any change
 <!--target:claude-->
@@ -420,9 +357,6 @@ Whether adding to a partially set up repo or making ongoing updates to a complet
 <!--/target-->
 <!--target:codex-->
 10. If a rule no longer applies, delete its nested `AGENTS.md` (or its section of the root file) and remove it from the Project References table
-<!--/target-->
-<!--target:neutral-->
-10. If a rule file no longer applies, delete it and remove it from the entry file's Project References table
 <!--/target-->
 
 **Triggers for updating:** new major dependency adopted, team agrees on a new pattern, an agent consistently produces wrong output (signals a rule gap), a skill references files that have moved, or a significant refactor changes how a layer is structured.

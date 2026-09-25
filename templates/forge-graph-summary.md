@@ -14,9 +14,6 @@ This guide is read during `/slashforge:setup` immediately after `graphify cursor
 <!--target:codex-->
 This guide is read during `/slashforge:setup` immediately after `graphify codex install` succeeds. The user already authorised Graphify; SUMMARY.html generation rides on that same yes — no additional y/n prompt.
 <!--/target-->
-<!--target:neutral-->
-This guide is read during setup immediately after Graphify's hook-in command succeeds. The user already authorised Graphify; SUMMARY.html generation rides on that same yes — no additional y/n prompt.
-<!--/target-->
 
 **One-time cost:** ~5–15k tokens, only on the yes-path. The synthesis turns a ~400-line machine dump into a human-readable HTML file (~250 lines, ~2-minute read) that opens cleanly in any browser.
 
@@ -162,9 +159,6 @@ Add this section ONLY if `AGENTS.md` mentions an active feature, migration, or f
 <!--target:codex-->
 Add this section ONLY if `AGENTS.md` mentions an active feature, migration, or focus area.
 <!--/target-->
-<!--target:neutral-->
-Add this section ONLY if the repo's entry file mentions an active feature, migration, or focus area.
-<!--/target-->
 
 Then provide 3–4 graph-derived hints — patterns the new work should follow based on the god nodes and communities. Render it as another `<h2>` block with a short `<p>` and a `<ul>`.
 
@@ -176,9 +170,6 @@ Then provide 3–4 graph-derived hints — patterns the new work should follow b
 <!--/target-->
 <!--target:codex-->
 **Do not invent a focus area.** If `AGENTS.md` doesn't flag one, omit this section entirely.
-<!--/target-->
-<!--target:neutral-->
-**Do not invent a focus area.** If the entry file doesn't flag one, omit this section entirely.
 <!--/target-->
 
 ---

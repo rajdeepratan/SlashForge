@@ -129,9 +129,6 @@ says about itself. Read, in this order:
 <!--target:codex-->
 1. `AGENTS.md` — the repo's own instructions, including any nested ones covering the changed files
 <!--/target-->
-<!--target:neutral-->
-1. The repo's entry file — its own instructions
-<!--/target-->
 <!--target:claude-->
 2. `.claude/rules/` — any rule whose path scope matches the changed files
 <!--/target-->
@@ -140,9 +137,6 @@ says about itself. Read, in this order:
 <!--/target-->
 <!--target:codex-->
 2. Nested `AGENTS.md` files — any whose directory contains the changed files
-<!--/target-->
-<!--target:neutral-->
-2. The repo's rule files — any whose scope matches the changed files
 <!--/target-->
 3. The surrounding code — match the conventions actually in use, not the ones you would pick
 
@@ -161,9 +155,6 @@ Then check:
 <!--/target-->
 <!--target:codex-->
 - Does it follow the nearest `AGENTS.md` and the repo's existing style?
-<!--/target-->
-<!--target:neutral-->
-- Does it follow the repo's rule files and existing style?
 <!--/target-->
 
 **Severity matters more than volume.** Three findings that would break production beat twenty

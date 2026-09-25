@@ -53,24 +53,24 @@ const alternation = [...SWITCHABLE].sort((a, b) => b.length - a.length).join('|'
 export const COMMAND_RE = new RegExp(`/slashforge:(${alternation})\\b`, 'g');
 
 /**
- * Where an install actually lands, per target.
- *
- * Not a simple .claude -> .agents rename: on the agents target the commands
- * are Agent Skills, so they live in `skills/` with one directory each rather
- * than in a `commands/slashforge/` namespace. A test asserts these against
- * resolveTarget in bin/install.js, so the docs cannot drift from the
- * installer.
+ * Where an install lands, per host. Cursor and Codex share one skill set in
+ * ~/.agents/skills/, but each has its own guide folder, because setup writes a
+ * different layout for each. A test asserts these against resolveTarget and
+ * resolveAgents in bin/install.js, so the docs cannot drift from the installer.
  */
 export const INSTALL_PATHS = {
-  guides: { claude: '~/.claude/setup/slashforge/', agents: '~/.agents/setup/slashforge/' },
-  commands: { claude: '~/.claude/commands/slashforge/', agents: '~/.agents/skills/' },
-  root: { claude: '~/.claude/', agents: '~/.agents/' },
+  guides: {
+    claude: '~/.claude/setup/slashforge/',
+    cursor: '~/.agents/setup/slashforge/cursor/',
+    codex: '~/.agents/setup/slashforge/codex/',
+  },
+  commands: { claude: '~/.claude/commands/slashforge/', cursor: '~/.agents/skills/', codex: '~/.agents/skills/' },
+  root: { claude: '~/.claude/', cursor: '~/.agents/', codex: '~/.agents/' },
 };
 
 export function installPathFor(kind, target) {
   const set = INSTALL_PATHS[kind];
-  if (!set) return '';
-  return target === 'claude' ? set.claude : set.agents;
+  return set ? set[target] || set.claude : '';
 }
 
 // Longest first, or `~/.claude/` swallows the prefix of the other two.

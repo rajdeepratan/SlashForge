@@ -64,12 +64,9 @@ test('the CLI reference documents setup on both vendor targets', () => {
   assert.ok(!/is Claude Code only/i.test(cli), 'the old limitation must be gone');
 });
 
-test('every target in the docs table is a real install target', () => {
-  const { TARGETS } = require('../bin/install.js');
-  const cli = fs.readFileSync(
-    path.join(ROOT, 'docs/src/content/docs/reference/cli.md'), 'utf8');
-  // `skills` is a render profile for the shared skill set, not something a user picks.
-  for (const name of Object.keys(TARGETS).filter((n) => n !== 'skills')) {
-    assert.ok(cli.includes('`' + name + '`'), `cli.md should document the ${name} target`);
+test('the docs table documents each host', () => {
+  const cli = fs.readFileSync(path.join(ROOT, 'docs/src/content/docs/reference/cli.md'), 'utf8');
+  for (const host of ['Claude Code', 'Cursor', 'Codex']) {
+    assert.ok(cli.includes(host), `cli.md should document ${host}`);
   }
 });

@@ -11,10 +11,6 @@ description: Detection logic for new domains not covered by .cursor/ + AGENTS.md
 name: Agent Setup — Coverage Check
 description: Detection logic for new domains not covered by AGENTS.md + .codex/agents/. Fires at Phase 2 (proactive) and inside the code-reviewer subagent at Phase 7 (safety net). Suggests creating subagents/rules/skills/AGENTS.md updates so setup grows alongside the codebase. Auto-skipped on /slashforge:code -quick, /slashforge:code trivial, and /slashforge:investigate.
 <!--/target-->
-<!--target:neutral-->
-name: Agent Setup — Coverage Check
-description: Detection logic for new domains the repo's agent setup does not cover. Fires at Phase 2 (proactive) and inside the code-reviewer agent at Phase 7 (safety net). Auto-skipped on /slashforge:code -quick, /slashforge:code trivial, and /slashforge:investigate.
-<!--/target-->
 ---
 
 <!--target:claude-->
@@ -31,11 +27,6 @@ When a feature introduces a new domain — a new framework, layer, language, or 
 # Setup Coverage Check
 
 When a feature introduces a new domain — a new framework, layer, language, or pattern the repo hasn't had before — the repo's `AGENTS.md` files and subagents won't grow to cover it unless someone re-runs setup. This check catches the gap during normal development so the user can either add coverage now or defer it explicitly.
-<!--/target-->
-<!--target:neutral-->
-# Setup Coverage Check
-
-When a feature introduces a new domain — a new framework, layer, language, or pattern the repo hasn't had before — the repo's agent setup won't grow to cover it unless someone re-runs setup. This check catches the gap during normal development so the user can either add coverage now or defer it explicitly.
 <!--/target-->
 
 ## When it fires
@@ -77,15 +68,6 @@ For each kit-managed surface, compare the new feature against the existing state
 | root `AGENTS.md` Project References | New rule or skill proposed but not yet indexed |
 | root `AGENTS.md` architecture | New top-level module / app / layer introduced |
 <!--/target-->
-<!--target:neutral-->
-| Agents | Plan or diff names a domain not covered by an existing agent's `name` or `description` |
-| Rules | New files in a directory not covered by an existing rule's scope |
-| Skills | Plan describes a recurring task pattern with no matching skill |
-| Hooks | New file extensions or patterns introduced |
-| Entry file tech stack | Plan adds a dependency / framework not in the listed stack |
-| Entry file Project References | New rule or skill proposed but not yet indexed |
-| Entry file architecture | New top-level module / app / layer introduced |
-<!--/target-->
 
 <!--target:claude-->
 `.claude/commands/*` is **not** in this matrix — commands are setup-time, not feature-driven.
@@ -94,9 +76,6 @@ For each kit-managed surface, compare the new feature against the existing state
 Commands are **not** in this matrix — they are setup-time, not feature-driven.
 <!--/target-->
 <!--target:codex-->
-Commands are **not** in this matrix — they are setup-time, not feature-driven.
-<!--/target-->
-<!--target:neutral-->
 Commands are **not** in this matrix — they are setup-time, not feature-driven.
 <!--/target-->
 
@@ -115,9 +94,6 @@ Conservative on purpose. False positives (the kit yelling about coverage that's 
 - Plan names a framework or tech (e.g. "GraphQL", "Redis", "Stripe", "AWS Lambda") not in the entry file's tech stack section
 <!--/target-->
 <!--target:codex-->
-- Plan names a framework or tech (e.g. "GraphQL", "Redis", "Stripe", "AWS Lambda") not in the entry file's tech stack section
-<!--/target-->
-<!--target:neutral-->
 - Plan names a framework or tech (e.g. "GraphQL", "Redis", "Stripe", "AWS Lambda") not in the entry file's tech stack section
 <!--/target-->
 - Diff introduces files with extensions not seen elsewhere in the repo
@@ -142,9 +118,6 @@ If gaps detected, present BEFORE writing the plan:
 <!--target:codex-->
 > *"Coverage check — this feature introduces [domain X]. The repo's agent setup is missing:*
 <!--/target-->
-<!--target:neutral-->
-> *"Coverage check — this feature introduces [domain X]. The repo's agent setup is missing:*
-<!--/target-->
 > - *agent for X (no specialist agent has `description` matching X)*
 > - *rule for X (no rule with path scope covering [path])*
 <!--target:claude-->
@@ -154,9 +127,6 @@ If gaps detected, present BEFORE writing the plan:
 > - *X not in the entry file's tech stack list*
 <!--/target-->
 <!--target:codex-->
-> - *X not in the entry file's tech stack list*
-<!--/target-->
-<!--target:neutral-->
 > - *X not in the entry file's tech stack list*
 <!--/target-->
 >
@@ -169,9 +139,6 @@ If gaps detected, present BEFORE writing the plan:
 <!--target:codex-->
 > *Add these to the plan as Phase 2.5 setup updates so they ship in this PR? (y/n)"*
 <!--/target-->
-<!--target:neutral-->
-> *Add these to the plan as Phase 2.5 setup updates so they ship in this PR? (y/n)"*
-<!--/target-->
 
 <!--target:claude-->
 - **On yes:** plan grows a section "Phase 2.5 — `.claude/` updates" listing each file. Those updates are implemented in Phase 5 alongside the feature code, using the templates in `forge-agents.md`, `forge-rules.md`, etc. All new files get `generated_by` markers.
@@ -180,9 +147,6 @@ If gaps detected, present BEFORE writing the plan:
 - **On yes:** plan grows a section "Phase 2.5 — setup updates" listing each file. Those updates are implemented in Phase 5 alongside the feature code, using the templates in the setup guides. All new files get `generated_by` markers.
 <!--/target-->
 <!--target:codex-->
-- **On yes:** plan grows a section "Phase 2.5 — setup updates" listing each file. Those updates are implemented in Phase 5 alongside the feature code, using the templates in the setup guides. All new files get `generated_by` markers.
-<!--/target-->
-<!--target:neutral-->
 - **On yes:** plan grows a section "Phase 2.5 — setup updates" listing each file. Those updates are implemented in Phase 5 alongside the feature code, using the templates in the setup guides. All new files get `generated_by` markers.
 <!--/target-->
 - **On no:** proceed without coverage. Phase 7's safety-net check will still surface the gap as a review note.
@@ -200,9 +164,6 @@ The `code-reviewer` agent inspects the implemented diff for the same gaps. If ga
 <!--target:codex-->
 > *"**Coverage gap:** PR introduces [domain X] but the repo's agent setup doesn't cover it. Suggest adding [agent X / rule X / entry-file update] either before merge (extend this PR) or as a follow-up setup run."*
 <!--/target-->
-<!--target:neutral-->
-> *"**Coverage gap:** PR introduces [domain X] but the repo's agent setup doesn't cover it. Suggest adding [agent X / rule X / entry-file update] either before merge (extend this PR) or as a follow-up setup run."*
-<!--/target-->
 
 This is a **note, not a block.** The PR can still merge with the gap; the user is informed.
 
@@ -217,9 +178,6 @@ This is a **note, not a block.** The PR can still merge with the gap; the user i
 - **Not auto-applied.** Always asks before creating new setup files. Capability ≠ consent (same principle as Graphify install).
 <!--/target-->
 <!--target:codex-->
-- **Not auto-applied.** Always asks before creating new setup files. Capability ≠ consent (same principle as Graphify install).
-<!--/target-->
-<!--target:neutral-->
 - **Not auto-applied.** Always asks before creating new setup files. Capability ≠ consent (same principle as Graphify install).
 <!--/target-->
 - **Not for `/slashforge:code -quick` / `/slashforge:investigate` / `/slashforge:code` trivial.** Lean and read-only paths skip this entirely.

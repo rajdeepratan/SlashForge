@@ -11,10 +11,6 @@ description: How to create skill files in .cursor/skills/ when setting up Cursor
 name: Agent Setup — Skill Files
 description: How to create skill files in .agents/skills/ when setting up Codex for a repo
 <!--/target-->
-<!--target:neutral-->
-name: Agent Setup — Skill Files
-description: How to create skill files when setting up a repo — one directory per recipe
-<!--/target-->
 ---
 
 # Creating Skill Files
@@ -30,9 +26,6 @@ Skills = **step-by-step recipes** the agent can load on demand. Unlike `AGENTS.m
 
 Skills matter more on this target than elsewhere: Codex custom prompts are deprecated, so
 a repo command is expressed as a skill rather than a prompt file.
-<!--/target-->
-<!--target:neutral-->
-Skills = **step-by-step recipes** the agent can load on demand. Unlike the entry file (always in context) or rules (loaded per-path), a skill's body only enters context when it's invoked — so long reference material costs almost nothing until needed.
 <!--/target-->
 
 Derive tasks from the repo's domain — think "add a new X", "create a Y", "wire up a Z". Examples: `add-endpoint`, `add-migration`, `add-page`, `add-metric`, `add-handler`.
@@ -105,9 +98,6 @@ The directory name becomes the command and **`name` in the frontmatter must matc
 exactly** — lowercase letters, numbers and hyphens only. Supporting files are only loaded
 when `SKILL.md` references them.
 <!--/target-->
-<!--target:neutral-->
-Each skill is a **directory** containing a `SKILL.md` entrypoint, not a flat `.md` file. The directory name becomes the command, and `name` in the frontmatter must match it exactly — lowercase letters, numbers and hyphens only. Supporting files are only loaded when `SKILL.md` references them.
-<!--/target-->
 
 ## What Each `SKILL.md` Must Include
 
@@ -142,9 +132,6 @@ Read: `.cursor/rules/api.mdc`
 <!--/target-->
 <!--target:codex-->
 Read: the nearest `AGENTS.md`
-<!--/target-->
-<!--target:neutral-->
-Read: the repo's rule file for this area
 <!--/target-->
 
 ## Steps
@@ -191,12 +178,6 @@ Read: the repo's rule file for this area
 | `name` | **Required.** Lowercase letters, numbers and hyphens only, and must match the parent folder name. |
 | `description` | **Required.** Front-load the key trigger phrase — this is what the agent matches on, and it is how a would-be command gets discovered. |
 <!--/target-->
-<!--target:neutral-->
-| Field | When to use |
-|---|---|
-| `name` | **Required.** Lowercase letters, numbers and hyphens only, and must match the parent folder name. |
-| `description` | **Required.** Front-load the key trigger phrase — this is what the agent matches on. |
-<!--/target-->
 
 <!--target:claude-->
 Use `$ARGUMENTS` in the body for the full argument string, or `$0` / `$1` / `$ARGUMENTS[N]` for positional args.
@@ -205,9 +186,6 @@ Use `$ARGUMENTS` in the body for the full argument string, or `$0` / `$1` / `$AR
 Check the host's own documentation for argument placeholders before relying on one.
 <!--/target-->
 <!--target:codex-->
-Check the host's own documentation for argument placeholders before relying on one.
-<!--/target-->
-<!--target:neutral-->
 Check the host's own documentation for argument placeholders before relying on one.
 <!--/target-->
 

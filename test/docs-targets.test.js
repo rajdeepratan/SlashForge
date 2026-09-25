@@ -102,7 +102,8 @@ test('renderReplayLine leaves lines without commands alone', async () => {
 test('installPathFor gives each target its real directories', async () => {
   const { installPathFor } = await load();
   assert.equal(installPathFor('guides', 'claude'), '~/.claude/setup/slashforge/');
-  assert.equal(installPathFor('guides', 'cursor'), '~/.agents/setup/slashforge/');
+  assert.equal(installPathFor('guides', 'cursor'), '~/.agents/setup/slashforge/cursor/');
+  assert.equal(installPathFor('guides', 'codex'), '~/.agents/setup/slashforge/codex/');
   assert.equal(installPathFor('commands', 'claude'), '~/.claude/commands/slashforge/');
   // Not a rename: on the agents target commands are skills, one directory each.
   assert.equal(installPathFor('commands', 'codex'), '~/.agents/skills/');
@@ -113,10 +114,12 @@ test('installPathFor gives each target its real directories', async () => {
 // where things land, the documented paths must change with it.
 test('installPathFor matches what the installer actually does', async () => {
   const { installPathFor } = await load();
-  const { resolveTarget } = require('../bin/install.js');
-  for (const [ui, real] of [['claude', 'claude'], ['cursor', 'cursor'], ['codex', 'codex']]) {
-    const r = resolveTarget({ target: real, homeDir: '~' });
-    assert.equal(installPathFor('guides', ui), r.guidesDir + '/');
-    assert.equal(installPathFor('commands', ui).replace(/slashforge\/$/, ''), r.commandsDir + '/');
+  const { resolveTarget, resolveAgents } = require('../bin/install.js');
+  const c = resolveTarget({ homeDir: '~' });
+  assert.equal(installPathFor('guides', 'claude'), c.guidesDir + '/');
+  const a = resolveAgents({ homeDir: '~' });
+  for (const h of a.hosts) {
+    assert.equal(installPathFor('guides', h.host), h.guidesDir + '/');
+    assert.equal(installPathFor('commands', h.host), a.skillsDir + '/');
   }
 });

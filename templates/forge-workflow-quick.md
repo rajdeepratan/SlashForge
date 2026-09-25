@@ -47,11 +47,6 @@ new subagents/rules/`AGENTS.md` updates.
 (`forge-coverage.md`) detects when a feature introduces a new domain that needs
 new subagents/rules/`AGENTS.md` updates.
 <!--/target-->
-<!--target:neutral-->
-**Setup coverage check in lean mode:** also skipped. The coverage check
-(`forge-coverage.md`) detects when a feature introduces a new domain that needs
-new agents, rules or entry-file updates.
-<!--/target-->
 
 Tasks small enough for lean mode (typos,
 copy changes, single-file refactors) don't introduce new domains by definition —
@@ -108,9 +103,6 @@ Before handing off to Phase 8, check every item against the staged diff:
 <!--/target-->
 <!--target:codex-->
 - [ ] **Repo conventions** — naming, file placement, and imports follow the nearest `AGENTS.md`
-<!--/target-->
-<!--target:neutral-->
-- [ ] **Repo conventions** — naming, file placement, and imports follow the repo's rule files
 <!--/target-->
 - [ ] **No unintended public-API change** — for a lean-mode task there should be none; if there is, stop and re-run in full mode
 

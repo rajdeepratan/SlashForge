@@ -107,9 +107,6 @@ Not inside `.cursor/`, because a dot-directory is hidden in Finder and these rep
 <!--target:codex-->
 Not inside `.codex/`, because a dot-directory is hidden in Finder and these reports are meant to
 <!--/target-->
-<!--target:neutral-->
-Not inside a dot-directory, because those are hidden in Finder and these reports are meant to
-<!--/target-->
 be opened by a human without a code editor.
 
 ```bash
@@ -134,9 +131,6 @@ If the shell or `forge-splice.js` is missing (an older install, or a hand-modifi
 <!--/target-->
 <!--target:codex-->
 If the shell or `forge-splice.js` is missing (an older install, or a hand-modified `.agents/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
-<!--/target-->
-<!--target:neutral-->
-If the shell or `forge-splice.js` is missing (an older install, or a hand-modified install directory), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
 <!--/target-->
 
 ### 2. Open it in the user's browser (best-effort)

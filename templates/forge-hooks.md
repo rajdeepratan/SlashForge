@@ -9,9 +9,6 @@ description: How to configure automated behaviors via hooks in .cursor/hooks.jso
 <!--target:codex-->
 description: How to configure automated behaviors via hooks in .codex/hooks.json
 <!--/target-->
-<!--target:neutral-->
-description: How to configure automated behaviors via the host's hook configuration
-<!--/target-->
 ---
 
 # Configuring Hooks
@@ -55,12 +52,6 @@ hooks = true
 
 `/hooks` in the CLI inspects hook sources, shows new or changed hooks, and trusts or
 disables individual ones.
-<!--/target-->
-<!--target:neutral-->
-Hooks = **user-defined actions that run automatically at specific points in the agent's lifecycle**. Use them when the team wants something to happen deterministically — not "remind the agent to do it" but "the harness does it every time."
-
-Check the host's own documentation for its hook file location and event names before
-writing one.
 <!--/target-->
 
 ---
@@ -106,12 +97,6 @@ Every source loads; a later layer adds to an earlier one rather than replacing i
 no local scope, so anything you do not want shared belongs in the user file.
 
 Team-wide automated behaviors → project scope. Personal preferences → user scope.
-<!--/target-->
-<!--target:neutral-->
-## Where Hooks Live
-
-Check the host's own documentation for its hook file locations and which of them are
-meant to be checked in.
 <!--/target-->
 
 ---
@@ -336,15 +321,6 @@ Exit codes:
 - **Verify before finishing** — `Stop` that runs the tests and returns `{"decision": "block", "reason": ...}` to send Codex back
 
 <!--/target-->
-<!--target:neutral-->
-## Events and Config
-
-Event names, the config shape and exit-code rules differ by host. Read the host's hooks
-documentation before writing one, and copy its example rather than another host's.
-
----
-
-<!--/target-->
 <!--target:claude-->
 Keep hook scripts in `.claude/hooks/` and reference them via `$CLAUDE_PROJECT_DIR` so they work regardless of Claude's current directory.
 <!--/target-->
@@ -353,9 +329,6 @@ Keep hook scripts in `.cursor/hooks/` and reference them by a repo-relative path
 <!--/target-->
 <!--target:codex-->
 Keep hook scripts in `.codex/hooks/` and reference them from the git root (`$(git rev-parse --show-toplevel)/.codex/hooks/…`) so they work regardless of the agent's current directory.
-<!--/target-->
-<!--target:neutral-->
-Keep hook scripts in a directory beside the hook config and reference them by a repo-relative path.
 <!--/target-->
 
 ---
@@ -381,11 +354,6 @@ Keep hook scripts in a directory beside the hook config and reference them by a 
 2. Decide scope (project if team-shared, user if personal)
 3. Edit `.codex/hooks.json` — and check `[features] hooks` isn't set to `false` in `config.toml`
 4. Document any project-scoped hooks in the root `AGENTS.md` under an **Automated Behaviors** section so the team knows what runs without being asked
-<!--/target-->
-<!--target:neutral-->
-2. Decide scope (project if team-shared, user if personal)
-3. Edit the host's hook config
-4. Document any project-scoped hooks in the entry file under an **Automated Behaviors** section so the team knows what runs without being asked
 <!--/target-->
 <!--target:claude-->
 6. Test by triggering the event (run an edit, start a session) and checking logs or side effects
@@ -414,10 +382,6 @@ Keep hook scripts in a directory beside the hook config and reference them by a 
 - Hooks run with the same permissions as the agent — they can read/write anywhere the user can
 - Never put secrets in the command string — use env vars
 <!--/target-->
-<!--target:neutral-->
-- Hooks run with the same permissions as the agent — they can read/write anywhere the user can
-- Never put secrets in the command string — use env vars
-<!--/target-->
 
 ---
 
@@ -432,9 +396,6 @@ Keep hook scripts in a directory beside the hook config and reference them by a 
 <!--/target-->
 <!--target:codex-->
 - If a team needs a hook the kit's examples don't cover, read [Codex's hooks docs](https://learn.chatgpt.com/docs/hooks) for the full event list and JSON schemas
-<!--/target-->
-<!--target:neutral-->
-- If a team needs a hook the kit's examples don't cover, read the host's own hooks documentation for the full event list and JSON schemas
 <!--/target-->
 <!--target:claude-->
 - Hooks are deterministic — use them for enforcement, not for "nudging" Claude

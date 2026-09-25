@@ -16,9 +16,6 @@ Graphify builds an AST-level knowledge graph of a repo — nodes for functions/c
 <!--target:codex-->
 **This is not a preflight check.** Do not check for Graphify on every command — it is a repo-level dependency, offered once during `/slashforge:setup`. Once installed, its own `graphify codex install` writes the `AGENTS.md` section and registers a PreToolUse hook that auto-surfaces graph context for every subsequent command, with no extra guide-side enforcement needed.
 <!--/target-->
-<!--target:neutral-->
-**This is not a preflight check.** Do not check for Graphify on every command — it is a repo-level dependency, offered once during setup. Once installed, its own host integration surfaces graph context for every subsequent command, with no extra guide-side enforcement needed.
-<!--/target-->
 
 ---
 
@@ -56,9 +53,6 @@ If the repo is mostly YAML / shell / config / templates / a language not in the 
 <!--target:codex-->
 > **Critical:** never short-circuit when the CLI is on `PATH` but the repo has no graph yet. That is Branch B, not "skip." A fresh repo on a Graphify-installed machine still needs `graphify .` + `graphify codex install` + `SUMMARY.html` synthesis — only the CLI-install step is unnecessary.
 <!--/target-->
-<!--target:neutral-->
-> **Critical:** never short-circuit when the CLI is on `PATH` but the repo has no graph yet. That is Branch B, not "skip." A fresh repo on a Graphify-installed machine still needs `graphify .` + the host's hook-in command + `SUMMARY.html` synthesis — only the CLI-install step is unnecessary.
-<!--/target-->
 
 ---
 
@@ -92,9 +86,6 @@ Use this block for both Branch A and Branch B. Drop the `uv`/Python cost bullet 
 <!--target:codex-->
 `/slashforge:setup` runs in phases (see its Fresh and Update flows). The Graphify branches map onto those phases so the user makes one decision up front and is never interrupted again, while the single step that mutates `AGENTS.md` still runs last:
 <!--/target-->
-<!--target:neutral-->
-Setup runs in phases. The Graphify branches map onto those phases so the user makes one decision up front and is never interrupted again, while the single step that writes into kit-managed files still runs last:
-<!--/target-->
 
 <!--target:claude-->
 | Half | Setup phase | What it does | Touches `CLAUDE.md` / `settings.json`? |
@@ -104,9 +95,6 @@ Setup runs in phases. The Graphify branches map onto those phases so the user ma
 <!--/target-->
 <!--target:codex-->
 | Half | Setup phase | What it does | Touches `AGENTS.md` / `hooks.json`? |
-<!--/target-->
-<!--target:neutral-->
-| Half | Setup phase | What it does | Touches kit-managed files? |
 <!--/target-->
 |---|---|---|---|
 | **Offer** | Phase 1 (Decide) | Show "Why it matters" + the exact commands, ask y/n. Run nothing. | No |
@@ -120,9 +108,6 @@ Setup runs in phases. The Graphify branches map onto those phases so the user ma
 <!--target:codex-->
 | **Hook-in** | Phase 4 (after kit writes `AGENTS.md`) | `graphify codex install` (append + hook) + SUMMARY.html. | **Yes — must be last** |
 <!--/target-->
-<!--target:neutral-->
-| **Hook-in** | Phase 4 (after kit writes its own files) | `the host hook-in command` (append + hook) + SUMMARY.html. | **Yes — must be last** |
-<!--/target-->
 
 <!--target:claude-->
 Splitting the offer from the work is what lets the kit batch all consent up front; splitting `graphify claude install` (Hook-in) from `graphify .` (Provision) is what preserves the **kit's `CLAUDE.md` FIRST** ordering below — only the append waits for last, not the whole install.
@@ -132,9 +117,6 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 <!--/target-->
 <!--target:codex-->
 Splitting the offer from the work is what lets the kit batch all consent up front; splitting `graphify codex install` (Hook-in) from `graphify .` (Provision) is what preserves the **kit's `AGENTS.md` FIRST** ordering below — only the append waits for last, not the whole install.
-<!--/target-->
-<!--target:neutral-->
-Splitting the offer from the work is what lets the kit batch all consent up front; splitting `the host hook-in command` (Hook-in) from `graphify .` (Provision) is what preserves the **kit's own files FIRST** ordering below — only the final write waits for last, not the whole install.
 <!--/target-->
 
 ---
@@ -152,9 +134,6 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 <!--target:codex-->
 2. **Show the exact four commands** that will run, so the user sees what they're authorising — note that the first three run now (Provision) and the fourth runs last (Hook-in), after the kit writes `AGENTS.md`:
 <!--/target-->
-<!--target:neutral-->
-2. **Show the exact four commands** that will run, so the user sees what they're authorising — note that the first three run now (Provision) and the fourth runs last (Hook-in), after the kit writes its own files:
-<!--/target-->
    ```bash
    uv tool install graphifyy        # [Provision] installs the CLI (note: double-y package name)
    graphify install                 # [Provision] Graphify's own first-run setup
@@ -167,9 +146,6 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 <!--/target-->
 <!--target:codex-->
    graphify codex install          # [Hook-in, runs LAST] appends AGENTS.md section + registers PreToolUse hook
-<!--/target-->
-<!--target:neutral-->
-   the host hook-in command          # [Hook-in, runs LAST] writes the host's graphify integration
 <!--/target-->
    ```
    If `uv` is not available on the user's system, fall back to `pipx install graphifyy` or `pip install graphifyy` — mention both alternatives before asking.
@@ -186,9 +162,6 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 <!--target:codex-->
 5. Run the **first three** commands in order via Bash, stopping on any failure and surfacing the error verbatim. The user still sees each Bash call through the normal permission-prompt flow unless they've pre-allowed shell commands. **Do not run `graphify codex install` here** — it appends to `AGENTS.md` and must wait until the kit has written `AGENTS.md`.
 <!--/target-->
-<!--target:neutral-->
-5. Run the **first three** commands in order via Bash, stopping on any failure and surfacing the error verbatim. The user still sees each Bash call through the normal permission-prompt flow unless they've pre-allowed shell commands. **Do not run `the host hook-in command` here** — it writes into files the kit manages and must wait until the kit has written them.
-<!--/target-->
 
 <!--target:claude-->
 ### Hook-in (last, after the kit's `CLAUDE.md` is written)
@@ -199,9 +172,6 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 <!--target:codex-->
 ### Hook-in (last, after the kit's `AGENTS.md` is written)
 <!--/target-->
-<!--target:neutral-->
-### Hook-in (last, after the kit's own files are written)
-<!--/target-->
 <!--target:claude-->
 6. Run `graphify claude install` via Bash — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
 <!--/target-->
@@ -210,9 +180,6 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 <!--/target-->
 <!--target:codex-->
 6. Run `graphify codex install` via Bash — appends the `AGENTS.md` section + registers a PreToolUse hook in `.codex/hooks.json`.
-<!--/target-->
-<!--target:neutral-->
-6. Run `the host hook-in command` via Bash — writes the host's graphify integration.
 <!--/target-->
 7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `forge-graph-summary.md`. **No second prompt** — the user's yes to Graphify covers this. ~5–15k tokens, one-time.
 
@@ -233,9 +200,6 @@ Common case for users who already have `graphify` installed globally and are set
 <!--target:codex-->
 2. **Show the exact two commands** that will run — the first runs now (Provision), the second runs last (Hook-in), after the kit writes `AGENTS.md`:
 <!--/target-->
-<!--target:neutral-->
-2. **Show the exact two commands** that will run — the first runs now (Provision), the second runs last (Hook-in), after the kit writes its own files:
-<!--/target-->
    ```bash
    graphify .                       # [Provision] indexes this repo — seconds to minutes
 <!--target:claude-->
@@ -246,9 +210,6 @@ Common case for users who already have `graphify` installed globally and are set
 <!--/target-->
 <!--target:codex-->
    graphify codex install          # [Hook-in, runs LAST] appends AGENTS.md section + registers PreToolUse hook
-<!--/target-->
-<!--target:neutral-->
-   the host hook-in command          # [Hook-in, runs LAST] writes the host's graphify integration
 <!--/target-->
    ```
 3. **Ask explicitly:** *"Index this repo with these commands? (y/n)"* — no default-to-yes, no shortcut flag. Capture the answer; do not run anything yet.
@@ -264,9 +225,6 @@ Common case for users who already have `graphify` installed globally and are set
 <!--target:codex-->
 5. Run **`graphify .`** via Bash, stopping on any failure and surfacing the error verbatim. **Do not run `graphify codex install` here** — defer it to Hook-in.
 <!--/target-->
-<!--target:neutral-->
-5. Run **`graphify .`** via Bash, stopping on any failure and surfacing the error verbatim. **Do not run `the host hook-in command` here** — defer it to Hook-in.
-<!--/target-->
 
 <!--target:claude-->
 ### Hook-in (last, after the kit's `CLAUDE.md` is written)
@@ -277,9 +235,6 @@ Common case for users who already have `graphify` installed globally and are set
 <!--target:codex-->
 ### Hook-in (last, after the kit's `AGENTS.md` is written)
 <!--/target-->
-<!--target:neutral-->
-### Hook-in (last, after the kit's own files are written)
-<!--/target-->
 <!--target:claude-->
 6. Run `graphify claude install` via Bash — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
 <!--/target-->
@@ -288,9 +243,6 @@ Common case for users who already have `graphify` installed globally and are set
 <!--/target-->
 <!--target:codex-->
 6. Run `graphify codex install` via Bash — appends the `AGENTS.md` section + registers a PreToolUse hook in `.codex/hooks.json`.
-<!--/target-->
-<!--target:neutral-->
-6. Run `the host hook-in command` via Bash — writes the host's graphify integration.
 <!--/target-->
 7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `forge-graph-summary.md`. **No second prompt.** ~5–15k tokens, one-time.
 
@@ -310,9 +262,6 @@ The graph exists; just verify it's not stale. Follow the **Runtime: Freshness Ch
 <!--/target-->
 <!--target:codex-->
 ## Critical Ordering — kit's AGENTS.md FIRST
-<!--/target-->
-<!--target:neutral-->
-## Critical Ordering — kit's own files FIRST
 <!--/target-->
 
 <!--target:claude-->
@@ -336,13 +285,6 @@ Graphify's rule has its own filename, so it does not collide with the kit's. Run
 
 If the append runs first, the kit's subsequent `AGENTS.md` write overwrites Graphify's appended section. By running it last, Graphify's additions sit in a marker-less section that the kit's `generated_by` marker system treats as user-edited — safe from future kit re-runs.
 <!--/target-->
-<!--target:neutral-->
-Graphify's **Hook-in** step writes into files the setup flow itself manages. The rule:
-
-> **Setup writes its own files FIRST, then Graphify's hook-in runs LAST.**
-
-Running it last leaves Graphify's additions marker-less, which the kit's `generated_by` system treats as user-owned — safe from future re-runs.
-<!--/target-->
 
 <!--target:claude-->
 **Only the Hook-in waits for last — not the whole install.** The CLI install and `graphify .` index (the **Provision** step) touch neither `CLAUDE.md` nor `.claude/`, so they run earlier in Phase 2 right after the user consents. This is what keeps the experience uninterrupted: all decisions in Phase 1, the heavy install/index work in Phase 2, and a single intentional append in Phase 4. Nothing the kit writes ever gets regenerated — the last Graphify step is an append by design, not a rewrite.
@@ -352,9 +294,6 @@ Running it last leaves Graphify's additions marker-less, which the kit's `genera
 <!--/target-->
 <!--target:codex-->
 **Only the Hook-in waits for last — not the whole install.** The CLI install and `graphify .` index (the **Provision** step) touch neither `AGENTS.md` nor `.codex/`, so they run earlier in Phase 2 right after the user consents. This is what keeps the experience uninterrupted: all decisions in Phase 1, the heavy install/index work in Phase 2, and a single intentional append in Phase 4. Nothing the kit writes ever gets regenerated — the last Graphify step is an append by design, not a rewrite.
-<!--/target-->
-<!--target:neutral-->
-**Only the Hook-in waits for last — not the whole install.** The CLI install and `graphify .` index (the **Provision** step) touch none of the files the kit manages, so they run early, right after the user consents. Only the final write is deferred.
 <!--/target-->
 
 ---

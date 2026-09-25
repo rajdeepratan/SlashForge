@@ -73,10 +73,6 @@ the same name — a mismatch means the agent will never be invoked correctly.
 `AGENTS.md`'s routing table, the workflow file, and the agent filename must all use the
 same name — a mismatch means the agent will never be invoked correctly.
 <!--/target-->
-<!--target:neutral-->
-The routing table in the repo's entry file, the workflow file, and the agent filename
-must all use the same name — a mismatch means the agent will never be invoked correctly.
-<!--/target-->
 
 ---
 
@@ -106,12 +102,6 @@ Reference directories, never specific files — file paths go stale:
 ```
 ✓  Read `.cursor/rules/` for coding standards and `.cursor/skills/` for recipes.
 ✗  Read `.cursor/rules/typescript.mdc` and `.cursor/rules/components.mdc`.
-```
-<!--/target-->
-<!--target:neutral-->
-```
-✓  Read the rules directory for coding standards and the skills directory for recipes.
-✗  Read rules/typescript.md and rules/components.md.
 ```
 <!--/target-->
 
@@ -156,9 +146,6 @@ Read `.claude/rules/` for coding standards and `.claude/skills/` for recipes.
 <!--target:cursor-->
 Read `.cursor/rules/` for coding standards and `.cursor/skills/` for recipes.
 <!--/target-->
-<!--target:neutral-->
-Read the rules directory for coding standards and the skills directory for recipes.
-<!--/target-->
 
 ## Skills
 
@@ -201,9 +188,6 @@ Every `code-reviewer` agent created must include these checks — they are non-n
 <!--target:cursor-->
 - Code quality and conventions match `.cursor/rules/`
 <!--/target-->
-<!--target:neutral-->
-- Code quality and conventions match the repo's rule files
-<!--/target-->
 - No leftover debug code, dead code, or temporary hacks
 - No breaking changes to public APIs, exported functions, or shared interfaces — if found, **flag explicitly to the user before continuing**
 <!--target:claude-->
@@ -211,9 +195,6 @@ Every `code-reviewer` agent created must include these checks — they are non-n
 <!--/target-->
 <!--target:cursor-->
 - **`.cursor/` coverage** — if the diff introduces a new domain not covered by existing subagents/rules/`AGENTS.md`, raise it as a review note per `forge-coverage.md` Phase 7 section. This is a note, not a block — flag the gap, suggest the addition, but don't fail the review on its absence
-<!--/target-->
-<!--target:neutral-->
-- **Setup coverage** — if the diff introduces a new domain not covered by existing agents, rules or the entry file, raise it as a review note per `forge-coverage.md` Phase 7 section. This is a note, not a block — flag the gap, suggest the addition, but don't fail the review on its absence
 <!--/target-->
 
 If the review fails → return to the implementing agent with specific, actionable feedback. If it fails 3 times in a row → stop and escalate to the user.

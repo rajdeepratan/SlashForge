@@ -77,72 +77,30 @@ const REMOVED_GUIDE_FILES = [
   'forge-preflight.md',
 ];
 
-// Install targets. `claude` writes flat command files under .claude/commands/slashforge/,
-// which is what produces the /slashforge:name form. `agents` writes the Agent Skills
-// layout to .agents/skills/, which both Cursor and Codex read. That layout has no
-// namespace of any kind, so the prefix has to be carried in the directory name instead.
+// Render profiles. claude renders ~/.claude; cursor and codex render their own
+// guide folder under ~/.agents/setup/slashforge; skills renders the one
+// host-neutral skill set in ~/.agents/skills, which Cursor and Codex both read.
+// A profile names the target blocks it keeps and the guides it never receives.
 const TARGETS = {
   claude: {
-    dirname: '.claude', commandsSubdir: 'commands', layout: 'commands',
-    namePrefix: '', blocks: ['claude'],
-    // The AGENTS.md entry-file guide is for the vendor targets.
+    blocks: ['claude'],
+    // The AGENTS.md entry-file guide is for the vendor hosts.
     omit: ['forge-agents-md.md', 'forge-agents-codex.md'],
   },
-  // The vendor-neutral target: no host is known, so setup has no layout to write.
-  agents: {
-    dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
-    // 'neutral' is declared only here, so a <!--target:neutral--> block renders on
-    // this target alone. 'agents' blocks are inherited by cursor and codex, which
-    // makes them useless as a vendor-neutral fallback — a neutral variant fenced as
-    // 'agents' would render alongside each vendor's own, duplicating the passage.
-    namePrefix: 'slashforge-', blocks: ['agents', 'neutral'],
-    // Setup is omitted here, so the entry-file and subagent guides are unreachable.
-    omit: [
-      path.join('slashforge', 'setup.md'),
-      'forge-agents-md.md', 'forge-agents-codex.md', 'forge-claude-md.md',
-      // Claude Code's memory system, reachable only from setup.
-      'forge-memory.md',
-    ],
-  },
-  // cursor and codex share the agents install location but render their own setup
-  // guides: their file formats genuinely differ (.mdc vs nested AGENTS.md for rules,
-  // YAML vs TOML for subagents), so one shared path cannot serve both.
   cursor: {
-    dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
-    namePrefix: 'slashforge-', blocks: ['agents', 'cursor'],
+    blocks: ['agents', 'cursor'],
     // No memory layer on this vendor, and CLAUDE.md is not its entry file.
     omit: ['forge-claude-md.md', 'forge-memory.md', 'forge-agents-codex.md'],
   },
   codex: {
-    dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
-    namePrefix: 'slashforge-', blocks: ['agents', 'codex'],
+    blocks: ['agents', 'codex'],
     // Subagents here are TOML, so the markdown guide is replaced, not fenced.
     omit: ['forge-claude-md.md', 'forge-memory.md', 'forge-agents.md'],
   },
-  // The one host-neutral skill set in ~/.agents/skills, read by Cursor and Codex.
-  // Rendered, never installed on its own; its host-specific parts are in the
-  // per-host guides, reached through the <host> path in SKILL_PREAMBLE.
-  skills: {
-    dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
-    namePrefix: 'slashforge-', blocks: ['agents', 'neutral'], omit: [],
-  },
+  // 'neutral' is declared only here: a <!--target:neutral--> block is the
+  // host-neutral wording a skill uses where Cursor and Codex differ.
+  skills: { blocks: ['agents', 'neutral'], omit: [] },
 };
-
-// cursor and codex are real targets, not aliases. They share the `agents` install
-// location — one install serves both — but render their own setup guides, because
-// their layouts genuinely differ: `.cursor/rules/*.mdc` vs nested `AGENTS.md` for
-// rules, markdown+YAML vs TOML for subagents. `agents` remains as the
-// vendor-neutral target for callers that do not know which host will run.
-const TARGET_ALIASES = {};
-
-function resolveTargetName(name) {
-  const key = String(name == null ? 'claude' : name).trim().toLowerCase();
-  const resolved = TARGET_ALIASES[key] || key;
-  if (!TARGETS[resolved]) {
-    throw new Error(`Unknown target '${name}'. Use one of: claude, cursor, codex, agents.`);
-  }
-  return resolved;
-}
 
 // Namespace directory the command files live in, under the commands dir.
 const COMMAND_NAMESPACE = 'slashforge';
@@ -240,6 +198,16 @@ function assertTemplatesExist(files, dir) {
   }
 }
 
+// The profiles a template is actually rendered for. Validating a template for a
+// profile that never renders it would demand frontmatter it never needs.
+function profilesFor(file) {
+  if (file === SETUP_DISPATCH) return ['skills'];
+  if (file === SETUP_COMMAND) return ['claude', 'cursor', 'codex'];
+  if (COMMAND_FILES.includes(file) || SKILL_FILES.includes(file)) return ['claude', 'skills'];
+  if (GUIDE_FILES.includes(file)) return ['claude', 'cursor', 'codex'].filter((p) => !TARGETS[p].omit.includes(file));
+  return Object.keys(TARGETS);
+}
+
 function validateTemplates(files, dir) {
   const errors = [];
   for (const file of files) {
@@ -257,10 +225,9 @@ function validateTemplates(files, dir) {
       // frontmatter, not the raw source. Skipped when the markers themselves are
       // malformed, since stripping would then be meaningless.
       if (blockErrors.length === 0) {
-        // Render for each real install target, not for every valid block name.
-        // 'neutral' is a block name only — nothing installs as 'neutral', and
-        // rendering for it would strip every target's frontmatter at once.
-        for (const name of Object.keys(TARGETS)) {
+        // Render for each profile that actually renders this template; a profile
+        // that never renders it would demand frontmatter it never needs.
+        for (const name of profilesFor(file)) {
           parseFrontmatter(stripTargetBlocks(content, name), file);
         }
       }
@@ -307,14 +274,12 @@ function toSkillFrontmatter(content, skillName) {
 
 // Where a command template lands for a given target.
 function commandPath(target, file) {
-  return target.layout === 'skills'
-    ? path.join(target.commandsDir, skillDirName(file, target.namePrefix), 'SKILL.md')
-    : path.join(target.commandsDir, file);
+  return path.join(target.commandsDir, file);
 }
 
 // The sigil a host invokes a skill with. Cursor uses `/` like Claude Code; Codex
 // uses `$`. Getting this wrong ships prose naming a form the host rejects.
-const TARGET_SIGILS = { claude: '/', agents: '/', cursor: '/', codex: '$', skills: '/' };
+const TARGET_SIGILS = { claude: '/', cursor: '/', codex: '$', skills: '/' };
 
 // The skills layout has no `:` namespace, so in-body references to sibling commands
 // must use the hyphenated form — otherwise every cross-reference in the workflow names
@@ -392,35 +357,22 @@ function findTargetBlockErrors(content, file) {
 }
 
 // 'slashforge/setup.md' -> '/slashforge:setup'. A command file's path under the commands
-// dir determines how it is invoked; a subdirectory becomes a `:` namespace. The
-// skills layout has no namespace, so the prefix lives in the directory name instead.
-function commandName(file, target = null) {
-  if (target && target.layout === 'skills') {
-    // Per-host sigil: Codex invokes skills with `$`. meta.json feeds the `status`
-    // output and the install banner, so a `/` here misreports what the user types.
-    return (TARGET_SIGILS[target.target] || '/') + skillDirName(file, target.namePrefix);
-  }
+// dir determines how it is invoked; a subdirectory becomes a `:` namespace.
+function commandName(file) {
   return '/' + file.replace(/\.md$/, '').split(path.sep).join(':');
 }
 
-function resolveTarget({ target = 'claude', project = false, homeDir = os.homedir(), cwd = process.cwd() } = {}) {
-  const name = resolveTargetName(target);
-  const spec = TARGETS[name];
-  const base = path.join(project ? cwd : homeDir, spec.dirname);
+function resolveTarget({ project = false, homeDir = os.homedir(), cwd = process.cwd() } = {}) {
+  const base = path.join(project ? cwd : homeDir, '.claude');
   const guidesDir = path.join(base, 'setup', 'slashforge');
   return {
-    target: name,
-    layout: spec.layout,
-    namePrefix: spec.namePrefix,
-    omit: spec.omit,
+    target: 'claude',
+    omit: TARGETS.claude.omit,
     guidesDir,
-    // Only the Claude target ever had a v2 layout to clean up.
-    legacyGuidesDir: name === 'claude' ? path.join(base, 'setup', LEGACY_GUIDES_DIRNAME) : null,
-    commandsDir: path.join(base, spec.commandsSubdir),
+    legacyGuidesDir: path.join(base, 'setup', LEGACY_GUIDES_DIRNAME),
+    commandsDir: path.join(base, 'commands'),
     metaFile: path.join(guidesDir, 'meta.json'),
-    installPath: project
-      ? [spec.dirname, 'setup', 'slashforge'].join('/')
-      : guidesDir.split(path.sep).join('/'),
+    installPath: project ? '.claude/setup/slashforge' : guidesDir.split(path.sep).join('/'),
     mode: project ? 'project' : 'global',
   };
 }
@@ -454,15 +406,12 @@ function installFiles(target, {
     // it cannot write.
     if (omit.includes(f)) continue;
     const dest = path.join(target.guidesDir, f);
-    let rendered = renderTemplate(fs.readFileSync(path.join(templatesDir, f), 'utf8'), {
+    const rendered = renderTemplate(fs.readFileSync(path.join(templatesDir, f), 'utf8'), {
       installPath: target.installPath,
       version,
       pkgName,
       targetName: target.target,
     });
-    if (target.layout === 'skills') {
-      rendered = toSkillCommandRefs(rendered, target.namePrefix, target.target);
-    }
     fs.writeFileSync(dest, rendered);
     written.push(dest);
   }
@@ -474,26 +423,16 @@ function installFiles(target, {
     written.push(dest);
   }
   for (const c of [...commandFiles, ...skillFiles]) {
-    // A target may not support every command; the vendor-neutral `agents` target
-    // omits setup because no host is known, so there is no layout to scaffold.
     if (omit.includes(c)) continue;
-    let rendered = renderTemplate(fs.readFileSync(path.join(templatesDir, c), 'utf8'), {
+    const rendered = renderTemplate(fs.readFileSync(path.join(templatesDir, c), 'utf8'), {
       installPath: target.installPath,
       version,
       pkgName,
       targetName: target.target,
     });
-    let dest;
-    if (target.layout === 'skills') {
-      const name = skillDirName(c, target.namePrefix);
-      rendered = toSkillCommandRefs(rendered, target.namePrefix, target.target);
-      rendered = toSkillFrontmatter(rendered, name);
-      dest = path.join(target.commandsDir, name, 'SKILL.md');
-    } else {
-      // Command files live in a namespace subdirectory (slashforge/), which is what
-      // produces the /slashforge:name invocation form.
-      dest = path.join(target.commandsDir, c);
-    }
+    // Command files live in a namespace subdirectory (slashforge/), which is what
+    // produces the /slashforge:name invocation form.
+    const dest = path.join(target.commandsDir, c);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, rendered);
     written.push(dest);
@@ -523,7 +462,7 @@ function installFiles(target, {
     target: target.target,
     commands: commandFiles
       .filter((c) => !omit.includes(c))
-      .map((c) => commandName(c, target)),
+      .map((c) => commandName(c)),
   }, null, 2) + '\n';
   fs.writeFileSync(target.metaFile, meta);
   written.push(target.metaFile);
@@ -710,36 +649,19 @@ function uninstallFiles(target, {
   skillFiles = SKILL_FILES,
 } = {}) {
   const removed = [];
-  if (target.layout === 'skills') {
-    // .agents/skills is shared ground with every other tool's skills, so only the
-    // directories this installer writes are eligible for removal.
-    for (const c of [...commandFiles, ...skillFiles]) {
-      const dir = path.join(target.commandsDir, skillDirName(c, target.namePrefix));
-      if (fs.existsSync(dir)) {
-        fs.rmSync(dir, { recursive: true, force: true });
-        removed.push(dir);
-      }
-    }
-    // Prune the shared root only if we are the ones who emptied it.
-    if (fs.existsSync(target.commandsDir) && fs.readdirSync(target.commandsDir).length === 0) {
-      fs.rmdirSync(target.commandsDir);
-      removed.push(target.commandsDir);
-    }
-  } else {
-    // Current layout plus the v2 flat command files, so upgrading from < 3.0.0
-    // and then uninstalling does not leave the old files behind.
-    for (const c of [...commandFiles, ...skillFiles, ...LEGACY_COMMAND_FILES]) {
-      const p = path.join(target.commandsDir, c);
-      if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
-    }
-    // Prune the namespace dir once emptied, but never touch it if the user has
-    // put their own commands in there.
-    for (const ns of [COMMAND_NAMESPACE, LEGACY_COMMAND_NAMESPACE]) {
-      const nsDir = path.join(target.commandsDir, ns);
-      if (fs.existsSync(nsDir) && fs.readdirSync(nsDir).length === 0) {
-        fs.rmdirSync(nsDir);
-        removed.push(nsDir);
-      }
+  // Current layout plus the v2 flat command files, so upgrading from < 3.0.0
+  // and then uninstalling does not leave the old files behind.
+  for (const c of [...commandFiles, ...skillFiles, ...LEGACY_COMMAND_FILES]) {
+    const p = path.join(target.commandsDir, c);
+    if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
+  }
+  // Prune the namespace dir once emptied, but never touch it if the user has
+  // put their own commands in there.
+  for (const ns of [COMMAND_NAMESPACE, LEGACY_COMMAND_NAMESPACE]) {
+    const nsDir = path.join(target.commandsDir, ns);
+    if (fs.existsSync(nsDir) && fs.readdirSync(nsDir).length === 0) {
+      fs.rmdirSync(nsDir);
+      removed.push(nsDir);
     }
   }
   removed.push(...removeKitFiles(target.guidesDir, guideFiles));
@@ -1085,8 +1007,6 @@ async function install({ dryRun, assumeYes, project = false }) {
 // do not delete them during install — that would be removing files the user
 // never asked us to touch — so point at them instead and let the user decide.
 function reportLegacyLeftovers(target) {
-  // The v2 layout only ever existed under .claude/.
-  if (target.layout !== 'commands') return;
   const stale = [];
   if (target.legacyGuidesDir && fs.existsSync(target.legacyGuidesDir)) {
     stale.push(target.legacyGuidesDir);
@@ -1153,13 +1073,6 @@ function printHelp() {
   console.log('               (SLASHFORGE_YES=1 does the same; without a TTY the update prompt');
   console.log('               is confirmed on its own, but uninstall still needs --yes)');
   console.log('  --help, -h   Show this help');
-}
-
-function parseTargetArg(args) {
-  const i = args.indexOf('--target');
-  if (i !== -1 && args[i + 1]) return args[i + 1];
-  const inline = args.find((a) => a.startsWith('--target='));
-  return inline ? inline.slice('--target='.length) : 'claude';
 }
 
 async function main() {
@@ -1240,7 +1153,6 @@ module.exports = {
   blockNamesFor,
   findTargetBlockErrors,
   commandPath,
-  parseTargetArg,
   plannedWrites,
   AGENT_HOSTS,
   SKILL_PREAMBLE,
@@ -1250,6 +1162,9 @@ module.exports = {
   renderSkill,
   installAgentsFiles,
   plannedAgentsWrites,
+  profilesFor,
+  uninstallAgentsFiles,
+  removeKitFiles,
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
   ASSET_FILES,
@@ -1257,5 +1172,4 @@ module.exports = {
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
   TARGETS,
-  resolveTargetName,
 };

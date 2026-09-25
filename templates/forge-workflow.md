@@ -50,9 +50,6 @@ Every phase with a named skill MUST invoke it via the `Skill` tool — do not pa
 <!--target:codex-->
 1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **setup coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge:code -quick` and `/slashforge:code` trivial. Then invoke `slashforge:plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
 <!--/target-->
-<!--target:neutral-->
-1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **setup coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge:code -quick` and `/slashforge:code` trivial. Then invoke `slashforge:plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
-<!--/target-->
 2. **Full plan format** (default): cover every section, omitting only those that genuinely do not apply:
    - **Changes** — files/modules to be added, modified, or removed
    - **Affected surface** — public APIs, exported functions, shared interfaces, DB schemas, migrations
@@ -138,9 +135,6 @@ When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code 
 <!--target:codex-->
 2. Verify that lint, test, and build commands are defined in `AGENTS.md`. If any are missing, ask the user for them before continuing
 <!--/target-->
-<!--target:neutral-->
-2. Verify that lint, test, and build commands are defined in the repo's entry file. If any are missing, ask the user for them before continuing
-<!--/target-->
 3. If new env vars were added, confirm they are in `.env.example` (or equivalent) before running anything
 4. Run lint/format — fix all errors before continuing
 5. Run tests — if any fail, return to Phase 5 with the failure output and loop until all pass
@@ -171,9 +165,6 @@ When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code 
 <!--/target-->
 <!--target:codex-->
 - Follows the nearest `AGENTS.md` and the user's coding style
-<!--/target-->
-<!--target:neutral-->
-- Follows the repo's rule files and the user's coding style
 <!--/target-->
    - No unintended breaking changes to public APIs, exports, or shared interfaces
    - Production-ready: error handling at boundaries, no unsafe assumptions
@@ -237,8 +228,5 @@ Runs only after the user confirms the PR merged. Cleans up the feature branch lo
 <!--/target-->
 <!--target:codex-->
 4. **Never delete** `main`, `master`, `production`, `develop`, `staging`, or any branch the repo's `AGENTS.md` git conventions mark as protected. If the PR branch name matches a protected pattern, stop and warn.
-<!--/target-->
-<!--target:neutral-->
-4. **Never delete** `main`, `master`, `production`, `develop`, `staging`, or any branch the repo's git rule marks as protected. If the PR branch name matches a protected pattern, stop and warn.
 <!--/target-->
 5. Confirm cleanup complete: **"Cleaned up branch `<branch>`. You are now on `<base>`."** If anything fails mid-cleanup (push rejected, local delete fails, base branch pull conflicts), stop at the failure and hand back to the user with the exact error. Do not continue on the assumption something worked.
