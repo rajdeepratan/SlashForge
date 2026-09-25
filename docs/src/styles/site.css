@@ -1163,6 +1163,9 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 .hero__agent .label { margin: 0; }
 .agentsw--hero .agentsw__label { display: none; }
 .agentsw--hero .agentsw__menu { left: 0; right: auto; }
+/* Sized to match the Get Started button beside it, not the header control. */
+.agentsw--hero .agentsw__btn { font-size: 16px; letter-spacing: 0.04em; padding: 10px 16px; gap: 10px; }
+.agentsw--hero .agentsw__item { font-size: 16px; padding: 10px 16px; }
 
 /* Shiki emits both themes inline and switches on a CSS variable, so the code
    colours follow the theme toggle without a second stylesheet. */
