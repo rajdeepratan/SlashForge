@@ -318,13 +318,40 @@ function uninstallFiles(target, {
       removed.push(nsDir);
     }
   }
-  for (const dir of [target.guidesDir, target.legacyGuidesDir]) {
-    if (dir && fs.existsSync(dir)) {
-      fs.rmSync(dir, { recursive: true, force: true });
-      removed.push(dir);
+  // The guides dir gets the same care: only the kit's own files go, and the dir
+  // only once nothing else is left in it (#82).
+  if (fs.existsSync(target.guidesDir)) {
+    const kitFiles = fs.readdirSync(target.guidesDir).filter((n) => isKitGuideFile(n, guideFiles));
+    for (const n of kitFiles) fs.rmSync(path.join(target.guidesDir, n), { force: true });
+    if (fs.readdirSync(target.guidesDir).length === 0) {
+      fs.rmdirSync(target.guidesDir);
+      removed.push(target.guidesDir);
+    } else {
+      for (const n of kitFiles) removed.push(path.join(target.guidesDir, n));
     }
   }
+  // The v2 guides dir predates the kit's file naming, so it is still removed whole.
+  if (target.legacyGuidesDir && fs.existsSync(target.legacyGuidesDir)) {
+    fs.rmSync(target.legacyGuidesDir, { recursive: true, force: true });
+    removed.push(target.legacyGuidesDir);
+  }
   return removed;
+}
+
+// A file in the guides dir that belongs to the kit: this version's guides and
+// assets, meta.json, or any `forge-*.md` — the kit's own prefix, so a guide an
+// older version shipped is recognised as well. Anything else is the user's.
+function isKitGuideFile(name, guideFiles = GUIDE_FILES) {
+  return name === 'meta.json' ||
+    guideFiles.includes(name) ||
+    ASSET_FILES.includes(name) ||
+    /^forge-[a-z0-9-]*\.md$/.test(name);
+}
+
+// Installed means kit files are present, not merely that the dir exists: uninstall
+// keeps the dir when the user has files in it, and those alone are not an install.
+function hasKitFiles(dir) {
+  return fs.existsSync(dir) && fs.readdirSync(dir).some((n) => isKitGuideFile(n));
 }
 
 function readMeta(metaFile) {
@@ -461,7 +488,7 @@ async function warnIfOutdated() {
 function warnIfShadowed(target) {
   if (target.mode !== 'project') return;
   const global = resolveTarget();
-  if (global.guidesDir === target.guidesDir || !fs.existsSync(global.guidesDir)) return;
+  if (global.guidesDir === target.guidesDir || !hasKitFiles(global.guidesDir)) return;
   const meta = readMeta(global.metaFile);
   const version = meta ? `v${meta.version}` : 'an unknown version';
   console.log(`\n⚠  A global install (${version}) is in ${path.dirname(path.dirname(global.guidesDir))}.`);
@@ -471,7 +498,7 @@ function warnIfShadowed(target) {
 
 async function printStatus({ project = false } = {}) {
   const target = resolveTarget({ project });
-  if (!fs.existsSync(target.guidesDir)) {
+  if (!hasKitFiles(target.guidesDir)) {
     console.log('slashforge: not installed.');
     console.log(`Run \`npx ${pkg.name}\` to install v${pkg.version}.`);
     await warnIfOutdated();
@@ -491,7 +518,7 @@ async function printStatus({ project = false } = {}) {
 
   const installed = fs
     .readdirSync(target.guidesDir)
-    .filter((f) => f.endsWith('.md'))
+    .filter((f) => f.endsWith('.md') && isKitGuideFile(f))
     .sort();
   console.log(`  Guide files:               ${installed.length} (${target.guidesDir})`);
   for (const f of installed) console.log(`    • ${f}`);
@@ -540,7 +567,7 @@ async function install({ dryRun, assumeYes, project = false }) {
   validateTemplates(SKILL_FILES, TEMPLATES_DIR);
   assertTemplatesExist(ASSET_FILES, TEMPLATES_DIR);
 
-  const alreadyInstalled = fs.existsSync(target.guidesDir);
+  const alreadyInstalled = hasKitFiles(target.guidesDir);
 
   if (!dryRun && alreadyInstalled) {
     if (assumeYes) {
@@ -614,7 +641,7 @@ function reportLegacyLeftovers(target) {
 async function uninstall({ project, assumeYes, interactive = true }) {
   const target = resolveTarget({ project });
   // Also detect a v2 install so `uninstall` can clean up after an upgrade.
-  const installed = fs.existsSync(target.guidesDir) ||
+  const installed = hasKitFiles(target.guidesDir) ||
     fs.existsSync(target.legacyGuidesDir) ||
     [...COMMAND_FILES, ...LEGACY_COMMAND_FILES]
       .some((c) => fs.existsSync(path.join(target.commandsDir, c)));
@@ -638,6 +665,10 @@ async function uninstall({ project, assumeYes, interactive = true }) {
   const removed = uninstallFiles(target, {});
   console.log('\n✓ Uninstalled slashforge');
   for (const p of removed) console.log(`  removed ${p}`);
+  if (fs.existsSync(target.guidesDir)) {
+    const left = fs.readdirSync(target.guidesDir).sort().join(', ');
+    console.log(`  kept    ${target.guidesDir} — it holds files slashforge did not install: ${left}`);
+  }
 }
 
 function printHelp() {

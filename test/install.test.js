@@ -964,3 +964,46 @@ test('uninstall without a terminal is still a quiet no-op when nothing is instal
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.stdout, /Nothing to remove/);
 });
+
+// #82: the commands dir was already careful — only named files go, and the folder
+// only once empty. The guides dir was removed recursively, taking any file a user
+// had put there with it. It now gets the same care as the commands dir.
+test('uninstall keeps user files in the guides dir and removes only the kit', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  const mine = path.join(target.guidesDir, 'my-notes.md');
+  fs.writeFileSync(mine, 'mine');
+  // A guide an older version shipped and this one no longer lists.
+  fs.writeFileSync(path.join(target.guidesDir, 'forge-preflight.md'), 'old');
+
+  uninstallFiles(target, {});
+
+  assert.ok(fs.existsSync(mine), 'a user file in setup/slashforge/ must survive uninstall');
+  assert.deepEqual(fs.readdirSync(target.guidesDir), ['my-notes.md'], 'every kit file must be gone');
+});
+
+test('uninstall still removes the guides dir when only kit files were in it', () => {
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  fs.writeFileSync(path.join(target.guidesDir, 'forge-preflight.md'), 'old');
+  uninstallFiles(target, {});
+  assert.ok(!fs.existsSync(target.guidesDir));
+});
+
+test('a guides dir holding only user files does not count as an install', () => {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  execFileSync('node', [BIN, '--yes'], { env, stdio: 'ignore' });
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  fs.writeFileSync(path.join(target.guidesDir, 'my-notes.md'), 'mine');
+
+  const out = execFileSync('node', [BIN, 'uninstall', '--yes'], { env, encoding: 'utf8' });
+  assert.match(out, /kept .*my-notes\.md|my-notes\.md.*kept/is, 'uninstall should say what it left and why');
+
+  const status = execFileSync('node', [BIN, 'status'], { env, encoding: 'utf8' });
+  assert.match(status, /not installed/, 'leftover user files are not an install');
+  const again = execFileSync('node', [BIN, 'uninstall', '--yes'], { env, encoding: 'utf8' });
+  assert.match(again, /Nothing to remove/);
+});
