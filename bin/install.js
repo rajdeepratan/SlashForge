@@ -694,6 +694,16 @@ function installAgentsFiles(agents, {
   return written;
 }
 
+// Removes the kit's own files from dir, and dir itself only once nothing else is
+// left. Returns what it removed: the dir if it went, else each file.
+function removeKitFiles(dir, guideFiles = GUIDE_FILES) {
+  if (!fs.existsSync(dir)) return [];
+  const kit = fs.readdirSync(dir).filter((n) => isKitGuideFile(n, guideFiles));
+  for (const n of kit) fs.rmSync(path.join(dir, n), { force: true });
+  if (fs.readdirSync(dir).length === 0) { fs.rmdirSync(dir); return [dir]; }
+  return kit.map((n) => path.join(dir, n));
+}
+
 function uninstallFiles(target, {
   guideFiles = GUIDE_FILES,
   commandFiles = COMMAND_FILES,
@@ -732,23 +742,28 @@ function uninstallFiles(target, {
       }
     }
   }
-  // The guides dir gets the same care: only the kit's own files go, and the dir
-  // only once nothing else is left in it (#82).
-  if (fs.existsSync(target.guidesDir)) {
-    const kitFiles = fs.readdirSync(target.guidesDir).filter((n) => isKitGuideFile(n, guideFiles));
-    for (const n of kitFiles) fs.rmSync(path.join(target.guidesDir, n), { force: true });
-    if (fs.readdirSync(target.guidesDir).length === 0) {
-      fs.rmdirSync(target.guidesDir);
-      removed.push(target.guidesDir);
-    } else {
-      for (const n of kitFiles) removed.push(path.join(target.guidesDir, n));
-    }
-  }
+  removed.push(...removeKitFiles(target.guidesDir, guideFiles));
   // The v2 guides dir predates the kit's file naming, so it is still removed whole.
   if (target.legacyGuidesDir && fs.existsSync(target.legacyGuidesDir)) {
     fs.rmSync(target.legacyGuidesDir, { recursive: true, force: true });
     removed.push(target.legacyGuidesDir);
   }
+  return removed;
+}
+
+function uninstallAgentsFiles(agents, { guideFiles = GUIDE_FILES, commandFiles = COMMAND_FILES, skillFiles = SKILL_FILES } = {}) {
+  const removed = [];
+  // .agents/skills is shared with other tools: only the kit's own dirs go.
+  for (const c of [...commandFiles, ...skillFiles]) {
+    const dir = path.dirname(skillFilePath(agents, c));
+    if (fs.existsSync(dir)) { fs.rmSync(dir, { recursive: true, force: true }); removed.push(dir); }
+  }
+  if (fs.existsSync(agents.skillsDir) && fs.readdirSync(agents.skillsDir).length === 0) {
+    fs.rmdirSync(agents.skillsDir);
+    removed.push(agents.skillsDir);
+  }
+  for (const h of agents.hosts) removed.push(...removeKitFiles(h.guidesDir, [...guideFiles, SETUP_FLOW]));
+  removed.push(...removeKitFiles(agents.root, guideFiles));
   return removed;
 }
 
@@ -901,61 +916,69 @@ async function warnIfOutdated() {
 // personal one ("personal over project"), so a committed project install is
 // silently shadowed for anyone who also installed globally. Only the claude target
 // has a documented precedence; the skills hosts are not assumed to share it.
-function warnIfShadowed(target) {
-  if (target.target !== 'claude' || target.mode !== 'project') return;
-  const global = resolveTarget({ target: target.target });
-  if (global.guidesDir === target.guidesDir || !hasKitFiles(global.guidesDir)) return;
-  const meta = readMeta(global.metaFile);
-  const version = meta ? `v${meta.version}` : 'an unknown version';
-  console.log(`\n⚠  A global install (${version}) is in ${path.dirname(path.dirname(global.guidesDir))}.`);
-  console.log('   Claude Code prefers personal commands, so the global install runs instead of');
-  console.log(`   this project copy. \`npx ${pkg.name} uninstall --yes\` removes the global one.`);
+function warnIfShadowed(claude, agents) {
+  if (claude.mode !== 'project') return;
+  const globalClaude = resolveTarget();
+  if (globalClaude.guidesDir !== claude.guidesDir && hasKitFiles(globalClaude.guidesDir)) {
+    const meta = readMeta(globalClaude.metaFile);
+    const version = meta ? `v${meta.version}` : 'an unknown version';
+    console.log(`\n⚠  A global install (${version}) is in ${path.dirname(path.dirname(globalClaude.guidesDir))}.`);
+    console.log('   Claude Code prefers personal commands, so the global install runs instead of');
+    console.log(`   this project copy. \`npx ${pkg.name} uninstall --yes\` removes the global one.`);
+  }
+  const globalAgents = resolveAgents();
+  if (agents && globalAgents.root !== agents.root && hasKitFiles(globalAgents.root)) {
+    console.log(`\n⚠  SlashForge is also installed in ${globalAgents.base}.`);
+    console.log('   Cursor and Codex may list both copies of each command. Pick one install mode per team.');
+  }
 }
 
-async function printStatus({ target: targetName = 'claude', project = false } = {}) {
-  const target = resolveTarget({ target: targetName, project });
-  if (!hasKitFiles(target.guidesDir)) {
+async function printStatus({ project = false } = {}) {
+  const claude = resolveTarget({ project });
+  const agents = resolveAgents({ project });
+  if (!hasKitFiles(claude.guidesDir) && !hasKitFiles(agents.root)) {
     console.log('slashforge: not installed.');
     console.log(`Run \`npx ${pkg.name}\` to install v${pkg.version}.`);
     await warnIfOutdated();
     return;
   }
-
-  const meta = readMeta(target.metaFile);
-  // Report what is installed, not what was asked about: cursor, codex and agents
-  // share a location, so asking about one can find another installed there.
-  const installedTarget = (meta && meta.target) || target.target;
-  console.log(`\nslashforge status`);
-  console.log(`  Target:                    ${installedTarget}`);
-  if (installedTarget !== target.target) {
-    console.log(`  ⚠  You asked about '${target.target}', but this location holds a '${installedTarget}' install.`);
-    console.log(`     Run \`npx ${pkg.name} --target ${target.target}\` to replace it.`);
-  }
+  const versionLine = (meta) => {
+    if (!meta) return 'unknown (legacy install — no meta.json)';
+    return `v${meta.version}${meta.version !== pkg.version ? '  ← update available' : ''}`;
+  };
+  console.log('\nslashforge status');
   console.log(`  Package version (current): v${pkg.version}`);
-  if (meta) {
-    const marker = meta.version !== pkg.version ? '  ← update available' : '';
-    console.log(`  Installed version:         v${meta.version}${marker}`);
-    console.log(`  Installed at:              ${meta.installed_at}`);
+
+  if (hasKitFiles(claude.guidesDir)) {
+    const guides = fs.readdirSync(claude.guidesDir).filter((f) => f.endsWith('.md') && isKitGuideFile(f)).sort();
+    const commands = COMMAND_FILES.filter((c) => fs.existsSync(commandPath(claude, c))).sort();
+    console.log(`\n  Claude Code (${path.dirname(path.dirname(claude.guidesDir))})`);
+    console.log(`    Installed version:  ${versionLine(readMeta(claude.metaFile))}`);
+    console.log(`    Guide files:        ${guides.length} (${claude.guidesDir})`);
+    console.log(`    Installed commands: ${commands.length}`);
+    for (const c of commands) console.log(`      • ${commandName(c)}`);
   } else {
-    console.log(`  Installed version:         unknown (legacy install — no meta.json)`);
+    console.log(`\n  Claude Code:     not installed — run \`npx ${pkg.name}\` to add it.`);
   }
 
-  const installed = fs
-    .readdirSync(target.guidesDir)
-    .filter((f) => f.endsWith('.md') && isKitGuideFile(f))
-    .sort();
-  console.log(`  Guide files:               ${installed.length} (${target.guidesDir})`);
-  for (const f of installed) console.log(`    • ${f}`);
+  if (hasKitFiles(agents.root)) {
+    console.log(`\n  Cursor + Codex (${agents.base})`);
+    console.log(`    Installed version:  ${versionLine(readMeta(agents.metaFile))}`);
+    for (const h of agents.hosts) {
+      const n = fs.existsSync(h.guidesDir) ? fs.readdirSync(h.guidesDir).filter((f) => f.endsWith('.md')).length : 0;
+      console.log(`    Guide files (${h.host}): ${n} (${h.guidesDir})`);
+    }
+    const skills = COMMAND_FILES.filter((c) => fs.existsSync(skillFilePath(agents, c))).sort();
+    console.log(`    Installed commands: ${skills.length}`);
+    for (const c of skills) {
+      const name = skillDirName(c, 'slashforge-');
+      console.log(`      • /${name} (Cursor), $${name} (Codex)`);
+    }
+  } else {
+    console.log(`\n  Cursor + Codex:  not installed — run \`npx ${pkg.name}\` to add it.`);
+  }
 
-  // Command files sit in a namespace subdirectory, so probe each expected path
-  // rather than listing the commands dir.
-  const commands = COMMAND_FILES
-    .filter((c) => fs.existsSync(commandPath(target, c)))
-    .sort();
-  console.log(`  Installed commands:        ${commands.length}`);
-  for (const f of commands) console.log(`    • ${commandName(f, target)}`);
-
-  warnIfShadowed(target);
+  warnIfShadowed(claude, agents);
   await warnIfOutdated();
 }
 
@@ -987,53 +1010,22 @@ function plannedWrites(target, {
   return writes;
 }
 
-// cursor, codex and agents share one install location but render different
-// guides and commands into the same files, so a location holds one of them at a
-// time. Returns the other target installed there, if any.
-function otherTargetInstalled(target) {
-  if (!hasKitFiles(target.guidesDir)) return null;
-  const meta = readMeta(target.metaFile);
-  return meta && meta.target && meta.target !== target.target ? meta.target : null;
-}
 
-async function install({
-  dryRun, assumeYes, explicitYes = assumeYes, interactive = true,
-  project = false, target: targetName = 'claude',
-}) {
-  const target = resolveTarget({ target: targetName, project });
+
+const TARGET_REMOVED = '--target is no longer needed: one install sets up Claude Code, Cursor and Codex.';
+
+async function install({ dryRun, assumeYes, project = false }) {
+  const claude = resolveTarget({ project });
+  const agents = resolveAgents({ project });
 
   validateTemplates(GUIDE_FILES, TEMPLATES_DIR);
   validateTemplates(COMMAND_FILES, TEMPLATES_DIR);
   validateTemplates(SKILL_FILES, TEMPLATES_DIR);
+  validateTemplates([SETUP_DISPATCH], TEMPLATES_DIR);
   assertTemplatesExist(ASSET_FILES, TEMPLATES_DIR);
 
-  const alreadyInstalled = hasKitFiles(target.guidesDir);
-  const other = otherTargetInstalled(target);
-
-  if (other) {
-    // Replacing another host's install is not an update: that host would go on
-    // reading this target's guides and commands. It is never inferred from a
-    // missing TTY, only from an explicit yes or an answer at the prompt.
-    const where = path.dirname(path.dirname(target.guidesDir));
-    console.log(`\n⚠  ${where} holds a '${other}' install. '${target.target}' writes different guides and`);
-    console.log(`   commands to the same files, so installing it replaces the '${other}' install and`);
-    console.log(`   ${other} would then run '${target.target}' instructions. Only one can live here at a time.`);
-    if (dryRun) {
-      // Fall through to the listing; nothing is written.
-    } else if (explicitYes) {
-      console.log(`Replacing the '${other}' install with '${target.target}' (--yes).`);
-    } else if (!interactive) {
-      console.error(`Refusing to replace the '${other}' install without a terminal to confirm on. Re-run with --yes to replace it.`);
-      process.exitCode = 1;
-      return;
-    } else {
-      const answer = await prompt(`Replace the '${other}' install with '${target.target}'? (y/n): `);
-      if (answer.toLowerCase() !== 'y') {
-        console.log('Skipped. No changes made.');
-        return;
-      }
-    }
-  } else if (!dryRun && alreadyInstalled) {
+  const alreadyInstalled = hasKitFiles(claude.guidesDir) || hasKitFiles(agents.root);
+  if (!dryRun && alreadyInstalled) {
     if (assumeYes) {
       console.log(`slashforge is already installed. Updating to v${pkg.version} (--yes).`);
     } else {
@@ -1046,13 +1038,8 @@ async function install({
   }
 
   if (dryRun) {
-    const writes = plannedWrites(target, {});
-
     console.log(`\nDry-run (no files written) — would install v${pkg.version}:\n`);
-    console.log(`  mkdir -p ${target.guidesDir}`);
-    console.log(`  mkdir -p ${target.commandsDir}`);
-    for (const w of writes) {
-      // Guides and commands are rendered (placeholders filled); assets are copied verbatim.
+    for (const w of [...plannedWrites(claude, {}), ...plannedAgentsWrites(agents)]) {
       const label = w.kind === 'asset' ? 'copy  ' : w.kind === 'meta' ? 'write ' : 'render';
       const base = w.src ? path.basename(w.src) : path.basename(w.dest);
       console.log(`  ${label} ${base.padEnd(36)} → ${w.dest}`);
@@ -1061,39 +1048,25 @@ async function install({
     return;
   }
 
-  installFiles(target, {});
+  // Each location is installed on its own, so one failing (a read-only ~/.agents,
+  // say) is reported without undoing the other. A re-run is safe.
+  const failures = [];
+  for (const [label, run] of [
+    ['Claude Code', () => installFiles(claude, {})],
+    ['Cursor + Codex', () => installAgentsFiles(agents, {})],
+  ]) {
+    try { run(); } catch (err) { failures.push(`${label}: ${err.message}`); }
+  }
+  if (failures.length) {
+    for (const f of failures) console.error(`✗ ${f}`);
+    process.exitCode = 1;
+  }
 
   console.log(`\n✓ v${pkg.version} installed`);
-  console.log(`✓ Guide files: ${target.guidesDir}`);
-  for (const cmd of COMMAND_FILES) {
-    if (target.omit.includes(cmd)) continue;
-    console.log(`✓ Command: ${commandPath(target, cmd)}`);
-  }
+  console.log(`✓ Claude Code:     ${path.join(claude.commandsDir, 'slashforge')}  (guides: ${claude.guidesDir})`);
+  console.log(`✓ Cursor + Codex:  ${agents.skillsDir}  (guides: ${path.join(agents.root, '{cursor,codex}')})`);
 
-  reportLegacyLeftovers(target);
-
-  if (target.layout === 'skills') {
-    const omitted = COMMAND_FILES.filter((c) => target.omit.includes(c));
-    if (omitted.length) {
-      console.log(`\n⚠  Not installed on this target: ${omitted.map((c) => '/' + skillDirName(c, target.namePrefix)).join(', ')}`);
-      console.log('   setup provisions .claude/agents, hooks and CLAUDE.md, which have no');
-      console.log('   equivalent here yet. Run /slashforge:setup from Claude Code instead.');
-    }
-    // The commands are rendered for one host, so the message names that host and
-    // its invocation form. The agents target is vendor-neutral and says so.
-    const sigil = TARGET_SIGILS[target.target] || '/';
-    const host = { cursor: 'Cursor', codex: 'Codex' }[target.target];
-    console.log(`\nDone! Installed for ${host || 'any Agent Skills host (vendor-neutral)'}:`);
-    console.log(`  • ${sigil}slashforge-code — freeform end-to-end development workflow`);
-    console.log(`  • ${sigil}slashforge-code -quick — lean mode for small changes`);
-    console.log(`  • ${sigil}slashforge-investigate [symptom] — read-only research, produces a findings report`);
-    console.log(`  • ${sigil}slashforge-review-pr [number] — review a PR against this repo's rules`);
-    if (target.target === 'codex') console.log('\n  The Codex path is not yet verified end to end.');
-    console.log(`\n  Cursor and Codex share this directory, and it holds one of them at a time.`);
-    console.log(`  Installing the other target later replaces this one.`);
-    await warnIfOutdated();
-    return;
-  }
+  reportLegacyLeftovers(claude);
 
   console.log('\nDone! Open Claude Code in any repo:');
   console.log('  • /slashforge:setup — one-time repo setup');
@@ -1101,8 +1074,10 @@ async function install({
   console.log('  • /slashforge:code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
   console.log('  • /slashforge:investigate [symptom] — read-only research, produces a findings report');
   console.log('  • /slashforge:review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
+  console.log('\nIn Cursor the same commands are /slashforge-setup, /slashforge-code, …');
+  console.log('In Codex they are $slashforge-setup, $slashforge-code, …');
 
-  warnIfShadowed(target);
+  warnIfShadowed(claude, agents);
   await warnIfOutdated();
 }
 
@@ -1127,37 +1102,39 @@ function reportLegacyLeftovers(target) {
   console.log('   They are no longer used. Safe to delete once you have moved to /slashforge:* commands.');
 }
 
-async function uninstall({ project, assumeYes, interactive = true, target: targetName = 'claude' }) {
-  const target = resolveTarget({ target: targetName, project });
-  // Also detect a v2 install so `uninstall` can clean up after an upgrade.
-  const installed = hasKitFiles(target.guidesDir) ||
-    (target.legacyGuidesDir && fs.existsSync(target.legacyGuidesDir)) ||
-    COMMAND_FILES.some((c) => fs.existsSync(commandPath(target, c))) ||
-    (target.layout === 'commands' &&
-      LEGACY_COMMAND_FILES.some((c) => fs.existsSync(path.join(target.commandsDir, c))));
+async function uninstall({ project, assumeYes, interactive = true }) {
+  const claude = resolveTarget({ project });
+  const agents = resolveAgents({ project });
+  const installed = hasKitFiles(claude.guidesDir) ||
+    fs.existsSync(claude.legacyGuidesDir) ||
+    COMMAND_FILES.some((c) => fs.existsSync(commandPath(claude, c))) ||
+    LEGACY_COMMAND_FILES.some((c) => fs.existsSync(path.join(claude.commandsDir, c))) ||
+    hasKitFiles(agents.root) ||
+    COMMAND_FILES.some((c) => fs.existsSync(skillFilePath(agents, c)));
   if (!installed) {
     console.log('slashforge is not installed at this location. Nothing to remove.');
     return;
   }
   if (!assumeYes && !interactive) {
-    // No terminal to ask on, and a prompt would wait on stdin forever.
     console.error('Refusing to uninstall without a terminal to confirm on. Re-run with --yes to remove the kit.');
     process.exitCode = 1;
     return;
   }
   if (!assumeYes) {
-    const answer = await prompt(`Remove slashforge guides + commands from ${target.guidesDir} and ${target.commandsDir}? (y/n): `);
+    const answer = await prompt(`Remove slashforge from ${path.dirname(path.dirname(claude.guidesDir))} and ${agents.base}? (y/n): `);
     if (answer.toLowerCase() !== 'y') {
       console.log('Skipped. No changes made.');
       return;
     }
   }
-  const removed = uninstallFiles(target, {});
+  const removed = [...uninstallFiles(claude, {}), ...uninstallAgentsFiles(agents, {})];
   console.log('\n✓ Uninstalled slashforge');
   for (const p of removed) console.log(`  removed ${p}`);
-  if (fs.existsSync(target.guidesDir)) {
-    const left = fs.readdirSync(target.guidesDir).sort().join(', ');
-    console.log(`  kept    ${target.guidesDir} — it holds files slashforge did not install: ${left}`);
+  for (const dir of [claude.guidesDir, agents.root, ...agents.hosts.map((h) => h.guidesDir)]) {
+    if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
+      const left = fs.readdirSync(dir).sort().join(', ');
+      if (left) console.log(`  kept    ${dir} — it holds files slashforge did not install: ${left}`);
+    }
   }
 }
 
@@ -1167,11 +1144,10 @@ function printHelp() {
   console.log('Commands:');
   console.log('  (default)    Install or update the kit');
   console.log('  status       Show installed version and files without changing anything');
-  console.log('  uninstall    Remove the kit\'s guides and commands (use --project for ./.claude)');
+  console.log('  uninstall    Remove the kit (use --project for the repo copy)');
   console.log('');
   console.log('Options:');
-  console.log('  --project    Install into ./.claude/ (or ./.agents/) of the current repo');
-  console.log('  --target <n> claude (default) | cursor | codex | agents');
+  console.log('  --project    Install into ./.claude/ and ./.agents/ of the current repo');
   console.log('  --dry-run    Print planned file writes without touching the filesystem');
   console.log('  --yes, -y    Non-interactive mode — auto-confirm the prompts');
   console.log('               (SLASHFORGE_YES=1 does the same; without a TTY the update prompt');
@@ -1195,13 +1171,17 @@ async function main() {
     return;
   }
 
+  if (args.some((a) => a === '--target' || a.startsWith('--target='))) {
+    console.error(TARGET_REMOVED);
+    process.exitCode = 1;
+    closeRl();
+    return;
+  }
+
   const project = args.includes('--project');
-  const target = parseTargetArg(args);
-  // Fail fast on a bad target rather than deep inside an install.
-  resolveTargetName(target);
 
   if (args[0] === 'status') {
-    await printStatus({ project, target });
+    await printStatus({ project });
     closeRl();
     return;
   }
@@ -1218,13 +1198,13 @@ async function main() {
   if (args[0] === 'uninstall') {
     // Removing the kit is not the update prompt: it takes an explicit yes rather
     // than one inferred from a missing TTY.
-    await uninstall({ project, assumeYes: explicitYes, interactive, target });
+    await uninstall({ project, assumeYes: explicitYes, interactive });
     closeRl();
     return;
   }
 
   try {
-    await install({ dryRun, assumeYes, explicitYes, interactive, project, target });
+    await install({ dryRun, assumeYes, project });
   } finally {
     closeRl();
   }

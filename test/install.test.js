@@ -1011,41 +1011,6 @@ test('plannedWrites for the agents target names skill paths and skips setup', ()
   assert.ok(writes.some((w) => w.kind === 'meta'));
 });
 
-test('dry-run with --target cursor writes nothing', () => {
-  const home = tmp();
-  const out = execFileSync(process.execPath, [BIN, '--dry-run', '--target', 'cursor'], {
-    encoding: 'utf8',
-    env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' },
-  });
-  assert.match(out, /slashforge-code/);
-  assert.match(out, /slashforge-setup/, 'setup installs on cursor');
-  assert.ok(!fs.existsSync(path.join(home, '.agents')), 'dry-run must not create files');
-});
-
-test('an unknown target exits 1 with the valid names', () => {
-  assert.throws(
-    () => execFileSync(process.execPath, [BIN, '--target', 'vscode'], {
-      encoding: 'utf8', stdio: 'pipe',
-      env: { ...process.env, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' },
-    }),
-    (err) => {
-      assert.equal(err.status, 1);
-      assert.match(err.stderr, /claude, cursor, codex, agents/);
-      return true;
-    });
-});
-
-test('status reports the vendor target after installing to it', () => {
-  const home = tmp();
-  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' };
-  execFileSync(process.execPath, [BIN, '--target', 'cursor'], { encoding: 'utf8', env });
-  const out = execFileSync(process.execPath, [BIN, 'status', '--target', 'cursor'], { encoding: 'utf8', env });
-  // Names the vendor the user asked for, not the install layout it shares with codex.
-  assert.match(out, /Target:\s+cursor/);
-  assert.match(out, /\/slashforge-code/);
-  assert.ok(!out.includes('/slashforge:code'));
-});
-
 test('install summary lists the paths it actually wrote', () => {
   const home = tmp();
   const out = execFileSync(process.execPath, [BIN, '--target', 'cursor'], {
@@ -1059,20 +1024,6 @@ test('install summary lists the paths it actually wrote', () => {
     assert.ok(fs.existsSync(p), `summary names a path that was not written: ${p}`);
   }
   assert.ok(out.includes('slashforge-setup'), 'setup is installed on cursor and must be listed');
-});
-
-test('the completion message does not name the wrong vendor', () => {
-  const run = (t) => {
-    const home = tmp();
-    return execFileSync(process.execPath, [BIN, '--target', t], {
-      encoding: 'utf8',
-      env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_YES: '1', SLASHFORGE_NO_UPDATE_CHECK: '1' },
-    });
-  };
-  const codex = run('codex');
-  assert.ok(!/Open Cursor/.test(codex), 'a codex install must not tell the user to open Cursor');
-  assert.match(codex, /Cursor and Codex/);
-  assert.match(run('cursor'), /Cursor and Codex/);
 });
 
 // --- Task 1: per-target prose blocks -----------------------------------------
@@ -2231,82 +2182,6 @@ test('the CLI dry run announces every file the install then writes', () => {
   assert.deepEqual(announced, written.sort());
 });
 
-// Cursor and Codex share ~/.agents but render different guides and commands for
-// the same files, so installing one over the other replaced it silently: Cursor's
-// setup would then follow Codex's instructions (TOML subagents, $-invocation).
-// One vendor install per location, and switching it takes an explicit yes.
-function agentsEnv() {
-  const home = tmp();
-  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
-  delete env.SLASHFORGE_YES;
-  const guides = path.join(home, '.agents', 'setup', 'slashforge');
-  const metaTarget = () => JSON.parse(fs.readFileSync(path.join(guides, 'meta.json'), 'utf8')).target;
-  return { home, env, guides, metaTarget };
-}
-const runCli = (args, env) => require('child_process').spawnSync('node', [BIN, ...args], {
-  env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
-});
-
-test('installing a different vendor target over another refuses without a yes', () => {
-  const { env, guides, metaTarget } = agentsEnv();
-  assert.equal(runCli(['--target', 'cursor'], env).status, 0);
-
-  const r = runCli(['--target', 'codex'], env);
-  assert.notEqual(r.status, 0, 'switching targets without a terminal must not happen silently');
-  assert.match(r.stderr + r.stdout, /cursor/);
-  assert.match(r.stderr + r.stdout, /--yes/);
-  assert.equal(metaTarget(), 'cursor', 'the cursor install must be left as it was');
-  assert.ok(fs.existsSync(path.join(guides, 'forge-agents.md')), "cursor's guide must survive");
-});
-
-test('an explicit --yes replaces the other vendor install and says so', () => {
-  const { env, guides, metaTarget } = agentsEnv();
-  runCli(['--target', 'cursor'], env);
-  const r = runCli(['--target', 'codex', '--yes'], env);
-  assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stdout, /replac/i);
-  assert.equal(metaTarget(), 'codex');
-  assert.ok(fs.existsSync(path.join(guides, 'forge-agents-codex.md')));
-});
-
-test('updating the same vendor target without a terminal still needs no flag', () => {
-  const { env, metaTarget } = agentsEnv();
-  runCli(['--target', 'codex'], env);
-  const r = runCli(['--target', 'codex'], env);
-  assert.equal(r.status, 0, r.stderr);
-  assert.equal(metaTarget(), 'codex');
-});
-
-test('a dry run over another vendor target warns and writes nothing', () => {
-  const { env, guides, metaTarget } = agentsEnv();
-  runCli(['--target', 'cursor'], env);
-  const before = fs.readFileSync(path.join(guides, 'meta.json'), 'utf8');
-  const r = runCli(['--target', 'codex', '--dry-run'], env);
-  assert.equal(r.status, 0);
-  assert.match(r.stdout, /cursor/);
-  assert.equal(fs.readFileSync(path.join(guides, 'meta.json'), 'utf8'), before);
-  assert.equal(metaTarget(), 'cursor');
-});
-
-test('status reports the target actually installed, not the one asked about', () => {
-  const { env } = agentsEnv();
-  runCli(['--target', 'codex'], env);
-  const r = runCli(['status', '--target', 'cursor'], env);
-  assert.match(r.stdout, /Target:\s+codex/, 'status must report the installed target');
-  assert.match(r.stdout, /cursor/, 'and say it differs from the one asked about');
-});
-
-test('the closing message names the installed host and its invocation form', () => {
-  const { env } = agentsEnv();
-  const cursor = runCli(['--target', 'cursor'], env).stdout;
-  assert.match(cursor, /Installed for Cursor/);
-  assert.match(cursor, /\/slashforge-code/);
-  assert.doesNotMatch(cursor, /\$slashforge-code/);
-  const codex = runCli(['--target', 'codex', '--yes'], env).stdout;
-  assert.match(codex, /Installed for Codex/);
-  assert.match(codex, /\$slashforge-code/);
-});
-
 // --- One install: the ~/.agents/ location ---
 const {
   resolveAgents, installAgentsFiles, plannedAgentsWrites, SKILL_PREAMBLE, AGENT_HOSTS,
@@ -2425,4 +2300,124 @@ test('plannedAgentsWrites and installAgentsFiles name the same files', () => {
     const planned = plannedAgentsWrites(a).map((w) => w.dest).sort();
     assert.deepEqual(planned, installAgentsFiles(a, {}).slice().sort());
   }
+});
+
+// --- One install: the CLI ---
+function cliEnv() {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  delete env.SLASHFORGE_YES;
+  return { home, env };
+}
+const cli = (args, env, cwd) => require('child_process').spawnSync('node', [BIN, ...args], {
+  env, cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+});
+
+test('one install sets up both locations and names all three forms', () => {
+  const { home, env } = cliEnv();
+  const r = cli([], env);
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')));
+  assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code', 'SKILL.md')));
+  assert.ok(fs.existsSync(path.join(home, '.agents', 'setup', 'slashforge', 'codex', 'forge-workflow.md')));
+  for (const form of ['/slashforge:code', '/slashforge-code', '$slashforge-code']) {
+    assert.ok(r.stdout.includes(form), `closing message should show ${form}`);
+  }
+});
+
+test('--target is refused in both spellings, and nothing is written', () => {
+  const { home, env } = cliEnv();
+  for (const args of [['--target', 'cursor'], ['--target=codex'], ['status', '--target', 'claude']]) {
+    const r = cli(args, env);
+    assert.equal(r.status, 1, args.join(' '));
+    assert.match(r.stderr, /--target is no longer needed: one install sets up Claude Code, Cursor and Codex\./);
+  }
+  assert.deepEqual(fs.readdirSync(home), []);
+});
+
+test('the dry run lists both locations and writes nothing', () => {
+  const { home, env } = cliEnv();
+  const r = cli(['--dry-run'], env);
+  assert.equal(r.status, 0, r.stderr);
+  const announced = r.stdout.split('\n').filter((l) => l.includes('→')).map((l) => l.split('→ ')[1].trim()).sort();
+  assert.deepEqual(fs.readdirSync(home), []);
+  assert.ok(announced.some((p) => p.includes(path.join('.agents', 'skills', 'slashforge-code'))), 'the .agents location is announced');
+  cli(['--yes'], env);
+  const written = [];
+  (function walk(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p); else written.push(p);
+    }
+  })(home);
+  assert.deepEqual(announced, written.sort());
+});
+
+test('status reports both locations and flags a missing one', () => {
+  const { home, env } = cliEnv();
+  cli([], env);
+  const both = cli(['status'], env).stdout;
+  assert.match(both, /Claude Code/);
+  assert.match(both, /Cursor \+ Codex/);
+  assert.match(both, /\$slashforge-code/);
+  fs.rmSync(path.join(home, '.agents'), { recursive: true });
+  const one = cli(['status'], env).stdout;
+  assert.match(one, /Cursor \+ Codex:\s+not installed/);
+});
+
+test('uninstall removes both locations and keeps user files in each', () => {
+  const { home, env } = cliEnv();
+  cli([], env);
+  const mineC = path.join(home, '.claude', 'setup', 'slashforge', 'notes.md');
+  const mineA = path.join(home, '.agents', 'setup', 'slashforge', 'cursor', 'notes.md');
+  fs.writeFileSync(mineC, 'x');
+  fs.writeFileSync(mineA, 'x');
+  const r = cli(['uninstall', '--yes'], env);
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(fs.existsSync(mineC) && fs.existsSync(mineA), 'user files survive');
+  assert.match(r.stdout, /kept .*cursor/s);
+  assert.ok(!fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code')));
+  assert.match(cli(['status'], env).stdout, /not installed/);
+});
+
+// Review Focus 4: other tools' skills in the shared folder are untouched.
+test('install and uninstall leave other tools\' skills alone', () => {
+  const { home, env } = cliEnv();
+  const foreign = path.join(home, '.agents', 'skills', 'other-tool', 'SKILL.md');
+  fs.mkdirSync(path.dirname(foreign), { recursive: true });
+  fs.writeFileSync(foreign, 'x');
+  cli([], env);
+  assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code')), 'install wrote beside it');
+  cli(['uninstall', '--yes'], env);
+  assert.equal(fs.readFileSync(foreign, 'utf8'), 'x');
+});
+
+test('uninstall without a terminal still needs --yes; updates still do not', () => {
+  const { home, env } = cliEnv();
+  assert.equal(cli([], env).status, 0);
+  assert.equal(cli([], env).status, 0, 'a second install updates without a flag');
+  const r = cli(['uninstall'], env);
+  assert.equal(r.status, 1);
+  assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code')));
+});
+
+// Spec, failure handling: one location failing must not undo the other.
+test('a failure in one location is reported and the other stays installed', () => {
+  const { home, env } = cliEnv();
+  fs.writeFileSync(path.join(home, '.agents'), 'not a directory');
+  const r = cli([], env);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /Cursor \+ Codex:/);
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')), 'Claude install kept');
+});
+
+test('a project install notes a global .agents install as well', () => {
+  const { home, env } = cliEnv();
+  const repo = tmp();
+  cli([], env);
+  const r = cli(['--project'], env, repo);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /global install.*runs instead/is, 'Claude Code shadow warning');
+  assert.match(r.stdout, /Cursor and Codex may list both copies/);
+  assert.ok(fs.existsSync(path.join(repo, '.agents', 'skills', 'slashforge-code', 'SKILL.md')));
 });
