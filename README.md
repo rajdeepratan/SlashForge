@@ -383,7 +383,7 @@ npx slashforge
 Both `npx slashforge` and `npx slashforge status` check npm afterwards and say so if a newer release exists:
 
 ```
-⚠  This is v4.4.2. The current release is v4.4.3.
+⚠  This is v4.4.3. The current release is v4.5.0.
    `npx slashforge` runs a global install if you have one, and never checks npm:
      npm uninstall -g slashforge     # then re-run npx, or
      npm install -g slashforge@latest
