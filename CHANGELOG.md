@@ -6,6 +6,23 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- **`--dry-run` lists every file the install writes.** It built its own list from the guides and the four commands, so it announced 21 files while 4.4.3 wrote 32: the nine skills and the report assets were missing. The preview and the install now share one list, `plannedWrites`, and a test compares them in both directions.
+- **The dry run labels guides as `render`.** Guides have been rendered since 4.4.1, but the preview still said `copy`. Only the assets are copied verbatim.
+- **The README's "What gets installed" table describes the current layout.** It still showed three commands in `commands/forge/`; the kit installs four commands and nine skills in `commands/slashforge/`.
+- **`uninstall` no longer runs unprompted without a terminal.** `--yes` switched itself on whenever stdin was not a TTY, which was meant for the update prompt but also answered the uninstall question, so a script removed the kit without anyone saying yes. Uninstall now needs `--yes` (or `SLASHFORGE_YES=1`) when there is no terminal to ask on, and says so. Updating in CI is unchanged.
+- **The frontmatter check accepts what Claude Code accepts.** A folded (`>`) or literal (`|`) YAML description, or a plain value continued on an indented line, was refused as invalid; so was a closing `---` with trailing whitespace.
+- **Setup's size check sees skill folders.** Step 9 ran `wc -l CLAUDE.md .claude/**/*.md`, and bash without `globstar` reads `**` as one folder deep, so a `SKILL.md` was never counted. It now uses `find`, exits non-zero on any file over its limit, and skips the kit's own files in a project install.
+- **The setup guides agree on skills.** `forge-instructions.md` listed Claude skills as flat `.claude/skills/*.md` files under a 200-line rule, while `forge-skills.md` asked for `<name>/SKILL.md` under 500. Both now say the folder form, 200 lines for every generated file and 500 for a `SKILL.md`.
+- **The open helper's test can fail.** It asserted exit 0 on a missing file, which the helper returns on every path, and on a desktop it really launched the system opener. The openers are now stubbed on `PATH`, and the test checks which one ran and with what.
+- Installer comments that still described the `forge/` layout and three entry points.
+
+### Changed
+- **Documents and review payloads are built by shipped scripts, not inline `node -e`.** `forge-splice.js` and `forge-review-payload.js` install next to the report shell. A Bash permission rule matches by prefix, so allowing the old `node -e '<script>'` meant allowing any node code; each file can now be allowed by its own path.
+
+### Added
+- **A warning when a global install shadows a project one.** Claude Code prefers personal commands over project ones, so a teammate with SlashForge in `~/.claude` silently runs that copy instead of the one committed to the repo. `status --project` and `--project` installs now say so and how to remove the global copy.
+
 ## [4.4.3] - 2026-09-14
 
 Docs site only. No change to any command, skill, or installed file — the

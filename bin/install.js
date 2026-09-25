@@ -33,6 +33,10 @@ const GUIDE_FILES = [
 const ASSET_FILES = [
   'forge-report-shell.html',
   'forge-open.sh',
+  // Shipped as files rather than inline `node -e` scripts so a permission rule can
+  // allow each one by its path; a `node -e` rule would allow any script at all.
+  'forge-splice.js',
+  'forge-review-payload.js',
 ];
 
 const COMMAND_FILES = [
@@ -46,7 +50,7 @@ const COMMAND_FILES = [
 // commands above — that subdirectory is what produces a `slashforge:` invocation —
 // and are rendered the same way. They are kept out of COMMAND_FILES on purpose:
 // that list drives meta.json's `commands` and the `status` output, which should
-// keep reporting the three entry points a user actually types, not every internal
+// keep reporting the entry points a user actually types, not every internal
 // discipline the workflow invokes on their behalf.
 const SKILL_FILES = [
   path.join('slashforge', 'brainstorm.md'),
@@ -117,19 +121,34 @@ function parseFrontmatter(content, label) {
   if (lines[0].trim() !== '---') {
     throw new Error(`${label}: missing opening '---' frontmatter fence`);
   }
-  const end = lines.indexOf('---', 1);
+  // Trimmed like the opening fence, so a trailing space does not hide it.
+  const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
   if (end === -1) {
     throw new Error(`${label}: missing closing '---' frontmatter fence`);
   }
+  // Not a YAML parser, but it accepts the multi-line values Claude Code does: an
+  // indented line continues the key above it, folded (`>`) with spaces and literal
+  // (`|`) with newlines. Refusing a file the runtime reads is a check that fails
+  // the author for nothing.
   const fm = {};
+  let key = null;
+  let joiner = ' ';
   for (let i = 1; i < end; i++) {
     const line = lines[i];
     if (!line.trim() || line.trim().startsWith('#')) continue;
+    if (/^\s/.test(line) && key) {
+      fm[key] = fm[key] ? fm[key] + joiner + line.trim() : line.trim();
+      continue;
+    }
     const match = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
     if (!match) {
       throw new Error(`${label}: invalid frontmatter at line ${i + 1}: "${line}"`);
     }
-    fm[match[1].trim()] = match[2].trim();
+    key = match[1].trim();
+    const value = match[2].trim();
+    const block = value.match(/^([>|])[+-]?$/);
+    joiner = block && block[1] === '|' ? '\n' : ' ';
+    fm[key] = block ? '' : value;
   }
   for (const required of ['name', 'description']) {
     if (!fm[required]) {
@@ -179,7 +198,7 @@ function renderTemplate(content, { installPath, version, pkgName }) {
     .replace(/\{\{KIT_PACKAGE\}\}/g, pkgName);
 }
 
-// 'forge/setup.md' -> '/slashforge:setup'. A command file's path under the commands
+// 'slashforge/setup.md' -> '/slashforge:setup'. A command file's path under the commands
 // dir determines how it is invoked; a subdirectory becomes a `:` namespace.
 function commandName(file) {
   return '/' + file.replace(/\.md$/, '').split(path.sep).join(':');
@@ -256,7 +275,7 @@ function installFiles(target, {
       pkgName,
     });
     const dest = path.join(target.commandsDir, c);
-    // Command files live in a namespace subdirectory (forge/), which is what
+    // Command files live in a namespace subdirectory (slashforge/), which is what
     // produces the /slashforge:name invocation form.
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, rendered);
@@ -436,6 +455,20 @@ async function warnIfOutdated() {
 // CLI commands
 // ---------------------------------------------------------------------------
 
+// Claude Code resolves a command found both in ~/.claude and in the repo to the
+// personal one ("personal over project"), so a committed project install is
+// silently shadowed for anyone who also installed globally.
+function warnIfShadowed(target) {
+  if (target.mode !== 'project') return;
+  const global = resolveTarget();
+  if (global.guidesDir === target.guidesDir || !fs.existsSync(global.guidesDir)) return;
+  const meta = readMeta(global.metaFile);
+  const version = meta ? `v${meta.version}` : 'an unknown version';
+  console.log(`\n⚠  A global install (${version}) is in ${path.dirname(path.dirname(global.guidesDir))}.`);
+  console.log('   Claude Code prefers personal commands, so the global install runs instead of');
+  console.log(`   this project copy. \`npx ${pkg.name} uninstall --yes\` removes the global one.`);
+}
+
 async function printStatus({ project = false } = {}) {
   const target = resolveTarget({ project });
   if (!fs.existsSync(target.guidesDir)) {
@@ -471,7 +504,32 @@ async function printStatus({ project = false } = {}) {
   console.log(`  Installed commands:        ${commands.length}`);
   for (const f of commands) console.log(`    • ${commandName(f)}`);
 
+  warnIfShadowed(target);
   await warnIfOutdated();
+}
+
+// The file writes an install would perform, as data. The dry run lists these, so
+// it must walk the same four lists installFiles does: a preview built from its own
+// shorter list is how the dry run came to announce 21 of the 32 files it wrote.
+function plannedWrites(target, {
+  templatesDir = TEMPLATES_DIR,
+  guideFiles = GUIDE_FILES,
+  commandFiles = COMMAND_FILES,
+  assetFiles = ASSET_FILES,
+  skillFiles = SKILL_FILES,
+} = {}) {
+  const writes = [];
+  for (const file of guideFiles) {
+    writes.push({ kind: 'guide', src: path.join(templatesDir, file), dest: path.join(target.guidesDir, file) });
+  }
+  for (const asset of assetFiles) {
+    writes.push({ kind: 'asset', src: path.join(templatesDir, asset), dest: path.join(target.guidesDir, asset) });
+  }
+  for (const cmd of [...commandFiles, ...skillFiles]) {
+    writes.push({ kind: 'command', src: path.join(templatesDir, cmd), dest: path.join(target.commandsDir, cmd) });
+  }
+  writes.push({ kind: 'meta', dest: target.metaFile });
+  return writes;
 }
 
 async function install({ dryRun, assumeYes, project = false }) {
@@ -497,31 +555,14 @@ async function install({ dryRun, assumeYes, project = false }) {
   }
 
   if (dryRun) {
-    const plannedWrites = [];
-    for (const file of GUIDE_FILES) {
-      plannedWrites.push({
-        kind: 'guide',
-        src: path.join(TEMPLATES_DIR, file),
-        dest: path.join(target.guidesDir, file),
-      });
-    }
-    for (const cmd of COMMAND_FILES) {
-      plannedWrites.push({
-        kind: 'command',
-        src: path.join(TEMPLATES_DIR, cmd),
-        dest: path.join(target.commandsDir, cmd),
-      });
-    }
-    plannedWrites.push({
-      kind: 'meta',
-      dest: target.metaFile,
-    });
+    const writes = plannedWrites(target);
 
     console.log(`\nDry-run (no files written) — would install v${pkg.version}:\n`);
     console.log(`  mkdir -p ${target.guidesDir}`);
     console.log(`  mkdir -p ${target.commandsDir}`);
-    for (const w of plannedWrites) {
-      const label = w.kind === 'guide' ? 'copy  ' : w.kind === 'command' ? 'render' : 'write ';
+    for (const w of writes) {
+      // Guides and commands are rendered (placeholders filled); assets are copied verbatim.
+      const label = w.kind === 'asset' ? 'copy  ' : w.kind === 'meta' ? 'write ' : 'render';
       const base = w.src ? path.basename(w.src) : path.basename(w.dest);
       console.log(`  ${label} ${base.padEnd(36)} → ${w.dest}`);
     }
@@ -547,6 +588,7 @@ async function install({ dryRun, assumeYes, project = false }) {
   console.log('  • /slashforge:investigate [symptom] — read-only research, produces a findings report');
   console.log('  • /slashforge:review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
 
+  warnIfShadowed(target);
   await warnIfOutdated();
 }
 
@@ -603,8 +645,9 @@ function printHelp() {
   console.log('Options:');
   console.log('  --project    Install into ./.claude/ of the current repo (project mode)');
   console.log('  --dry-run    Print planned file writes without touching the filesystem');
-  console.log('  --yes, -y    Non-interactive mode — auto-confirm the update prompt');
-  console.log('               (also enabled by SLASHFORGE_YES=1 or when stdin is not a TTY)');
+  console.log('  --yes, -y    Non-interactive mode — auto-confirm the prompts');
+  console.log('               (SLASHFORGE_YES=1 does the same; without a TTY the update prompt');
+  console.log('               is confirmed on its own, but uninstall still needs --yes)');
   console.log('  --help, -h   Show this help');
 }
 
@@ -626,14 +669,24 @@ async function main() {
   }
 
   const dryRun = args.includes('--dry-run');
-  const assumeYes =
+  const explicitYes =
     args.includes('--yes') ||
     args.includes('-y') ||
-    process.env.SLASHFORGE_YES === '1' ||
-    !process.stdin.isTTY;
+    process.env.SLASHFORGE_YES === '1';
+  const interactive = Boolean(process.stdin.isTTY);
+  // Updating in CI with no terminal is the common case, so it needs no flag.
+  const assumeYes = explicitYes || !interactive;
 
   if (args[0] === 'uninstall') {
-    await uninstall({ project, assumeYes });
+    // Removing the kit is not the update prompt: without a terminal to ask on,
+    // it takes an explicit yes rather than one inferred from a missing TTY.
+    if (!explicitYes && !interactive) {
+      console.error('Refusing to uninstall without a terminal to confirm on. Re-run with --yes to remove the kit.');
+      process.exitCode = 1;
+      closeRl();
+      return;
+    }
+    await uninstall({ project, assumeYes: explicitYes });
     closeRl();
     return;
   }
@@ -667,6 +720,7 @@ module.exports = {
   installFiles,
   uninstallFiles,
   commandName,
+  plannedWrites,
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
   ASSET_FILES,

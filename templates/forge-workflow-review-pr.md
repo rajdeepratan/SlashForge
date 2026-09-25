@@ -170,15 +170,7 @@ same one investigation reports, specs and plans use. Write **only the body fragm
 mkdir -p docs/slashforge/reviews
 review="docs/slashforge/reviews/<YYYY-MM-DD>-pr-<N>.html"
 
-node -e '
-const fs = require("fs");
-const [shell, frag, out, title] = process.argv.slice(1);
-const body = fs.readFileSync(frag, "utf8");
-const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
-  .replace("<!--TITLE-->",   () => esc(title))
-  .replace("<!--CONTENT-->", () => body));
-' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$review" "Review — PR #<N> (<YYYY-MM-DD>)"
+node "{{INSTALL_PATH}}/forge-splice.js" "$fragment" "$review" "Review — PR #<N> (<YYYY-MM-DD>)"
 
 sh "{{INSTALL_PATH}}/forge-open.sh" "$review"
 ```
@@ -247,21 +239,7 @@ cat > "$d/anchors.json" <<'JSON'
 JSON
 
 # 4. Assemble. JSON.stringify escapes every string correctly, by construction.
-node -e '
-const fs = require("fs"), path = require("path");
-const [dir, event, out] = process.argv.slice(1);
-const anchors = JSON.parse(fs.readFileSync(path.join(dir, "anchors.json"), "utf8"));
-fs.writeFileSync(out, JSON.stringify({
-  event,
-  body: fs.readFileSync(path.join(dir, "body.txt"), "utf8"),
-  comments: anchors.map((a) => ({
-    path: a.path,
-    line: a.line,
-    side: a.side || "RIGHT",
-    body: fs.readFileSync(path.join(dir, a.bodyFile), "utf8"),
-  })),
-}));
-' "$d" "<EVENT>" "$d/payload.json"
+node "{{INSTALL_PATH}}/forge-review-payload.js" "$d" "<EVENT>" "$d/payload.json"
 ```
 
 `<EVENT>` is `APPROVE`, `COMMENT`, or `REQUEST_CHANGES` — taken from the gate, never inferred.
