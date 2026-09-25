@@ -246,7 +246,7 @@ When `/slashforge-code` runs on a non-trivial feature, the kit checks whether th
 - `/slashforge-code` trivial auto-detect (typos, single-line tweaks)
 - `/slashforge-investigate` (read-only, no code changes)
 
-**Cost:** ~100–300 tokens per run when no gaps detected; ~300–600 when gaps surface and you decline; ~3–8k extra when you accept and new files are generated as part of the feature. See `forge-coverage.md` for the detection matrix and heuristic.
+**Cost:** ~100–300 tokens per run when no gaps detected; ~300–600 when gaps surface and you decline; ~3–8k extra when you accept and new files are generated as part of the feature. See `slashforge-coverage.md` for the detection matrix and heuristic.
 
 **Why it matters:** without this, every new domain silently widens the gap between what's in the repo and what `.claude/` knows about. Specialist agents stay generic, rules don't enforce domain conventions, `CLAUDE.md` drifts from reality. Coverage check closes the loop incrementally instead of relying on the user to remember to re-run `/slashforge-setup`.
 
@@ -307,7 +307,7 @@ Don't use for: bug fixes where the root cause isn't already understood (use `/sl
 ```
 Read-only research. No branches, no PRs, no code changes. Produces a findings report (summary, reproduction, root cause, affected scope, suggested next step) written as a self-contained HTML file to `docs/slashforge/investigations/investigation-<timestamp>.html` — outside `.claude/`, so it is visible in Finder rather than buried in a dot-directory.
 
-The report is then **opened in your default browser** (`open` / `xdg-open` / `wslview` / `start`, skipped silently over SSH or on a headless box), and chat gets a short plain-text summary rather than the raw HTML. Styling comes from `forge-report-shell.html`, installed with the guides — each run writes only its body fragment, so every report looks identical and the CSS is never regenerated. The finished file still inlines everything and opens offline.
+The report is then **opened in your default browser** (`open` / `xdg-open` / `wslview` / `start`, skipped silently over SSH or on a headless box), and chat gets a short plain-text summary rather than the raw HTML. Styling comes from `slashforge-report-shell.html`, installed with the guides — each run writes only its body fragment, so every report looks identical and the CSS is never regenerated. The finished file still inlines everything and opens offline.
 
 It ends by handing the report path to the fix command:
 

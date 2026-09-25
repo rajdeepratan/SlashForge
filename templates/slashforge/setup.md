@@ -13,34 +13,34 @@ description: One-time repo setup — explore the codebase, ask clarifying questi
 
 Then read all of the following files in full — together they are your complete guide:
 
-- {{INSTALL_PATH}}/forge-instructions.md
-- {{INSTALL_PATH}}/forge-graph.md
-- {{INSTALL_PATH}}/forge-workflow.md
-- {{INSTALL_PATH}}/forge-workflow-investigation.md
-- {{INSTALL_PATH}}/forge-workflow-agents.md
-- {{INSTALL_PATH}}/forge-rules.md
-- {{INSTALL_PATH}}/forge-skills.md
+- {{INSTALL_PATH}}/slashforge-instructions.md
+- {{INSTALL_PATH}}/slashforge-graph.md
+- {{INSTALL_PATH}}/slashforge-workflow.md
+- {{INSTALL_PATH}}/slashforge-workflow-investigation.md
+- {{INSTALL_PATH}}/slashforge-workflow-agents.md
+- {{INSTALL_PATH}}/slashforge-rules.md
+- {{INSTALL_PATH}}/slashforge-skills.md
 <!--target:claude-->
-- {{INSTALL_PATH}}/forge-agents.md
-- {{INSTALL_PATH}}/forge-commands.md
-- {{INSTALL_PATH}}/forge-hooks.md
-- {{INSTALL_PATH}}/forge-claude-md.md
-- {{INSTALL_PATH}}/forge-memory.md
+- {{INSTALL_PATH}}/slashforge-agents.md
+- {{INSTALL_PATH}}/slashforge-commands.md
+- {{INSTALL_PATH}}/slashforge-hooks.md
+- {{INSTALL_PATH}}/slashforge-claude-md.md
+- {{INSTALL_PATH}}/slashforge-memory.md
 <!--/target-->
 <!--target:cursor-->
-- {{INSTALL_PATH}}/forge-agents.md
-- {{INSTALL_PATH}}/forge-commands.md
-- {{INSTALL_PATH}}/forge-hooks.md
-- {{INSTALL_PATH}}/forge-agents-md.md
+- {{INSTALL_PATH}}/slashforge-agents.md
+- {{INSTALL_PATH}}/slashforge-commands.md
+- {{INSTALL_PATH}}/slashforge-hooks.md
+- {{INSTALL_PATH}}/slashforge-agents-md.md
 <!--/target-->
 <!--target:codex-->
-- {{INSTALL_PATH}}/forge-agents-codex.md
-- {{INSTALL_PATH}}/forge-commands.md
-- {{INSTALL_PATH}}/forge-hooks.md
-- {{INSTALL_PATH}}/forge-agents-md.md
+- {{INSTALL_PATH}}/slashforge-agents-codex.md
+- {{INSTALL_PATH}}/slashforge-commands.md
+- {{INSTALL_PATH}}/slashforge-hooks.md
+- {{INSTALL_PATH}}/slashforge-agents-md.md
 <!--/target-->
 
-Also read `{{INSTALL_PATH}}/meta.json` — it contains the kit's `version`, `package`, and `installed_at`. You will stamp these into every file you create or refresh as a `generated_by` / `generated_at` marker (see § Generated File Markers in `forge-instructions.md` for the exact format).
+Also read `{{INSTALL_PATH}}/meta.json` — it contains the kit's `version`, `package`, and `installed_at`. You will stamp these into every file you create or refresh as a `generated_by` / `generated_at` marker (see § Generated File Markers in `slashforge-instructions.md` for the exact format).
 
 **Running kit:** `{{KIT_PACKAGE}}@{{KIT_VERSION}}` — this is what installed the slash command you just ran. If `meta.json` disagrees with this, use `meta.json` (it's the source of truth for what's actually on disk in the guides directory).
 
@@ -79,20 +79,20 @@ Run in five phases. **Collect every user decision in Phase 1**, then run the res
 
 *Phase 1 — Decide (explore + gather all consent; write nothing yet):*
 1. Explore the repo — tech stack, folder structure, key abstractions, build/test/lint commands
-2. **Graphify offer — decision only.** Apply the language-fit gate from `{{INSTALL_PATH}}/forge-graph.md`: skip silently if under the 70% threshold. Otherwise present the **Offer** half of the matching branch (Branch A if the CLI is not on `PATH`, Branch B if it is but this repo has no `graphify-out/graph.json`) — show the "Why it matters" block and the exact commands, then ask y/n. **Do not run anything yet.** Just capture the decision. Branch C (graph already present) cannot occur in a fresh repo.
+2. **Graphify offer — decision only.** Apply the language-fit gate from `{{INSTALL_PATH}}/slashforge-graph.md`: skip silently if under the 70% threshold. Otherwise present the **Offer** half of the matching branch (Branch A if the CLI is not on `PATH`, Branch B if it is but this repo has no `graphify-out/graph.json`) — show the "Why it matters" block and the exact commands, then ask y/n. **Do not run anything yet.** Just capture the decision. Branch C (graph already present) cannot occur in a fresh repo.
 3. Ask the user any remaining clarifying questions
 
 <!--target:claude-->
 *Phase 2 — Provision (run approved installs; touches nothing in `.claude/` or `CLAUDE.md`):*
-4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/forge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before `graphify claude install`** — that step appends to `CLAUDE.md` and must wait for Phase 4.
+4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/slashforge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before `graphify claude install`** — that step appends to `CLAUDE.md` and must wait for Phase 4.
 <!--/target-->
 <!--target:cursor-->
 *Phase 2 — Provision (run approved installs; touches nothing in `.cursor/` or `AGENTS.md`):*
-4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/forge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before the hook-in command** — that step writes into files this setup manages and must wait for Phase 4.
+4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/slashforge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before the hook-in command** — that step writes into files this setup manages and must wait for Phase 4.
 <!--/target-->
 <!--target:codex-->
 *Phase 2 — Provision (run approved installs; touches nothing in `.codex/` or `AGENTS.md`):*
-4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/forge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before the hook-in command** — that step writes into files this setup manages and must wait for Phase 4.
+4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/slashforge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before the hook-in command** — that step writes into files this setup manages and must wait for Phase 4.
 <!--/target-->
 
 <!--target:claude-->
@@ -122,21 +122,21 @@ Run in five phases. **Collect every user decision in Phase 1**, then run the res
 
 <!--target:claude-->
 *Phase 4 — Graphify hook-in (the only Graphify step that appends to `CLAUDE.md` / `settings.json`; must run last):*
-10. If Graphify was provisioned in Phase 2, run its **Hook-in** half from `{{INSTALL_PATH}}/forge-graph.md` — `graphify claude install` + SUMMARY.html synthesis. Running it after step 9 keeps the kit's `CLAUDE.md` write before Graphify's append, so Graphify's section survives and is treated as user-owned.
+10. If Graphify was provisioned in Phase 2, run its **Hook-in** half from `{{INSTALL_PATH}}/slashforge-graph.md` — `graphify claude install` + SUMMARY.html synthesis. Running it after step 9 keeps the kit's `CLAUDE.md` write before Graphify's append, so Graphify's section survives and is treated as user-owned.
 
 *Phase 5 — Verify:*
 11. Run the verify step
 <!--/target-->
 <!--target:cursor-->
 *Phase 4 — Graphify hook-in (must run last):*
-10. If Graphify was provisioned in Phase 2, run its **Hook-in** half from `{{INSTALL_PATH}}/forge-graph.md` — `graphify cursor install` + SUMMARY.html synthesis. It writes `.cursor/rules/graphify.mdc`; running it after step 9 keeps it clear of the kit's own rule generation.
+10. If Graphify was provisioned in Phase 2, run its **Hook-in** half from `{{INSTALL_PATH}}/slashforge-graph.md` — `graphify cursor install` + SUMMARY.html synthesis. It writes `.cursor/rules/graphify.mdc`; running it after step 9 keeps it clear of the kit's own rule generation.
 
 *Phase 5 — Verify:*
 11. Run the verify step
 <!--/target-->
 <!--target:codex-->
 *Phase 4 — Graphify hook-in (the only Graphify step that appends to `AGENTS.md` / `hooks.json`; must run last):*
-10. If Graphify was provisioned in Phase 2, run its **Hook-in** half from `{{INSTALL_PATH}}/forge-graph.md` — `graphify codex install` + SUMMARY.html synthesis. Running it after step 9 keeps the kit's `AGENTS.md` write before Graphify's append, so Graphify's section survives and is treated as user-owned.
+10. If Graphify was provisioned in Phase 2, run its **Hook-in** half from `{{INSTALL_PATH}}/slashforge-graph.md` — `graphify codex install` + SUMMARY.html synthesis. Running it after step 9 keeps the kit's `AGENTS.md` write before Graphify's append, so Graphify's section survives and is treated as user-owned.
 
 *Phase 5 — Verify:*
 11. Run the verify step
@@ -149,7 +149,7 @@ Same five-phase shape as single-app — all decisions in Phase 1, Graphify offer
 
 *Phase 1 — Decide (write nothing yet):*
 1. Explore the repo — understand all apps, shared code, and root structure
-2. **Graphify offer — decision only, once at the root.** Apply the language-fit gate to the full repo's non-trivial source. Present the **Offer** half of the matching branch from `{{INSTALL_PATH}}/forge-graph.md` (branching on whether the CLI is on `PATH` and whether `graphify-out/graph.json` exists at the repo root) and capture y/n. Do not run anything yet.
+2. **Graphify offer — decision only, once at the root.** Apply the language-fit gate to the full repo's non-trivial source. Present the **Offer** half of the matching branch from `{{INSTALL_PATH}}/slashforge-graph.md` (branching on whether the CLI is on `PATH` and whether `graphify-out/graph.json` exists at the repo root) and capture y/n. Do not run anything yet.
 3. Ask the user any remaining clarifying questions (including which apps need setup)
 
 *Phase 2 — Provision:*
@@ -241,7 +241,7 @@ Same five-phase shape — decisions first, file writes in the middle, Graphify's
 <!--target:codex-->
 4. Identify gaps — missing subagents, outdated rules, incomplete `AGENTS.md` sections
 <!--/target-->
-5. **Graphify offer / freshness — decision only.** Follow `{{INSTALL_PATH}}/forge-graph.md`: skip silently if under the 70% language-fit threshold. Otherwise the guide branches automatically — **Branch A** (CLI not on `PATH`) offers full install; **Branch B** (CLI on `PATH`, no graph in this repo) offers index-only; **Branch C** (CLI on `PATH`, graph exists) runs the freshness check and offers a re-index if stale. Present only the **Offer** half here and capture y/n. Branches A and B re-fire on every Update run for users who declined previously.
+5. **Graphify offer / freshness — decision only.** Follow `{{INSTALL_PATH}}/slashforge-graph.md`: skip silently if under the 70% language-fit threshold. Otherwise the guide branches automatically — **Branch A** (CLI not on `PATH`) offers full install; **Branch B** (CLI on `PATH`, no graph in this repo) offers index-only; **Branch C** (CLI on `PATH`, graph exists) runs the freshness check and offers a re-index if stale. Present only the **Offer** half here and capture y/n. Branches A and B re-fire on every Update run for users who declined previously.
 6. Ask the user any remaining clarifying questions before making changes
 
 *Phase 2 — Provision:*

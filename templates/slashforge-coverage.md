@@ -141,7 +141,7 @@ If gaps detected, present BEFORE writing the plan:
 <!--/target-->
 
 <!--target:claude-->
-- **On yes:** plan grows a section "Phase 2.5 — `.claude/` updates" listing each file. Those updates are implemented in Phase 5 alongside the feature code, using the templates in `forge-agents.md`, `forge-rules.md`, etc. All new files get `generated_by` markers.
+- **On yes:** plan grows a section "Phase 2.5 — `.claude/` updates" listing each file. Those updates are implemented in Phase 5 alongside the feature code, using the templates in `slashforge-agents.md`, `slashforge-rules.md`, etc. All new files get `generated_by` markers.
 <!--/target-->
 <!--target:cursor-->
 - **On yes:** plan grows a section "Phase 2.5 — setup updates" listing each file. Those updates are implemented in Phase 5 alongside the feature code, using the templates in the setup guides. All new files get `generated_by` markers.

@@ -7,8 +7,8 @@ description: Research-only flow — reproduce and root-cause a bug or suspected 
 
 Read the following in full — together they are your complete workflow guide:
 
-- {{INSTALL_PATH}}/forge-workflow-investigation.md
-- {{INSTALL_PATH}}/forge-workflow-agents.md
+- {{INSTALL_PATH}}/slashforge-workflow-investigation.md
+- {{INSTALL_PATH}}/slashforge-workflow-agents.md
 
 You MUST follow every phase in order. Do not skip phases. Do not combine phases.
 

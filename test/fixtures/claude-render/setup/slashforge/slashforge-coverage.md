@@ -58,7 +58,7 @@ If gaps detected, present BEFORE writing the plan:
 >
 > *Add these to the plan as Phase 2.5 `.claude/` updates so they ship in this PR? (y/n)"*
 
-- **On yes:** plan grows a section "Phase 2.5 — `.claude/` updates" listing each file. Those updates are implemented in Phase 5 alongside the feature code, using the templates in `forge-agents.md`, `forge-rules.md`, etc. All new files get `generated_by` markers.
+- **On yes:** plan grows a section "Phase 2.5 — `.claude/` updates" listing each file. Those updates are implemented in Phase 5 alongside the feature code, using the templates in `slashforge-agents.md`, `slashforge-rules.md`, etc. All new files get `generated_by` markers.
 - **On no:** proceed without coverage. Phase 7's safety-net check will still surface the gap as a review note.
 
 ## Phase 7 — safety-net output

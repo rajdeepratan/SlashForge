@@ -10,36 +10,43 @@ const pkg = require('../package.json');
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
 
 const GUIDE_FILES = [
-  'forge-instructions.md',
-  'forge-graph.md',
-  'forge-graph-summary.md',
-  'forge-coverage.md',
-  'forge-workflow.md',
-  'forge-workflow-investigation.md',
-  'forge-workflow-review-pr.md',
-  'forge-workflow-agents.md',
-  'forge-workflow-quick.md',
-  'forge-rules.md',
-  'forge-skills.md',
-  'forge-agents.md',
-  'forge-agents-codex.md',
-  'forge-commands.md',
-  'forge-hooks.md',
-  'forge-claude-md.md',
-  'forge-agents-md.md',
-  'forge-memory.md',
+  'slashforge-instructions.md',
+  'slashforge-graph.md',
+  'slashforge-graph-summary.md',
+  'slashforge-coverage.md',
+  'slashforge-workflow.md',
+  'slashforge-workflow-investigation.md',
+  'slashforge-workflow-review-pr.md',
+  'slashforge-workflow-agents.md',
+  'slashforge-workflow-quick.md',
+  'slashforge-rules.md',
+  'slashforge-skills.md',
+  'slashforge-agents.md',
+  'slashforge-agents-codex.md',
+  'slashforge-commands.md',
+  'slashforge-hooks.md',
+  'slashforge-claude-md.md',
+  'slashforge-agents-md.md',
+  'slashforge-memory.md',
 ];
 
 // Non-markdown files installed verbatim next to the guides. They carry no
 // frontmatter, so they are copied but never frontmatter-validated.
 const ASSET_FILES = [
-  'forge-report-shell.html',
-  'forge-open.sh',
+  'slashforge-report-shell.html',
+  'slashforge-open.sh',
   // Shipped as files rather than inline `node -e` scripts so a permission rule can
   // allow each one by its path; a `node -e` rule would allow any script at all.
-  'forge-splice.js',
-  'forge-review-payload.js',
+  'slashforge-splice.js',
+  'slashforge-review-payload.js',
 ];
+
+// The kit's own files in a guides dir are named `slashforge-*` since 5.0, and were
+// `forge-*` before. The old names stay recognised so an upgrade or an uninstall
+// still clears a 4.x install; anything else in the dir is the user's.
+const KIT_GUIDE_RE = /^(?:slashforge|forge)-[a-z0-9-]*\.md$/;
+const OLD_ASSET_FILES = ['forge-report-shell.html', 'forge-open.sh', 'forge-splice.js', 'forge-review-payload.js'];
+const isStaleKitFile = (name) => KIT_GUIDE_RE.test(name) || OLD_ASSET_FILES.includes(name);
 
 const COMMAND_FILES = [
   path.join('slashforge', 'setup.md'),
@@ -67,7 +74,7 @@ const SKILL_FILES = [
 ];
 
 // Guide files dropped in a later version. The stale-guide sweep in installFiles now
-// removes these automatically — anything matching `forge-*.md` that the current
+// removes these automatically — any kit guide name (KIT_GUIDE_RE) that the current
 // target did not write — so nothing reads this list at install time. It is kept as
 // the changelog of what was dropped and when, and the upgrade tests assert against
 // it to prove the sweep still clears them.
@@ -85,17 +92,17 @@ const TARGETS = {
   claude: {
     blocks: ['claude'],
     // The AGENTS.md entry-file guide is for the vendor hosts.
-    omit: ['forge-agents-md.md', 'forge-agents-codex.md'],
+    omit: ['slashforge-agents-md.md', 'slashforge-agents-codex.md'],
   },
   cursor: {
     blocks: ['agents', 'cursor'],
     // No memory layer on this vendor, and CLAUDE.md is not its entry file.
-    omit: ['forge-claude-md.md', 'forge-memory.md', 'forge-agents-codex.md'],
+    omit: ['slashforge-claude-md.md', 'slashforge-memory.md', 'slashforge-agents-codex.md'],
   },
   codex: {
     blocks: ['agents', 'codex'],
     // Subagents here are TOML, so the markdown guide is replaced, not fenced.
-    omit: ['forge-claude-md.md', 'forge-memory.md', 'forge-agents.md'],
+    omit: ['slashforge-claude-md.md', 'slashforge-memory.md', 'slashforge-agents.md'],
   },
   // 'neutral' is declared only here: a <!--target:neutral--> block is the
   // host-neutral wording a skill uses where Cursor and Codex differ.
@@ -431,7 +438,7 @@ function installFiles(target, {
   const written = [];
   const omit = target.omit || [];
   // Guides are rendered like commands: a guide may name a sibling by absolute
-  // path (forge-workflow-review-pr.md points at forge-report-shell.html), and a
+  // path (slashforge-workflow-review-pr.md points at slashforge-report-shell.html), and a
   // copied-not-rendered guide would ship the literal {{INSTALL_PATH}}.
   for (const f of guideFiles) {
     // A target may not receive every guide. The entry-file and subagent guides are
@@ -449,7 +456,7 @@ function installFiles(target, {
     fs.writeFileSync(dest, rendered);
     written.push(dest);
   }
-  // Assets are installed verbatim — forge-open.sh is executed as-is and the
+  // Assets are installed verbatim — slashforge-open.sh is executed as-is and the
   // report shell's own markers are not mustache placeholders.
   for (const f of assetFiles) {
     const dest = path.join(target.guidesDir, f);
@@ -476,14 +483,14 @@ function installFiles(target, {
   // a guide describing a layout it cannot write, which is worse than a missing file
   // because it is prose the model then follows.
   //
-  // Scoped to the `forge-*.md` names this installer owns, so meta.json, the assets
-  // (forge-open.sh, forge-report-shell.html) and anything else sharing the directory
-  // are out of reach. This subsumes REMOVED_GUIDE_FILES.
+  // Scoped to the kit's own names (KIT_GUIDE_RE, plus 4.x's forge-* assets), so
+  // meta.json, this version's assets and anything else sharing the directory are
+  // out of reach. This subsumes REMOVED_GUIDE_FILES.
   const writtenGuides = new Set(
     written.filter((w) => path.dirname(w) === target.guidesDir).map((w) => path.basename(w))
   );
   for (const entry of fs.readdirSync(target.guidesDir)) {
-    if (!/^forge-[a-z0-9-]*\.md$/.test(entry)) continue;
+    if (!isStaleKitFile(entry)) continue;
     if (writtenGuides.has(entry)) continue;
     fs.rmSync(path.join(target.guidesDir, entry));
   }
@@ -519,11 +526,11 @@ const SKILL_PREAMBLE = [
 
 const SETUP_COMMAND = path.join('slashforge', 'setup.md');
 // Stands in for setup.md in .agents/skills: setup's procedure is host-specific, so
-// the skill only dispatches to forge-setup-flow.md in the host's own guide folder.
+// the skill only dispatches to slashforge-setup-flow.md in the host's own guide folder.
 const SETUP_DISPATCH = path.join('agents', 'setup.md');
 // setup.md rendered for one host, installed as a guide. Generated, so the setup
 // procedure keeps a single source.
-const SETUP_FLOW = 'forge-setup-flow.md';
+const SETUP_FLOW = 'slashforge-setup-flow.md';
 
 function resolveAgents({ project = false, homeDir = os.homedir(), cwd = process.cwd() } = {}) {
   const base = path.join(project ? cwd : homeDir, '.agents');
@@ -643,10 +650,10 @@ function installAgentsFiles(agents, {
       written.push(path.join(h.guidesDir, a));
     }
     // A guide dropped in a later version, or omitted for this host, is stale prose.
-    // (Runs before this host's meta.json is written; meta never matches forge-*.md.)
+    // (Runs before this host's meta.json is written; meta never matches these names.)
     const keep = new Set(written.filter((w) => path.dirname(w) === h.guidesDir).map((w) => path.basename(w)));
     for (const entry of fs.readdirSync(h.guidesDir)) {
-      if (/^forge-[a-z0-9-]*\.md$/.test(entry) && !keep.has(entry)) fs.rmSync(path.join(h.guidesDir, entry));
+      if (isStaleKitFile(entry) && !keep.has(entry)) fs.rmSync(path.join(h.guidesDir, entry));
     }
   }
   for (const c of [...commandFiles, ...skillFiles]) {
@@ -744,14 +751,14 @@ function pruneEmptyDirs(dirs) {
 }
 
 // A file in the guides dir that belongs to the kit: this version's guides and
-// assets, meta.json, or any `forge-*.md` — the kit's own prefix, so a guide an
-// older version shipped, or one belonging to another target, is recognised as
-// well. Anything else is the user's.
+// assets, meta.json, or any `slashforge-*.md` / older `forge-*` kit file — so a
+// guide an older version shipped, or one belonging to another target, is
+// recognised as well. Anything else is the user's.
 function isKitGuideFile(name, guideFiles = GUIDE_FILES) {
   return name === 'meta.json' ||
     guideFiles.includes(name) ||
     ASSET_FILES.includes(name) ||
-    /^forge-[a-z0-9-]*\.md$/.test(name);
+    isStaleKitFile(name);
 }
 
 // Installed means kit files are present, not merely that the dir exists: uninstall

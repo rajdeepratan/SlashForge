@@ -63,9 +63,9 @@ never the raw HTML.== The file is the report; the transcript gets the gist.
 ## How the styling works
 
 The report's shell — doctype, `<head>`, and the whole `<style>` block — ships
-with SlashForge as `forge-report-shell.html` and is installed alongside the guide
+with SlashForge as `slashforge-report-shell.html` and is installed alongside the guide
 files. Each investigation writes only its **body fragment**, which
-`forge-splice.js`, installed next to the shell, splices in. It is a file rather than
+`slashforge-splice.js`, installed next to the shell, splices in. It is a file rather than
 an inline `node -e` script, so a permission rule can allow exactly that path.
 
 ==This is why every report looks identical==, and why restyling all of them is one

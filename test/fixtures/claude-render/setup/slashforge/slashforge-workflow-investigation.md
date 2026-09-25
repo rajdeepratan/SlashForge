@@ -7,7 +7,7 @@ description: Read-only investigation flow used by /slashforge-investigate — re
 
 Short, research-only flow used by `/slashforge-investigate`. No branching, no PR, no verification phase. Output is a findings report. Companion file:
 
-- `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
+- `slashforge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
 
 This file is loaded by `/slashforge-investigate`.
 
@@ -29,7 +29,7 @@ This file is loaded by `/slashforge-investigate`.
 **Skill:** `slashforge-debug`
 
 1. Invoke `slashforge-debug`
-2. **If a code graph is available** (`GRAPH_REPORT.md` exists at repo root — Graphify is installed), run the freshness check from `forge-graph.md` Runtime section first, then consult the graph before grep/glob. Investigation is the scenario the graph is built for — blast radius, call paths, affected surface. The `graphify` PreToolUse hook should surface graph context automatically before any Glob/Grep call; if it doesn't, read `GRAPH_REPORT.md` directly.
+2. **If a code graph is available** (`GRAPH_REPORT.md` exists at repo root — Graphify is installed), run the freshness check from `slashforge-graph.md` Runtime section first, then consult the graph before grep/glob. Investigation is the scenario the graph is built for — blast radius, call paths, affected surface. The `graphify` PreToolUse hook should surface graph context automatically before any Glob/Grep call; if it doesn't, read `GRAPH_REPORT.md` directly.
 3. Reproduce the issue — in code, in a test, or by tracing
 4. Bisect / trace / read the code to find the root cause
 5. **No edits to application code.** Scratch files, temporary test files in a sandboxed location, and logging are fine — but no PR-bound changes
@@ -44,7 +44,7 @@ Three steps, in order: **write the file**, **open it**, **summarise in chat**. T
 ### The findings report — body fragment only
 
 The report's shell — doctype, `<head>`, the entire `<style>` block — ships with SlashForge at
-`/HOME/.claude/setup/slashforge/forge-report-shell.html`. **Do not regenerate it.** You write only the body
+`/HOME/.claude/setup/slashforge/slashforge-report-shell.html`. **Do not regenerate it.** You write only the body
 fragment; a substitution step splices the two together.
 
 This is deliberate: the CSS is identical in every report, so regenerating it per run wastes
@@ -100,24 +100,24 @@ be opened by a human without a code editor.
 mkdir -p docs/slashforge/investigations
 report="docs/slashforge/investigations/investigation-<YYYY-MM-DD-HHMM>.html"
 
-node "/HOME/.claude/setup/slashforge/forge-splice.js" "$fragment" "$report" "Investigation — <short-symptom> (<YYYY-MM-DD>)"
+node "/HOME/.claude/setup/slashforge/slashforge-splice.js" "$fragment" "$report" "Investigation — <short-symptom> (<YYYY-MM-DD>)"
 ```
 
-`forge-splice.js` ships next to the shell and does the substitution the same way every time:
+`slashforge-splice.js` ships next to the shell and does the substitution the same way every time:
 
 - It uses **function-form** replacement (`() => body`), so `$&` or `$'` inside your fragment can't be read as substitution patterns and corrupt the report.
 - **It escapes the title but not the body.** The title is plain text taken from the symptom. Unescaped, a symptom containing `</title>` would end the element early, and entity-shaped text like `&amp;` would be decoded into something the symptom never said. The body is real HTML and goes in verbatim.
 - It is a file rather than an inline `node -e` script so that a permission rule can allow exactly this path, not arbitrary node code.
 - Delete the scratch fragment afterwards. It is not part of the deliverable.
 
-If the shell or `forge-splice.js` is missing (an older install, or a hand-modified `.claude/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+If the shell or `slashforge-splice.js` is missing (an older install, or a hand-modified `.claude/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
 
 ### 2. Open it in the user's browser (best-effort)
 
 Use the shipped helper rather than writing your own platform detection:
 
 ```bash
-sh "/HOME/.claude/setup/slashforge/forge-open.sh" "$report"
+sh "/HOME/.claude/setup/slashforge/slashforge-open.sh" "$report"
 ```
 
 The script handles the platform differences and the cases where opening makes no sense — a remote session (`$SSH_CONNECTION`), or a headless Linux box with no `$DISPLAY`/`$WAYLAND_DISPLAY`. It always exits 0, so it can never fail the run. In those cases the report is still written; it just is not opened, and you say so in step 3.

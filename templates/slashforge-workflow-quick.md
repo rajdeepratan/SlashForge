@@ -9,7 +9,7 @@ description: Overrides applied on top of the standard workflow when /slashforge-
 ---
 
 Read only when `/slashforge-code` was invoked with `-quick`. Apply these overrides on
-top of `forge-workflow.md` and `forge-workflow-agents.md`. Do not skip any phase
+top of `slashforge-workflow.md` and `slashforge-workflow-agents.md`. Do not skip any phase
 that is not listed in the table below — especially not the user gates.
 
 ## What lean mode is for
@@ -28,23 +28,23 @@ its fast path already handles trivial tasks without the ceremony.
 **Code graph (Graphify) in lean mode:** skip it. If Graphify is installed and its
 PreToolUse hook would normally surface a graph summary before Glob/Grep, that's
 fine — but do not read `GRAPH_REPORT.md` proactively, do not run graph queries,
-and **do not run the freshness check** described in `forge-graph.md` Runtime
+and **do not run the freshness check** described in `slashforge-graph.md` Runtime
 section. The overhead (~2–5k tokens, plus ~50 for the freshness check) exceeds
 the value on tasks small enough to reach for lean mode.
 
 <!--target:claude-->
 **`.claude/` coverage check in lean mode:** also skipped. The coverage check
-(`forge-coverage.md`) detects when a feature introduces a new domain that needs
+(`slashforge-coverage.md`) detects when a feature introduces a new domain that needs
 new agents/rules/`CLAUDE.md` updates.
 <!--/target-->
 <!--target:cursor-->
 **Setup coverage check in lean mode:** also skipped. The coverage check
-(`forge-coverage.md`) detects when a feature introduces a new domain that needs
+(`slashforge-coverage.md`) detects when a feature introduces a new domain that needs
 new subagents/rules/`AGENTS.md` updates.
 <!--/target-->
 <!--target:codex-->
 **Setup coverage check in lean mode:** also skipped. The coverage check
-(`forge-coverage.md`) detects when a feature introduces a new domain that needs
+(`slashforge-coverage.md`) detects when a feature introduces a new domain that needs
 new subagents/rules/`AGENTS.md` updates.
 <!--/target-->
 

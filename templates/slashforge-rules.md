@@ -72,7 +72,7 @@ Always cover git conventions in the root `AGENTS.md` — they apply repo-wide, s
 ## File Skeleton
 
 <!--target:claude-->
-Every rule file must start with frontmatter, including the generated-by marker (see `forge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
+Every rule file must start with frontmatter, including the generated-by marker (see `slashforge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
 
 ```markdown
 ---
@@ -92,7 +92,7 @@ generated_at: [ISO 8601 timestamp]
 ```
 <!--/target-->
 <!--target:cursor-->
-Every rule file must start with frontmatter, including the generated-by marker (see `forge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
+Every rule file must start with frontmatter, including the generated-by marker (see `slashforge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
 
 ```markdown
 ---
@@ -117,7 +117,7 @@ generated_at: [ISO 8601 timestamp]
 leave `globs` off.
 <!--/target-->
 <!--target:codex-->
-A rule is a section of an `AGENTS.md`, so it carries no frontmatter of its own. The file's generated-by marker is an HTML comment on its first line (see `forge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
+A rule is a section of an `AGENTS.md`, so it carries no frontmatter of its own. The file's generated-by marker is an HTML comment on its first line (see `slashforge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
 
 ```markdown
 <!-- generated_by: [package]@[version] generated_at: [ISO 8601 timestamp] -->

@@ -1,9 +1,9 @@
 // SlashForge — assemble the GitHub review payload for /slashforge-review-pr.
 //
-// Installed verbatim next to the guides, for the same reason as forge-splice.js:
+// Installed verbatim next to the guides, for the same reason as slashforge-splice.js:
 // a file can be allowed by its path, an inline `node -e` script cannot.
 //
-// Usage:  node <path-to-this>/forge-review-payload.js <dir> <EVENT> <out>
+// Usage:  node <path-to-this>/slashforge-review-payload.js <dir> <EVENT> <out>
 //
 // <dir> holds body.txt, one file per comment, and anchors.json, which lists each
 // comment's path, line, optional side and bodyFile. Prose never goes through the
@@ -14,7 +14,7 @@ const path = require('path');
 
 const [dir, event, out] = process.argv.slice(2);
 if (!dir || !event || !out) {
-  console.error('usage: node forge-review-payload.js <dir> <EVENT> <out>');
+  console.error('usage: node slashforge-review-payload.js <dir> <EVENT> <out>');
   process.exit(2);
 }
 

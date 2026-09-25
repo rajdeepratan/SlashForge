@@ -11,7 +11,7 @@ Create this **last** — after all rules, skills, and agents exist — so the re
 
 **Location:** `./CLAUDE.md` (repo root) or `./.claude/CLAUDE.md` — both are valid per Anthropic's spec. Prefer the repo root so humans discover it too.
 
-**Generated-by marker (required).** `CLAUDE.md` does not use YAML frontmatter, so place the marker as an HTML comment on the very first line, followed by a blank line, then the normal content. See `forge-instructions.md` § Generated File Markers for details — read `meta.json` for the version and timestamp.
+**Generated-by marker (required).** `CLAUDE.md` does not use YAML frontmatter, so place the marker as an HTML comment on the very first line, followed by a blank line, then the normal content. See `slashforge-instructions.md` § Generated File Markers for details — read `meta.json` for the version and timestamp.
 
 ```markdown
 <!-- generated_by: [package]@[version] generated_at: [ISO 8601 timestamp] -->

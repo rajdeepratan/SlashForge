@@ -7,8 +7,8 @@ description: End-to-end development workflow — gather requirements, plan, conf
 
 Inspect the argument this command was invoked with:
 
-- **The argument contains `-quick`** → **LEAN MODE.** Read `/HOME/.claude/setup/slashforge/forge-workflow-quick.md` in full, in addition to the workflow files below, and apply its overrides on top of everything in this file. Tell the user: *"Lean mode — skipping brainstorming, minimal plan, inline self-review."*
-- **Anything else, including no argument** → **FULL MODE.** Do **not** read `forge-workflow-quick.md`. Do not apply any lean override. Run every phase at full depth.
+- **The argument contains `-quick`** → **LEAN MODE.** Read `/HOME/.claude/setup/slashforge/slashforge-workflow-quick.md` in full, in addition to the workflow files below, and apply its overrides on top of everything in this file. Tell the user: *"Lean mode — skipping brainstorming, minimal plan, inline self-review."*
+- **Anything else, including no argument** → **FULL MODE.** Do **not** read `slashforge-workflow-quick.md`. Do not apply any lean override. Run every phase at full depth.
 
 Full mode is the default. Never infer lean mode from the size of the task — only
 an explicit `-quick` selects it. If the user describes a tiny change without
@@ -35,13 +35,13 @@ The report's "Suggested next step" is a **proposal, not an approved plan.** Phas
 
 Read the following in full — together they are your complete workflow guide:
 
-- /HOME/.claude/setup/slashforge/forge-workflow.md
-- /HOME/.claude/setup/slashforge/forge-workflow-agents.md
+- /HOME/.claude/setup/slashforge/slashforge-workflow.md
+- /HOME/.claude/setup/slashforge/slashforge-workflow-agents.md
 
 You MUST follow every phase in order. Do not skip phases. Do not combine phases.
 
 **Entry (full mode):** Ask the user: **"What do you want to build, fix, or change?"**
-In lean mode, use the entry line from `forge-workflow-quick.md` instead.
+In lean mode, use the entry line from `slashforge-workflow-quick.md` instead.
 **Skip the entry question entirely if Step 0b resolved a requirements document** — use its confirmation line instead, in either mode.
 
 Then begin Phase 1 — the workflow guide handles the auto-classification (trivial vs full) and decides whether `slashforge-brainstorm` applies. Do not invoke it unconditionally; let Phase 1 make that call.

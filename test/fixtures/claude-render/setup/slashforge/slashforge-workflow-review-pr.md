@@ -7,8 +7,8 @@ description: Read-only PR review flow used by /slashforge-review-pr — discover
 
 Seven-phase read-only flow used by `/slashforge-review-pr`. No branching, no commits, no edits to application code. The only writes are to GitHub, and only after the user approves the exact text. Companion files:
 
-- `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
-- `forge-workflow.md` — the ten-phase change-shipping flow. Its **Phase 7 checklist** is the review standard applied in Phase R3 (this file does not otherwise load it)
+- `slashforge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
+- `slashforge-workflow.md` — the ten-phase change-shipping flow. Its **Phase 7 checklist** is the review standard applied in Phase R3 (this file does not otherwise load it)
 
 This file is loaded by `/slashforge-review-pr`.
 
@@ -112,7 +112,7 @@ which ones you covered and which you did not. Never imply full coverage you did 
 
 ## Phase R3 — Review Against *This* Repo
 
-The standard is the Phase 7 checklist from `forge-workflow.md`, plus whatever this repo already
+The standard is the Phase 7 checklist from `slashforge-workflow.md`, plus whatever this repo already
 says about itself. Read, in this order:
 
 1. `CLAUDE.md` — the repo's own instructions
@@ -170,9 +170,9 @@ same one investigation reports, specs and plans use. Write **only the body fragm
 mkdir -p docs/slashforge/reviews
 review="docs/slashforge/reviews/<YYYY-MM-DD>-pr-<N>.html"
 
-node "/HOME/.claude/setup/slashforge/forge-splice.js" "$fragment" "$review" "Review — PR #<N> (<YYYY-MM-DD>)"
+node "/HOME/.claude/setup/slashforge/slashforge-splice.js" "$fragment" "$review" "Review — PR #<N> (<YYYY-MM-DD>)"
 
-sh "/HOME/.claude/setup/slashforge/forge-open.sh" "$review"
+sh "/HOME/.claude/setup/slashforge/slashforge-open.sh" "$review"
 ```
 
 Delete the scratch fragment afterwards.
@@ -239,7 +239,7 @@ cat > "$d/anchors.json" <<'JSON'
 JSON
 
 # 4. Assemble. JSON.stringify escapes every string correctly, by construction.
-node "/HOME/.claude/setup/slashforge/forge-review-payload.js" "$d" "<EVENT>" "$d/payload.json"
+node "/HOME/.claude/setup/slashforge/slashforge-review-payload.js" "$d" "<EVENT>" "$d/payload.json"
 ```
 
 `<EVENT>` is `APPROVE`, `COMMENT`, or `REQUEST_CHANGES` — taken from the gate, never inferred.

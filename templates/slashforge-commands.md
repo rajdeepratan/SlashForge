@@ -29,7 +29,7 @@ they are global rather than per-repo — the wrong home for a repo convention, s
 would follow the user into every other project.
 
 Express every would-be command as a skill under `.agents/skills/` instead; see
-`forge-skills.md`. Front-load the trigger phrase in its `description`, because that is
+`slashforge-skills.md`. Front-load the trigger phrase in its `description`, because that is
 how the agent discovers it in place of a typed command name.
 
 The rest of this guide is about *deciding* whether something deserves to be a command at
@@ -88,7 +88,7 @@ Command name = filename (or directory name). `run-checks` becomes `/run-checks`.
 
 ## Frontmatter for Commands
 
-Every command file must include the generated-by marker (see `forge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
+Every command file must include the generated-by marker (see `slashforge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
 
 ```yaml
 ---

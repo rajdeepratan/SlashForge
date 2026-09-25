@@ -29,7 +29,7 @@ Reference this file whenever asked to create `AGENTS.md`, subagents, rules, or s
 Reference this file whenever asked to create `AGENTS.md`, subagents, rules, or skills in any repo.
 <!--/target-->
 
-> **Also read:** [`forge-workflow.md`](forge-workflow.md) — required companion file covering the end-to-end intake-to-PR workflow. Read both before proceeding.
+> **Also read:** [`slashforge-workflow.md`](slashforge-workflow.md) — required companion file covering the end-to-end intake-to-PR workflow. Read both before proceeding.
 
 ---
 
@@ -169,29 +169,29 @@ Follow this order — each step depends on the previous:
 1. Understand the codebase (see Step 1 below)
 2. Ask clarifying questions (see Step 2 below)
 <!--target:claude-->
-3. Create rule files → see [`forge-rules.md`](forge-rules.md)
-4. Create skill files → see [`forge-skills.md`](forge-skills.md)
-5. Create agent files → see [`forge-agents.md`](forge-agents.md)
-6. Create slash commands → see [`forge-commands.md`](forge-commands.md)
-7. Configure hooks if team wants automated behaviors → see [`forge-hooks.md`](forge-hooks.md)
-8. Create `CLAUDE.md` last → see [`forge-claude-md.md`](forge-claude-md.md)
+3. Create rule files → see [`slashforge-rules.md`](slashforge-rules.md)
+4. Create skill files → see [`slashforge-skills.md`](slashforge-skills.md)
+5. Create agent files → see [`slashforge-agents.md`](slashforge-agents.md)
+6. Create slash commands → see [`slashforge-commands.md`](slashforge-commands.md)
+7. Configure hooks if team wants automated behaviors → see [`slashforge-hooks.md`](slashforge-hooks.md)
+8. Create `CLAUDE.md` last → see [`slashforge-claude-md.md`](slashforge-claude-md.md)
 9. Verify (see Step 9 below)
 <!--/target-->
 <!--target:cursor-->
-3. Create rule files → see [`forge-rules.md`](forge-rules.md)
-4. Create skill files → see [`forge-skills.md`](forge-skills.md)
-5. Create subagent files → see [`forge-agents.md`](forge-agents.md)
-6. Create commands → see [`forge-commands.md`](forge-commands.md)
-7. Configure hooks if team wants automated behaviors → see [`forge-hooks.md`](forge-hooks.md)
-8. Create `AGENTS.md` last → see [`forge-agents-md.md`](forge-agents-md.md)
+3. Create rule files → see [`slashforge-rules.md`](slashforge-rules.md)
+4. Create skill files → see [`slashforge-skills.md`](slashforge-skills.md)
+5. Create subagent files → see [`slashforge-agents.md`](slashforge-agents.md)
+6. Create commands → see [`slashforge-commands.md`](slashforge-commands.md)
+7. Configure hooks if team wants automated behaviors → see [`slashforge-hooks.md`](slashforge-hooks.md)
+8. Create `AGENTS.md` last → see [`slashforge-agents-md.md`](slashforge-agents-md.md)
 9. Verify (see Step 9 below)
 <!--/target-->
 <!--target:codex-->
-3. Encode rules as nested `AGENTS.md` files → see [`forge-rules.md`](forge-rules.md)
-4. Create skill files → see [`forge-skills.md`](forge-skills.md)
-5. Create subagent files → see [`forge-agents-codex.md`](forge-agents-codex.md)
-6. Configure hooks if team wants automated behaviors → see [`forge-hooks.md`](forge-hooks.md)
-7. Create the root `AGENTS.md` last → see [`forge-agents-md.md`](forge-agents-md.md)
+3. Encode rules as nested `AGENTS.md` files → see [`slashforge-rules.md`](slashforge-rules.md)
+4. Create skill files → see [`slashforge-skills.md`](slashforge-skills.md)
+5. Create subagent files → see [`slashforge-agents-codex.md`](slashforge-agents-codex.md)
+6. Configure hooks if team wants automated behaviors → see [`slashforge-hooks.md`](slashforge-hooks.md)
+7. Create the root `AGENTS.md` last → see [`slashforge-agents-md.md`](slashforge-agents-md.md)
 8. Verify (see Step 9 below)
 
 There is no command step on this target: Codex custom prompts are deprecated, so a

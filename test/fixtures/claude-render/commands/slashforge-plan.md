@@ -42,15 +42,15 @@ specs use. **Write only the body fragment**; a substitution step splices it in.
 mkdir -p docs/slashforge/plans
 plan="docs/slashforge/plans/<YYYY-MM-DD>-<feature-name>.html"
 
-node "/HOME/.claude/setup/slashforge/forge-splice.js" "$fragment" "$plan" "Plan — <feature-name> (<YYYY-MM-DD>)"
+node "/HOME/.claude/setup/slashforge/slashforge-splice.js" "$fragment" "$plan" "Plan — <feature-name> (<YYYY-MM-DD>)"
 ```
 
-`forge-splice.js` escapes the title and splices the body verbatim. Delete the scratch fragment afterwards.
+`slashforge-splice.js` escapes the title and splices the body verbatim. Delete the scratch fragment afterwards.
 
 Then open it, so the user reviews the rendered plan rather than the markup:
 
 ```bash
-sh "/HOME/.claude/setup/slashforge/forge-open.sh" "$plan"
+sh "/HOME/.claude/setup/slashforge/slashforge-open.sh" "$plan"
 ```
 
 Best-effort — the helper stays silent over SSH or on a headless box and can never fail the run.

@@ -54,8 +54,8 @@ function guidesFor(target) {
 // These tests assert against the concatenation rather than against whichever file
 // happens to hold a given line today.
 const WORKFLOW_COMPANION = {
-  'review-pr.md': 'forge-workflow-review-pr.md',
-  'investigate.md': 'forge-workflow-investigation.md',
+  'review-pr.md': 'slashforge-workflow-review-pr.md',
+  'investigate.md': 'slashforge-workflow-investigation.md',
 };
 
 function commandInstruction(file) {
@@ -146,8 +146,8 @@ test('asset files install verbatim alongside the guides', () => {
   }
 });
 
-// A guide may point at a sibling by absolute path — forge-workflow-review-pr.md
-// names forge-report-shell.html that way. If guides were copied rather than
+// A guide may point at a sibling by absolute path — slashforge-workflow-review-pr.md
+// names slashforge-report-shell.html that way. If guides were copied rather than
 // rendered, the installed guide would carry a literal {{INSTALL_PATH}} and the
 // agent would splice against a path that does not exist.
 test('guide files are rendered, leaving no unsubstituted placeholders', () => {
@@ -159,17 +159,17 @@ test('guide files are rendered, leaving no unsubstituted placeholders', () => {
     assert.ok(!/\{\{[A-Z_]+\}\}/.test(body), `guide ${g} shipped an unrendered placeholder`);
   }
   // Both flows splice through the shipped script, and both name it by absolute path.
-  for (const flow of ['forge-workflow-review-pr.md', 'forge-workflow-investigation.md']) {
+  for (const flow of ['slashforge-workflow-review-pr.md', 'slashforge-workflow-investigation.md']) {
     const body = fs.readFileSync(path.join(target.guidesDir, flow), 'utf8');
     assert.ok(
-      body.includes(`${target.installPath}/forge-splice.js`),
+      body.includes(`${target.installPath}/slashforge-splice.js`),
       `${flow} must resolve the splice script to a real installed path`,
     );
   }
 });
 
 test('the report shell carries both substitution markers and stays self-contained', () => {
-  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-report-shell.html'), 'utf8');
+  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge-report-shell.html'), 'utf8');
   assert.ok(shell.includes('<!--TITLE-->'), 'shell missing TITLE marker');
   assert.ok(shell.includes('<!--CONTENT-->'), 'shell missing CONTENT marker');
   // The offline guarantee: no scripts, no remote anything.
@@ -179,7 +179,7 @@ test('the report shell carries both substitution markers and stays self-containe
 });
 
 test('splicing a fragment into the shell survives $-sequences', () => {
-  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-report-shell.html'), 'utf8');
+  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge-report-shell.html'), 'utf8');
   // A fragment containing regex substitution patterns must land verbatim — this
   // is why the command uses function-form replace rather than a string.
   const body = "<p>cost: $& and $' and $` and $1</p>";
@@ -333,9 +333,9 @@ test('/slashforge:code dispatches lean mode and ships the override guide', () =>
   installFiles(target, {});
   const body = fs.readFileSync(path.join(target.commandsDir, 'slashforge-code.md'), 'utf8');
   assert.ok(body.includes('-quick'), 'code command should document the -quick flag');
-  assert.ok(body.includes('forge-workflow-quick.md'), 'should point at the lean override guide');
+  assert.ok(body.includes('slashforge-workflow-quick.md'), 'should point at the lean override guide');
   assert.ok(
-    fs.existsSync(path.join(target.guidesDir, 'forge-workflow-quick.md')),
+    fs.existsSync(path.join(target.guidesDir, 'slashforge-workflow-quick.md')),
     'lean override guide must be installed'
   );
 });
@@ -516,7 +516,7 @@ test('SlashForge skills that write artefacts name their own destination', () => 
 // kind of document it is wrapping — it did, with a hardcoded "Investigation — "
 // prefix that would have titled every design spec as an investigation.
 test('the shell is document-agnostic and all three writers use it', () => {
-  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-report-shell.html'), 'utf8');
+  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge-report-shell.html'), 'utf8');
   assert.ok(
     /<title><!--TITLE--><\/title>/.test(shell),
     'the shell must not prefix the title — the caller supplies the whole thing',
@@ -530,7 +530,7 @@ test('the shell is document-agnostic and all three writers use it', () => {
   for (const [file, dir] of Object.entries(writers)) {
     const body = commandInstruction(file);
     assert.ok(body.includes(`mkdir -p ${dir}`), `${file} must create ${dir}`);
-    assert.ok(body.includes('forge-splice.js'), `${file} must splice through the shipped script`);
+    assert.ok(body.includes('slashforge-splice.js'), `${file} must splice through the shipped script`);
   }
 });
 
@@ -538,12 +538,12 @@ test('the shell is document-agnostic and all three writers use it', () => {
 // three writers must share one copy of the platform detection rather than each
 // carrying its own — divergent copies are how the mangled-tag bug happened.
 test('the open helper is shared, guarded, and always exits 0', () => {
-  const helper = path.join(TEMPLATES_DIR, 'forge-open.sh');
-  assert.ok(fs.existsSync(helper), 'forge-open.sh must ship');
+  const helper = path.join(TEMPLATES_DIR, 'slashforge-open.sh');
+  assert.ok(fs.existsSync(helper), 'slashforge-open.sh must ship');
 
   for (const f of ['investigate.md', 'brainstorm.md', 'plan.md']) {
     const body = commandInstruction(f);
-    assert.ok(body.includes('forge-open.sh'), `${f} must call the shared helper`);
+    assert.ok(body.includes('slashforge-open.sh'), `${f} must call the shared helper`);
     assert.ok(
       !/case "\$\(uname -s\)"/.test(body),
       `${f} must not carry its own copy of the platform detection`,
@@ -596,15 +596,15 @@ test('docs/superpowers is only ever named next to the path replacing it', () => 
   );
 });
 
-// forge-splice.js is what actually builds every document, so the tests run the
+// slashforge-splice.js is what actually builds every document, so the tests run the
 // shipped file rather than a copy of it, from a folder laid out like an install
 // (the script finds the shell next to itself).
 function spliceScript() {
   const dir = tmp();
-  for (const f of ['forge-splice.js', 'forge-report-shell.html']) {
+  for (const f of ['slashforge-splice.js', 'slashforge-report-shell.html']) {
     fs.copyFileSync(path.join(TEMPLATES_DIR, f), path.join(dir, f));
   }
-  return path.join(dir, 'forge-splice.js');
+  return path.join(dir, 'slashforge-splice.js');
 }
 
 // The title is plain text from a user-supplied symptom. Substituted raw it can
@@ -673,7 +673,7 @@ test('the documented splice leaves the body fragment as raw HTML', () => {
 // The invariant: template HTML never contains namespaced end tags.
 test('no template contains a namespaced HTML end tag', () => {
   // Global, and matchAll rather than match: a single line can carry more than one
-  // (line 73 of forge-graph-summary.md did). Reporting per-occurrence keeps the
+  // (line 73 of slashforge-graph-summary.md did). Reporting per-occurrence keeps the
   // failure count honest instead of collapsing to one hit per line.
   const NAMESPACED_END_TAG = /<\/[a-z][\w-]*:[\w-]+>/g;
   const offenders = [];
@@ -736,7 +736,7 @@ test('review-pr documents its discovery flags and their consequences', () => {
 // JSON.stringify escape it. This runs the shipped script itself — a copy here
 // could drift from what the instruction calls and still pass.
 test('the documented review payload escapes hostile prose', () => {
-  const script = path.join(TEMPLATES_DIR, 'forge-review-payload.js');
+  const script = path.join(TEMPLATES_DIR, 'slashforge-review-payload.js');
 
   const d = tmp();
   const body = 'Summary with "quotes", a $var, a `backtick`,\nand a backslash \\ here.\n';
@@ -800,8 +800,8 @@ test('only the claude target carries a legacy guides dir', () => {
 
 test('claude omits no command', () => {
   // claude omits only the vendor entry-file guides, never a command.
-  assert.deepEqual(TARGETS.claude.omit, ['forge-agents-md.md', 'forge-agents-codex.md']);
-  assert.ok(!TARGETS.claude.omit.some((o) => o.includes('slashforge')));
+  assert.deepEqual(TARGETS.claude.omit, ['slashforge-agents-md.md', 'slashforge-agents-codex.md']);
+  assert.ok(!TARGETS.claude.omit.some((o) => [...COMMAND_FILES, ...SKILL_FILES].includes(o)));
 });
 
 test('agents install writes SKILL.md dirs with a rewritten name', () => {
@@ -871,7 +871,7 @@ test('skills layout rewrites in-body command references to the hyphen form', () 
   assert.ok(skill.includes('/slashforge-code'), 'hand-off must name the hyphenated command');
   assert.ok(!skill.includes('/slashforge:'), 'no colon form may survive in a skill');
   for (const h of a.hosts) {
-    const guide = fs.readFileSync(path.join(h.guidesDir, 'forge-workflow.md'), 'utf8');
+    const guide = fs.readFileSync(path.join(h.guidesDir, 'slashforge-workflow.md'), 'utf8');
     assert.ok(!guide.includes('/slashforge:'), `${h.host} guides must be rewritten too`);
   }
 });
@@ -880,7 +880,7 @@ test('claude guides name commands in the hyphen form', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
   installFiles(target, {});
-  const guide = fs.readFileSync(path.join(target.guidesDir, 'forge-workflow.md'), 'utf8');
+  const guide = fs.readFileSync(path.join(target.guidesDir, 'slashforge-workflow.md'), 'utf8');
   assert.ok(guide.includes('/slashforge-code'), 'the hyphen form is what Claude Code lists');
   assert.ok(!guide.includes('/slashforge:code'));
 });
@@ -1058,9 +1058,9 @@ test('rendering only removes whole lines, never rewrites them', () => {
 
 test('core workflow guides keep agent dispatch on the claude target', () => {
   const rendered = renderAll('claude');
-  assert.match(rendered['forge-workflow.md'], /Invoke the `git` agent to push/);
-  assert.match(rendered['forge-workflow.md'], /`code-reviewer` agent/);
-  assert.match(rendered['forge-workflow-agents.md'], /\.claude\/agents\//);
+  assert.match(rendered['slashforge-workflow.md'], /Invoke the `git` agent to push/);
+  assert.match(rendered['slashforge-workflow.md'], /`code-reviewer` agent/);
+  assert.match(rendered['slashforge-workflow-agents.md'], /\.claude\/agents\//);
 });
 
 // Frontmatter is YAML, so a fenced description is only valid once the
@@ -1194,18 +1194,18 @@ test('every vendor target renders every template cleanly', () => {
 test('a guide in the target omit list is not installed', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
-  target.omit = ['forge-memory.md'];
+  target.omit = ['slashforge-memory.md'];
   installFiles(target, {});
-  assert.ok(!fs.existsSync(path.join(target.guidesDir, 'forge-memory.md')),
+  assert.ok(!fs.existsSync(path.join(target.guidesDir, 'slashforge-memory.md')),
     'an omitted guide must not be written');
-  assert.ok(fs.existsSync(path.join(target.guidesDir, 'forge-rules.md')),
+  assert.ok(fs.existsSync(path.join(target.guidesDir, 'slashforge-rules.md')),
     'guides not in the omit list still install');
 });
 
 test('omitting a guide does not omit the commands', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
-  target.omit = ['forge-memory.md'];
+  target.omit = ['slashforge-memory.md'];
   installFiles(target, {});
   assert.ok(fs.existsSync(path.join(target.commandsDir, 'slashforge-code.md')));
 });
@@ -1213,19 +1213,19 @@ test('omitting a guide does not omit the commands', () => {
 test('the install summary does not list an omitted guide', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
-  target.omit = ['forge-memory.md'];
+  target.omit = ['slashforge-memory.md'];
   const written = installFiles(target, {});
-  assert.ok(!written.some((w) => w.endsWith('forge-memory.md')),
+  assert.ok(!written.some((w) => w.endsWith('slashforge-memory.md')),
     'a skipped guide must not appear in the written list');
 });
 
 test('plannedWrites agrees with installFiles about omitted guides', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
-  target.omit = ['forge-memory.md'];
+  target.omit = ['slashforge-memory.md'];
   const planned = plannedWrites(target).map((w) => w.dest);
   const actual = installFiles(target, {});
-  assert.ok(!planned.some((d) => d.endsWith('forge-memory.md')),
+  assert.ok(!planned.some((d) => d.endsWith('slashforge-memory.md')),
     'the dry-run must not promise a guide the install skips');
   // Everything the plan promises is actually written (meta aside, which both include).
   for (const d of planned) {
@@ -1243,9 +1243,9 @@ test('each target receives only its own entry-file guide', () => {
   installAgentsFiles(a, {});
   const dirs = { claude: claude.guidesDir, cursor: a.hosts[0].guidesDir, codex: a.hosts[1].guidesDir };
   const cases = {
-    claude: ['forge-claude-md.md', 'forge-agents-md.md'],
-    cursor: ['forge-agents-md.md', 'forge-claude-md.md'],
-    codex: ['forge-agents-md.md', 'forge-claude-md.md'],
+    claude: ['slashforge-claude-md.md', 'slashforge-agents-md.md'],
+    cursor: ['slashforge-agents-md.md', 'slashforge-claude-md.md'],
+    codex: ['slashforge-agents-md.md', 'slashforge-claude-md.md'],
   };
   for (const [name, [present, absent]] of Object.entries(cases)) {
     assert.ok(fs.existsSync(path.join(dirs[name], present)), `${name} needs ${present}`);
@@ -1255,14 +1255,14 @@ test('each target receives only its own entry-file guide', () => {
 
 test('the AGENTS.md guide never names a foreign vendor directory', () => {
   for (const [name, bad] of [['cursor', /\.codex\//], ['codex', /\.cursor\//]]) {
-    const body = renderAll(name)['forge-agents-md.md'];
+    const body = renderAll(name)['slashforge-agents-md.md'];
     assert.ok(body, `${name} should render the guide`);
     assert.ok(!bad.test(body), `${name} render leaks ${bad}`);
     assert.ok(!/CLAUDE\.md is the entry point/.test(body), 'must not describe CLAUDE.md as the entry');
   }
 });
 
-// forge-instructions.md's first golden rule caps every .md at 200 lines, and the
+// slashforge-instructions.md's first golden rule caps every .md at 200 lines, and the
 // design decision for multi-target rendering is that the cap applies to the RENDERED
 // output — what an agent actually loads — not to the source, which carries every
 // target's branches.
@@ -1271,8 +1271,8 @@ test('the AGENTS.md guide never names a foreign vendor directory', () => {
 // silently skipped so the debt stays visible; the guard's job is to stop NEW files
 // joining them. Shrinking these two is its own change.
 const OVERSIZE_GUIDES = new Set([
-  'forge-graph.md',              // 217 rendered
-  'forge-workflow-review-pr.md', // 303 rendered
+  'slashforge-graph.md',              // 217 rendered
+  'slashforge-workflow-review-pr.md', // 303 rendered
 ]);
 
 test('no new rendered guide breaks the 200-line golden rule', () => {
@@ -1304,23 +1304,23 @@ test('codex gets the TOML subagent guide, the others get the markdown one', () =
   const a = resolveAgents({ homeDir: home, cwd: home });
   installAgentsFiles(a, {});
   const codex = a.hosts[1].guidesDir;
-  const body = fs.readFileSync(path.join(codex, 'forge-agents-codex.md'), 'utf8');
+  const body = fs.readFileSync(path.join(codex, 'slashforge-agents-codex.md'), 'utf8');
   assert.match(body, /developer_instructions/, 'must document the TOML field');
   assert.match(body, /\.codex\/agents\//);
   assert.match(body, /\.toml/);
-  assert.ok(!fs.existsSync(path.join(codex, 'forge-agents.md')), 'codex must not receive the markdown subagent guide');
+  assert.ok(!fs.existsSync(path.join(codex, 'slashforge-agents.md')), 'codex must not receive the markdown subagent guide');
   for (const [name, dir] of [['claude', claude.guidesDir], ['cursor', a.hosts[0].guidesDir]]) {
-    assert.ok(fs.existsSync(path.join(dir, 'forge-agents.md')), `${name} needs forge-agents.md`);
-    assert.ok(!fs.existsSync(path.join(dir, 'forge-agents-codex.md')), `${name} must not receive the codex guide`);
+    assert.ok(fs.existsSync(path.join(dir, 'slashforge-agents.md')), `${name} needs slashforge-agents.md`);
+    assert.ok(!fs.existsSync(path.join(dir, 'slashforge-agents-codex.md')), `${name} must not receive the codex guide`);
   }
 });
 
 test('the markdown subagent guide names the right directory per target', () => {
-  const claude = renderAll('claude')['forge-agents.md'];
+  const claude = renderAll('claude')['slashforge-agents.md'];
   assert.match(claude, /\.claude\/agents\//);
   assert.ok(!/\.cursor\//.test(claude), 'claude render must not mention .cursor');
 
-  const cursor = renderAll('cursor')['forge-agents.md'];
+  const cursor = renderAll('cursor')['slashforge-agents.md'];
   assert.match(cursor, /\.cursor\/agents\//);
   assert.ok(!/CLAUDE\.md/.test(cursor), 'cursor render must not cite CLAUDE.md');
   // One mention of .claude/agents/ is correct here: Cursor reads it too, and the
@@ -1375,11 +1375,13 @@ test('every guide setup tells you to read is installed for that host', () => {
   installAgentsFiles(a, {});
   const cases = [
     ['claude', commandPath(claude, path.join('slashforge', 'setup.md')), claude.guidesDir],
-    ...a.hosts.map((h) => [h.host, path.join(h.guidesDir, 'forge-setup-flow.md'), h.guidesDir]),
+    ...a.hosts.map((h) => [h.host, path.join(h.guidesDir, 'slashforge-setup-flow.md'), h.guidesDir]),
   ];
   for (const [name, file, dir] of cases) {
     const body = fs.readFileSync(file, 'utf8');
-    const referenced = [...body.matchAll(/forge-[a-z0-9-]+\.md/g)].map((m) => m[0]);
+    // Guide names only: setup also names command files, which live elsewhere.
+    const referenced = [...body.matchAll(/slashforge-[a-z0-9-]+\.md/g)].map((m) => m[0])
+      .filter((g) => GUIDE_FILES.includes(g));
     assert.ok(referenced.length > 5, `${name}: expected a real read list`);
     for (const guide of new Set(referenced)) {
       assert.ok(fs.existsSync(path.join(dir, guide)), `${name}: setup reads ${guide}, which is not installed here`);
@@ -1444,17 +1446,17 @@ test('every target runs setup in five phases', () => {
 // --- Task 8: master instructions guide ---
 
 test('rendered instructions name only the running target layout', () => {
-  const claude = renderAll('claude')['forge-instructions.md'];
+  const claude = renderAll('claude')['slashforge-instructions.md'];
   assert.match(claude, /CLAUDE\.md/);
   assert.match(claude, /\.claude\/rules\//);
   assert.ok(!/\.cursor\/|\.codex\//.test(claude), 'claude render leaks a vendor dir');
 
-  const cursor = renderAll('cursor')['forge-instructions.md'];
+  const cursor = renderAll('cursor')['slashforge-instructions.md'];
   assert.match(cursor, /AGENTS\.md/);
   assert.match(cursor, /\.cursor\/rules\/\*\.mdc/);
   assert.ok(!/\.claude\/|\.codex\//.test(cursor), 'cursor render leaks a foreign dir');
 
-  const codex = renderAll('codex')['forge-instructions.md'];
+  const codex = renderAll('codex')['slashforge-instructions.md'];
   assert.match(codex, /AGENTS\.md/);
   assert.match(codex, /\.codex\/agents\/\*\.toml/);
   assert.ok(!/\.claude\/|\.cursor\//.test(codex), 'codex render leaks a foreign dir');
@@ -1462,7 +1464,7 @@ test('rendered instructions name only the running target layout', () => {
 
 test('every target keeps all seven golden rules and the core sections', () => {
   for (const name of ['claude', 'cursor', 'codex']) {
-    const body = renderAll(name)['forge-instructions.md'];
+    const body = renderAll(name)['slashforge-instructions.md'];
     for (const section of [
       'Golden Rules', 'File Structure', 'Generated File Markers', 'Creation Order',
       'Step 1', 'Step 2', 'Updating an Existing Setup', 'When to Split a File',
@@ -1489,13 +1491,13 @@ test('no rendered guide names a foreign target directory', () => {
     codex: /\.claude\/|\.cursor\/|CLAUDE\.md/,
     skills: /\.claude\/|\.cursor\/|\.codex\/|CLAUDE\.md/,
   };
-  // forge-agents.md legitimately cites .claude/agents/ once on cursor, to say
+  // slashforge-agents.md legitimately cites .claude/agents/ once on cursor, to say
   // .cursor/ wins on a name conflict. That precedence note is the only exemption.
   const exempt = new Set([
-    'forge-agents.md',
+    'slashforge-agents.md',
     // Name CLAUDE.md on purpose: the coexistence instruction tells the vendor
     // setup not to rewrite a Claude Code setup's entry file without asking.
-    'forge-agents-md.md',
+    'slashforge-agents-md.md',
     path.join('slashforge', 'setup.md'),
   ]);
   for (const [name, bad] of Object.entries(foreign)) {
@@ -1516,32 +1518,32 @@ test('no rendered guide names a foreign target directory', () => {
 });
 
 test('the rules guide carries each host real rules mechanism', () => {
-  const cursor = renderAll('cursor')['forge-rules.md'];
+  const cursor = renderAll('cursor')['slashforge-rules.md'];
   assert.match(cursor, /\.mdc/, 'cursor rules are .mdc');
   assert.match(cursor, /silently ignored|is ignored/, 'must warn that a plain .md is ignored');
   assert.match(cursor, /alwaysApply/, 'must document the frontmatter');
   assert.match(cursor, /globs/);
 
-  const codex = renderAll('codex')['forge-rules.md'];
+  const codex = renderAll('codex')['slashforge-rules.md'];
   assert.match(codex, /nested `AGENTS\.md`/, 'codex rules are nested AGENTS.md');
   assert.match(codex, /no rules directory/, 'must say there is no rules dir');
   assert.ok(!/\.mdc/.test(codex), 'codex has no .mdc');
 });
 
 test('the commands guide tells codex not to create commands', () => {
-  const codex = renderAll('codex')['forge-commands.md'];
+  const codex = renderAll('codex')['slashforge-commands.md'];
   assert.match(codex, /deprecated/, 'must say prompts are deprecated');
   assert.match(codex, /skill/i, 'must redirect to skills');
 
-  const cursor = renderAll('cursor')['forge-commands.md'];
+  const cursor = renderAll('cursor')['slashforge-commands.md'];
   assert.match(cursor, /\.cursor\/commands\//);
 });
 
 test('the hooks guide carries each host hook file and gate', () => {
-  const cursor = renderAll('cursor')['forge-hooks.md'];
+  const cursor = renderAll('cursor')['slashforge-hooks.md'];
   assert.match(cursor, /\.cursor\/hooks\.json/);
 
-  const codex = renderAll('codex')['forge-hooks.md'];
+  const codex = renderAll('codex')['slashforge-hooks.md'];
   assert.match(codex, /\.codex\/hooks\.json/);
   // Hooks left beta: on by default, behind `[features] hooks`, not `codex_hooks`.
   assert.match(codex, /hooks = true/, 'must name the feature flag');
@@ -1552,7 +1554,7 @@ test('the hooks guide carries each host hook file and gate', () => {
 // which gave Cursor Claude Code's hook model: a .cursor/hooks.json with PostToolUse
 // and a nested hooks array, which Cursor never fires.
 test('the cursor hooks guide describes Cursor\'s schema, not Claude Code\'s', () => {
-  const cursor = renderAll('cursor')['forge-hooks.md'];
+  const cursor = renderAll('cursor')['slashforge-hooks.md'];
   for (const claudeOnly of ['PostToolUse', 'PreToolUse', 'SessionStart', 'UserPromptSubmit',
     'settings.json', '$CLAUDE_PROJECT_DIR', 'disableAllHooks', '/update-config', '"type": "http"']) {
     assert.ok(!cursor.includes(claudeOnly), `cursor render still names Claude Code's ${claudeOnly}`);
@@ -1578,7 +1580,7 @@ test('the cursor hooks guide describes Cursor\'s schema, not Claude Code\'s', ()
 });
 
 test('the claude hooks guide keeps Claude Code\'s schema', () => {
-  const claude = renderAll('claude')['forge-hooks.md'];
+  const claude = renderAll('claude')['slashforge-hooks.md'];
   for (const s of ['PostToolUse', 'settings.json', '$CLAUDE_PROJECT_DIR', 'disableAllHooks']) {
     assert.ok(claude.includes(s), `claude render lost ${s}`);
   }
@@ -1586,7 +1588,7 @@ test('the claude hooks guide keeps Claude Code\'s schema', () => {
 });
 
 test('the codex hooks guide uses Codex\'s handler types and a git-root path', () => {
-  const codex = renderAll('codex')['forge-hooks.md'];
+  const codex = renderAll('codex')['slashforge-hooks.md'];
   assert.match(codex, /mcp_tool/);
   assert.ok(!codex.includes('"type": "http"') && !/\| `agent` \|/.test(codex), 'Codex has no http or agent hooks');
   assert.match(codex, /git rev-parse --show-toplevel/);
@@ -1595,10 +1597,10 @@ test('the codex hooks guide uses Codex\'s handler types and a git-root path', ()
 });
 
 test('the skills guide names each host skills directory', () => {
-  assert.match(renderAll('cursor')['forge-skills.md'], /\.cursor\/skills\//);
-  assert.match(renderAll('codex')['forge-skills.md'], /\.agents\/skills\//);
+  assert.match(renderAll('cursor')['slashforge-skills.md'], /\.cursor\/skills\//);
+  assert.match(renderAll('codex')['slashforge-skills.md'], /\.agents\/skills\//);
   for (const name of ['cursor', 'codex']) {
-    assert.match(renderAll(name)['forge-skills.md'], /must match the parent|match its parent/,
+    assert.match(renderAll(name)['slashforge-skills.md'], /must match the parent|match its parent/,
       `${name}: both vendors require name to match the directory`);
   }
 });
@@ -1612,7 +1614,7 @@ test('the graphify guide names each host own install command', () => {
     codex: 'graphify codex install',
   };
   for (const [name, cmd] of Object.entries(expected)) {
-    const body = renderAll(name)['forge-graph.md'];
+    const body = renderAll(name)['slashforge-graph.md'];
     assert.ok(body.includes(cmd), `${name} should run ${cmd}`);
     for (const other of Object.values(expected)) {
       if (other !== cmd) assert.ok(!body.includes(other), `${name} must not run ${other}`);
@@ -1621,17 +1623,17 @@ test('the graphify guide names each host own install command', () => {
 });
 
 test('the graphify guide states what each host integration writes', () => {
-  const cursor = renderAll('cursor')['forge-graph.md'];
+  const cursor = renderAll('cursor')['slashforge-graph.md'];
   assert.match(cursor, /\.cursor\/rules\/graphify\.mdc/, 'cursor gets a rule file');
 
-  const codex = renderAll('codex')['forge-graph.md'];
+  const codex = renderAll('codex')['slashforge-graph.md'];
   assert.match(codex, /AGENTS\.md/, 'codex gets an AGENTS.md section');
   assert.match(codex, /hooks\.json|PreToolUse/, 'and a PreToolUse hook');
 });
 
 test('the ordering rule survives on every target', () => {
   for (const name of ['claude', 'cursor', 'codex']) {
-    const body = renderAll(name)['forge-graph.md'];
+    const body = renderAll(name)['slashforge-graph.md'];
     assert.match(body, /Hook-in/, `${name}: the hook-in half must still exist`);
     assert.match(body, /LAST|last/, `${name}: and must still run last`);
   }
@@ -1656,7 +1658,8 @@ test('installed codex guides never name the slash form of a command', () => {
   for (const f of fs.readdirSync(codex)) {
     if (!f.endsWith('.md')) continue;
     const body = fs.readFileSync(path.join(codex, f), 'utf8');
-    assert.ok(!/\/slashforge-[a-z]/.test(body), `${f}: names /slashforge-* but Codex invokes skills with $`);
+    // A path segment like …/codex/slashforge-workflow.md is a file, not a command.
+    assert.ok(!/(?<![\w./~-])\/slashforge-[a-z]/.test(body), `${f}: names /slashforge-* but Codex invokes skills with $`);
   }
   // The shared skills name the / form; the preamble tells Codex to use $.
 });
@@ -1703,7 +1706,7 @@ test('the dry run labels rendered guides as render and copied assets as copy', (
     encoding: 'utf8',
     env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' },
   });
-  assert.match(stdout, /render\s+forge-workflow\.md/);
+  assert.match(stdout, /render\s+slashforge-workflow\.md/);
   assert.doesNotMatch(stdout, /copy\s+forge-[a-z-]+\.md/, 'a guide is still labelled copy');
   for (const a of ASSET_FILES) {
     assert.match(stdout, new RegExp(`copy\\s+${a.replace('.', '\\.')}`), `${a} should be labelled copy`);
@@ -1754,10 +1757,10 @@ test('forge-instructions names the SKILL.md folder form for Claude skills', () =
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
   installFiles(target, {});
-  const guide = fs.readFileSync(path.join(target.guidesDir, 'forge-instructions.md'), 'utf8');
+  const guide = fs.readFileSync(path.join(target.guidesDir, 'slashforge-instructions.md'), 'utf8');
   assert.ok(guide.includes('| Skills | `.claude/skills/<name>/SKILL.md` |'), 'skills row still the flat form');
   assert.ok(!guide.includes('.claude/skills/*.md'), 'the flat skills form is still named');
-  const skills = fs.readFileSync(path.join(target.guidesDir, 'forge-skills.md'), 'utf8');
+  const skills = fs.readFileSync(path.join(target.guidesDir, 'slashforge-skills.md'), 'utf8');
   assert.ok(/500 lines/.test(guide) && /500 lines/.test(skills), 'the SKILL.md limit must match in both guides');
 });
 
@@ -1776,7 +1779,7 @@ function verifyScript(targetName) {
     installAgentsFiles(a, {});
     dir = a.hosts.find((h) => h.host === targetName).guidesDir;
   }
-  const guide = fs.readFileSync(path.join(dir, 'forge-instructions.md'), 'utf8');
+  const guide = fs.readFileSync(path.join(dir, 'slashforge-instructions.md'), 'utf8');
   const step9 = guide.slice(guide.indexOf('## Step 9'));
   const m = step9.match(/```bash\n([\s\S]*?)```/);
   assert.ok(m, `no Step 9 bash block for ${targetName}`);
@@ -1843,7 +1846,7 @@ test('setup verify step fails on oversized files for cursor and codex', () => {
 // a failing opener still leaves the run alone.
 test('the open helper hands the path to the platform opener and survives its failure', () => {
   if (process.platform === 'win32') return; // Git Bash's `start` is a shell builtin wrapper; covered by review.
-  const helper = path.join(TEMPLATES_DIR, 'forge-open.sh');
+  const helper = path.join(TEMPLATES_DIR, 'slashforge-open.sh');
   const bin = tmp();
   const log = path.join(bin, 'calls.log');
   for (const opener of ['open', 'xdg-open', 'wslview']) {
@@ -1884,17 +1887,17 @@ test('no template runs an inline node script', () => {
 test('every document writer calls the shipped splice script', () => {
   for (const f of ['investigate.md', 'brainstorm.md', 'plan.md', 'review-pr.md']) {
     assert.ok(
-      commandInstruction(f).includes('node "{{INSTALL_PATH}}/forge-splice.js"'),
-      `${f} must splice through forge-splice.js`,
+      commandInstruction(f).includes('node "{{INSTALL_PATH}}/slashforge-splice.js"'),
+      `${f} must splice through slashforge-splice.js`,
     );
   }
   assert.ok(
-    commandInstruction('review-pr.md').includes('node "{{INSTALL_PATH}}/forge-review-payload.js"'),
-    'review-pr must assemble its payload through forge-review-payload.js',
+    commandInstruction('review-pr.md').includes('node "{{INSTALL_PATH}}/slashforge-review-payload.js"'),
+    'review-pr must assemble its payload through slashforge-review-payload.js',
   );
 });
 
-test('forge-review-payload.js builds the review JSON from the files', () => {
+test('slashforge-review-payload.js builds the review JSON from the files', () => {
   const d = tmp();
   fs.writeFileSync(path.join(d, 'body.txt'), 'Top "level" $& body');
   fs.writeFileSync(path.join(d, 'c1.txt'), 'first\nfinding');
@@ -1902,7 +1905,7 @@ test('forge-review-payload.js builds the review JSON from the files', () => {
     { path: 'src/x.js', line: 42, bodyFile: 'c1.txt' },
   ]));
   const out = path.join(d, 'payload.json');
-  execFileSync('node', [path.join(TEMPLATES_DIR, 'forge-review-payload.js'), d, 'COMMENT', out]);
+  execFileSync('node', [path.join(TEMPLATES_DIR, 'slashforge-review-payload.js'), d, 'COMMENT', out]);
   assert.deepEqual(JSON.parse(fs.readFileSync(out, 'utf8')), {
     event: 'COMMENT',
     body: 'Top "level" $& body',
@@ -2043,15 +2046,15 @@ test('installAgentsFiles writes per-host guides, neutral skills and one meta', (
   const a = resolveAgents({ homeDir: home, cwd: home });
   installAgentsFiles(a, {});
   for (const h of a.hosts) {
-    assert.ok(fs.existsSync(path.join(h.guidesDir, 'forge-workflow.md')), `${h.host} guides`);
-    assert.ok(fs.existsSync(path.join(h.guidesDir, 'forge-setup-flow.md')), `${h.host} setup flow`);
-    assert.ok(fs.existsSync(path.join(h.guidesDir, 'forge-splice.js')), `${h.host} assets`);
-    // The guides read meta.json from their own folder (forge-instructions.md says so).
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-workflow.md')), `${h.host} guides`);
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-setup-flow.md')), `${h.host} setup flow`);
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-splice.js')), `${h.host} assets`);
+    // The guides read meta.json from their own folder (slashforge-instructions.md says so).
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(h.guidesDir, 'meta.json'), 'utf8')).hosts, ['cursor', 'codex']);
   }
-  assert.ok(fs.existsSync(path.join(a.hosts[0].guidesDir, 'forge-agents.md')), 'cursor: markdown subagents');
-  assert.ok(fs.existsSync(path.join(a.hosts[1].guidesDir, 'forge-agents-codex.md')), 'codex: TOML subagents');
-  assert.ok(!fs.existsSync(path.join(a.hosts[1].guidesDir, 'forge-agents.md')));
+  assert.ok(fs.existsSync(path.join(a.hosts[0].guidesDir, 'slashforge-agents.md')), 'cursor: markdown subagents');
+  assert.ok(fs.existsSync(path.join(a.hosts[1].guidesDir, 'slashforge-agents-codex.md')), 'codex: TOML subagents');
+  assert.ok(!fs.existsSync(path.join(a.hosts[1].guidesDir, 'slashforge-agents.md')));
   const meta = JSON.parse(fs.readFileSync(a.metaFile, 'utf8'));
   assert.deepEqual(meta.hosts, ['cursor', 'codex']);
   assert.ok(meta.commands.includes('/slashforge-code'));
@@ -2085,9 +2088,9 @@ test('the setup skill dispatches to the per-host setup flow', () => {
   const a = resolveAgents({ homeDir: home, cwd: home });
   installAgentsFiles(a, {});
   const skill = fs.readFileSync(path.join(a.skillsDir, 'slashforge-setup', 'SKILL.md'), 'utf8');
-  assert.match(skill, /<host>\/forge-setup-flow\.md/);
-  const cursor = fs.readFileSync(path.join(a.hosts[0].guidesDir, 'forge-setup-flow.md'), 'utf8');
-  const codex = fs.readFileSync(path.join(a.hosts[1].guidesDir, 'forge-setup-flow.md'), 'utf8');
+  assert.match(skill, /<host>\/slashforge-setup-flow\.md/);
+  const cursor = fs.readFileSync(path.join(a.hosts[0].guidesDir, 'slashforge-setup-flow.md'), 'utf8');
+  const codex = fs.readFileSync(path.join(a.hosts[1].guidesDir, 'slashforge-setup-flow.md'), 'utf8');
   assert.match(cursor, /\.cursor\//);
   assert.ok(!cursor.includes('.codex/agents'), 'cursor flow names Codex layout');
   assert.match(codex, /\.codex\/agents/);
@@ -2099,8 +2102,8 @@ test('installAgentsFiles clears kit files an old layout left at the root', () =>
   const home = tmp();
   const a = resolveAgents({ homeDir: home, cwd: home });
   fs.mkdirSync(a.root, { recursive: true });
-  fs.writeFileSync(path.join(a.root, 'forge-workflow.md'), 'old');
-  fs.writeFileSync(path.join(a.root, 'forge-splice.js'), 'old');
+  fs.writeFileSync(path.join(a.root, 'slashforge-workflow.md'), 'old');
+  fs.writeFileSync(path.join(a.root, 'slashforge-splice.js'), 'old');
   fs.writeFileSync(path.join(a.root, 'notes.md'), 'mine');
   installAgentsFiles(a, {});
   assert.deepEqual(fs.readdirSync(a.root).sort(), ['codex', 'cursor', 'meta.json', 'notes.md']);
@@ -2142,7 +2145,7 @@ test('one install sets up both locations and names all three forms', () => {
   assert.equal(r.status, 0, r.stderr);
   assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge-code.md')));
   assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code', 'SKILL.md')));
-  assert.ok(fs.existsSync(path.join(home, '.agents', 'setup', 'slashforge', 'codex', 'forge-workflow.md')));
+  assert.ok(fs.existsSync(path.join(home, '.agents', 'setup', 'slashforge', 'codex', 'slashforge-workflow.md')));
   for (const form of ['/slashforge-code', '$slashforge-code']) {
     assert.ok(r.stdout.includes(form), `closing message should show ${form}`);
   }
@@ -2389,7 +2392,7 @@ test('a global 4.x install beside a 5.0 project install is not described as shad
   plantV4(path.join(home, '.claude', 'commands'));
   const g = path.join(home, '.claude', 'setup', 'slashforge');
   fs.mkdirSync(g, { recursive: true });
-  fs.writeFileSync(path.join(g, 'forge-workflow.md'), 'old');
+  fs.writeFileSync(path.join(g, 'slashforge-workflow.md'), 'old');
   fs.writeFileSync(path.join(g, 'meta.json'), JSON.stringify({ version: '4.5.0' }));
   const out = execFileSync('node', [BIN, '--project', '--yes'], { env: envFor(home), cwd: repo, encoding: 'utf8' });
   assert.doesNotMatch(out, /runs instead/);
@@ -2454,11 +2457,11 @@ test('setup\'s size check skips the kit\'s own flat command files in a project i
 });
 
 test('the Graphify guide names each host\'s own integration', () => {
-  assert.match(renderAll('claude')['forge-graph.md'], /Claude Code Glob\/Grep hook/);
+  assert.match(renderAll('claude')['slashforge-graph.md'], /Claude Code Glob\/Grep hook/);
   for (const host of ['cursor', 'codex']) {
-    assert.doesNotMatch(renderAll(host)['forge-graph.md'], /Claude Code Glob\/Grep hook/, host);
+    assert.doesNotMatch(renderAll(host)['slashforge-graph.md'], /Claude Code Glob\/Grep hook/, host);
   }
-  assert.match(renderAll('cursor')['forge-graph.md'], /\.cursor\/rules\/graphify\.mdc/);
+  assert.match(renderAll('cursor')['slashforge-graph.md'], /\.cursor\/rules\/graphify\.mdc/);
 });
 
 // --- Remaining review items on #58 ---
@@ -2480,4 +2483,66 @@ test('a template saved with Windows line endings renders like any other', () => 
   const out = renderTemplate(src, { installPath: '/p', version: '0', pkgName: 'x', targetName: 'claude' });
   assert.ok(out.includes('claude only') && !out.includes('cursor only'), out);
   assert.ok(!out.includes('<!--'), 'no marker survives');
+});
+
+// --- 5.0: kit files are slashforge-*, not forge-* ---
+const OLD_KIT_NAMES = ['forge-workflow.md', 'forge-instructions.md', 'forge-open.sh', 'forge-splice.js',
+  'forge-report-shell.html', 'forge-review-payload.js', 'forge-setup-flow.md'];
+
+function allFiles(dir) {
+  const out = [];
+  (function walk(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p); else out.push(p);
+    }
+  })(dir);
+  return out;
+}
+
+test('every installed kit file is named slashforge-*, none forge-*', () => {
+  const home = tmp();
+  installFiles(resolveTarget({ homeDir: home, cwd: home }), {});
+  installAgentsFiles(resolveAgents({ homeDir: home, cwd: home }), {});
+  const bad = allFiles(home).map((p) => path.basename(p)).filter((n) => /^forge-/.test(n));
+  assert.deepEqual([...new Set(bad)], [], 'forge-* files installed');
+  const guides = fs.readdirSync(path.join(home, '.claude', 'setup', 'slashforge'));
+  assert.ok(guides.includes('slashforge-workflow.md') && guides.includes('slashforge-splice.js'));
+});
+
+test('no installed file names a forge-* kit file', () => {
+  const home = tmp();
+  installFiles(resolveTarget({ homeDir: home, cwd: home }), {});
+  installAgentsFiles(resolveAgents({ homeDir: home, cwd: home }), {});
+  const RE = /(?<![a-z])forge-[a-z0-9-]+\.(md|sh|js|html)\b/;
+  const hits = allFiles(home).filter((p) => !p.endsWith('meta.json') && RE.test(fs.readFileSync(p, 'utf8')))
+    .map((p) => `${path.relative(home, p)}: ${fs.readFileSync(p, 'utf8').match(RE)[0]}`);
+  assert.deepEqual(hits, []);
+});
+
+test('upgrading removes the old forge-* kit files and keeps user files', () => {
+  const home = tmp();
+  const claude = resolveTarget({ homeDir: home, cwd: home });
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  for (const dir of [claude.guidesDir, ...a.hosts.map((h) => h.guidesDir)]) {
+    fs.mkdirSync(dir, { recursive: true });
+    for (const n of OLD_KIT_NAMES) fs.writeFileSync(path.join(dir, n), 'old');
+    fs.writeFileSync(path.join(dir, 'my-notes.md'), 'mine');
+  }
+  installFiles(claude, {});
+  installAgentsFiles(a, {});
+  for (const dir of [claude.guidesDir, ...a.hosts.map((h) => h.guidesDir)]) {
+    const left = fs.readdirSync(dir);
+    assert.deepEqual(left.filter((n) => /^forge-/.test(n)), [], `${dir} still has forge-* files`);
+    assert.ok(left.includes('my-notes.md'), 'user file kept');
+  }
+});
+
+test('uninstall removes forge-* leftovers as well as slashforge-* files', () => {
+  const home = tmp();
+  const claude = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(claude, {});
+  for (const n of OLD_KIT_NAMES) fs.writeFileSync(path.join(claude.guidesDir, n), 'old');
+  uninstallFiles(claude, {});
+  assert.ok(!fs.existsSync(claude.guidesDir), 'every kit file, old or new, is gone');
 });

@@ -7,7 +7,15 @@ description: Setup-time offer that builds a queryable code graph for the repo, s
 
 Graphify builds an AST-level knowledge graph of a repo — nodes for functions/classes, edges for call graphs and relationships, blast-radius queries, god-node detection. When present in a repo, agents read a pre-built graph summary and/or query the graph directly instead of grepping raw files for scope, dependency, and affected-surface questions.
 
+<!--target:claude-->
 **This is not a preflight check.** Do not check for Graphify on every command — it is a repo-level dependency, offered once during `/slashforge-setup`. Once installed, its own `graphify claude install` wires a PreToolUse hook on Glob/Grep that auto-surfaces graph context for every subsequent command, with no extra guide-side enforcement needed.
+<!--/target-->
+<!--target:cursor-->
+**This is not a preflight check.** Do not check for Graphify on every command — it is a repo-level dependency, offered once during `/slashforge-setup`. Once installed, its own `graphify cursor install` writes an always-applied rule that surfaces graph context for every subsequent command, with no extra guide-side enforcement needed.
+<!--/target-->
+<!--target:codex-->
+**This is not a preflight check.** Do not check for Graphify on every command — it is a repo-level dependency, offered once during `/slashforge-setup`. Once installed, its own `graphify codex install` writes the `AGENTS.md` section and registers a PreToolUse hook that auto-surfaces graph context for every subsequent command, with no extra guide-side enforcement needed.
+<!--/target-->
 
 ---
 
@@ -36,7 +44,15 @@ If the repo is mostly YAML / shell / config / templates / a language not in the 
 | Yes | No | **Branch B — Index this repo only** (CLI already installed globally; this repo just needs indexing) |
 | Yes | Yes | **Branch C — Freshness check** (see Runtime section below) |
 
+<!--target:claude-->
 > **Critical:** never short-circuit when the CLI is on `PATH` but the repo has no graph yet. That is Branch B, not "skip." A fresh repo on a Graphify-installed machine still needs `graphify .` + `graphify claude install` + `SUMMARY.html` synthesis — only the CLI-install step is unnecessary.
+<!--/target-->
+<!--target:cursor-->
+> **Critical:** never short-circuit when the CLI is on `PATH` but the repo has no graph yet. That is Branch B, not "skip." A fresh repo on a Graphify-installed machine still needs `graphify .` + `graphify cursor install` + `SUMMARY.html` synthesis — only the CLI-install step is unnecessary.
+<!--/target-->
+<!--target:codex-->
+> **Critical:** never short-circuit when the CLI is on `PATH` but the repo has no graph yet. That is Branch B, not "skip." A fresh repo on a Graphify-installed machine still needs `graphify .` + `graphify codex install` + `SUMMARY.html` synthesis — only the CLI-install step is unnecessary.
+<!--/target-->
 
 ---
 
@@ -61,15 +77,47 @@ Use this block for both Branch A and Branch B. Drop the `uv`/Python cost bullet 
 
 ## Phase mapping — each branch is split into Offer / Provision / Hook-in
 
+<!--target:claude-->
 `/slashforge-setup` runs in phases (see its Fresh and Update flows). The Graphify branches map onto those phases so the user makes one decision up front and is never interrupted again, while the single step that mutates `CLAUDE.md` still runs last:
+<!--/target-->
+<!--target:cursor-->
+`/slashforge-setup` runs in phases (see its Fresh and Update flows). The Graphify branches map onto those phases so the user makes one decision up front and is never interrupted again, while the single step that writes into `.cursor/rules/` still runs last:
+<!--/target-->
+<!--target:codex-->
+`/slashforge-setup` runs in phases (see its Fresh and Update flows). The Graphify branches map onto those phases so the user makes one decision up front and is never interrupted again, while the single step that mutates `AGENTS.md` still runs last:
+<!--/target-->
 
+<!--target:claude-->
 | Half | Setup phase | What it does | Touches `CLAUDE.md` / `settings.json`? |
+<!--/target-->
+<!--target:cursor-->
+| Half | Setup phase | What it does | Touches `.cursor/rules/`? |
+<!--/target-->
+<!--target:codex-->
+| Half | Setup phase | What it does | Touches `AGENTS.md` / `hooks.json`? |
+<!--/target-->
 |---|---|---|---|
 | **Offer** | Phase 1 (Decide) | Show "Why it matters" + the exact commands, ask y/n. Run nothing. | No |
 | **Provision** | Phase 2 (Provision) | On yes: CLI install (Branch A only) + `graphify .` index. | No |
+<!--target:claude-->
 | **Hook-in** | Phase 4 (after kit writes `CLAUDE.md`) | `graphify claude install` (append + hook) + SUMMARY.html. | **Yes — must be last** |
+<!--/target-->
+<!--target:cursor-->
+| **Hook-in** | Phase 4 (after kit writes its rules) | `graphify cursor install` (append + hook) + SUMMARY.html. | **Yes — must be last** |
+<!--/target-->
+<!--target:codex-->
+| **Hook-in** | Phase 4 (after kit writes `AGENTS.md`) | `graphify codex install` (append + hook) + SUMMARY.html. | **Yes — must be last** |
+<!--/target-->
 
+<!--target:claude-->
 Splitting the offer from the work is what lets the kit batch all consent up front; splitting `graphify claude install` (Hook-in) from `graphify .` (Provision) is what preserves the **kit's `CLAUDE.md` FIRST** ordering below — only the append waits for last, not the whole install.
+<!--/target-->
+<!--target:cursor-->
+Splitting the offer from the work is what lets the kit batch all consent up front; splitting `graphify cursor install` (Hook-in) from `graphify .` (Provision) is what preserves the **kit's rules FIRST** ordering below — only the rule-file write waits for last, not the whole install.
+<!--/target-->
+<!--target:codex-->
+Splitting the offer from the work is what lets the kit batch all consent up front; splitting `graphify codex install` (Hook-in) from `graphify .` (Provision) is what preserves the **kit's `AGENTS.md` FIRST** ordering below — only the append waits for last, not the whole install.
+<!--/target-->
 
 ---
 
@@ -77,23 +125,63 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 
 ### Offer (Decide phase — run nothing)
 1. **Print the "Why it matters" block** above (full version).
+<!--target:claude-->
 2. **Show the exact four commands** that will run, so the user sees what they're authorising — note that the first three run now (Provision) and the fourth runs last (Hook-in), after the kit writes `CLAUDE.md`:
+<!--/target-->
+<!--target:cursor-->
+2. **Show the exact four commands** that will run, so the user sees what they're authorising — note that the first three run now (Provision) and the fourth runs last (Hook-in), after the kit writes its rules:
+<!--/target-->
+<!--target:codex-->
+2. **Show the exact four commands** that will run, so the user sees what they're authorising — note that the first three run now (Provision) and the fourth runs last (Hook-in), after the kit writes `AGENTS.md`:
+<!--/target-->
    ```bash
    uv tool install graphifyy        # [Provision] installs the CLI (note: double-y package name)
    graphify install                 # [Provision] Graphify's own first-run setup
    graphify .                       # [Provision] indexes this repo — seconds to minutes
+<!--target:claude-->
    graphify claude install          # [Hook-in, runs LAST] appends CLAUDE.md section + installs Glob/Grep PreToolUse hook
+<!--/target-->
+<!--target:cursor-->
+   graphify cursor install          # [Hook-in, runs LAST] writes .cursor/rules/graphify.mdc (always-applied rule)
+<!--/target-->
+<!--target:codex-->
+   graphify codex install          # [Hook-in, runs LAST] appends AGENTS.md section + registers PreToolUse hook
+<!--/target-->
    ```
    If `uv` is not available on the user's system, fall back to `pipx install graphifyy` or `pip install graphifyy` — mention both alternatives before asking.
 3. **Ask explicitly:** *"Install and index with these commands? (y/n)"* — no default-to-yes, no shortcut flag. Capture the answer; do not run anything yet.
 4. **On no:** skip silently. Do not re-ask during this session. On the next `/slashforge-setup` re-run, the offer fires again.
 
 ### Provision (Provision phase — on yes)
+<!--target:claude-->
 5. Run the **first three** commands in order via Bash, stopping on any failure and surfacing the error verbatim. The user still sees each Bash call through the normal permission-prompt flow unless they've pre-allowed shell commands. **Do not run `graphify claude install` here** — it appends to `CLAUDE.md` and must wait until the kit has written `CLAUDE.md`.
+<!--/target-->
+<!--target:cursor-->
+5. Run the **first three** commands in order via Bash, stopping on any failure and surfacing the error verbatim. The user still sees each Bash call through the normal permission-prompt flow unless they've pre-allowed shell commands. **Do not run `graphify cursor install` here** — it writes into `.cursor/rules/`, which the kit also manages, and must wait until the kit has written its own rules.
+<!--/target-->
+<!--target:codex-->
+5. Run the **first three** commands in order via Bash, stopping on any failure and surfacing the error verbatim. The user still sees each Bash call through the normal permission-prompt flow unless they've pre-allowed shell commands. **Do not run `graphify codex install` here** — it appends to `AGENTS.md` and must wait until the kit has written `AGENTS.md`.
+<!--/target-->
 
+<!--target:claude-->
 ### Hook-in (last, after the kit's `CLAUDE.md` is written)
+<!--/target-->
+<!--target:cursor-->
+### Hook-in (last, after the kit's rules are written)
+<!--/target-->
+<!--target:codex-->
+### Hook-in (last, after the kit's `AGENTS.md` is written)
+<!--/target-->
+<!--target:claude-->
 6. Run `graphify claude install` via Bash — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
-7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `forge-graph-summary.md`. **No second prompt** — the user's yes to Graphify covers this. ~5–15k tokens, one-time.
+<!--/target-->
+<!--target:cursor-->
+6. Run `graphify cursor install` via Bash — writes `.cursor/rules/graphify.mdc`, an always-applied rule.
+<!--/target-->
+<!--target:codex-->
+6. Run `graphify codex install` via Bash — appends the `AGENTS.md` section + registers a PreToolUse hook in `.codex/hooks.json`.
+<!--/target-->
+7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `slashforge-graph-summary.md`. **No second prompt** — the user's yes to Graphify covers this. ~5–15k tokens, one-time.
 
 ---
 
@@ -103,20 +191,60 @@ Common case for users who already have `graphify` installed globally and are set
 
 ### Offer (Decide phase — run nothing)
 1. **Print the "Why it matters" block** above, dropping the `uv`/Python cost bullet (the CLI is already installed). You can prepend one short line: *"`graphify` is already on your `PATH`, so this is index-only — no CLI install needed."*
+<!--target:claude-->
 2. **Show the exact two commands** that will run — the first runs now (Provision), the second runs last (Hook-in), after the kit writes `CLAUDE.md`:
+<!--/target-->
+<!--target:cursor-->
+2. **Show the exact two commands** that will run — the first runs now (Provision), the second runs last (Hook-in), after the kit writes its rules:
+<!--/target-->
+<!--target:codex-->
+2. **Show the exact two commands** that will run — the first runs now (Provision), the second runs last (Hook-in), after the kit writes `AGENTS.md`:
+<!--/target-->
    ```bash
    graphify .                       # [Provision] indexes this repo — seconds to minutes
+<!--target:claude-->
    graphify claude install          # [Hook-in, runs LAST] appends CLAUDE.md section + installs Glob/Grep PreToolUse hook
+<!--/target-->
+<!--target:cursor-->
+   graphify cursor install          # [Hook-in, runs LAST] writes .cursor/rules/graphify.mdc (always-applied rule)
+<!--/target-->
+<!--target:codex-->
+   graphify codex install          # [Hook-in, runs LAST] appends AGENTS.md section + registers PreToolUse hook
+<!--/target-->
    ```
 3. **Ask explicitly:** *"Index this repo with these commands? (y/n)"* — no default-to-yes, no shortcut flag. Capture the answer; do not run anything yet.
 4. **On no:** skip silently. Do not re-ask during this session. On the next `/slashforge-setup` re-run, the offer fires again.
 
 ### Provision (Provision phase — on yes)
+<!--target:claude-->
 5. Run **`graphify .`** via Bash, stopping on any failure and surfacing the error verbatim. **Do not run `graphify claude install` here** — defer it to Hook-in.
+<!--/target-->
+<!--target:cursor-->
+5. Run **`graphify .`** via Bash, stopping on any failure and surfacing the error verbatim. **Do not run `graphify cursor install` here** — defer it to Hook-in.
+<!--/target-->
+<!--target:codex-->
+5. Run **`graphify .`** via Bash, stopping on any failure and surfacing the error verbatim. **Do not run `graphify codex install` here** — defer it to Hook-in.
+<!--/target-->
 
+<!--target:claude-->
 ### Hook-in (last, after the kit's `CLAUDE.md` is written)
+<!--/target-->
+<!--target:cursor-->
+### Hook-in (last, after the kit's rules are written)
+<!--/target-->
+<!--target:codex-->
+### Hook-in (last, after the kit's `AGENTS.md` is written)
+<!--/target-->
+<!--target:claude-->
 6. Run `graphify claude install` via Bash — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
-7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `forge-graph-summary.md`. **No second prompt.** ~5–15k tokens, one-time.
+<!--/target-->
+<!--target:cursor-->
+6. Run `graphify cursor install` via Bash — writes `.cursor/rules/graphify.mdc`, an always-applied rule.
+<!--/target-->
+<!--target:codex-->
+6. Run `graphify codex install` via Bash — appends the `AGENTS.md` section + registers a PreToolUse hook in `.codex/hooks.json`.
+<!--/target-->
+7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `slashforge-graph-summary.md`. **No second prompt.** ~5–15k tokens, one-time.
 
 ---
 
@@ -126,15 +254,47 @@ The graph exists; just verify it's not stale. Follow the **Runtime: Freshness Ch
 
 ---
 
+<!--target:claude-->
 ## Critical Ordering — kit's CLAUDE.md FIRST
+<!--/target-->
+<!--target:cursor-->
+## Critical Ordering — kit's rules FIRST
+<!--/target-->
+<!--target:codex-->
+## Critical Ordering — kit's AGENTS.md FIRST
+<!--/target-->
 
+<!--target:claude-->
 `graphify claude install` (the **Hook-in** step) appends a section to `CLAUDE.md` and writes a PreToolUse hook to `.claude/settings.json` — both files `/slashforge-setup` itself manages. The rule:
 
 > **`/slashforge-setup` writes its own `CLAUDE.md` and `settings.json` FIRST, then `graphify claude install` runs LAST.**
 
 If the append runs first, the kit's subsequent `CLAUDE.md` write overwrites Graphify's appended section. By running it last, Graphify's additions sit in a marker-less section that the kit's `generated_by` marker system treats as user-edited — safe from future kit re-runs.
+<!--/target-->
+<!--target:cursor-->
+`graphify cursor install` (the **Hook-in** step) writes `.cursor/rules/graphify.mdc` — a rule file in a directory `/slashforge-setup` itself manages. The rule:
 
+> **`/slashforge-setup` writes its own rules FIRST, then `graphify cursor install` runs LAST.**
+
+Graphify's rule has its own filename, so it does not collide with the kit's. Running it last keeps it clear of the kit's rule generation, and it sits marker-less — which the kit's `generated_by` system treats as user-owned, safe from future re-runs.
+<!--/target-->
+<!--target:codex-->
+`graphify codex install` (the **Hook-in** step) appends a section to `AGENTS.md` and registers a PreToolUse hook in `.codex/hooks.json` — both files `/slashforge-setup` itself manages. The rule:
+
+> **`/slashforge-setup` writes its own `AGENTS.md` FIRST, then `graphify codex install` runs LAST.**
+
+If the append runs first, the kit's subsequent `AGENTS.md` write overwrites Graphify's appended section. By running it last, Graphify's additions sit in a marker-less section that the kit's `generated_by` marker system treats as user-edited — safe from future kit re-runs.
+<!--/target-->
+
+<!--target:claude-->
 **Only the Hook-in waits for last — not the whole install.** The CLI install and `graphify .` index (the **Provision** step) touch neither `CLAUDE.md` nor `.claude/`, so they run earlier in Phase 2 right after the user consents. This is what keeps the experience uninterrupted: all decisions in Phase 1, the heavy install/index work in Phase 2, and a single intentional append in Phase 4. Nothing the kit writes ever gets regenerated — the last Graphify step is an append by design, not a rewrite.
+<!--/target-->
+<!--target:cursor-->
+**Only the Hook-in waits for last — not the whole install.** The CLI install and `graphify .` index (the **Provision** step) touch neither `AGENTS.md` nor `.cursor/`, so they run earlier in Phase 2 right after the user consents. This is what keeps the experience uninterrupted: all decisions in Phase 1, the heavy install/index work in Phase 2, and a single rule-file write in Phase 4. Nothing the kit writes ever gets regenerated — Graphify's rule has its own filename by design.
+<!--/target-->
+<!--target:codex-->
+**Only the Hook-in waits for last — not the whole install.** The CLI install and `graphify .` index (the **Provision** step) touch neither `AGENTS.md` nor `.codex/`, so they run earlier in Phase 2 right after the user consents. This is what keeps the experience uninterrupted: all decisions in Phase 1, the heavy install/index work in Phase 2, and a single intentional append in Phase 4. Nothing the kit writes ever gets regenerated — the last Graphify step is an append by design, not a rewrite.
+<!--/target-->
 
 ---
 
@@ -142,7 +302,15 @@ If the append runs first, the kit's subsequent `CLAUDE.md` write overwrites Grap
 
 Tell the user, verbatim (drop "installed and" on Branch B since the CLI was already there):
 
+<!--target:claude-->
 > *"Graphify is installed and this repo is indexed. I've also synthesised `graphify-out/SUMMARY.html` — the human-readable version of the graph report (read it once to anchor your mental model). Open a separate terminal tab and run `graphify watch .` to keep the graph in sync with file changes — without it, the graph goes stale and agents may cite relationships that no longer exist. The Claude Code Glob/Grep hook is now active; agents will see graph context automatically on the next command."*
+<!--/target-->
+<!--target:cursor-->
+> *"Graphify is installed and this repo is indexed. I've also synthesised `graphify-out/SUMMARY.html` — the human-readable version of the graph report (read it once to anchor your mental model). Open a separate terminal tab and run `graphify watch .` to keep the graph in sync with file changes — without it, the graph goes stale and agents may cite relationships that no longer exist. The `.cursor/rules/graphify.mdc` rule is now in place; the agent will see graph context automatically on the next command."*
+<!--/target-->
+<!--target:codex-->
+> *"Graphify is installed and this repo is indexed. I've also synthesised `graphify-out/SUMMARY.html` — the human-readable version of the graph report (read it once to anchor your mental model). Open a separate terminal tab and run `graphify watch .` to keep the graph in sync with file changes — without it, the graph goes stale and agents may cite relationships that no longer exist. The Codex PreToolUse hook is now active; the agent will see graph context automatically on the next command."*
+<!--/target-->
 
 Branch B variant: *"This repo is now indexed. I've also synthesised `graphify-out/SUMMARY.html`..."* (rest identical).
 
@@ -152,8 +320,8 @@ Branch B variant: *"This repo is now indexed. I've also synthesised `graphify-ou
 
 The PreToolUse hook Graphify installs handles the default case — agents see graph context before any Glob or Grep call. Two phase-specific reinforcements in case the hook misses:
 
-- **`forge-workflow.md` Phase 2 — Affected surface:** *"If `GRAPH_REPORT.md` exists at repo root, consult it for blast-radius of the entry-point symbols rather than guessing from filename proximity."*
-- **`forge-workflow-investigation.md` Phase I2:** *"If a graph is available, consult it first. Investigation is the scenario the graph is built for — blast radius, call paths, god-node identification."*
+- **`slashforge-workflow.md` Phase 2 — Affected surface:** *"If `GRAPH_REPORT.md` exists at repo root, consult it for blast-radius of the entry-point symbols rather than guessing from filename proximity."*
+- **`slashforge-workflow-investigation.md` Phase I2:** *"If a graph is available, consult it first. Investigation is the scenario the graph is built for — blast radius, call paths, god-node identification."*
 
 **Skip the graph on trivial / lean paths:** `/slashforge-code` auto-detected trivial, and `/slashforge-code -quick`. The graph-load overhead (~2–5k tokens) exceeds the value on typo-sized work, and the trivial path shouldn't be greping much anyway.
 
@@ -192,7 +360,7 @@ Print exactly:
 
 > *"Graph is N days behind the latest source commit (M commits since last index). Re-run `graphify .` to refresh? (y/n) — declining is fine; the graph will still answer questions but may cite relationships that have changed."*
 
-- **On yes:** run `graphify .` via Bash. Same "show command then run" discipline — the user has already seen what runs because the command is in the prompt. After it succeeds, **re-synthesise SUMMARY.html** by re-following `forge-graph-summary.md` (no second prompt — same authorisation as the install-time SUMMARY.html write).
+- **On yes:** run `graphify .` via Bash. Same "show command then run" discipline — the user has already seen what runs because the command is in the prompt. After it succeeds, **re-synthesise SUMMARY.html** by re-following `slashforge-graph-summary.md` (no second prompt — same authorisation as the install-time SUMMARY.html write).
 - **On no:** proceed with the stale graph. Do not warn again in this command — the user has seen and decided.
 
 ### Cost summary

@@ -4,7 +4,7 @@
 # artefact calls this rather than carrying its own copy of the platform
 # detection, so the behaviour cannot drift between them.
 #
-# Usage:  sh <path-to-this>/forge-open.sh "docs/slashforge/specs/foo.html"
+# Usage:  sh <path-to-this>/slashforge-open.sh "docs/slashforge/specs/foo.html"
 #
 # Sourced with `sh`, so no executable bit is required and it works the same on a
 # Git Bash shell as on macOS.

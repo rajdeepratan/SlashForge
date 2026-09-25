@@ -7,9 +7,9 @@ description: End-to-end workflow invoked by /slashforge-code and /slashforge-inv
 
 Ten-phase change-shipping flow used by `/slashforge-code` (full and trivial paths) and `/slashforge-code -quick`. Companion files:
 
-- `forge-workflow-investigation.md` — Investigation Flow I1–I3 (loaded by `/slashforge-investigate` only — it does not load this file)
-- `forge-workflow-review-pr.md` — PR Review Flow R1–R7 (loaded by `/slashforge-review-pr` only; it applies the Phase 7 checklist below as its review standard, but does not load the rest of this file)
-- `forge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
+- `slashforge-workflow-investigation.md` — Investigation Flow I1–I3 (loaded by `/slashforge-investigate` only — it does not load this file)
+- `slashforge-workflow-review-pr.md` — PR Review Flow R1–R7 (loaded by `/slashforge-review-pr` only; it applies the Phase 7 checklist below as its review standard, but does not load the rest of this file)
+- `slashforge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
 
 Every phase with a named skill MUST invoke it via the `Skill` tool — do not paraphrase. Every skill the workflow names ships with SlashForge, so all of them are always available. There are no optional dependencies. The flow runs without user intervention **except for four mandatory gates**: plan confirmation (Phase 3), branch decision (Phase 4), PR target + reviewers (Phase 8), and branch cleanup after merge (Phase 10).
 
@@ -36,7 +36,7 @@ Every phase with a named skill MUST invoke it via the `Skill` tool — do not pa
 
 **Skill:** `slashforge-plan`
 
-1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`forge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`forge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
 2. **Full plan format** (default): cover every section, omitting only those that genuinely do not apply:
    - **Changes** — files/modules to be added, modified, or removed
    - **Affected surface** — public APIs, exported functions, shared interfaces, DB schemas, migrations
@@ -87,7 +87,7 @@ Every phase with a named skill MUST invoke it via the `Skill` tool — do not pa
 
 When uncertain, pick `slashforge-tdd` and note the reasoning. `/slashforge-code -quick` always lands in row 3 or 4 — never `slashforge-debug`, never `slashforge-parallel`.
 
-1. Select the appropriate specialist coding agent based on the task type (see Agent Selection Table in `forge-workflow-agents.md`). If no suitable agent exists, create it on the fly and notify the user: *"I created a `[name]` agent to handle this — saved to `.claude/agents/[name].md`"*
+1. Select the appropriate specialist coding agent based on the task type (see Agent Selection Table in `slashforge-workflow-agents.md`). If no suitable agent exists, create it on the fly and notify the user: *"I created a `[name]` agent to handle this — saved to `.claude/agents/[name].md`"*
 2. Invoke the selected Phase 5 skill (or state why no skill applies), then implement.
 3. Implement strictly to the approved plan — if the plan turns out wrong mid-implementation, stop and return to the intake phase.
 

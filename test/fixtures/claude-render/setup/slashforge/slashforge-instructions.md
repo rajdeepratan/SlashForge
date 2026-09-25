@@ -7,7 +7,7 @@ description: Entry point for setting up CLAUDE.md, agents, rules, and skills in 
 
 Reference this file whenever asked to create `CLAUDE.md`, agents, rules, or skills in any repo.
 
-> **Also read:** [`forge-workflow.md`](forge-workflow.md) — required companion file covering the end-to-end intake-to-PR workflow. Read both before proceeding.
+> **Also read:** [`slashforge-workflow.md`](slashforge-workflow.md) — required companion file covering the end-to-end intake-to-PR workflow. Read both before proceeding.
 
 ---
 
@@ -76,12 +76,12 @@ Follow this order — each step depends on the previous:
 
 1. Understand the codebase (see Step 1 below)
 2. Ask clarifying questions (see Step 2 below)
-3. Create rule files → see [`forge-rules.md`](forge-rules.md)
-4. Create skill files → see [`forge-skills.md`](forge-skills.md)
-5. Create agent files → see [`forge-agents.md`](forge-agents.md)
-6. Create slash commands → see [`forge-commands.md`](forge-commands.md)
-7. Configure hooks if team wants automated behaviors → see [`forge-hooks.md`](forge-hooks.md)
-8. Create `CLAUDE.md` last → see [`forge-claude-md.md`](forge-claude-md.md)
+3. Create rule files → see [`slashforge-rules.md`](slashforge-rules.md)
+4. Create skill files → see [`slashforge-skills.md`](slashforge-skills.md)
+5. Create agent files → see [`slashforge-agents.md`](slashforge-agents.md)
+6. Create slash commands → see [`slashforge-commands.md`](slashforge-commands.md)
+7. Configure hooks if team wants automated behaviors → see [`slashforge-hooks.md`](slashforge-hooks.md)
+8. Create `CLAUDE.md` last → see [`slashforge-claude-md.md`](slashforge-claude-md.md)
 9. Verify (see Step 9 below)
 
 ---

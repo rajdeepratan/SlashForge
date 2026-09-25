@@ -19,7 +19,16 @@ These exist once at the repo root and are shared across all apps:
 
 **In a monorepo:** global agents live in the repo root's agents directory. Specialist agents belong inside the app they serve.
 
+<!--target:claude-->
 Root `.claude/agents/`; per-app `apps/web/.claude/agents/`, `apps/api/.claude/agents/`, etc.
+<!--/target-->
+<!--target:cursor-->
+Root `.cursor/agents/`; per-app `apps/web/.cursor/agents/`, `apps/api/.cursor/agents/`, etc.
+
+Cursor also reads `.claude/agents/` and `.codex/agents/`, with `.cursor/` winning on a
+name conflict. Write to `.cursor/` so the kit's agents take precedence over anything a
+previous setup left behind.
+<!--/target-->
 
 ## Specialist Agents — Create Per App
 
@@ -35,12 +44,18 @@ Add these based on what the app actually does:
 
 If the needed agent type is not in this table, create one on the fly, save it to the agents directory, and notify the user naming the exact path you wrote.
 
+<!--target:claude-->
 > "I created a `[name]` agent to handle this — saved to `.claude/agents/[name].md`"
+<!--/target-->
+<!--target:cursor-->
+> "I created a `[name]` agent to handle this — saved to `.cursor/agents/[name].md`"
+<!--/target-->
 
 ## Agent Filename Rule
 
 The agent's filename **must exactly match** its invocation name:
 
+<!--target:claude-->
 ```
 ✓  agent name: debugger       → .claude/agents/debugger.md
 ✗  agent name: debugger       → .claude/agents/debug-agent.md
@@ -48,6 +63,16 @@ The agent's filename **must exactly match** its invocation name:
 
 `CLAUDE.md`'s orchestration table, the workflow file, and the agent filename must all use
 the same name — a mismatch means the agent will never be invoked correctly.
+<!--/target-->
+<!--target:cursor-->
+```
+✓  agent name: debugger       → .cursor/agents/debugger.md
+✗  agent name: debugger       → .cursor/agents/debug-agent.md
+```
+
+`AGENTS.md`'s routing table, the workflow file, and the agent filename must all use the
+same name — a mismatch means the agent will never be invoked correctly.
+<!--/target-->
 
 ---
 
@@ -67,10 +92,18 @@ the same name — a mismatch means the agent will never be invoked correctly.
 
 Reference directories, never specific files — file paths go stale:
 
+<!--target:claude-->
 ```
 ✓  Read `.claude/rules/` for coding standards and `.claude/skills/` for recipes.
 ✗  Read `.claude/rules/typescript.md` and `.claude/rules/components.md`.
 ```
+<!--/target-->
+<!--target:cursor-->
+```
+✓  Read `.cursor/rules/` for coding standards and `.cursor/skills/` for recipes.
+✗  Read `.cursor/rules/typescript.mdc` and `.cursor/rules/components.mdc`.
+```
+<!--/target-->
 
 ---
 
@@ -91,7 +124,7 @@ Every skill named here ships with SlashForge, so there is nothing to check for a
 
 ## File Skeleton
 
-Every agent file must start with frontmatter, including the generated-by marker (see `forge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
+Every agent file must start with frontmatter, including the generated-by marker (see `slashforge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
 
 ```markdown
 ---
@@ -107,7 +140,12 @@ generated_at: [ISO 8601 timestamp]
 
 ## Before Starting
 
+<!--target:claude-->
 Read `.claude/rules/` for coding standards and `.claude/skills/` for recipes.
+<!--/target-->
+<!--target:cursor-->
+Read `.cursor/rules/` for coding standards and `.cursor/skills/` for recipes.
+<!--/target-->
 
 ## Skills
 
@@ -144,10 +182,20 @@ Every `code-reviewer` agent created must include these checks — they are non-n
 
 - No duplicate code introduced
 - Proper component / module structure (files in the right place, correctly named)
+<!--target:claude-->
 - Code quality and conventions match `.claude/rules/`
+<!--/target-->
+<!--target:cursor-->
+- Code quality and conventions match `.cursor/rules/`
+<!--/target-->
 - No leftover debug code, dead code, or temporary hacks
 - No breaking changes to public APIs, exported functions, or shared interfaces — if found, **flag explicitly to the user before continuing**
-- **`.claude/` coverage** — if the diff introduces a new domain not covered by existing agents/rules/`CLAUDE.md`, raise it as a review note per `forge-coverage.md` Phase 7 section. This is a note, not a block — flag the gap, suggest the addition, but don't fail the review on its absence
+<!--target:claude-->
+- **`.claude/` coverage** — if the diff introduces a new domain not covered by existing agents/rules/`CLAUDE.md`, raise it as a review note per `slashforge-coverage.md` Phase 7 section. This is a note, not a block — flag the gap, suggest the addition, but don't fail the review on its absence
+<!--/target-->
+<!--target:cursor-->
+- **`.cursor/` coverage** — if the diff introduces a new domain not covered by existing subagents/rules/`AGENTS.md`, raise it as a review note per `slashforge-coverage.md` Phase 7 section. This is a note, not a block — flag the gap, suggest the addition, but don't fail the review on its absence
+<!--/target-->
 
 If the review fails → return to the implementing agent with specific, actionable feedback. If it fails 3 times in a row → stop and escalate to the user.
 

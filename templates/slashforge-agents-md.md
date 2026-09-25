@@ -11,7 +11,7 @@ Create this **last** — after all rules, skills, and agents exist — so the re
 
 **Location:** `./AGENTS.md` (repo root). Both Cursor and Codex also read `AGENTS.md` from subdirectories, applying the nearest one to the files being worked on — see § Nested AGENTS.md below.
 
-**Generated-by marker (required).** `AGENTS.md` does not use YAML frontmatter, so place the marker as an HTML comment on the very first line, followed by a blank line, then the normal content. See `forge-instructions.md` § Generated File Markers for details — read `meta.json` for the version and timestamp.
+**Generated-by marker (required).** `AGENTS.md` does not use YAML frontmatter, so place the marker as an HTML comment on the very first line, followed by a blank line, then the normal content. See `slashforge-instructions.md` § Generated File Markers for details — read `meta.json` for the version and timestamp.
 
 ```markdown
 <!-- generated_by: [package]@[version] generated_at: [ISO 8601 timestamp] -->

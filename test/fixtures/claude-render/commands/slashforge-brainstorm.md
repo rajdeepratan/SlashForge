@@ -86,16 +86,16 @@ Use only these elements. The shell styles `h1`, `h2`, `code`, `pre`, `ul`/`ol`, 
 mkdir -p docs/slashforge/specs
 spec="docs/slashforge/specs/<YYYY-MM-DD>-<topic>-design.html"
 
-node "/HOME/.claude/setup/slashforge/forge-splice.js" "$fragment" "$spec" "Design — <topic> (<YYYY-MM-DD>)"
+node "/HOME/.claude/setup/slashforge/slashforge-splice.js" "$fragment" "$spec" "Design — <topic> (<YYYY-MM-DD>)"
 ```
 
-`forge-splice.js` escapes the title and splices the body verbatim, the same script the
+`slashforge-splice.js` escapes the title and splices the body verbatim, the same script the
 investigation report uses. Delete the scratch fragment afterwards.
 
 Then open it, so the user reads the rendered document rather than the markup:
 
 ```bash
-sh "/HOME/.claude/setup/slashforge/forge-open.sh" "$spec"
+sh "/HOME/.claude/setup/slashforge/slashforge-open.sh" "$spec"
 ```
 
 Best-effort — the helper stays silent over SSH or on a headless box and can never fail the run.

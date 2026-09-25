@@ -153,13 +153,13 @@ test('upgrading a cursor install removes guides it no longer receives', () => {
   const home = tmp();
   const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
   fs.mkdirSync(target.guidesDir, { recursive: true });
-  fs.writeFileSync(path.join(target.guidesDir, 'forge-memory.md'), 'stale\n');
-  fs.writeFileSync(path.join(target.guidesDir, 'forge-claude-md.md'), 'stale\n');
-  target.omit = ['forge-memory.md', 'forge-claude-md.md'];
+  fs.writeFileSync(path.join(target.guidesDir, 'slashforge-memory.md'), 'stale\n');
+  fs.writeFileSync(path.join(target.guidesDir, 'slashforge-claude-md.md'), 'stale\n');
+  target.omit = ['slashforge-memory.md', 'slashforge-claude-md.md'];
   installFiles(target, {});
-  assert.ok(!fs.existsSync(path.join(target.guidesDir, 'forge-memory.md')));
-  assert.ok(!fs.existsSync(path.join(target.guidesDir, 'forge-claude-md.md')));
-  assert.ok(fs.existsSync(path.join(target.guidesDir, 'forge-rules.md')),
+  assert.ok(!fs.existsSync(path.join(target.guidesDir, 'slashforge-memory.md')));
+  assert.ok(!fs.existsSync(path.join(target.guidesDir, 'slashforge-claude-md.md')));
+  assert.ok(fs.existsSync(path.join(target.guidesDir, 'slashforge-rules.md')),
     'a guide this target does receive must survive');
 });
 
@@ -167,10 +167,10 @@ test('upgrading a cursor install removes guides it no longer receives', () => {
 test('the stale sweep never removes meta.json or the assets', () => {
   const home = tmp();
   const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
-  target.omit = ['forge-memory.md'];
+  target.omit = ['slashforge-memory.md'];
   installFiles(target, {});
   assert.ok(fs.existsSync(target.metaFile), 'meta.json must survive');
-  for (const asset of ['forge-open.sh', 'forge-report-shell.html']) {
+  for (const asset of ['slashforge-open.sh', 'slashforge-report-shell.html']) {
     assert.ok(fs.existsSync(path.join(target.guidesDir, asset)), `${asset} must survive`);
   }
 });

@@ -5,7 +5,7 @@ description: Agent selection table, mandatory multiple-agent rule, and self-suff
 
 # Agent Selection & Self-Sufficiency
 
-This file is loaded alongside `forge-workflow.md` by every workflow command (`/slashforge-code`, `/slashforge-code -quick`, `/slashforge-investigate`). It covers which agent handles which task type, and the rules that keep the workflow running without unnecessary user prompts.
+This file is loaded alongside `slashforge-workflow.md` by every workflow command (`/slashforge-code`, `/slashforge-code -quick`, `/slashforge-investigate`). It covers which agent handles which task type, and the rules that keep the workflow running without unnecessary user prompts.
 
 ---
 

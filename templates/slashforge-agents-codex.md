@@ -95,7 +95,7 @@ Every skill named here ships with SlashForge, so there is nothing to check for a
 
 ## File Skeleton
 
-The generated-by marker is a TOML key, not an HTML comment or frontmatter — see `forge-instructions.md` § Generated File Markers, and read `meta.json` for the version and timestamp.
+The generated-by marker is a TOML key, not an HTML comment or frontmatter — see `slashforge-instructions.md` § Generated File Markers, and read `meta.json` for the version and timestamp.
 
 ```toml
 name = "code-reviewer"
@@ -148,7 +148,7 @@ Every `code-reviewer` agent created must include these checks — non-negotiable
 - Code quality and conventions match the nearest `AGENTS.md`
 - No leftover debug code, dead code, or temporary hacks
 - No breaking changes to public APIs, exported functions, or shared interfaces — if found, **flag explicitly to the user before continuing**
-- **Setup coverage** — if the diff introduces a new domain not covered by existing subagents, rules or `AGENTS.md`, raise it as a review note per `forge-coverage.md` Phase 7 section. This is a note, not a block — flag the gap, suggest the addition, but don't fail the review on its absence
+- **Setup coverage** — if the diff introduces a new domain not covered by existing subagents, rules or `AGENTS.md`, raise it as a review note per `slashforge-coverage.md` Phase 7 section. This is a note, not a block — flag the gap, suggest the addition, but don't fail the review on its absence
 
 If the review fails → return to the implementing agent with specific, actionable feedback. If it fails 3 times in a row → stop and escalate to the user.
 
