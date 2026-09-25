@@ -50,6 +50,11 @@ Codex both read `.agents/skills/`. They are separate targets anyway, because
 `/slashforge:setup` writes each host's own layout and those layouts genuinely
 differ — see [What setup writes on each target](#what-setup-writes-on-each-target).
 
+==The shared directory holds one of them at a time.== Installing a different target
+over an existing one stops and says what it will replace; confirm at the prompt, or
+pass `--yes` where there is no terminal. `status` reports the target actually
+installed, and warns if you asked about another.
+
 Pick `agents` only when you do not know which host will run the commands. It is
 the vendor-neutral fallback, and it is the one target where setup is unavailable:
 with no host known, there is no layout to scaffold.

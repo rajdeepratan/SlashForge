@@ -751,8 +751,15 @@ async function printStatus({ target: targetName = 'claude', project = false } = 
   }
 
   const meta = readMeta(target.metaFile);
+  // Report what is installed, not what was asked about: cursor, codex and agents
+  // share a location, so asking about one can find another installed there.
+  const installedTarget = (meta && meta.target) || target.target;
   console.log(`\nslashforge status`);
-  console.log(`  Target:                    ${target.target}`);
+  console.log(`  Target:                    ${installedTarget}`);
+  if (installedTarget !== target.target) {
+    console.log(`  ⚠  You asked about '${target.target}', but this location holds a '${installedTarget}' install.`);
+    console.log(`     Run \`npx ${pkg.name} --target ${target.target}\` to replace it.`);
+  }
   console.log(`  Package version (current): v${pkg.version}`);
   if (meta) {
     const marker = meta.version !== pkg.version ? '  ← update available' : '';
@@ -809,7 +816,19 @@ function plannedWrites(target, {
   return writes;
 }
 
-async function install({ dryRun, assumeYes, project = false, target: targetName = 'claude' }) {
+// cursor, codex and agents share one install location but render different
+// guides and commands into the same files, so a location holds one of them at a
+// time. Returns the other target installed there, if any.
+function otherTargetInstalled(target) {
+  if (!hasKitFiles(target.guidesDir)) return null;
+  const meta = readMeta(target.metaFile);
+  return meta && meta.target && meta.target !== target.target ? meta.target : null;
+}
+
+async function install({
+  dryRun, assumeYes, explicitYes = assumeYes, interactive = true,
+  project = false, target: targetName = 'claude',
+}) {
   const target = resolveTarget({ target: targetName, project });
 
   validateTemplates(GUIDE_FILES, TEMPLATES_DIR);
@@ -818,8 +837,32 @@ async function install({ dryRun, assumeYes, project = false, target: targetName 
   assertTemplatesExist(ASSET_FILES, TEMPLATES_DIR);
 
   const alreadyInstalled = hasKitFiles(target.guidesDir);
+  const other = otherTargetInstalled(target);
 
-  if (!dryRun && alreadyInstalled) {
+  if (other) {
+    // Replacing another host's install is not an update: that host would go on
+    // reading this target's guides and commands. It is never inferred from a
+    // missing TTY, only from an explicit yes or an answer at the prompt.
+    const where = path.dirname(path.dirname(target.guidesDir));
+    console.log(`\n⚠  ${where} holds a '${other}' install. '${target.target}' writes different guides and`);
+    console.log(`   commands to the same files, so installing it replaces the '${other}' install and`);
+    console.log(`   ${other} would then run '${target.target}' instructions. Only one can live here at a time.`);
+    if (dryRun) {
+      // Fall through to the listing; nothing is written.
+    } else if (explicitYes) {
+      console.log(`Replacing the '${other}' install with '${target.target}' (--yes).`);
+    } else if (!interactive) {
+      console.error(`Refusing to replace the '${other}' install without a terminal to confirm on. Re-run with --yes to replace it.`);
+      process.exitCode = 1;
+      return;
+    } else {
+      const answer = await prompt(`Replace the '${other}' install with '${target.target}'? (y/n): `);
+      if (answer.toLowerCase() !== 'y') {
+        console.log('Skipped. No changes made.');
+        return;
+      }
+    }
+  } else if (!dryRun && alreadyInstalled) {
     if (assumeYes) {
       console.log(`slashforge is already installed. Updating to v${pkg.version} (--yes).`);
     } else {
@@ -865,15 +908,18 @@ async function install({ dryRun, assumeYes, project = false, target: targetName 
       console.log('   setup provisions .claude/agents, hooks and CLAUDE.md, which have no');
       console.log('   equivalent here yet. Run /slashforge:setup from Claude Code instead.');
     }
-    // cursor and codex both resolve to this target, so the message names neither
-    // exclusively — a codex user should not be told to open Cursor.
-    console.log('\nDone! Cursor and Codex both read this directory:');
-    console.log('  • /slashforge-code — freeform end-to-end development workflow');
-    console.log('  • /slashforge-code -quick — lean mode for small changes');
-    console.log('  • /slashforge-investigate [symptom] — read-only research, produces a findings report');
-    console.log('  • /slashforge-review-pr [number] — review a PR against this repo\'s rules');
-    console.log('\n  In Cursor type /slashforge-code. In Codex the same skills are invoked');
-    console.log('  as $slashforge-code — that path is not yet verified.');
+    // The commands are rendered for one host, so the message names that host and
+    // its invocation form. The agents target is vendor-neutral and says so.
+    const sigil = TARGET_SIGILS[target.target] || '/';
+    const host = { cursor: 'Cursor', codex: 'Codex' }[target.target];
+    console.log(`\nDone! Installed for ${host || 'any Agent Skills host (vendor-neutral)'}:`);
+    console.log(`  • ${sigil}slashforge-code — freeform end-to-end development workflow`);
+    console.log(`  • ${sigil}slashforge-code -quick — lean mode for small changes`);
+    console.log(`  • ${sigil}slashforge-investigate [symptom] — read-only research, produces a findings report`);
+    console.log(`  • ${sigil}slashforge-review-pr [number] — review a PR against this repo's rules`);
+    if (target.target === 'codex') console.log('\n  The Codex path is not yet verified end to end.');
+    console.log(`\n  Cursor and Codex share this directory, and it holds one of them at a time.`);
+    console.log(`  Installing the other target later replaces this one.`);
     await warnIfOutdated();
     return;
   }
@@ -1007,7 +1053,7 @@ async function main() {
   }
 
   try {
-    await install({ dryRun, assumeYes, project, target });
+    await install({ dryRun, assumeYes, explicitYes, interactive, project, target });
   } finally {
     closeRl();
   }

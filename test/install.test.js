@@ -2183,3 +2183,79 @@ test('the CLI dry run announces every file the install then writes', () => {
   })(home);
   assert.deepEqual(announced, written.sort());
 });
+
+// Cursor and Codex share ~/.agents but render different guides and commands for
+// the same files, so installing one over the other replaced it silently: Cursor's
+// setup would then follow Codex's instructions (TOML subagents, $-invocation).
+// One vendor install per location, and switching it takes an explicit yes.
+function agentsEnv() {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  delete env.SLASHFORGE_YES;
+  const guides = path.join(home, '.agents', 'setup', 'slashforge');
+  const metaTarget = () => JSON.parse(fs.readFileSync(path.join(guides, 'meta.json'), 'utf8')).target;
+  return { home, env, guides, metaTarget };
+}
+const runCli = (args, env) => require('child_process').spawnSync('node', [BIN, ...args], {
+  env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+});
+
+test('installing a different vendor target over another refuses without a yes', () => {
+  const { env, guides, metaTarget } = agentsEnv();
+  assert.equal(runCli(['--target', 'cursor'], env).status, 0);
+
+  const r = runCli(['--target', 'codex'], env);
+  assert.notEqual(r.status, 0, 'switching targets without a terminal must not happen silently');
+  assert.match(r.stderr + r.stdout, /cursor/);
+  assert.match(r.stderr + r.stdout, /--yes/);
+  assert.equal(metaTarget(), 'cursor', 'the cursor install must be left as it was');
+  assert.ok(fs.existsSync(path.join(guides, 'forge-agents.md')), "cursor's guide must survive");
+});
+
+test('an explicit --yes replaces the other vendor install and says so', () => {
+  const { env, guides, metaTarget } = agentsEnv();
+  runCli(['--target', 'cursor'], env);
+  const r = runCli(['--target', 'codex', '--yes'], env);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /replac/i);
+  assert.equal(metaTarget(), 'codex');
+  assert.ok(fs.existsSync(path.join(guides, 'forge-agents-codex.md')));
+});
+
+test('updating the same vendor target without a terminal still needs no flag', () => {
+  const { env, metaTarget } = agentsEnv();
+  runCli(['--target', 'codex'], env);
+  const r = runCli(['--target', 'codex'], env);
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(metaTarget(), 'codex');
+});
+
+test('a dry run over another vendor target warns and writes nothing', () => {
+  const { env, guides, metaTarget } = agentsEnv();
+  runCli(['--target', 'cursor'], env);
+  const before = fs.readFileSync(path.join(guides, 'meta.json'), 'utf8');
+  const r = runCli(['--target', 'codex', '--dry-run'], env);
+  assert.equal(r.status, 0);
+  assert.match(r.stdout, /cursor/);
+  assert.equal(fs.readFileSync(path.join(guides, 'meta.json'), 'utf8'), before);
+  assert.equal(metaTarget(), 'cursor');
+});
+
+test('status reports the target actually installed, not the one asked about', () => {
+  const { env } = agentsEnv();
+  runCli(['--target', 'codex'], env);
+  const r = runCli(['status', '--target', 'cursor'], env);
+  assert.match(r.stdout, /Target:\s+codex/, 'status must report the installed target');
+  assert.match(r.stdout, /cursor/, 'and say it differs from the one asked about');
+});
+
+test('the closing message names the installed host and its invocation form', () => {
+  const { env } = agentsEnv();
+  const cursor = runCli(['--target', 'cursor'], env).stdout;
+  assert.match(cursor, /Installed for Cursor/);
+  assert.match(cursor, /\/slashforge-code/);
+  assert.doesNotMatch(cursor, /\$slashforge-code/);
+  const codex = runCli(['--target', 'codex', '--yes'], env).stdout;
+  assert.match(codex, /Installed for Codex/);
+  assert.match(codex, /\$slashforge-code/);
+});

@@ -26,7 +26,8 @@ in Cursor and you should see `/slashforge-setup`, `/slashforge-code`,
 
 ==Install for the agent you actually use.== `--target cursor` and `--target codex`
 write to the same directory but render different content, because setup scaffolds each
-host's own layout. Installing one after the other replaces the first.
+host's own layout, so the directory holds one of them at a time. Installing the other
+target later stops and asks before replacing it (or needs `--yes` with no terminal).
 
 Two differences worth knowing before you start:
 

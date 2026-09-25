@@ -117,7 +117,7 @@ slashforge --target cursor   # Install for Cursor and Codex instead (see Targets
 | `codex` | `~/.agents/skills/slashforge-code/SKILL.md` | `$slashforge-code` |
 | `agents` | `~/.agents/skills/slashforge-code/SKILL.md` | `/slashforge-code` |
 
-All three non-Claude targets install to the same directory, since Cursor and Codex each read `.agents/skills/`. They are still separate targets, because setup writes each host's own layout and those layouts differ: Cursor rules must be `.mdc` (a plain `.md` there is silently ignored), Codex has no rules directory at all and uses nested `AGENTS.md`, and Codex subagents are TOML rather than markdown. Use `agents` only when you do not know which host will run the commands.
+All three non-Claude targets install to the same directory, since Cursor and Codex each read `.agents/skills/`. They are still separate targets, because setup writes each host's own layout and those layouts differ: Cursor rules must be `.mdc` (a plain `.md` there is silently ignored), Codex has no rules directory at all and uses nested `AGENTS.md`, and Codex subagents are TOML rather than markdown. The shared directory holds one of these installs at a time: installing a different target over an existing one stops and asks before replacing it, or needs `--yes` with no terminal. Use `agents` only when you do not know which host will run the commands.
 
 The names differ because neither Cursor nor Codex supports a `:` namespace: a skill is named by the folder holding its `SKILL.md`. The prefix has to live in the name, otherwise the commands would install as bare `/code` and `/plan` and collide with everything else in your skills directory. Cross-references inside the installed files are rewritten to match.
 
