@@ -135,15 +135,16 @@ Every template is frontmatter-validated before any write — a broken guide (mis
 
 | What | Where (default `claude` target) |
 |---|---|
-| Guide files | `~/.claude/setup/slashforge/` |
+| Guide files, the report shell and its helper scripts | `~/.claude/setup/slashforge/` |
 | `/slashforge:setup` command | `~/.claude/commands/slashforge/setup.md` |
 | `/slashforge:code` command | `~/.claude/commands/slashforge/code.md` |
 | `/slashforge:investigate` command | `~/.claude/commands/slashforge/investigate.md` |
 | `/slashforge:review-pr` command | `~/.claude/commands/slashforge/review-pr.md` |
+| Nine skills (`/slashforge:plan`, `/slashforge:verify`, …) | `~/.claude/commands/slashforge/` |
 
 On the `cursor` / `codex` target the guides land in `~/.agents/setup/slashforge/` and each command, `setup` included, becomes `~/.agents/skills/slashforge-<name>/SKILL.md`. Codex invokes them with `$` rather than `/`.
 
-Commands live in a `slashforge/` subdirectory — that is what produces the `/slashforge:` namespace and keeps them from colliding with your own commands. `-quick` is a mode of `/slashforge:code`, not a separate command; it loads one extra guide file.
+Commands live in a `slashforge/` subdirectory — that is what produces the `/slashforge:` namespace and keeps them from colliding with your own commands. `--project` writes the same files under the repo's `./.claude/`. `-quick` is a mode of `/slashforge:code`, not a separate command; it loads one extra guide file.
 
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification

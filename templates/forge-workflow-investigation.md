@@ -127,16 +127,16 @@ node "{{INSTALL_PATH}}/forge-splice.js" "$fragment" "$report" "Investigation —
 - Delete the scratch fragment afterwards. It is not part of the deliverable.
 
 <!--target:claude-->
-If the shell is missing (an older install, or a hand-modified `.claude/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+If the shell or `forge-splice.js` is missing (an older install, or a hand-modified `.claude/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
 <!--/target-->
 <!--target:cursor-->
-If the shell is missing (an older install, or a hand-modified `.agents/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+If the shell or `forge-splice.js` is missing (an older install, or a hand-modified `.agents/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
 <!--/target-->
 <!--target:codex-->
-If the shell is missing (an older install, or a hand-modified `.agents/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+If the shell or `forge-splice.js` is missing (an older install, or a hand-modified `.agents/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
 <!--/target-->
 <!--target:neutral-->
-If the shell is missing (an older install, or a hand-modified install directory), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+If the shell or `forge-splice.js` is missing (an older install, or a hand-modified install directory), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
 <!--/target-->
 
 ### 2. Open it in the user's browser (best-effort)

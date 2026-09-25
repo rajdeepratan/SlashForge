@@ -44,7 +44,7 @@ Reference this file whenever asked to create the repo's entry file, agents, rule
 
 ## Golden Rules (always enforced)
 
-- **Every `.md` file — including this one — must stay under 200 lines.** Split into focused files if exceeded.
+- **Every generated `.md` file must stay under 200 lines, except a skill's `SKILL.md`, which may run to 500 lines.** Split into focused files if exceeded; a skill moves reference material into sibling files.
 <!--target:claude-->
 - `CLAUDE.md` → repo root. Agents / rules / skills → inside `.claude/` only. Never in root.
 <!--/target-->
@@ -324,8 +324,10 @@ grep -r "rules\.md\|skills\.md\|agents\.md" CLAUDE.md .claude/
 <!--/target-->
 <!--target:cursor-->
 ```bash
-# No file exceeds 200 lines
-wc -l AGENTS.md .cursor/rules/*.mdc .cursor/agents/*.md .cursor/skills/*/SKILL.md
+# No file over its limit: 200 lines, or 500 for a skill's SKILL.md.
+# find, not a recursive glob: bash leaves globstar off, so one would stop a folder deep.
+find AGENTS.md .cursor \( -name '*.md' -o -name '*.mdc' \) -exec wc -l {} + \
+  | awk '$NF == "total" { next } { limit = ($NF ~ /SKILL\.md$/) ? 500 : 200 } $1 > limit { print "over " limit ": " $0; bad = 1 } END { exit bad }'
 
 # No stale file references
 grep -r "rules\.md\|skills\.md\|agents\.md" AGENTS.md .cursor/
@@ -338,8 +340,10 @@ ls .cursor/rules/ | grep -v '\.mdc$' || echo "all rules are .mdc"
 <!--/target-->
 <!--target:codex-->
 ```bash
-# No file exceeds 200 lines
-wc -l $(find . -name AGENTS.md -not -path './node_modules/*') .agents/skills/*/SKILL.md
+# No file over its limit: 200 lines, or 500 for a skill's SKILL.md.
+# find, not a recursive glob: bash leaves globstar off, so one would stop a folder deep.
+find . \( -path ./node_modules -o -path ./.git -o -path './.agents/setup' -o -path './.agents/skills/slashforge-*' \) -prune -o \( -name AGENTS.md -o -name SKILL.md \) -exec wc -l {} + \
+  | awk '$NF == "total" { next } { limit = ($NF ~ /SKILL\.md$/) ? 500 : 200 } $1 > limit { print "over " limit ": " $0; bad = 1 } END { exit bad }'
 
 # Subagents must be TOML and must parse
 ls .codex/agents/*.toml
@@ -349,7 +353,7 @@ ls .codex/agents/*.toml
 <!--/target-->
 <!--target:neutral-->
 ```bash
-# No file exceeds 200 lines — check the entry file and every generated file
+# No file over its limit (200 lines, 500 for a skill's SKILL.md) — check the entry file and every generated file
 # No stale file references — grep the entry file and the config directory
 # Every file listed in the entry file's Project References table actually exists
 ```

@@ -177,8 +177,8 @@ npx slashforge status --target cursor # the agents target
 ```
 slashforge status
   Target:                    claude
-  Package version (current): v4.4.2
-  Installed version:         v4.4.2
+  Package version (current): v4.5.0
+  Installed version:         v4.5.0
   Installed at:              2026-08-01T15:37:54.153Z
   Guide files:               16 (~/.claude/setup/slashforge)
     • forge-agents.md
@@ -192,10 +192,10 @@ slashforge status
     • /slashforge:setup
 ```
 
-With `--project`, it also warns when SlashForge is installed globally as well.
-Claude Code prefers personal commands over project ones, so the global copy is the
-one that runs, not the one committed to the repo. A `--project` install prints the
-same warning.
+With `--project` on the `claude` target, it also warns when SlashForge is installed
+globally as well. Claude Code prefers personal commands over project ones, so the
+global copy is the one that runs, not the one committed to the repo. A `--project`
+install prints the same warning.
 
 On a machine with nothing installed it says so, rather than reporting an empty
 install:
@@ -215,6 +215,7 @@ absent.
 npx slashforge uninstall                    # from ~/.claude/
 npx slashforge uninstall --project          # from ./.claude/
 npx slashforge uninstall --target cursor    # from ~/.agents/skills/
+npx slashforge uninstall --yes              # in a script, where there is no prompt
 ```
 
 ==Removes only the files SlashForge installed==, and recognises the v2 and v3

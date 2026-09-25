@@ -384,7 +384,7 @@ function findTargetBlockErrors(content, file) {
   return errors;
 }
 
-// 'forge/setup.md' -> '/slashforge:setup'. A command file's path under the commands
+// 'slashforge/setup.md' -> '/slashforge:setup'. A command file's path under the commands
 // dir determines how it is invoked; a subdirectory becomes a `:` namespace. The
 // skills layout has no namespace, so the prefix lives in the directory name instead.
 function commandName(file, target = null) {
@@ -483,7 +483,7 @@ function installFiles(target, {
       rendered = toSkillFrontmatter(rendered, name);
       dest = path.join(target.commandsDir, name, 'SKILL.md');
     } else {
-      // Command files live in a namespace subdirectory (forge/), which is what
+      // Command files live in a namespace subdirectory (slashforge/), which is what
       // produces the /slashforge:name invocation form.
       dest = path.join(target.commandsDir, c);
     }
@@ -583,7 +583,8 @@ function uninstallFiles(target, {
 
 // A file in the guides dir that belongs to the kit: this version's guides and
 // assets, meta.json, or any `forge-*.md` — the kit's own prefix, so a guide an
-// older version shipped is recognised as well. Anything else is the user's.
+// older version shipped, or one belonging to another target, is recognised as
+// well. Anything else is the user's.
 function isKitGuideFile(name, guideFiles = GUIDE_FILES) {
   return name === 'meta.json' ||
     guideFiles.includes(name) ||
@@ -725,9 +726,24 @@ async function warnIfOutdated() {
 // CLI commands
 // ---------------------------------------------------------------------------
 
+// Claude Code resolves a command found both in ~/.claude and in the repo to the
+// personal one ("personal over project"), so a committed project install is
+// silently shadowed for anyone who also installed globally. Only the claude target
+// has a documented precedence; the skills hosts are not assumed to share it.
+function warnIfShadowed(target) {
+  if (target.target !== 'claude' || target.mode !== 'project') return;
+  const global = resolveTarget({ target: target.target });
+  if (global.guidesDir === target.guidesDir || !hasKitFiles(global.guidesDir)) return;
+  const meta = readMeta(global.metaFile);
+  const version = meta ? `v${meta.version}` : 'an unknown version';
+  console.log(`\n⚠  A global install (${version}) is in ${path.dirname(path.dirname(global.guidesDir))}.`);
+  console.log('   Claude Code prefers personal commands, so the global install runs instead of');
+  console.log(`   this project copy. \`npx ${pkg.name} uninstall --yes\` removes the global one.`);
+}
+
 async function printStatus({ target: targetName = 'claude', project = false } = {}) {
   const target = resolveTarget({ target: targetName, project });
-  if (!fs.existsSync(target.guidesDir)) {
+  if (!hasKitFiles(target.guidesDir)) {
     console.log('slashforge: not installed.');
     console.log(`Run \`npx ${pkg.name}\` to install v${pkg.version}.`);
     await warnIfOutdated();
@@ -822,7 +838,8 @@ async function install({ dryRun, assumeYes, project = false, target: targetName 
     console.log(`  mkdir -p ${target.guidesDir}`);
     console.log(`  mkdir -p ${target.commandsDir}`);
     for (const w of writes) {
-      const label = w.kind === 'guide' ? 'copy  ' : w.kind === 'command' ? 'render' : w.kind === 'asset' ? 'copy  ' : 'write ';
+      // Guides and commands are rendered (placeholders filled); assets are copied verbatim.
+      const label = w.kind === 'asset' ? 'copy  ' : w.kind === 'meta' ? 'write ' : 'render';
       const base = w.src ? path.basename(w.src) : path.basename(w.dest);
       console.log(`  ${label} ${base.padEnd(36)} → ${w.dest}`);
     }
@@ -893,10 +910,10 @@ function reportLegacyLeftovers(target) {
   console.log('   They are no longer used. Safe to delete once you have moved to /slashforge:* commands.');
 }
 
-async function uninstall({ project, assumeYes, target: targetName = 'claude' }) {
+async function uninstall({ project, assumeYes, interactive = true, target: targetName = 'claude' }) {
   const target = resolveTarget({ target: targetName, project });
   // Also detect a v2 install so `uninstall` can clean up after an upgrade.
-  const installed = fs.existsSync(target.guidesDir) ||
+  const installed = hasKitFiles(target.guidesDir) ||
     (target.legacyGuidesDir && fs.existsSync(target.legacyGuidesDir)) ||
     COMMAND_FILES.some((c) => fs.existsSync(commandPath(target, c))) ||
     (target.layout === 'commands' &&
@@ -982,7 +999,9 @@ async function main() {
   const assumeYes = explicitYes || !interactive;
 
   if (args[0] === 'uninstall') {
-    await uninstall({ project, assumeYes, target });
+    // Removing the kit is not the update prompt: it takes an explicit yes rather
+    // than one inferred from a missing TTY.
+    await uninstall({ project, assumeYes: explicitYes, interactive, target });
     closeRl();
     return;
   }
