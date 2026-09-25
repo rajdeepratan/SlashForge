@@ -1156,11 +1156,13 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   .agentsw__label { display: none; }
 }
 
-/* On the landing page the picker sits in the banner, under the two buttons, and
+/* On the landing page the picker sits in the banner, above the two buttons, and
    its menu opens from the left edge there. The banner's own "Your agent" label
    names it, so the button's "Agent:" prefix would only repeat it. */
-.hero__agent { margin-top: 30px; display: flex; align-items: center; gap: 14px; }
-.hero__agent .label { margin: 0; }
+.hero__agent { margin-top: 38px; display: flex; align-items: center; gap: 16px; }
+.hero__agent .label { margin: 0; font-size: 16px; }
+/* The buttons follow the picker, so they sit closer than they do after the tagline. */
+.hero__agent + .actions { margin-top: 24px; }
 .agentsw--hero .agentsw__label { display: none; }
 .agentsw--hero .agentsw__menu { left: 0; right: auto; }
 /* Sized to match the Get Started button beside it, not the header control. */

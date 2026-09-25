@@ -138,6 +138,11 @@ const costs = [
         <div class="hero__copy">
           <h1 class="hero__title">Workflow slash commands for AI coding agents.</h1>
           <p class="hero__line hero__line--accent">Guardrails, not autocomplete.</p>
+          <div class="hero__agent">
+            <div class="label">Your agent</div>
+            <AgentSwitcher placement="hero" />
+          </div>
+
           <div class="actions">
             <a class="btn btn--primary" href={`${base}/guides/introduction/`}>Get Started</a>
             <a
@@ -150,10 +155,6 @@ const costs = [
             </a>
           </div>
 
-          <div class="hero__agent">
-            <div class="label">Your agent</div>
-            <AgentSwitcher placement="hero" />
-          </div>
 
           <div class="rail">
             <div class="label">Install</div>
