@@ -951,3 +951,16 @@ test('status and a project install warn when a global install shadows the projec
   });
   assert.doesNotMatch(alone, /runs instead/i, 'no warning without a global install');
 });
+
+// The refusal is about not removing things unasked. With nothing installed there
+// is nothing to ask about, so a cleanup script must keep its old, quiet exit 0.
+test('uninstall without a terminal is still a quiet no-op when nothing is installed', () => {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  delete env.SLASHFORGE_YES;
+  const r = require('child_process').spawnSync('node', [BIN, 'uninstall'], {
+    env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /Nothing to remove/);
+});

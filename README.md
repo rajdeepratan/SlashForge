@@ -56,7 +56,7 @@ Installs a collection of guide files plus four slash commands that cover the ful
 | **`/slashforge:setup`** | 50–120k, **once per repo.** Reads ~20k of its own instructions, then explores and writes your `.claude/` |
 | **What you get for it** | Nothing ships that was not planned, gated, verified and reviewed |
 
-These are rough totals that don't separate prompt cache reads from fresh input. Most of what a run reads is the same guides and files again on each turn, which the prompt cache serves at a fraction of the price, so the bill is well below what the token count suggests. The range is driven by the size of the work, not the tooling. A single-file copy change lands near the bottom; a multi-layer feature near the top.
+These are rough totals that don't separate prompt cache reads from fresh input. Most of what a run reads is the same guides and files again on each turn, and the prompt cache serves those re-reads at a reduced price. The range is driven by the size of the work, not the tooling. A single-file copy change lands near the bottom; a multi-layer feature near the top.
 
 For a review, the diff *is* the cost: a three-file PR is around 2k tokens of diff, a fourteen-file one around 42k — a twentyfold spread before anything else is read. Past roughly 1,500 changed lines the command says so rather than pretending a single pass was thorough.
 

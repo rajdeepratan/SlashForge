@@ -611,7 +611,7 @@ function reportLegacyLeftovers(target) {
   console.log('   They are no longer used. Safe to delete once you have moved to /slashforge:* commands.');
 }
 
-async function uninstall({ project, assumeYes }) {
+async function uninstall({ project, assumeYes, interactive = true }) {
   const target = resolveTarget({ project });
   // Also detect a v2 install so `uninstall` can clean up after an upgrade.
   const installed = fs.existsSync(target.guidesDir) ||
@@ -620,6 +620,12 @@ async function uninstall({ project, assumeYes }) {
       .some((c) => fs.existsSync(path.join(target.commandsDir, c)));
   if (!installed) {
     console.log('slashforge is not installed at this location. Nothing to remove.');
+    return;
+  }
+  if (!assumeYes && !interactive) {
+    // No terminal to ask on, and a prompt would wait on stdin forever.
+    console.error('Refusing to uninstall without a terminal to confirm on. Re-run with --yes to remove the kit.');
+    process.exitCode = 1;
     return;
   }
   if (!assumeYes) {
@@ -678,15 +684,9 @@ async function main() {
   const assumeYes = explicitYes || !interactive;
 
   if (args[0] === 'uninstall') {
-    // Removing the kit is not the update prompt: without a terminal to ask on,
-    // it takes an explicit yes rather than one inferred from a missing TTY.
-    if (!explicitYes && !interactive) {
-      console.error('Refusing to uninstall without a terminal to confirm on. Re-run with --yes to remove the kit.');
-      process.exitCode = 1;
-      closeRl();
-      return;
-    }
-    await uninstall({ project, assumeYes: explicitYes });
+    // Removing the kit is not the update prompt: it takes an explicit yes rather
+    // than one inferred from a missing TTY.
+    await uninstall({ project, assumeYes: explicitYes, interactive });
     closeRl();
     return;
   }
