@@ -15,6 +15,7 @@ const {
   installFiles,
   uninstallFiles,
   commandName,
+  commandPath,
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
   ASSET_FILES,
@@ -119,7 +120,7 @@ test('installFiles global writes guides, rendered commands, and meta', () => {
     assert.ok(fs.existsSync(path.join(target.guidesDir, g)), `guide ${g} missing`);
   }
   for (const c of COMMAND_FILES) {
-    const body = fs.readFileSync(path.join(target.commandsDir, c), 'utf8');
+    const body = fs.readFileSync(commandPath(target, c), 'utf8');
     assert.ok(!body.includes('{{INSTALL_PATH}}'), `${c} not rendered`);
     assert.ok(body.includes(target.installPath), `${c} missing installPath`);
   }
@@ -200,7 +201,7 @@ test('installFiles project renders repo-relative installPath into commands', () 
   const repo = tmp();
   const target = resolveTarget({ project: true, cwd: repo, homeDir: repo });
   installFiles(target, {});
-  const body = fs.readFileSync(path.join(target.commandsDir, 'slashforge', 'setup.md'), 'utf8');
+  const body = fs.readFileSync(path.join(target.commandsDir, 'slashforge-setup.md'), 'utf8');
   assert.ok(body.includes('.claude/setup/slashforge'));
   assert.ok(!body.includes('{{'));
   const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
@@ -215,7 +216,7 @@ test('uninstallFiles removes installed files and is idempotent', () => {
   assert.ok(removed.length > 0);
   assert.ok(!fs.existsSync(target.guidesDir));
   for (const c of COMMAND_FILES) {
-    assert.ok(!fs.existsSync(path.join(target.commandsDir, c)));
+    assert.ok(!fs.existsSync(commandPath(target, c)));
   }
   const again = uninstallFiles(target, {});
   assert.deepEqual(again, []);
@@ -238,7 +239,7 @@ test('CLI --project --yes install writes guide files, command files, and meta.js
     assert.ok(fs.existsSync(path.join(guidesDir, g)), `guide file ${g} should be installed`);
   }
   for (const c of COMMAND_FILES) {
-    assert.ok(fs.existsSync(path.join(commandsDir, c)), `command file ${c} should be installed`);
+    assert.ok(fs.existsSync(path.join(commandsDir, 'slashforge-' + path.basename(c))), `command file ${c} should be installed`);
   }
   const meta = JSON.parse(fs.readFileSync(path.join(guidesDir, 'meta.json'), 'utf8'));
   assert.equal(meta.mode, 'project');
@@ -257,7 +258,7 @@ test('CLI uninstall --project --yes round-trip removes guides dir and command fi
 
   assert.ok(!fs.existsSync(guidesDir), 'guidesDir should not exist after uninstall');
   for (const c of COMMAND_FILES) {
-    assert.ok(!fs.existsSync(path.join(commandsDir, c)), `command file ${c} should be removed`);
+    assert.ok(!fs.existsSync(path.join(commandsDir, 'slashforge-' + path.basename(c))), `command file ${c} should be removed`);
   }
 });
 
@@ -311,15 +312,14 @@ test('commandName maps a namespaced file to its slash invocation', () => {
   assert.equal(commandName(path.join('slashforge', 'code.md')), '/slashforge-code');
 });
 
-test('commands install into the slashforge namespace directory', () => {
+test('commands install as flat prefixed files', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home });
   installFiles(target, {});
-  const nsDir = path.join(target.commandsDir, 'slashforge');
-  assert.ok(fs.existsSync(nsDir), 'slashforge/ namespace dir should exist');
+  assert.ok(!fs.existsSync(path.join(target.commandsDir, 'slashforge')), 'no 4.x namespace dir');
   // Derived, not hardcoded — a new command should not require editing this test.
   for (const c of COMMAND_FILES) {
-    assert.ok(fs.existsSync(path.join(target.commandsDir, c)), `${c} should be installed`);
+    assert.ok(fs.existsSync(commandPath(target, c)), `${c} should be installed`);
   }
   const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
   assert.deepEqual(meta.commands, COMMAND_FILES.map(commandName));
@@ -330,7 +330,7 @@ test('/slashforge:code dispatches lean mode and ships the override guide', () =>
   const home = tmp();
   const target = resolveTarget({ homeDir: home });
   installFiles(target, {});
-  const body = fs.readFileSync(path.join(target.commandsDir, 'slashforge', 'code.md'), 'utf8');
+  const body = fs.readFileSync(path.join(target.commandsDir, 'slashforge-code.md'), 'utf8');
   assert.ok(body.includes('-quick'), 'code command should document the -quick flag');
   assert.ok(body.includes('forge-workflow-quick.md'), 'should point at the lean override guide');
   assert.ok(
@@ -363,30 +363,30 @@ test('uninstall cleans up a v2 install (legacy commands and guides dir)', () => 
   assert.ok(!fs.existsSync(target.legacyGuidesDir), 'legacy guides dir should be removed');
 });
 
-test('uninstall leaves user-owned files in the slashforge namespace alone', () => {
+test('uninstall leaves user-owned files in the commands dir alone', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home });
   installFiles(target, {});
-  const mine = path.join(target.commandsDir, 'slashforge', 'mine.md');
+  const mine = path.join(target.commandsDir, 'slashforge-mine.md');
   fs.writeFileSync(mine, 'user command');
 
   uninstallFiles(target, {});
 
-  assert.ok(fs.existsSync(mine), 'a user command in slashforge/ must survive uninstall');
-  assert.ok(!fs.existsSync(path.join(target.commandsDir, 'slashforge', 'code.md')));
+  assert.ok(fs.existsSync(mine), 'a user command named like the kit\'s must survive uninstall');
+  assert.ok(!fs.existsSync(path.join(target.commandsDir, 'slashforge-code.md')));
 });
 
-// Discipline skills install into the same slashforge/ namespace dir as the three
-// entry-point commands, which is what gives them a `slashforge:` invocation. They
+// Discipline skills install as flat slashforge-<name>.md files like the entry-point
+// commands, which is what gives them a `/slashforge-` invocation. They
 // are deliberately NOT in COMMAND_FILES: that list drives meta.json.commands and
 // the status output, and folding skills in turns a three-command report into one
 // that lists every internal discipline.
-test('skills install into the namespace dir with tokens rendered', () => {
+test('skills install as flat files with tokens rendered', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
   installFiles(target, {});
   for (const s of SKILL_FILES) {
-    const dest = path.join(target.commandsDir, s);
+    const dest = commandPath(target, s);
     assert.ok(fs.existsSync(dest), `skill ${s} missing`);
     const body = fs.readFileSync(dest, 'utf8');
     assert.ok(!body.includes('{{INSTALL_PATH}}'), `${s} not rendered`);
@@ -418,29 +418,28 @@ test('skills are frontmatter-validated, unlike assets', () => {
   );
 });
 
-test('uninstall removes skills and still prunes the emptied namespace dir', () => {
+test('uninstall removes skills and leaves no namespace dir behind', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home });
   installFiles(target, {});
   uninstallFiles(target, {});
   for (const s of SKILL_FILES) {
-    assert.ok(!fs.existsSync(path.join(target.commandsDir, s)), `skill ${s} survived uninstall`);
+    assert.ok(!fs.existsSync(commandPath(target, s)), `skill ${s} survived uninstall`);
   }
-  assert.ok(
-    !fs.existsSync(path.join(target.commandsDir, 'slashforge')),
-    'emptied namespace dir should be pruned',
-  );
+  assert.ok(!fs.existsSync(path.join(target.commandsDir, 'slashforge')), 'no namespace dir');
 });
 
-test('a user file in the namespace dir survives uninstall alongside skills', () => {
+test('a user file in the 4.x namespace dir survives uninstall', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home });
   installFiles(target, {});
-  const mine = path.join(target.commandsDir, 'slashforge', 'mine.md');
+  const ns = path.join(target.commandsDir, 'slashforge');
+  fs.mkdirSync(ns, { recursive: true });
+  const mine = path.join(ns, 'mine.md');
   fs.writeFileSync(mine, 'user command');
   uninstallFiles(target, {});
   assert.ok(fs.existsSync(mine), 'user-authored command must survive');
-  assert.ok(fs.existsSync(path.join(target.commandsDir, 'slashforge')), 'dir must not be pruned');
+  assert.ok(fs.existsSync(ns), 'dir must not be pruned while it holds a user file');
 });
 
 // Every discipline now ships with SlashForge, so no template should invoke a
@@ -913,7 +912,7 @@ test('uninstall on the agents target never touches .claude', () => {
   const a = resolveAgents({ homeDir: home, cwd: home });
   installAgentsFiles(a, {});
   uninstallAgentsFiles(a, {});
-  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')),
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge-code.md')),
     'the Claude install must be untouched');
   assert.ok(fs.existsSync(claude.guidesDir));
 });
@@ -1207,7 +1206,7 @@ test('omitting a guide does not omit the commands', () => {
   const target = resolveTarget({ homeDir: home, cwd: home });
   target.omit = ['forge-memory.md'];
   installFiles(target, {});
-  assert.ok(fs.existsSync(path.join(target.commandsDir, 'slashforge', 'code.md')));
+  assert.ok(fs.existsSync(path.join(target.commandsDir, 'slashforge-code.md')));
 });
 
 test('the install summary does not list an omitted guide', () => {
@@ -1367,21 +1366,22 @@ test('setup installs as a skill for cursor and codex', () => {
 // The strongest guard on the read list: a guide named in the rendered setup must
 // be a guide this target actually receives, or the agent is sent to read a file
 // that is not on disk.
-test('every guide setup tells you to read is installed for that target', () => {
-  for (const name of ['claude', 'cursor', 'codex']) {
-    const home = tmp();
-    const target = resolveTarget({ target: name, homeDir: home, cwd: home });
-    installFiles(target, {});
-    const body = fs.readFileSync(
-      target.layout === 'skills'
-        ? path.join(target.commandsDir, 'slashforge-setup', 'SKILL.md')
-        : path.join(target.commandsDir, 'slashforge', 'setup.md'),
-      'utf8');
+test('every guide setup tells you to read is installed for that host', () => {
+  const home = tmp();
+  const claude = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(claude, {});
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const cases = [
+    ['claude', commandPath(claude, path.join('slashforge', 'setup.md')), claude.guidesDir],
+    ...a.hosts.map((h) => [h.host, path.join(h.guidesDir, 'forge-setup-flow.md'), h.guidesDir]),
+  ];
+  for (const [name, file, dir] of cases) {
+    const body = fs.readFileSync(file, 'utf8');
     const referenced = [...body.matchAll(/forge-[a-z0-9-]+\.md/g)].map((m) => m[0]);
     assert.ok(referenced.length > 5, `${name}: expected a real read list`);
     for (const guide of new Set(referenced)) {
-      assert.ok(fs.existsSync(path.join(target.guidesDir, guide)),
-        `${name}: setup reads ${guide}, which is not installed here`);
+      assert.ok(fs.existsSync(path.join(dir, guide)), `${name}: setup reads ${guide}, which is not installed here`);
     }
   }
 });
@@ -2139,7 +2139,7 @@ test('one install sets up both locations and names all three forms', () => {
   const { home, env } = cliEnv();
   const r = cli([], env);
   assert.equal(r.status, 0, r.stderr);
-  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')));
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge-code.md')));
   assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code', 'SKILL.md')));
   assert.ok(fs.existsSync(path.join(home, '.agents', 'setup', 'slashforge', 'codex', 'forge-workflow.md')));
   for (const form of ['/slashforge-code', '$slashforge-code']) {
@@ -2230,7 +2230,7 @@ test('a failure in one location is reported and the other stays installed', () =
   const r = cli([], env);
   assert.equal(r.status, 1);
   assert.match(r.stderr, /Cursor \+ Codex:/);
-  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')), 'Claude install kept');
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge-code.md')), 'Claude install kept');
   // The output must not claim the failed location is installed.
   assert.doesNotMatch(r.stdout, /✓ Cursor \+ Codex/, 'a failed location is not reported as installed');
   assert.doesNotMatch(r.stdout, /In Cursor the same commands/, 'no usage lines for a location that failed');
@@ -2287,4 +2287,50 @@ test('toHostCommandRefs swaps the sigil for Codex and never touches a path', () 
 
 test('commandName is the hyphenated form', () => {
   assert.equal(commandName(path.join('slashforge', 'code.md')), '/slashforge-code');
+});
+
+test('Claude commands install as flat slashforge-<name>.md files', () => {
+  const home = tmp();
+  const t = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(t, {});
+  for (const c of [...COMMAND_FILES, ...SKILL_FILES]) {
+    assert.ok(fs.existsSync(path.join(t.commandsDir, 'slashforge-' + path.basename(c))), c);
+  }
+  assert.ok(!fs.existsSync(path.join(t.commandsDir, 'slashforge')), 'no namespace folder');
+});
+
+// Review Focus 2: upgrading a 4.x install keeps the user's own command.
+test('upgrading from 4.x removes the old commands and keeps user files', () => {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  const ns = path.join(home, '.claude', 'commands', 'slashforge');
+  fs.mkdirSync(ns, { recursive: true });
+  for (const c of [...COMMAND_FILES, ...SKILL_FILES]) fs.writeFileSync(path.join(ns, path.basename(c)), 'old');
+  fs.writeFileSync(path.join(ns, 'mine.md'), 'mine');
+  const out = execFileSync('node', [BIN, '--yes'], { env, encoding: 'utf8' });
+  assert.deepEqual(fs.readdirSync(ns), ['mine.md']);
+  assert.match(out, /4\.x commands/);
+  // And with no user file, the folder goes too.
+  fs.rmSync(path.join(ns, 'mine.md'));
+  for (const c of COMMAND_FILES) fs.writeFileSync(path.join(ns, path.basename(c)), 'old');
+  const out2 = execFileSync('node', [BIN, '--yes'], { env, encoding: 'utf8' });
+  assert.ok(!fs.existsSync(ns));
+  assert.match(out2, new RegExp(`: ${COMMAND_FILES.length} files`), 'the count is files, not the folder too');
+});
+
+// Review Focus 3: both layouts present.
+test('uninstall removes both the flat files and 4.x leftovers; status lists the new names', () => {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  execFileSync('node', [BIN, '--yes'], { env });
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge-code.md')), 'the flat file is installed');
+  const ns = path.join(home, '.claude', 'commands', 'slashforge');
+  fs.mkdirSync(ns, { recursive: true });
+  fs.writeFileSync(path.join(ns, 'code.md'), 'old');
+  const status = execFileSync('node', [BIN, 'status'], { env, encoding: 'utf8' });
+  assert.match(status, /• \/slashforge-code/);
+  assert.doesNotMatch(status, /\/slashforge:code/);
+  execFileSync('node', [BIN, 'uninstall', '--yes'], { env });
+  assert.ok(!fs.existsSync(ns));
+  assert.ok(!fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge-code.md')));
 });

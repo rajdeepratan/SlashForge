@@ -272,9 +272,26 @@ function toSkillFrontmatter(content, skillName) {
   return lines.join('\n');
 }
 
-// Where a command template lands for a given target.
+// 4.x installed Claude commands in a namespace folder, which is what produced the
+// /slashforge:name form. 5.0 installs flat files; an upgrade removes these by name.
+const V4_COMMAND_FILES = [...COMMAND_FILES, ...SKILL_FILES];
+
+// Where a command template lands: flat, so Claude Code lists it as /slashforge-name.
 function commandPath(target, file) {
-  return path.join(target.commandsDir, file);
+  return path.join(target.commandsDir, 'slashforge-' + path.basename(file));
+}
+
+// The kit's own 4.x command files, by exact name, then the folder once it is empty.
+// Leaving them would show /slashforge:code beside /slashforge-code, running old text.
+function removeV4Commands(target) {
+  const removed = [];
+  for (const c of V4_COMMAND_FILES) {
+    const p = path.join(target.commandsDir, c);
+    if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
+  }
+  const ns = path.join(target.commandsDir, COMMAND_NAMESPACE);
+  if (fs.existsSync(ns) && fs.readdirSync(ns).length === 0) { fs.rmdirSync(ns); removed.push(ns); }
+  return removed;
 }
 
 // The sigil a host invokes a skill with. Cursor uses `/` like Claude Code; Codex
@@ -428,9 +445,8 @@ function installFiles(target, {
       pkgName,
       targetName: target.target,
     });
-    // Command files live in a namespace subdirectory (slashforge/), which is what
-    // produces the /slashforge:name invocation form.
-    const dest = path.join(target.commandsDir, c);
+    // Flat files: Claude Code lists commands/slashforge-code.md as /slashforge-code.
+    const dest = commandPath(target, c);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, rendered);
     written.push(dest);
@@ -462,8 +478,10 @@ function installFiles(target, {
       .filter((c) => !omit.includes(c))
       .map((c) => commandName(c)),
   }, null, 2) + '\n';
+  const removedV4 = removeV4Commands(target);
   fs.writeFileSync(target.metaFile, meta);
   written.push(target.metaFile);
+  written.removedV4 = removedV4;
   return written;
 }
 
@@ -646,9 +664,13 @@ function uninstallFiles(target, {
   skillFiles = SKILL_FILES,
 } = {}) {
   const removed = [];
-  // Current layout plus the v2 flat command files, so upgrading from < 3.0.0
-  // and then uninstalling does not leave the old files behind.
-  for (const c of [...commandFiles, ...skillFiles, ...LEGACY_COMMAND_FILES]) {
+  for (const c of [...commandFiles, ...skillFiles]) {
+    const p = commandPath(target, c);
+    if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
+  }
+  // Earlier layouts too — 4.x's namespace folder, v3's forge/ and v2's flat files —
+  // so uninstalling after an upgrade does not leave the old files behind.
+  for (const c of [...V4_COMMAND_FILES, ...LEGACY_COMMAND_FILES]) {
     const p = path.join(target.commandsDir, c);
     if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
   }
@@ -971,8 +993,9 @@ async function install({ dryRun, assumeYes, project = false }) {
   // say) is reported without undoing the other. A re-run is safe.
   const failures = [];
   const ok = {};
+  let claudeResult = null;
   for (const [key, label, run] of [
-    ['claude', 'Claude Code', () => installFiles(claude, {})],
+    ['claude', 'Claude Code', () => { claudeResult = installFiles(claude, {}); }],
     ['agents', 'Cursor + Codex', () => installAgentsFiles(agents, {})],
   ]) {
     try { run(); ok[key] = true; } catch (err) { failures.push(`${label}: ${err.message}`); }
@@ -987,7 +1010,11 @@ async function install({ dryRun, assumeYes, project = false }) {
   console.log(failures.length
     ? `\n⚠ v${pkg.version} partially installed — re-run \`npx ${pkg.name}\` after fixing the error above`
     : `\n✓ v${pkg.version} installed`);
-  if (ok.claude) console.log(`✓ Claude Code:     ${path.join(claude.commandsDir, 'slashforge')}  (guides: ${claude.guidesDir})`);
+  if (ok.claude) console.log(`✓ Claude Code:     ${path.join(claude.commandsDir, 'slashforge-*.md')}  (guides: ${claude.guidesDir})`);
+  const removedV4Files = ok.claude ? claudeResult.removedV4.filter((p) => p.endsWith('.md')) : [];
+  if (removedV4Files.length) {
+    console.log(`✓ Removed the 4.x commands (/slashforge:*) — they are /slashforge-* now: ${removedV4Files.length} files`);
+  }
   if (ok.agents) console.log(`✓ Cursor + Codex:  ${agents.skillsDir}  (guides: ${path.join(agents.root, '{cursor,codex}')})`);
 
   if (ok.claude) {
@@ -1033,6 +1060,7 @@ async function uninstall({ project, assumeYes, interactive = true }) {
   const installed = hasKitFiles(claude.guidesDir) ||
     fs.existsSync(claude.legacyGuidesDir) ||
     COMMAND_FILES.some((c) => fs.existsSync(commandPath(claude, c))) ||
+    V4_COMMAND_FILES.some((c) => fs.existsSync(path.join(claude.commandsDir, c))) ||
     LEGACY_COMMAND_FILES.some((c) => fs.existsSync(path.join(claude.commandsDir, c))) ||
     hasKitFiles(agents.root) ||
     COMMAND_FILES.some((c) => fs.existsSync(skillFilePath(agents, c)));
@@ -1167,6 +1195,8 @@ module.exports = {
   renderSkill,
   installAgentsFiles,
   plannedAgentsWrites,
+  V4_COMMAND_FILES,
+  removeV4Commands,
   profilesFor,
   uninstallAgentsFiles,
   removeKitFiles,
