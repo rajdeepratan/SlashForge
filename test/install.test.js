@@ -2306,3 +2306,123 @@ test('the closing message names the installed host and its invocation form', () 
   assert.match(codex, /Installed for Codex/);
   assert.match(codex, /\$slashforge-code/);
 });
+
+// --- One install: the ~/.agents/ location ---
+const {
+  resolveAgents, installAgentsFiles, plannedAgentsWrites, SKILL_PREAMBLE, AGENT_HOSTS,
+} = require('../bin/install.js');
+
+function agentsTree(root) {
+  const out = [];
+  (function walk(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p); else out.push(p);
+    }
+  })(root);
+  return out.sort();
+}
+
+test('resolveAgents lays out one skills dir and a guide folder per host', () => {
+  const a = resolveAgents({ homeDir: '/h', cwd: '/r' });
+  assert.equal(a.skillsDir, path.join('/h', '.agents', 'skills'));
+  assert.deepEqual(a.hosts.map((h) => h.host), ['cursor', 'codex']);
+  assert.equal(a.hosts[0].guidesDir, path.join('/h', '.agents', 'setup', 'slashforge', 'cursor'));
+  const p = resolveAgents({ project: true, homeDir: '/h', cwd: '/r' });
+  assert.equal(p.skillInstallPath, '.agents/setup/slashforge/<host>');
+  assert.equal(p.hosts[1].installPath, '.agents/setup/slashforge/codex');
+});
+
+// Review Focus 2: paths inside a skill are always forward-slashed.
+test('skill guide paths use / and a literal <host>, on every platform', () => {
+  const a = resolveAgents({ homeDir: 'C:\\Users\\me', cwd: 'C:\\r' });
+  assert.ok(!a.skillInstallPath.includes('\\'), a.skillInstallPath);
+  assert.ok(a.skillInstallPath.endsWith('/<host>'));
+});
+
+test('installAgentsFiles writes per-host guides, neutral skills and one meta', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  for (const h of a.hosts) {
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'forge-workflow.md')), `${h.host} guides`);
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'forge-setup-flow.md')), `${h.host} setup flow`);
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'forge-splice.js')), `${h.host} assets`);
+    // The guides read meta.json from their own folder (forge-instructions.md says so).
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(h.guidesDir, 'meta.json'), 'utf8')).hosts, ['cursor', 'codex']);
+  }
+  assert.ok(fs.existsSync(path.join(a.hosts[0].guidesDir, 'forge-agents.md')), 'cursor: markdown subagents');
+  assert.ok(fs.existsSync(path.join(a.hosts[1].guidesDir, 'forge-agents-codex.md')), 'codex: TOML subagents');
+  assert.ok(!fs.existsSync(path.join(a.hosts[1].guidesDir, 'forge-agents.md')));
+  const meta = JSON.parse(fs.readFileSync(a.metaFile, 'utf8'));
+  assert.deepEqual(meta.hosts, ['cursor', 'codex']);
+  assert.ok(meta.commands.includes('/slashforge-code'));
+  for (const c of [...COMMAND_FILES, ...SKILL_FILES]) {
+    assert.ok(fs.existsSync(path.join(a.skillsDir, 'slashforge-' + path.basename(c, '.md'), 'SKILL.md')), c);
+  }
+});
+
+test('every skill is host-neutral: preamble, <host> paths, / form, no host blocks', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  for (const dir of fs.readdirSync(a.skillsDir)) {
+    const body = fs.readFileSync(path.join(a.skillsDir, dir, 'SKILL.md'), 'utf8');
+    assert.ok(body.includes(SKILL_PREAMBLE), `${dir}: preamble`);
+    assert.match(body, new RegExp(`^---\\nname: ${dir}\\n`), `${dir}: name matches dir`);
+    assert.ok(!/\/slashforge:[a-z]/.test(body), `${dir}: colon form left`);
+    assert.ok(!body.replace(SKILL_PREAMBLE, '').includes('$slashforge-'), `${dir}: Codex form belongs in the preamble only`);
+    assert.ok(!/<!--\/?target/.test(body), `${dir}: marker left`);
+    // Every guide the skill names exists in both host folders.
+    for (const m of body.matchAll(/setup\/slashforge\/<host>\/([\w.-]+)/g)) {
+      for (const h of a.hosts) {
+        assert.ok(fs.existsSync(path.join(h.guidesDir, m[1])), `${dir} → ${h.host}/${m[1]}`);
+      }
+    }
+  }
+});
+
+test('the setup skill dispatches to the per-host setup flow', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const skill = fs.readFileSync(path.join(a.skillsDir, 'slashforge-setup', 'SKILL.md'), 'utf8');
+  assert.match(skill, /<host>\/forge-setup-flow\.md/);
+  const cursor = fs.readFileSync(path.join(a.hosts[0].guidesDir, 'forge-setup-flow.md'), 'utf8');
+  const codex = fs.readFileSync(path.join(a.hosts[1].guidesDir, 'forge-setup-flow.md'), 'utf8');
+  assert.match(cursor, /\.cursor\//);
+  assert.ok(!cursor.includes('.codex/agents'), 'cursor flow names Codex layout');
+  assert.match(codex, /\.codex\/agents/);
+  assert.match(codex, /\$slashforge-/, 'codex guides use the $ form');
+});
+
+// Review Focus 1: an earlier per-target build left guides at the root.
+test('installAgentsFiles clears kit files an old layout left at the root', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  fs.mkdirSync(a.root, { recursive: true });
+  fs.writeFileSync(path.join(a.root, 'forge-workflow.md'), 'old');
+  fs.writeFileSync(path.join(a.root, 'forge-splice.js'), 'old');
+  fs.writeFileSync(path.join(a.root, 'notes.md'), 'mine');
+  installAgentsFiles(a, {});
+  assert.deepEqual(fs.readdirSync(a.root).sort(), ['codex', 'cursor', 'meta.json', 'notes.md']);
+});
+
+// Review Focus 3: a second install writes the same set, nothing more.
+test('installing twice leaves exactly the same files', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const first = agentsTree(path.join(home, '.agents'));
+  installAgentsFiles(a, {});
+  assert.deepEqual(agentsTree(path.join(home, '.agents')), first);
+});
+
+test('plannedAgentsWrites and installAgentsFiles name the same files', () => {
+  for (const project of [false, true]) {
+    const home = tmp();
+    const a = resolveAgents({ project, homeDir: home, cwd: home });
+    const planned = plannedAgentsWrites(a).map((w) => w.dest).sort();
+    assert.deepEqual(planned, installAgentsFiles(a, {}).slice().sort());
+  }
+});

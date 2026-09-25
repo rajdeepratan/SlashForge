@@ -119,6 +119,13 @@ const TARGETS = {
     // Subagents here are TOML, so the markdown guide is replaced, not fenced.
     omit: ['forge-claude-md.md', 'forge-memory.md', 'forge-agents.md'],
   },
+  // The one host-neutral skill set in ~/.agents/skills, read by Cursor and Codex.
+  // Rendered, never installed on its own; its host-specific parts are in the
+  // per-host guides, reached through the <host> path in SKILL_PREAMBLE.
+  skills: {
+    dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
+    namePrefix: 'slashforge-', blocks: ['agents', 'neutral'], omit: [],
+  },
 };
 
 // cursor and codex are real targets, not aliases. They share the `agents` install
@@ -307,7 +314,7 @@ function commandPath(target, file) {
 
 // The sigil a host invokes a skill with. Cursor uses `/` like Claude Code; Codex
 // uses `$`. Getting this wrong ships prose naming a form the host rejects.
-const TARGET_SIGILS = { claude: '/', agents: '/', cursor: '/', codex: '$' };
+const TARGET_SIGILS = { claude: '/', agents: '/', cursor: '/', codex: '$', skills: '/' };
 
 // The skills layout has no `:` namespace, so in-body references to sibling commands
 // must use the hyphenated form — otherwise every cross-reference in the workflow names
@@ -520,6 +527,170 @@ function installFiles(target, {
   }, null, 2) + '\n';
   fs.writeFileSync(target.metaFile, meta);
   written.push(target.metaFile);
+  return written;
+}
+
+// Hosts that read the shared .agents/ location. Each gets its own guide folder,
+// because their setup layouts differ; they share one skill set.
+const AGENT_HOSTS = ['cursor', 'codex'];
+
+// The one runtime decision: which host folder to read. Rendered into every skill.
+const SKILL_PREAMBLE = [
+  'You are running in Cursor or in Codex. In every path below, replace <host> with',
+  'cursor or codex to match. Commands are written /slashforge-name; in Codex invoke',
+  'them as $slashforge-name. If you cannot tell which host you are in: a .codex/',
+  'folder in the repo means Codex and a .cursor/ folder means Cursor; if neither',
+  'or both, ask the user once and use that answer for the rest of the session.',
+].join('\n');
+
+const SETUP_COMMAND = path.join('slashforge', 'setup.md');
+// Stands in for setup.md in .agents/skills: setup's procedure is host-specific, so
+// the skill only dispatches to forge-setup-flow.md in the host's own guide folder.
+const SETUP_DISPATCH = path.join('agents', 'setup.md');
+// setup.md rendered for one host, installed as a guide. Generated, so the setup
+// procedure keeps a single source.
+const SETUP_FLOW = 'forge-setup-flow.md';
+
+function resolveAgents({ project = false, homeDir = os.homedir(), cwd = process.cwd() } = {}) {
+  const base = path.join(project ? cwd : homeDir, '.agents');
+  const root = path.join(base, 'setup', 'slashforge');
+  // Always '/', even for a Windows home: these paths are read by a model, and a
+  // backslash before <host> would read as an escape rather than a separator.
+  const rootPath = project ? '.agents/setup/slashforge' : root.replace(/\\/g, '/');
+  return {
+    base,
+    root,
+    skillsDir: path.join(base, 'skills'),
+    metaFile: path.join(root, 'meta.json'),
+    mode: project ? 'project' : 'global',
+    skillInstallPath: `${rootPath}/<host>`,
+    hosts: AGENT_HOSTS.map((host) => ({
+      host,
+      guidesDir: path.join(root, host),
+      installPath: `${rootPath}/${host}`,
+      omit: TARGETS[host].omit,
+    })),
+  };
+}
+
+function skillFilePath(agents, file) {
+  return path.join(agents.skillsDir, skillDirName(file, 'slashforge-'), 'SKILL.md');
+}
+
+function withPreamble(content) {
+  const lines = content.split('\n');
+  const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
+  lines.splice(end + 1, 0, '', SKILL_PREAMBLE);
+  return lines.join('\n');
+}
+
+// src is the template read; dest names the skill (setup.md's dispatcher is read
+// from SETUP_DISPATCH but installed as slashforge-setup).
+function renderSkill(src, dest, agents, { templatesDir = TEMPLATES_DIR, version = pkg.version, pkgName = pkg.name } = {}) {
+  let out = renderTemplate(fs.readFileSync(path.join(templatesDir, src), 'utf8'), {
+    installPath: agents.skillInstallPath, version, pkgName, targetName: 'skills',
+  });
+  out = toSkillCommandRefs(out, 'slashforge-', 'skills');
+  out = toSkillFrontmatter(out, skillDirName(dest, 'slashforge-'));
+  return withPreamble(out);
+}
+
+function renderHostGuide(src, host, { templatesDir = TEMPLATES_DIR, version = pkg.version, pkgName = pkg.name } = {}) {
+  const out = renderTemplate(fs.readFileSync(path.join(templatesDir, src), 'utf8'), {
+    installPath: host.installPath, version, pkgName, targetName: host.host,
+  });
+  return toSkillCommandRefs(out, 'slashforge-', host.host);
+}
+
+function plannedAgentsWrites(agents, {
+  templatesDir = TEMPLATES_DIR,
+  guideFiles = GUIDE_FILES,
+  commandFiles = COMMAND_FILES,
+  assetFiles = ASSET_FILES,
+  skillFiles = SKILL_FILES,
+} = {}) {
+  const writes = [];
+  for (const h of agents.hosts) {
+    for (const f of guideFiles) {
+      if (h.omit.includes(f)) continue;
+      writes.push({ kind: 'guide', src: path.join(templatesDir, f), dest: path.join(h.guidesDir, f) });
+    }
+    writes.push({ kind: 'guide', src: path.join(templatesDir, SETUP_COMMAND), dest: path.join(h.guidesDir, SETUP_FLOW) });
+    for (const a of assetFiles) {
+      writes.push({ kind: 'asset', src: path.join(templatesDir, a), dest: path.join(h.guidesDir, a) });
+    }
+    writes.push({ kind: 'meta', dest: path.join(h.guidesDir, 'meta.json') });
+  }
+  for (const c of [...commandFiles, ...skillFiles]) {
+    const src = c === SETUP_COMMAND ? SETUP_DISPATCH : c;
+    writes.push({ kind: 'command', src: path.join(templatesDir, src), dest: skillFilePath(agents, c) });
+  }
+  writes.push({ kind: 'meta', dest: agents.metaFile });
+  return writes;
+}
+
+function installAgentsFiles(agents, {
+  templatesDir = TEMPLATES_DIR,
+  version = pkg.version,
+  pkgName = pkg.name,
+  guideFiles = GUIDE_FILES,
+  commandFiles = COMMAND_FILES,
+  assetFiles = ASSET_FILES,
+  skillFiles = SKILL_FILES,
+} = {}) {
+  validateTemplates(guideFiles, templatesDir);
+  validateTemplates(commandFiles, templatesDir);
+  validateTemplates(skillFiles, templatesDir);
+  validateTemplates([SETUP_DISPATCH], templatesDir);
+  assertTemplatesExist(assetFiles, templatesDir);
+  const opts = { templatesDir, version, pkgName };
+  const written = [];
+  const write = (dest, content) => {
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.writeFileSync(dest, content);
+    written.push(dest);
+  };
+  fs.mkdirSync(agents.root, { recursive: true });
+  // An earlier per-target build installed guides straight into the root. They are
+  // kit files the new layout never reads; the user's own files stay.
+  for (const entry of fs.readdirSync(agents.root)) {
+    const p = path.join(agents.root, entry);
+    if (entry !== 'meta.json' && fs.statSync(p).isFile() && isKitGuideFile(entry, guideFiles)) fs.rmSync(p);
+  }
+  for (const h of agents.hosts) {
+    for (const f of guideFiles) {
+      if (h.omit.includes(f)) continue;
+      write(path.join(h.guidesDir, f), renderHostGuide(f, h, opts));
+    }
+    write(path.join(h.guidesDir, SETUP_FLOW), renderHostGuide(SETUP_COMMAND, h, opts));
+    for (const a of assetFiles) {
+      fs.mkdirSync(h.guidesDir, { recursive: true });
+      fs.copyFileSync(path.join(templatesDir, a), path.join(h.guidesDir, a));
+      written.push(path.join(h.guidesDir, a));
+    }
+    // A guide dropped in a later version, or omitted for this host, is stale prose.
+    // (Runs before this host's meta.json is written; meta never matches forge-*.md.)
+    const keep = new Set(written.filter((w) => path.dirname(w) === h.guidesDir).map((w) => path.basename(w)));
+    for (const entry of fs.readdirSync(h.guidesDir)) {
+      if (/^forge-[a-z0-9-]*\.md$/.test(entry) && !keep.has(entry)) fs.rmSync(path.join(h.guidesDir, entry));
+    }
+  }
+  for (const c of [...commandFiles, ...skillFiles]) {
+    const src = c === SETUP_COMMAND ? SETUP_DISPATCH : c;
+    write(skillFilePath(agents, c), renderSkill(src, c, agents, opts));
+  }
+  const meta = JSON.stringify({
+    package: pkgName,
+    version,
+    installed_at: new Date().toISOString(),
+    mode: agents.mode,
+    hosts: AGENT_HOSTS,
+    commands: commandFiles.map((c) => '/' + skillDirName(c, 'slashforge-')),
+  }, null, 2) + '\n';
+  // One at the root for status and uninstall, and one in each host folder, where
+  // setup's guides read it ("meta.json … same folder as this file").
+  for (const h of agents.hosts) write(path.join(h.guidesDir, 'meta.json'), meta);
+  write(agents.metaFile, meta);
   return written;
 }
 
@@ -1091,6 +1262,14 @@ module.exports = {
   commandPath,
   parseTargetArg,
   plannedWrites,
+  AGENT_HOSTS,
+  SKILL_PREAMBLE,
+  SETUP_DISPATCH,
+  SETUP_FLOW,
+  resolveAgents,
+  renderSkill,
+  installAgentsFiles,
+  plannedAgentsWrites,
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
   ASSET_FILES,

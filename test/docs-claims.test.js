@@ -68,7 +68,8 @@ test('every target in the docs table is a real install target', () => {
   const { TARGETS } = require('../bin/install.js');
   const cli = fs.readFileSync(
     path.join(ROOT, 'docs/src/content/docs/reference/cli.md'), 'utf8');
-  for (const name of Object.keys(TARGETS)) {
+  // `skills` is a render profile for the shared skill set, not something a user picks.
+  for (const name of Object.keys(TARGETS).filter((n) => n !== 'skills')) {
     assert.ok(cli.includes('`' + name + '`'), `cli.md should document the ${name} target`);
   }
 });
