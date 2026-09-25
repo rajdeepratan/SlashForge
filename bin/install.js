@@ -1044,7 +1044,6 @@ function plannedWrites(target, {
 
 
 
-const TARGET_REMOVED = '--target is no longer needed: one install sets up Claude Code, Cursor and Codex.';
 
 async function install({ dryRun, assumeYes, project = false }) {
   const claude = resolveTarget({ project });
@@ -1212,13 +1211,6 @@ async function main() {
 
   if (args.includes('--help') || args.includes('-h')) {
     printHelp();
-    closeRl();
-    return;
-  }
-
-  if (args.some((a) => a === '--target' || a.startsWith('--target='))) {
-    console.error(TARGET_REMOVED);
-    process.exitCode = 1;
     closeRl();
     return;
   }

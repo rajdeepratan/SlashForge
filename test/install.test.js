@@ -2151,16 +2151,6 @@ test('one install sets up both locations and names all three forms', () => {
   }
 });
 
-test('--target is refused in both spellings, and nothing is written', () => {
-  const { home, env } = cliEnv();
-  for (const args of [['--target', 'cursor'], ['--target=codex'], ['status', '--target', 'claude']]) {
-    const r = cli(args, env);
-    assert.equal(r.status, 1, args.join(' '));
-    assert.match(r.stderr, /--target is no longer needed: one install sets up Claude Code, Cursor and Codex\./);
-  }
-  assert.deepEqual(fs.readdirSync(home), []);
-});
-
 test('the dry run lists both locations and writes nothing', () => {
   const { home, env } = cliEnv();
   const r = cli(['--dry-run'], env);

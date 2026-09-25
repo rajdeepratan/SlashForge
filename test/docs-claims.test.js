@@ -71,7 +71,7 @@ test('the docs table documents each host', () => {
   }
 });
 
-test('no user-facing doc still tells people to pass --target', () => {
+test('no user-facing doc mentions --target, which never shipped', () => {
   const files = [
     'README.md',
     'docs/src/content/docs/guides/installation.md',
@@ -83,7 +83,8 @@ test('no user-facing doc still tells people to pass --target', () => {
   ];
   for (const f of files) {
     const body = fs.readFileSync(path.join(ROOT, f), 'utf8');
-    const lines = body.split('\n').filter((l) => l.includes('--target') && !/no longer needed/.test(l));
+    // --target never shipped, so no doc should mention it at all.
+    const lines = body.split('\n').filter((l) => l.includes('--target'));
     assert.deepEqual(lines, [], `${f} still mentions --target`);
   }
   const pkg = require('../package.json');

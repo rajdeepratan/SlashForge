@@ -9,7 +9,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Breaking
 - **Commands are `/slashforge-name` on every host.** Claude Code's `/slashforge:code` is now `/slashforge-code`, the same as Cursor; Codex keeps `$slashforge-code`. Claude Code's commands install as flat `~/.claude/commands/slashforge-*.md` files, and `npx slashforge` removes the 4.x `commands/slashforge/` files by name (your own files there are kept). See the migration guide.
 - **Kit files are named `slashforge-*`.** The guides and helper scripts SlashForge installs (`slashforge-workflow.md`, `slashforge-splice.js`, …) drop the old `forge-` prefix. `npx slashforge` removes the `forge-*` ones a 4.x install left; nothing to do by hand.
-- **`--target` is gone.** One `npx slashforge` installs for Claude Code, Cursor and Codex; passing `--target` exits with a message saying so.
 
 ### Added
 - **Cursor and Codex support, from the same install.** `npx slashforge` now sets up Claude Code, Cursor and Codex together; there is no flag to choose. Cursor and Codex share one skill set in `~/.agents/skills/` (`/slashforge-code` in Cursor, `$slashforge-code` in Codex), and each reads its own guides from `~/.agents/setup/slashforge/cursor/` or `…/codex/`, so setup writes each host's native layout: `.mdc` rules and `.cursor/hooks.json` in Cursor, nested `AGENTS.md` and TOML subagents in Codex. `status` and `uninstall` cover both locations.

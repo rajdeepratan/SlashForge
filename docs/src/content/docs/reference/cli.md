@@ -48,8 +48,6 @@ own layout and those layouts genuinely differ — see
 The first thing each Cursor or Codex command does is work out which of the two it is
 running in and read that host's guides; if it can't tell, it asks you once.
 
-`--target` is gone. Passing it exits with a message saying it is no longer needed.
-
 ### Why every name is `slashforge-`
 
 ==The same name on every host.== Cursor and Codex name a skill by the folder that

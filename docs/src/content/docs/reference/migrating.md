@@ -43,9 +43,6 @@ The nine discipline skills follow the same pattern: `slashforge:plan` becomes
 5. Update anything else of your own that types the old name: scripts, notes, team docs.
 :::
 
-There is no `--target` any more. One install sets up Claude Code, Cursor and Codex;
-passing `--target` exits with a message saying so.
-
 ### Why
 
 ==The same name on every host.== The `:` only existed because Claude Code turns a
