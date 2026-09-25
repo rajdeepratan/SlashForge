@@ -42,18 +42,10 @@ specs use. **Write only the body fragment**; a substitution step splices it in.
 mkdir -p docs/slashforge/plans
 plan="docs/slashforge/plans/<YYYY-MM-DD>-<feature-name>.html"
 
-node -e '
-const fs = require("fs");
-const [shell, frag, out, title] = process.argv.slice(1);
-const body = fs.readFileSync(frag, "utf8");
-const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
-  .replace("<!--TITLE-->",   () => esc(title))
-  .replace("<!--CONTENT-->", () => body));
-' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$plan" "Plan — <feature-name> (<YYYY-MM-DD>)"
+node "{{INSTALL_PATH}}/forge-splice.js" "$fragment" "$plan" "Plan — <feature-name> (<YYYY-MM-DD>)"
 ```
 
-Function-form replacement, title escaped, body verbatim. Delete the scratch fragment afterwards.
+`forge-splice.js` escapes the title and splices the body verbatim. Delete the scratch fragment afterwards.
 
 Then open it, so the user reviews the rendered plan rather than the markup:
 

@@ -15,6 +15,7 @@ const {
   installFiles,
   uninstallFiles,
   commandName,
+  plannedWrites,
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
   ASSET_FILES,
@@ -139,12 +140,12 @@ test('guide files are rendered, leaving no unsubstituted placeholders', () => {
     const body = fs.readFileSync(path.join(target.guidesDir, g), 'utf8');
     assert.ok(!/\{\{[A-Z_]+\}\}/.test(body), `guide ${g} shipped an unrendered placeholder`);
   }
-  // Both flows splice through the shared shell, and both name it by absolute path.
+  // Both flows splice through the shipped script, and both name it by absolute path.
   for (const flow of ['forge-workflow-review-pr.md', 'forge-workflow-investigation.md']) {
     const body = fs.readFileSync(path.join(target.guidesDir, flow), 'utf8');
     assert.ok(
-      body.includes(path.join(target.installPath, 'forge-report-shell.html')),
-      `${flow} must resolve the report shell to a real installed path`,
+      body.includes(`${target.installPath}/forge-splice.js`),
+      `${flow} must resolve the splice script to a real installed path`,
     );
   }
 });
@@ -489,10 +490,8 @@ test('the shell is document-agnostic and all three writers use it', () => {
   };
   for (const [file, dir] of Object.entries(writers)) {
     const body = commandInstruction(file);
-    assert.ok(body.includes('forge-report-shell.html'), `${file} must splice into the shell`);
     assert.ok(body.includes(`mkdir -p ${dir}`), `${file} must create ${dir}`);
-    assert.ok(body.includes('() => esc(title)'), `${file} must escape the title`);
-    assert.ok(body.includes('() => body'), `${file} must splice the body verbatim`);
+    assert.ok(body.includes('forge-splice.js'), `${file} must splice through the shipped script`);
   }
 });
 
@@ -558,15 +557,15 @@ test('docs/superpowers is only ever named next to the path replacing it', () => 
   );
 });
 
-// The splice command documented in the investigate instruction is what actually
-// builds every report, so the test runs THAT script rather than a copy of it — a
-// copy could drift from the template and still pass. It lives in Phase I3 of the
-// workflow file, which commandInstruction pulls in alongside the command.
-function spliceScriptFromTemplate() {
-  const md = commandInstruction('investigate.md');
-  const m = md.match(/node -e '\n([\s\S]*?)\n'/);
-  assert.ok(m, 'could not find the node splice script in the investigate instruction');
-  return m[1];
+// forge-splice.js is what actually builds every document, so the tests run the
+// shipped file rather than a copy of it, from a folder laid out like an install
+// (the script finds the shell next to itself).
+function spliceScript() {
+  const dir = tmp();
+  for (const f of ['forge-splice.js', 'forge-report-shell.html']) {
+    fs.copyFileSync(path.join(TEMPLATES_DIR, f), path.join(dir, f));
+  }
+  return path.join(dir, 'forge-splice.js');
 }
 
 // The title is plain text from a user-supplied symptom. Substituted raw it can
@@ -574,7 +573,7 @@ function spliceScriptFromTemplate() {
 // leaks in as markup), and entity-shaped text like `&amp;` or `&#65;` is decoded
 // so the title shows something the symptom never said.
 test('the documented splice escapes the title', () => {
-  const script = spliceScriptFromTemplate();
+  const script = spliceScript();
   const dir = tmp();
   const frag = path.join(dir, 'frag.html');
   const out = path.join(dir, 'out.html');
@@ -588,10 +587,7 @@ test('the documented splice escapes the title', () => {
   ];
 
   for (const title of cases) {
-    execFileSync('node', [
-      '-e', script,
-      path.join(TEMPLATES_DIR, 'forge-report-shell.html'), frag, out, title,
-    ]);
+    execFileSync('node', [script, frag, out, title]);
     const html = fs.readFileSync(out, 'utf8');
     const inTitle = html.match(/<title>([\s\S]*?)<\/title>/);
 
@@ -613,7 +609,7 @@ test('the documented splice escapes the title', () => {
 });
 
 test('the documented splice leaves the body fragment as raw HTML', () => {
-  const script = spliceScriptFromTemplate();
+  const script = spliceScript();
   const dir = tmp();
   const frag = path.join(dir, 'frag.html');
   const out = path.join(dir, 'out.html');
@@ -622,10 +618,7 @@ test('the documented splice leaves the body fragment as raw HTML', () => {
   const body = '<h1>heading</h1><p>cost: $& and $` and $1</p>';
   fs.writeFileSync(frag, body);
 
-  execFileSync('node', [
-    '-e', script,
-    path.join(TEMPLATES_DIR, 'forge-report-shell.html'), frag, out, 'plain title',
-  ]);
+  execFileSync('node', [script, frag, out, 'plain title']);
 
   const html = fs.readFileSync(out, 'utf8');
   assert.ok(html.includes(body), 'body fragment must be spliced verbatim as HTML');
@@ -701,12 +694,10 @@ test('review-pr documents its discovery flags and their consequences', () => {
 // Findings are model-written prose: quotes, backticks, newlines and backslashes
 // are normal in them. Interpolating that into JSON by hand corrupts the payload,
 // so the documented assembly keeps prose in plain-text files and lets
-// JSON.stringify escape it. This runs the script out of the template itself — a
-// copy here could drift from the shipped instruction and still pass.
+// JSON.stringify escape it. This runs the shipped script itself — a copy here
+// could drift from what the instruction calls and still pass.
 test('the documented review payload escapes hostile prose', () => {
-  const md = commandInstruction('review-pr.md');
-  const m = md.match(/node -e '\n(const fs = require\("fs"\), path[\s\S]*?)\n'/);
-  assert.ok(m, 'could not find the payload assembly script in the review-pr instruction');
+  const script = path.join(TEMPLATES_DIR, 'forge-review-payload.js');
 
   const d = tmp();
   const body = 'Summary with "quotes", a $var, a `backtick`,\nand a backslash \\ here.\n';
@@ -719,7 +710,7 @@ test('the documented review payload escapes hostile prose', () => {
   );
 
   const out = path.join(d, 'payload.json');
-  execFileSync('node', ['-e', m[1], d, 'REQUEST_CHANGES', out]);
+  execFileSync('node', [script, d, 'REQUEST_CHANGES', out]);
 
   const payload = JSON.parse(fs.readFileSync(out, 'utf8'));
   assert.equal(payload.event, 'REQUEST_CHANGES');
@@ -730,7 +721,7 @@ test('the documented review payload escapes hostile prose', () => {
 
   // An approval carries no line comments.
   fs.writeFileSync(path.join(d, 'anchors.json'), '[]');
-  execFileSync('node', ['-e', m[1], d, 'APPROVE', out]);
+  execFileSync('node', [script, d, 'APPROVE', out]);
   assert.deepEqual(JSON.parse(fs.readFileSync(out, 'utf8')).comments, []);
 });
 
@@ -751,4 +742,225 @@ test('isNewerVersion only fires on a certainly-newer release', () => {
     assert.equal(isNewerVersion(junk, '4.2.0'), false, `junk candidate: ${JSON.stringify(junk)}`);
   }
   assert.equal(isNewerVersion('4.3.1', 'unknown'), false, 'junk current');
+});
+
+// --- Findings from the SlashForge 4.4.3 course audit ---
+
+// The dry run built its own list from two of the four file lists, so it announced
+// 21 files and the install wrote 32. Both now come from one function; comparing
+// the two in both directions stops the drift from coming back.
+test('plannedWrites and installFiles name exactly the same files, global and project', () => {
+  for (const project of [false, true]) {
+    const home = tmp();
+    const target = resolveTarget({ project, homeDir: home, cwd: home });
+    const planned = plannedWrites(target).map((w) => w.dest).sort();
+    const actual = installFiles(target, {}).slice().sort();
+    assert.deepEqual(planned, actual, `${project ? 'project' : 'global'}: dry run and install disagree`);
+  }
+});
+
+test('the CLI dry run announces every file the install then writes', () => {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  const stdout = execFileSync('node', [BIN, '--dry-run'], { env, encoding: 'utf8' });
+  const announced = stdout.split('\n').filter((l) => l.includes('→')).map((l) => l.split('→ ')[1].trim()).sort();
+  assert.deepEqual(fs.readdirSync(home), [], 'the dry run wrote something');
+
+  execFileSync('node', [BIN, '--yes'], { env, stdio: 'ignore' });
+  const written = [];
+  (function walk(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p); else written.push(p);
+    }
+  })(home);
+  assert.deepEqual(announced, written.sort());
+});
+
+// Guides have been rendered since 4.4.1, so a dry run that says "copy" for them
+// describes an install that no longer exists. Only the assets are copied.
+test('the dry run labels rendered guides as render and copied assets as copy', () => {
+  const home = tmp();
+  const stdout = execFileSync('node', [BIN, '--dry-run'], {
+    encoding: 'utf8',
+    env: { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' },
+  });
+  assert.match(stdout, /render\s+forge-workflow\.md/);
+  assert.doesNotMatch(stdout, /copy\s+forge-[a-z-]+\.md/, 'a guide is still labelled copy');
+  for (const a of ASSET_FILES) {
+    assert.match(stdout, new RegExp(`copy\\s+${a.replace('.', '\\.')}`), `${a} should be labelled copy`);
+  }
+});
+
+// --yes switches on by itself without a terminal, which is right for the update
+// prompt and wrong for uninstall: a script that runs `uninstall` by mistake should
+// not remove the kit without anyone having said yes.
+test('uninstall without a terminal refuses unless --yes is given', () => {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  delete env.SLASHFORGE_YES;
+  execFileSync('node', [BIN, '--yes'], { env, stdio: 'ignore' });
+  const target = resolveTarget({ homeDir: home, cwd: home });
+
+  const r = require('child_process').spawnSync('node', [BIN, 'uninstall'], {
+    env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  assert.notEqual(r.status, 0, 'uninstall without a terminal should fail, not succeed silently');
+  assert.match(r.stderr + r.stdout, /--yes/, 'the refusal should say how to confirm');
+  assert.ok(fs.existsSync(target.guidesDir), 'nothing may be removed without a yes');
+
+  execFileSync('node', [BIN, 'uninstall', '--yes'], { env, stdio: 'ignore' });
+  assert.ok(!fs.existsSync(target.guidesDir), 'an explicit --yes still uninstalls');
+});
+
+test('parseFrontmatter accepts a folded or literal YAML description', () => {
+  const folded = parseFrontmatter('---\nname: x\ndescription: >\n  one\n  two\n---\n', 'f');
+  assert.equal(folded.description, 'one two');
+  const literal = parseFrontmatter('---\nname: x\ndescription: |\n  one\n  two\n---\n', 'f');
+  assert.equal(literal.description, 'one\ntwo');
+  const plain = parseFrontmatter('---\nname: x\ndescription: one\n  two\n---\n', 'f');
+  assert.equal(plain.description, 'one two');
+});
+
+test('parseFrontmatter finds a closing fence with trailing whitespace', () => {
+  const fm = parseFrontmatter('---\nname: x\ndescription: y\n---  \nbody', 'f');
+  assert.equal(fm.description, 'y');
+});
+
+test('parseFrontmatter still refuses an indented line with no key above it', () => {
+  assert.throws(() => parseFrontmatter('---\n  stray\nname: x\ndescription: y\n---\n', 'f'), /invalid/);
+});
+
+// The two guides the model reads during setup must agree on where a skill lives.
+test('forge-instructions names the SKILL.md folder form and the 500-line limit', () => {
+  const guide = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-instructions.md'), 'utf8');
+  assert.ok(guide.includes('| Skills | `.claude/skills/<name>/SKILL.md` |'), 'skills row still the flat form');
+  assert.ok(!guide.includes('.claude/skills/*.md'), 'the flat skills form is still named');
+  const skills = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-skills.md'), 'utf8');
+  assert.ok(/500 lines/.test(guide) && /500 lines/.test(skills), 'the SKILL.md limit must match in both guides');
+});
+
+// Setup's Step 9 is the only thing that checks the size rule. It used a ** glob,
+// which bash without globstar treats as one folder deep, so SKILL.md was never
+// counted. The test runs the command from the guide itself, under bash.
+function lines(n) {
+  return Array.from({ length: n }, (_, i) => `line ${i}`).join('\n') + '\n';
+}
+
+test('setup verify step fails on an oversized SKILL.md in a skill folder', () => {
+  const guide = fs.readFileSync(path.join(TEMPLATES_DIR, 'forge-instructions.md'), 'utf8');
+  const step9 = guide.slice(guide.indexOf('## Step 9'));
+  const m = step9.match(/```bash\n([\s\S]*?)```/);
+  assert.ok(m, 'no Step 9 bash block');
+  const script = m[1].split('\n\n')[0];
+  assert.ok(!script.includes('**'), 'the size check must not rely on a ** glob');
+  const run = (dir) => require('child_process').spawnSync('bash', ['-c', script], { cwd: dir, encoding: 'utf8' });
+
+  const repo = tmp();
+  fs.writeFileSync(path.join(repo, 'CLAUDE.md'), lines(10));
+  fs.mkdirSync(path.join(repo, '.claude', 'rules'), { recursive: true });
+  fs.writeFileSync(path.join(repo, '.claude', 'rules', 'api.md'), lines(6));
+  const skill = path.join(repo, '.claude', 'skills', 'add-endpoint');
+  fs.mkdirSync(skill, { recursive: true });
+  fs.writeFileSync(path.join(skill, 'SKILL.md'), lines(300));
+  // A project install of the kit itself carries long guides; they are not the repo's files.
+  installFiles(resolveTarget({ project: true, cwd: repo, homeDir: tmp() }), {});
+
+  assert.equal(run(repo).status, 0, 'a 300-line SKILL.md is within its 500-line limit');
+  fs.writeFileSync(path.join(skill, 'SKILL.md'), lines(600));
+  const over = run(repo);
+  assert.notEqual(over.status, 0, 'a 600-line SKILL.md must fail the check');
+  assert.match(over.stdout, /SKILL\.md/);
+  fs.writeFileSync(path.join(skill, 'SKILL.md'), lines(10));
+  fs.writeFileSync(path.join(repo, '.claude', 'rules', 'api.md'), lines(250));
+  assert.notEqual(run(repo).status, 0, 'a 250-line rule must fail the check');
+});
+
+// The old assertion ("exits 0 on a missing file") could not fail: the helper
+// exits 0 on every path. And on a desktop it really opened something. Stub the
+// openers on PATH instead, so the test proves which one ran, with what, and that
+// a failing opener still leaves the run alone.
+test('the open helper hands the path to the platform opener and survives its failure', () => {
+  if (process.platform === 'win32') return; // Git Bash's `start` is a shell builtin wrapper; covered by review.
+  const helper = path.join(TEMPLATES_DIR, 'forge-open.sh');
+  const bin = tmp();
+  const log = path.join(bin, 'calls.log');
+  for (const opener of ['open', 'xdg-open', 'wslview']) {
+    const stub = path.join(bin, opener);
+    fs.writeFileSync(stub, `#!/bin/sh\necho "${opener} $*" >> "${log}"\nexit "\${STUB_EXIT:-0}"\n`);
+    fs.chmodSync(stub, 0o755);
+  }
+  const run = (extra) => require('child_process').spawnSync('sh', [helper, '/tmp/report.html'], {
+    env: { PATH: `${bin}:/usr/bin:/bin`, DISPLAY: ':0', ...extra },
+    encoding: 'utf8',
+  });
+
+  assert.equal(run({}).status, 0);
+  const calls = fs.readFileSync(log, 'utf8');
+  assert.match(calls, /^(open|xdg-open|wslview) \/tmp\/report\.html$/m, `no opener was given the path: ${calls}`);
+
+  fs.writeFileSync(log, '');
+  assert.equal(run({ STUB_EXIT: '1' }).status, 0, 'a failing opener must not fail the run');
+  assert.notEqual(fs.readFileSync(log, 'utf8'), '', 'the opener should still have been tried');
+
+  fs.writeFileSync(log, '');
+  assert.equal(run({ SSH_CONNECTION: '1.2.3.4 22 5.6.7.8 22' }).status, 0);
+  assert.equal(fs.readFileSync(log, 'utf8'), '', 'a remote session must not try to open anything');
+});
+
+// Every document the kit writes went through an inline `node -e '<script>'`. A
+// permission rule matches Bash by prefix, so allowing it meant allowing any node
+// script at all. Shipped as files, each can be allowed by its own path.
+test('no template runs an inline node script', () => {
+  const offenders = [];
+  for (const f of [...GUIDE_FILES, ...COMMAND_FILES, ...SKILL_FILES]) {
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8');
+    if (/node -e '/.test(body)) offenders.push(f);
+  }
+  assert.deepEqual(offenders, [], `inline node -e still in:\n  ${offenders.join('\n  ')}`);
+});
+
+test('every document writer calls the shipped splice script', () => {
+  for (const f of ['investigate.md', 'brainstorm.md', 'plan.md', 'review-pr.md']) {
+    assert.ok(
+      commandInstruction(f).includes('node "{{INSTALL_PATH}}/forge-splice.js"'),
+      `${f} must splice through forge-splice.js`,
+    );
+  }
+  assert.ok(
+    commandInstruction('review-pr.md').includes('node "{{INSTALL_PATH}}/forge-review-payload.js"'),
+    'review-pr must assemble its payload through forge-review-payload.js',
+  );
+});
+
+// With the kit both in ~/.claude and in the repo, Claude Code runs the personal
+// copy ("personal over project"), so the committed version silently does nothing.
+test('status and a project install warn when a global install shadows the project one', () => {
+  const home = tmp();
+  const repo = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  execFileSync('node', [BIN, '--yes'], { env, stdio: 'ignore' });
+  const installOut = execFileSync('node', [BIN, '--project', '--yes'], { env, cwd: repo, encoding: 'utf8' });
+  assert.match(installOut, /global install.*runs instead/is);
+  const statusOut = execFileSync('node', [BIN, 'status', '--project'], { env, cwd: repo, encoding: 'utf8' });
+  assert.match(statusOut, /global install.*runs instead/is);
+
+  const quiet = tmp();
+  const alone = execFileSync('node', [BIN, 'status', '--project'], {
+    env: { ...env, HOME: quiet, USERPROFILE: quiet }, cwd: repo, encoding: 'utf8',
+  });
+  assert.doesNotMatch(alone, /runs instead/i, 'no warning without a global install');
+});
+
+// The refusal is about not removing things unasked. With nothing installed there
+// is nothing to ask about, so a cleanup script must keep its old, quiet exit 0.
+test('uninstall without a terminal is still a quiet no-op when nothing is installed', () => {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  delete env.SLASHFORGE_YES;
+  const r = require('child_process').spawnSync('node', [BIN, 'uninstall'], {
+    env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /Nothing to remove/);
 });

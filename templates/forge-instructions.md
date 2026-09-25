@@ -13,7 +13,7 @@ Reference this file whenever asked to create `CLAUDE.md`, agents, rules, or skil
 
 ## Golden Rules (always enforced)
 
-- **Every `.md` file — including this one — must stay under 200 lines.** Split into focused files if exceeded.
+- **Every generated `.md` file must stay under 200 lines, except a skill's `SKILL.md`, which may run to 500 lines.** Split into focused files if exceeded; a skill moves reference material into sibling files.
 - `CLAUDE.md` → repo root. Agents / rules / skills → inside `.claude/` only. Never in root.
 - Rules and skills must reflect **actual patterns in this codebase**, not generic best practices.
 - Agent files reference **directories** (`.claude/rules/`), never specific file paths — they go stale.
@@ -30,7 +30,7 @@ Reference this file whenever asked to create `CLAUDE.md`, agents, rules, or skil
 | `CLAUDE.md` | Repo root |
 | Agents | `.claude/agents/*.md` |
 | Rules | `.claude/rules/*.md` |
-| Skills | `.claude/skills/*.md` |
+| Skills | `.claude/skills/<name>/SKILL.md` |
 | Commands | `.claude/commands/*.md` |
 
 ---
@@ -126,8 +126,10 @@ Do not guess — a wrong assumption produces misleading documentation.
 ## Step 9 — Verify
 
 ```bash
-# No file exceeds 200 lines
-wc -l CLAUDE.md .claude/**/*.md
+# No file over its limit: 200 lines, or 500 for a skill's SKILL.md.
+# find, not a recursive glob: bash leaves globstar off, so one would stop a folder deep.
+find CLAUDE.md .claude \( -path .claude/setup -o -path .claude/commands/slashforge \) -prune -o -name '*.md' -exec wc -l {} + \
+  | awk '$NF == "total" { next } { limit = ($NF ~ /SKILL\.md$/) ? 500 : 200 } $1 > limit { print "over " limit ": " $0; bad = 1 } END { exit bad }'
 
 # No stale file references
 grep -r "rules\.md\|skills\.md\|agents\.md" CLAUDE.md .claude/
@@ -162,7 +164,7 @@ Whether adding to a partially set up repo or making ongoing updates to a complet
 
 ## When to Split a File
 
-Split at 200 lines by meaning — by phase (scaffold vs wiring), by concern (frontend vs backend), or by frequency (common vs rare tasks). Name splits clearly: `add-metric-scaffold.md` + `add-metric-wiring.md`, not `add-metric-part1.md`.
+Split at 200 lines (500 for a `SKILL.md`) by meaning — by phase (scaffold vs wiring), by concern (frontend vs backend), or by frequency (common vs rare tasks). Name splits clearly: `add-metric-scaffold.md` + `add-metric-wiring.md`, not `add-metric-part1.md`.
 
 ## What NOT to Put in These Files
 

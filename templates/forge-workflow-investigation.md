@@ -100,24 +100,17 @@ be opened by a human without a code editor.
 mkdir -p docs/slashforge/investigations
 report="docs/slashforge/investigations/investigation-<YYYY-MM-DD-HHMM>.html"
 
-node -e '
-const fs = require("fs");
-const [shell, frag, out, title] = process.argv.slice(1);
-const body = fs.readFileSync(frag, "utf8");
-const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
-  .replace("<!--TITLE-->",   () => esc(title))
-  .replace("<!--CONTENT-->", () => body));
-' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$report" "Investigation — <short-symptom> (<YYYY-MM-DD>)"
+node "{{INSTALL_PATH}}/forge-splice.js" "$fragment" "$report" "Investigation — <short-symptom> (<YYYY-MM-DD>)"
 ```
 
-Three details that matter:
+`forge-splice.js` ships next to the shell and does the substitution the same way every time:
 
-- The replacements use **function** form (`() => body`), not a plain string. A string replacement would let `$&` or `$'` sequences inside your fragment be interpreted as substitution patterns and silently corrupt the report.
-- **The title is escaped; the body is not.** The title is plain text taken from the symptom, so `&`, `<` and `>` are escaped — `&` first, or the ampersands introduced by the later replacements get double-escaped. Without this, a symptom containing `</title>` ends the element early and the rest leaks into the document as markup, and entity-shaped text like `&amp;` or `&#65;` is silently decoded into something the symptom never said. The body is genuine HTML and must be spliced verbatim.
+- It uses **function-form** replacement (`() => body`), so `$&` or `$'` inside your fragment can't be read as substitution patterns and corrupt the report.
+- **It escapes the title but not the body.** The title is plain text taken from the symptom. Unescaped, a symptom containing `</title>` would end the element early, and entity-shaped text like `&amp;` would be decoded into something the symptom never said. The body is real HTML and goes in verbatim.
+- It is a file rather than an inline `node -e` script so that a permission rule can allow exactly this path, not arbitrary node code.
 - Delete the scratch fragment afterwards. It is not part of the deliverable.
 
-If the shell is missing (an older install, or a hand-modified `.claude/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
+If the shell or `forge-splice.js` is missing (an older install, or a hand-modified `.claude/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
 
 ### 2. Open it in the user's browser (best-effort)
 

@@ -86,19 +86,11 @@ Use only these elements. The shell styles `h1`, `h2`, `code`, `pre`, `ul`/`ol`, 
 mkdir -p docs/slashforge/specs
 spec="docs/slashforge/specs/<YYYY-MM-DD>-<topic>-design.html"
 
-node -e '
-const fs = require("fs");
-const [shell, frag, out, title] = process.argv.slice(1);
-const body = fs.readFileSync(frag, "utf8");
-const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-fs.writeFileSync(out, fs.readFileSync(shell, "utf8")
-  .replace("<!--TITLE-->",   () => esc(title))
-  .replace("<!--CONTENT-->", () => body));
-' "{{INSTALL_PATH}}/forge-report-shell.html" "$fragment" "$spec" "Design — <topic> (<YYYY-MM-DD>)"
+node "{{INSTALL_PATH}}/forge-splice.js" "$fragment" "$spec" "Design — <topic> (<YYYY-MM-DD>)"
 ```
 
-Function-form replacement, title escaped, body verbatim — same reasoning as the investigation
-report. Delete the scratch fragment afterwards.
+`forge-splice.js` escapes the title and splices the body verbatim, the same script the
+investigation report uses. Delete the scratch fragment afterwards.
 
 Then open it, so the user reads the rendered document rather than the markup:
 
