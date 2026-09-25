@@ -6,6 +6,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- **`uninstall` keeps your own files in `setup/slashforge/`** ([#82](https://github.com/rajdeepratan/SlashForge/issues/82)). The commands folder already lost only the files the kit installed, and was kept if anything else was in it; the guides folder was deleted wholesale, taking any file you had put there with it. It now gets the same care: the kit's guides, assets, `meta.json` and any older `forge-*.md` guide are removed, the folder goes only once it's empty, and uninstall says what it kept. A folder holding only your files no longer counts as an install for `status`, the update prompt or a second uninstall. Found by [Stephane Pareilleux](https://github.com/spareilleux).
+
 ## [4.5.0] - 2026-09-25
 
 Every fix below was found by [Stephane Pareilleux](https://github.com/spareilleux), who audited 4.4.3 in his course [SlashForge: Workflow Commands for Claude Code](https://spareilleux.github.io/learn/slashforge/). He ran the installer in a sandbox and the commands through a model, and published a reproduction for each finding. Thank you.
