@@ -6,6 +6,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+Every fix below was found by [Stephane Pareilleux](https://github.com/spareilleux), who audited 4.4.3 in his course [SlashForge: Workflow Commands for Claude Code](https://spareilleux.github.io/learn/slashforge/). He ran the installer in a sandbox and the commands through a model, and published a reproduction for each finding. Thank you.
+
 ### Fixed
 - **`--dry-run` lists every file the install writes.** It built its own list from the guides and the four commands, so it announced 21 files while 4.4.3 wrote 32: the nine skills and the report assets were missing. The preview and the install now share one list, `plannedWrites`, and a test compares them in both directions.
 - **The dry run labels guides as `render`.** Guides have been rendered since 4.4.1, but the preview still said `copy`. Only the assets are copied verbatim.
