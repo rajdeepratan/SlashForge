@@ -616,6 +616,50 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 .rail__cmd i { color: var(--muted); font-style: normal; }
 .rail__note { font-size: 13.5px; line-height: 1.65; color: var(--muted); margin: 16px 0 0; }
 .rail__note strong { color: var(--text); font-weight: 600; }
+
+/* Read once, in full, by screen readers; the ticker beside it is decorative. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The host names roll upward, one at a time. The track repeats the first name
+   at the end, so jumping back to the start is invisible. Only for readers who
+   have not asked for less motion; everyone else sees the static list. */
+.ticker { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .rail__hosts { display: none; }
+  .ticker {
+    display: inline-block;
+    height: 1.65em;
+    overflow: hidden;
+    vertical-align: top;
+  }
+  .ticker__track {
+    display: flex;
+    flex-direction: column;
+    animation: ticker 7.2s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+  }
+  .ticker__track strong {
+    display: block;
+    height: 1.65em;
+    line-height: 1.65em;
+    white-space: nowrap;
+  }
+}
+@keyframes ticker {
+  0%, 27%   { transform: translateY(0); }
+  33%, 60%  { transform: translateY(-25%); }
+  66%, 93%  { transform: translateY(-50%); }
+  100%      { transform: translateY(-75%); }
+}
 .rail__facts { display: flex; align-items: center; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
 /* The separator takes the fact colour at half strength: --hairline is tuned for
    2px rules and disappears against the dark background at 1px of type. */
