@@ -6,6 +6,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [4.5.0] - 2026-09-25
+
 Every fix below was found by [Stephane Pareilleux](https://github.com/spareilleux), who audited 4.4.3 in his course [SlashForge: Workflow Commands for Claude Code](https://spareilleux.github.io/learn/slashforge/). He ran the installer in a sandbox and the commands through a model, and published a reproduction for each finding. Thank you.
 
 ### Fixed
