@@ -48,9 +48,9 @@ const COMMAND_FILES = [
   path.join('slashforge', 'review-pr.md'),
 ];
 
-// Discipline skills. They install into the same `slashforge/` namespace dir as the
-// commands above — that subdirectory is what produces a `slashforge:` invocation —
-// and are rendered the same way. They are kept out of COMMAND_FILES on purpose:
+// Discipline skills. They install the same way as the commands above, as
+// slashforge-<name> on every host, and are rendered the same way. They are kept
+// out of COMMAND_FILES on purpose:
 // that list drives meta.json's `commands` and the `status` output, which should
 // keep reporting the entry points a user actually types, not every internal
 // discipline the workflow invokes on their behalf.
@@ -208,6 +208,11 @@ function profilesFor(file) {
   return Object.keys(TARGETS);
 }
 
+// Templates are validated before anything is written, and again by each install
+// function for direct callers; a passing check is remembered so it runs once. The
+// key includes size and mtime, so an edited template is checked again.
+const validatedTemplates = new Set();
+
 function validateTemplates(files, dir) {
   const errors = [];
   for (const file of files) {
@@ -216,6 +221,10 @@ function validateTemplates(files, dir) {
       errors.push(`missing template: ${filePath}`);
       continue;
     }
+    const st = fs.statSync(filePath);
+    const key = `${filePath}:${st.size}:${st.mtimeMs}`;
+    if (validatedTemplates.has(key)) continue;
+    const before = errors.length;
     try {
       const content = fs.readFileSync(filePath, 'utf8');
       const blockErrors = findTargetBlockErrors(content, file);
@@ -234,6 +243,7 @@ function validateTemplates(files, dir) {
     } catch (err) {
       errors.push(err.message);
     }
+    if (errors.length === before) validatedTemplates.add(key);
   }
   if (errors.length) {
     console.error('\nTemplate validation failed:');
@@ -609,7 +619,8 @@ function installAgentsFiles(agents, {
   // kit files the new layout never reads; the user's own files stay.
   for (const entry of fs.readdirSync(agents.root)) {
     const p = path.join(agents.root, entry);
-    if (entry !== 'meta.json' && fs.statSync(p).isFile() && isKitGuideFile(entry, guideFiles)) fs.rmSync(p);
+    // lstat, not stat: a dangling symlink here must not stop the install.
+    if (entry !== 'meta.json' && fs.lstatSync(p).isFile() && isKitGuideFile(entry, guideFiles)) fs.rmSync(p);
   }
   for (const h of agents.hosts) {
     for (const f of guideFiles) {
@@ -684,6 +695,8 @@ function uninstallFiles(target, {
     }
   }
   removed.push(...removeKitFiles(target.guidesDir, guideFiles));
+  // setup/ only: ~/.claude itself and commands/ belong to Claude Code, not the kit.
+  removed.push(...pruneEmptyDirs([path.dirname(target.guidesDir)]));
   // The v2 guides dir predates the kit's file naming, so it is still removed whole.
   if (target.legacyGuidesDir && fs.existsSync(target.legacyGuidesDir)) {
     fs.rmSync(target.legacyGuidesDir, { recursive: true, force: true });
@@ -705,6 +718,19 @@ function uninstallAgentsFiles(agents, { guideFiles = GUIDE_FILES, commandFiles =
   }
   for (const h of agents.hosts) removed.push(...removeKitFiles(h.guidesDir, [...guideFiles, SETUP_FLOW]));
   removed.push(...removeKitFiles(agents.root, guideFiles));
+  // The folders the install created, once nothing else is in them.
+  removed.push(...pruneEmptyDirs([path.dirname(agents.root), agents.base]));
+  return removed;
+}
+
+// Removes each dir in order if it exists and is empty; stops at the first that is not.
+function pruneEmptyDirs(dirs) {
+  const removed = [];
+  for (const d of dirs) {
+    if (!fs.existsSync(d) || fs.readdirSync(d).length) break;
+    fs.rmdirSync(d);
+    removed.push(d);
+  }
   return removed;
 }
 
@@ -863,9 +889,18 @@ function warnIfShadowed(claude, agents) {
   if (globalClaude.guidesDir !== claude.guidesDir && hasKitFiles(globalClaude.guidesDir)) {
     const meta = readMeta(globalClaude.metaFile);
     const version = meta ? `v${meta.version}` : 'an unknown version';
-    console.log(`\n⚠  A global install (${version}) is in ${path.dirname(path.dirname(globalClaude.guidesDir))}.`);
-    console.log('   Claude Code prefers personal commands, so the global install runs instead of');
-    console.log(`   this project copy. \`npx ${pkg.name} uninstall --yes\` removes the global one.`);
+    const where = path.dirname(path.dirname(globalClaude.guidesDir));
+    const globalIsV4 = V4_COMMAND_FILES.some((c) => fs.existsSync(path.join(globalClaude.commandsDir, c)));
+    if (globalIsV4) {
+      // Different names, so nothing is shadowed: Claude Code lists both sets.
+      console.log(`\n⚠  A global 4.x install (${version}) is in ${where}. Its /slashforge:* commands have`);
+      console.log('   different names, so Claude Code lists both them and this project\'s /slashforge-*.');
+      console.log(`   Run \`npx ${pkg.name}\` outside the repo to update it, or \`npx ${pkg.name} uninstall --yes\` to remove it.`);
+    } else {
+      console.log(`\n⚠  A global install (${version}) is in ${where}.`);
+      console.log('   Claude Code prefers personal commands, so the global install runs instead of');
+      console.log(`   this project copy. \`npx ${pkg.name} uninstall --yes\` removes the global one.`);
+    }
   }
   const globalAgents = resolveAgents();
   if (agents && globalAgents.root !== agents.root && hasKitFiles(globalAgents.root)) {
@@ -921,7 +956,9 @@ async function printStatus({ project = false } = {}) {
   }
   const versionLine = (meta) => {
     if (!meta) return 'unknown (legacy install — no meta.json)';
-    return `v${meta.version}${meta.version !== pkg.version ? '  ← update available' : ''}`;
+    return meta.version !== pkg.version
+      ? `v${meta.version}  ← update available: run \`npx ${pkg.name}\``
+      : `v${meta.version}`;
   };
   console.log('\nslashforge status');
   console.log(`  Package version (current): v${pkg.version}`);
@@ -942,7 +979,9 @@ async function printStatus({ project = false } = {}) {
     console.log(`\n  Cursor + Codex (${agents.base})`);
     console.log(`    Installed version:  ${versionLine(readMeta(agents.metaFile))}`);
     for (const h of agents.hosts) {
-      const n = fs.existsSync(h.guidesDir) ? fs.readdirSync(h.guidesDir).filter((f) => f.endsWith('.md')).length : 0;
+      const n = fs.existsSync(h.guidesDir)
+        ? fs.readdirSync(h.guidesDir).filter((f) => f.endsWith('.md') && isKitGuideFile(f)).length
+        : 0;
       console.log(`    Guide files (${h.host}): ${n} (${h.guidesDir})`);
     }
     const skills = COMMAND_FILES.filter((c) => fs.existsSync(skillFilePath(agents, c))).sort();
@@ -1020,6 +1059,11 @@ async function install({ dryRun, assumeYes, project = false }) {
       const label = w.kind === 'asset' ? 'copy  ' : w.kind === 'meta' ? 'write ' : 'render';
       const base = w.src ? path.basename(w.src) : path.basename(w.dest);
       console.log(`  ${label} ${base.padEnd(36)} → ${w.dest}`);
+    }
+    // An upgrade also removes the kit's 4.x command files; the preview says so.
+    for (const c of V4_COMMAND_FILES) {
+      const p = path.join(claude.commandsDir, c);
+      if (fs.existsSync(p)) console.log(`  remove ${path.basename(c).padEnd(36)} → ${p}`);
     }
     console.log(`\nRerun without --dry-run to install.`);
     return;
@@ -1120,11 +1164,13 @@ async function uninstall({ project, assumeYes, interactive = true }) {
   const removed = [...uninstallFiles(claude, {}), ...uninstallAgentsFiles(agents, {})];
   console.log('\n✓ Uninstalled slashforge');
   for (const p of removed) console.log(`  removed ${p}`);
+  // Name the user's own files. A kit folder kept only because a user file sits in
+  // one of its host folders is reported through that folder, not listed itself.
+  const hostDirs = new Set(agents.hosts.map((h) => path.basename(h.guidesDir)));
   for (const dir of [claude.guidesDir, agents.root, ...agents.hosts.map((h) => h.guidesDir)]) {
-    if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
-      const left = fs.readdirSync(dir).sort().join(', ');
-      if (left) console.log(`  kept    ${dir} — it holds files slashforge did not install: ${left}`);
-    }
+    if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) continue;
+    const left = fs.readdirSync(dir).filter((n) => !(dir === agents.root && hostDirs.has(n))).sort();
+    if (left.length) console.log(`  kept    ${dir} — it holds files slashforge did not install: ${left.join(', ')}`);
   }
 }
 

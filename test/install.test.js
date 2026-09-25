@@ -2362,3 +2362,100 @@ test('installing inside a repo set up with 4.x warns about the old names', () =>
   const clean = execFileSync('node', [BIN, '--yes'], { env, cwd: tmp(), encoding: 'utf8' });
   assert.doesNotMatch(clean, /4\.x commands/);
 });
+
+// --- Deferred minors from the whole-branch reviews ---
+function envFor(home) {
+  return { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+}
+function plantV4(commandsDir) {
+  const ns = path.join(commandsDir, 'slashforge');
+  fs.mkdirSync(ns, { recursive: true });
+  for (const c of [...COMMAND_FILES, ...SKILL_FILES]) fs.writeFileSync(path.join(ns, path.basename(c)), 'old');
+  return ns;
+}
+
+test('the dry run lists the 4.x files an upgrade will remove, and removes nothing', () => {
+  const home = tmp();
+  const ns = plantV4(path.join(home, '.claude', 'commands'));
+  const out = execFileSync('node', [BIN, '--dry-run'], { env: envFor(home), encoding: 'utf8' });
+  assert.match(out, /remove\s+code\.md\s+→ .*slashforge[\\/]code\.md/);
+  assert.equal(fs.readdirSync(ns).length, COMMAND_FILES.length + SKILL_FILES.length, 'nothing removed');
+});
+
+test('a global 4.x install beside a 5.0 project install is not described as shadowing', () => {
+  const home = tmp();
+  const repo = tmp();
+  plantV4(path.join(home, '.claude', 'commands'));
+  const g = path.join(home, '.claude', 'setup', 'slashforge');
+  fs.mkdirSync(g, { recursive: true });
+  fs.writeFileSync(path.join(g, 'forge-workflow.md'), 'old');
+  fs.writeFileSync(path.join(g, 'meta.json'), JSON.stringify({ version: '4.5.0' }));
+  const out = execFileSync('node', [BIN, '--project', '--yes'], { env: envFor(home), cwd: repo, encoding: 'utf8' });
+  assert.doesNotMatch(out, /runs instead/);
+  assert.match(out, /4\.x.*both|both.*4\.x/is);
+  assert.match(out, /npx slashforge\b(?! --project)/, 'says how to update the global one');
+});
+
+test('status counts only kit guides in a host folder', () => {
+  const home = tmp();
+  execFileSync('node', [BIN, '--yes'], { env: envFor(home) });
+  const cursor = path.join(home, '.agents', 'setup', 'slashforge', 'cursor');
+  const before = execFileSync('node', [BIN, 'status'], { env: envFor(home), encoding: 'utf8' }).match(/Guide files \(cursor\): (\d+)/)[1];
+  fs.writeFileSync(path.join(cursor, 'my-notes.md'), 'mine');
+  const after = execFileSync('node', [BIN, 'status'], { env: envFor(home), encoding: 'utf8' }).match(/Guide files \(cursor\): (\d+)/)[1];
+  assert.equal(after, before);
+});
+
+test('status suggests re-running when a location is older than the package', () => {
+  const home = tmp();
+  execFileSync('node', [BIN, '--yes'], { env: envFor(home) });
+  const meta = path.join(home, '.agents', 'setup', 'slashforge', 'meta.json');
+  fs.writeFileSync(meta, JSON.stringify({ ...JSON.parse(fs.readFileSync(meta, 'utf8')), version: '0.0.1' }));
+  const out = execFileSync('node', [BIN, 'status'], { env: envFor(home), encoding: 'utf8' });
+  assert.match(out, /v0\.0\.1.*update available.*npx slashforge/s);
+});
+
+test('uninstall names the user files it kept, never the kit\'s own folders', () => {
+  const home = tmp();
+  execFileSync('node', [BIN, '--yes'], { env: envFor(home) });
+  fs.writeFileSync(path.join(home, '.agents', 'setup', 'slashforge', 'cursor', 'notes.md'), 'mine');
+  const out = execFileSync('node', [BIN, 'uninstall', '--yes'], { env: envFor(home), encoding: 'utf8' });
+  const kept = out.split('\n').filter((l) => l.includes('kept'));
+  assert.equal(kept.length, 1, `one kept line, got:\n${kept.join('\n')}`);
+  assert.match(kept[0], /cursor.*notes\.md/);
+});
+
+test('a dangling symlink in the .agents guides root does not break the install', () => {
+  const home = tmp();
+  const root = path.join(home, '.agents', 'setup', 'slashforge');
+  fs.mkdirSync(root, { recursive: true });
+  fs.symlinkSync(path.join(home, 'nowhere'), path.join(root, 'broken-link'));
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  assert.doesNotThrow(() => installAgentsFiles(a, {}));
+});
+
+test('uninstall leaves no empty folders it created behind', () => {
+  const home = tmp();
+  execFileSync('node', [BIN, '--yes'], { env: envFor(home) });
+  execFileSync('node', [BIN, 'uninstall', '--yes'], { env: envFor(home) });
+  assert.ok(!fs.existsSync(path.join(home, '.agents')), '.agents emptied and removed');
+  assert.ok(!fs.existsSync(path.join(home, '.claude', 'setup')), '.claude/setup emptied and removed');
+});
+
+test('setup\'s size check skips the kit\'s own flat command files in a project install', () => {
+  const script = verifyScript('claude');
+  const repo = tmp();
+  fs.writeFileSync(path.join(repo, 'CLAUDE.md'), lines(10));
+  installFiles(resolveTarget({ project: true, cwd: repo, homeDir: tmp() }), {});
+  fs.appendFileSync(path.join(repo, '.claude', 'commands', 'slashforge-plan.md'), lines(300));
+  const r = require('child_process').spawnSync('bash', ['-c', script], { cwd: repo, encoding: 'utf8' });
+  assert.equal(r.status, 0, `the kit's files are not the repo's: ${r.stdout}`);
+});
+
+test('the Graphify guide names each host\'s own integration', () => {
+  assert.match(renderAll('claude')['forge-graph.md'], /Claude Code Glob\/Grep hook/);
+  for (const host of ['cursor', 'codex']) {
+    assert.doesNotMatch(renderAll(host)['forge-graph.md'], /Claude Code Glob\/Grep hook/, host);
+  }
+  assert.match(renderAll('cursor')['forge-graph.md'], /\.cursor\/rules\/graphify\.mdc/);
+});

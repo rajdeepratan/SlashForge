@@ -7,11 +7,10 @@
  * this is .mjs and not .ts: Node cannot import TypeScript during the build,
  * and one file has to serve both sides.
  *
- * The same transformation lives in bin/install.js as toSkillCommandRefs, which
- * rewrites cross-references when installing to the agents target. The two ship
- * as separate packages so the rule is written twice on purpose — but they must
- * agree on which commands exist, and a test asserts that against the
- * installer's own COMMAND_FILES and SKILL_FILES.
+ * The same rule lives in bin/install.js as toHostCommandRefs, which swaps the
+ * sigil in Codex's guides. The two ship as separate packages so the rule is
+ * written twice on purpose — but they must agree on which commands exist, and a
+ * test asserts that against the installer's own COMMAND_FILES and SKILL_FILES.
  */
 
 export const TARGETS = ['claude', 'cursor', 'codex'];
@@ -20,10 +19,8 @@ export const DEFAULT_TARGET = 'claude';
 /** Matches the existing `sf-theme` convention in src/scripts/site.js. */
 export const STORAGE_KEY = 'sf-target';
 
-// setup is switchable: it installs on cursor and codex, scaffolding each host's
-// own layout rather than .claude/. The vendor-neutral `agents` target is the one
-// place it is still omitted — no host is known there, so there is no layout to
-// write — but the docs describe the vendors, not that fallback.
+// setup is switchable like the rest: it runs on every host, scaffolding each one's
+// own layout.
 export const SWITCHABLE = [
   'setup',
   'code',

@@ -49,7 +49,7 @@ Start to finish, for a repo that has never used SlashForge.
 npx slashforge
 ```
 
-**2. Set up the repo.** ==SlashForge ships every discipline skill the workflow
+**2. Nothing else to install.** ==SlashForge ships every discipline skill the workflow
 uses, so there is no plugin step.== See [Skills](/slashforge/guides/skills/) for
 what runs at each phase.
 

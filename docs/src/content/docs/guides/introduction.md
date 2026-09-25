@@ -17,7 +17,7 @@ Two things land on your machine:
 | What | Where |
 | --- | --- |
 | Guide files | `~/.claude/setup/slashforge/` |
-| Commands | `~/.claude/commands/` (as `slashforge-*.md`) |
+| Commands | `~/.claude/commands/` — each named `slashforge-<name>` |
 
 The commands are thin. ==They point at the guide files, which carry the actual
 workflow.== That separation is why a command can change modes — `-quick` simply

@@ -128,7 +128,7 @@ Do not guess — a wrong assumption produces misleading documentation.
 ```bash
 # No file over its limit: 200 lines, or 500 for a skill's SKILL.md.
 # find, not a recursive glob: bash leaves globstar off, so one would stop a folder deep.
-find CLAUDE.md .claude \( -path .claude/setup -o -path .claude/commands/slashforge \) -prune -o -name '*.md' -exec wc -l {} + \
+find CLAUDE.md .claude \( -path .claude/setup -o -path '.claude/commands/slashforge-*.md' \) -prune -o -name '*.md' -exec wc -l {} + \
   | awk '$NF == "total" { next } { limit = ($NF ~ /SKILL\.md$/) ? 500 : 200 } $1 > limit { print "over " limit ": " $0; bad = 1 } END { exit bad }'
 
 # No stale file references

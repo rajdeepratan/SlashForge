@@ -302,7 +302,15 @@ If the append runs first, the kit's subsequent `AGENTS.md` write overwrites Grap
 
 Tell the user, verbatim (drop "installed and" on Branch B since the CLI was already there):
 
+<!--target:claude-->
 > *"Graphify is installed and this repo is indexed. I've also synthesised `graphify-out/SUMMARY.html` — the human-readable version of the graph report (read it once to anchor your mental model). Open a separate terminal tab and run `graphify watch .` to keep the graph in sync with file changes — without it, the graph goes stale and agents may cite relationships that no longer exist. The Claude Code Glob/Grep hook is now active; agents will see graph context automatically on the next command."*
+<!--/target-->
+<!--target:cursor-->
+> *"Graphify is installed and this repo is indexed. I've also synthesised `graphify-out/SUMMARY.html` — the human-readable version of the graph report (read it once to anchor your mental model). Open a separate terminal tab and run `graphify watch .` to keep the graph in sync with file changes — without it, the graph goes stale and agents may cite relationships that no longer exist. The `.cursor/rules/graphify.mdc` rule is now in place; the agent will see graph context automatically on the next command."*
+<!--/target-->
+<!--target:codex-->
+> *"Graphify is installed and this repo is indexed. I've also synthesised `graphify-out/SUMMARY.html` — the human-readable version of the graph report (read it once to anchor your mental model). Open a separate terminal tab and run `graphify watch .` to keep the graph in sync with file changes — without it, the graph goes stale and agents may cite relationships that no longer exist. The Codex PreToolUse hook is now active; the agent will see graph context automatically on the next command."*
+<!--/target-->
 
 Branch B variant: *"This repo is now indexed. I've also synthesised `graphify-out/SUMMARY.html`..."* (rest identical).
 
