@@ -1,0 +1,1232 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — One install for Claude Code, Cursor and Codex (2026-09-25)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Plan — One install for Claude Code, Cursor and Codex</h1>
+<div class="summary">
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</div>
+<p><strong>Goal:</strong> <code>npx slashforge</code>, with no <code>--target</code>, installs SlashForge for Claude Code, Cursor and Codex in one go.</p>
+<p><strong>Architecture:</strong> there are two install locations.
+- <strong><code>~/.claude/</code>:</strong> installed by the existing <code>installFiles(resolveTarget(...))</code> path, with unchanged output.
+- <strong><code>~/.agents/</code>:</strong> handled by new functions: <code>resolveAgents</code>, <code>installAgentsFiles</code>, <code>plannedAgentsWrites</code> and <code>uninstallAgentsFiles</code>. They render the guides once per host into <code>setup/slashforge/{cursor,codex}/</code>, and one host-neutral skill set (with a runtime preamble) into <code>skills/</code>.</p>
+<p>Setup's procedure becomes a generated per-host guide, <code>forge-setup-flow.md</code>, rendered from the unchanged <code>setup.md</code>. The vendor setup skill is a small dispatcher template.</p>
+<p><strong>Tech Stack:</strong> Node.js with no dependencies (CI runs Node 16, 18, 20 and 22), the <code>node --test</code> runner, and Astro for the docs site.</p>
+<p><strong>Spec:</strong> <code>docs/slashforge/specs/2026-09-25-single-install-all-hosts-design.html</code></p>
+<h2>Global Constraints</h2>
+<ul>
+<li><strong>Branch:</strong> work on <code>feat/cursor-codex-targets</code> (PR #58). <strong>Never merge it.</strong> Push only after the final task.</li>
+<li><strong>Dependencies:</strong> none added; the code must run on Node 16.</li>
+<li><strong>Claude output is pinned:</strong> every file in the Claude install is byte-identical to the fixtures captured in Task 1 (branch commit <code>4d68b2d</code>); <code>meta.json</code> is exempt.</li>
+<li><strong>Install layout:</strong></li>
+<li>skills: <code>~/.agents/skills/slashforge-&lt;name&gt;/SKILL.md</code></li>
+<li>per-host guides: <code>~/.agents/setup/slashforge/cursor/</code> and <code>~/.agents/setup/slashforge/codex/</code></li>
+<li>one <code>meta.json</code> at <code>~/.agents/setup/slashforge/meta.json</code></li>
+<li><strong>Skill preamble</strong>, exactly this text, directly after each skill's frontmatter:
+  <code>You are running in Cursor or in Codex. In every path below, replace &lt;host&gt; with
+  cursor or codex to match. Commands are written /slashforge-name; in Codex invoke
+  them as $slashforge-name. If you cannot tell which host you are in: a .codex/
+  folder in the repo means Codex and a .cursor/ folder means Cursor; if neither
+  or both, ask the user once and use that answer for the rest of the session.</code></li>
+<li><strong><code>--target</code> rejection:</strong> <code>--target</code> or <code>--target=…</code> exits 1 with exactly <code>--target is no longer needed: one install sets up Claude Code, Cursor and Codex.</code></li>
+<li><strong>Uninstall safety from #88 is kept:</strong> only kit files are removed, only <code>slashforge-*</code> folders in the shared skills directory, and <code>--yes</code> is required without a TTY. Flag-free updates in CI are kept.</li>
+<li><strong>Commits</strong> end with <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code>.</li>
+</ul>
+<h2>Review Focus</h2>
+<ol>
+<li><strong>An old per-target build is upgraded.</strong> Earlier #58 builds put <code>forge-*.md</code> files directly in <code>~/.agents/setup/slashforge/</code>. Installing must remove those root-level kit files and keep the user's files. The test is in Task 2.</li>
+<li><strong>Windows paths.</strong> Every guide path inside a skill uses <code>/</code>, including the <code>&lt;host&gt;</code> segment, even when <code>path.sep</code> is <code>\</code>. The test is in Task 2.</li>
+<li><strong>Repeated installs.</strong> Running the install twice writes exactly the same set of files, with nothing left behind or duplicated. The test is in Task 2.</li>
+<li><strong>Other tools' skills in the shared folder.</strong> A repo or home whose <code>.agents/skills/</code> holds other tools' skills keeps them through install and uninstall. The test is in Task 3.</li>
+<li><strong>User files in a host guide folder.</strong> A file the user put in <code>~/.agents/setup/slashforge/cursor/</code> survives uninstall, and the kept folder is reported. The test is in Task 3.</li>
+</ol>
+<hr />
+<h3>Task 1: Pin the Claude render with fixtures</h3>
+<p><strong>Files:</strong>
+- Create: <code>test/fixtures/claude-render/**</code> (generated), <code>scripts/snapshot-claude-render.js</code>
+- Test: <code>test/claude-render.test.js</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>resolveTarget({ homeDir, cwd })</code> and <code>installFiles(target, {})</code> from <code>bin/install.js</code>, unchanged.
+- Produces: a guard that fails if any later task changes a Claude-installed file.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the snapshot script</strong></li>
+</ul>
+<pre><code class="language-js">// scripts/snapshot-claude-render.js — regenerates test/fixtures/claude-render from
+// the current templates. Run only when a Claude-facing change is intended.
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { resolveTarget, installFiles } = require('../bin/install.js');
+
+const out = path.join(__dirname, '..', 'test', 'fixtures', 'claude-render');
+fs.rmSync(out, { recursive: true, force: true });
+const home = fs.mkdtempSync(path.join(os.tmpdir(), 'snap-'));
+const target = resolveTarget({ homeDir: '/HOME', cwd: '/HOME' });
+// Render with a fixed, fake home so the fixture has no machine-specific paths,
+// but write the files into the temp dir.
+const real = resolveTarget({ homeDir: home, cwd: home });
+installFiles({ ...real, installPath: target.installPath }, { version: '0.0.0' });
+const root = path.join(home, '.claude');
+(function copy(dir) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) { copy(p); continue; }
+    if (e.name === 'meta.json') continue;
+    const dest = path.join(out, path.relative(root, p));
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.copyFileSync(p, dest);
+  }
+})(root);
+console.log('wrote', out);
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Generate the fixtures</strong></li>
+</ul>
+<p>Run: <code>node scripts/snapshot-claude-render.js</code>
+Expected: <code>wrote …/test/fixtures/claude-render</code>. Also check that <code>find test/fixtures/claude-render -type f | wc -l</code> prints <code>33</code>, which is 34 installed files minus <code>meta.json</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Write the guard test</strong></li>
+</ul>
+<pre><code class="language-js">// test/claude-render.test.js
+const { test } = require('node:test');
+const assert = require('node:assert');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { resolveTarget, installFiles } = require('../bin/install.js');
+
+const FIX = path.join(__dirname, 'fixtures', 'claude-render');
+
+function files(dir, rel = '') {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =&gt;
+    e.isDirectory() ? files(path.join(dir, e.name), path.join(rel, e.name)) : [path.join(rel, e.name)]);
+}
+
+// The one-install redesign must not change a single byte Claude Code reads.
+test('the Claude install is byte-identical to the pinned render', () =&gt; {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'cr-'));
+  const pinned = resolveTarget({ homeDir: '/HOME', cwd: '/HOME' });
+  const real = resolveTarget({ homeDir: home, cwd: home });
+  installFiles({ ...real, installPath: pinned.installPath }, { version: '0.0.0' });
+  const root = path.join(home, '.claude');
+  const got = files(root).filter((f) =&gt; path.basename(f) !== 'meta.json').sort();
+  assert.deepEqual(got, files(FIX).sort(), 'the set of Claude files changed');
+  for (const f of got) {
+    assert.equal(fs.readFileSync(path.join(root, f), 'utf8'),
+      fs.readFileSync(path.join(FIX, f), 'utf8'), `${f} changed`);
+  }
+});
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Run it</strong></li>
+</ul>
+<p>Run: <code>node --test test/claude-render.test.js</code>
+Expected: PASS, 1 test.</p>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code class="language-bash">git add scripts/snapshot-claude-render.js test/fixtures/claude-render test/claude-render.test.js
+git commit -m &quot;test: pin the Claude render before the one-install redesign
+
+Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;
+</code></pre>
+<hr />
+<h3>Task 2: The <code>~/.agents/</code> location — resolve, render, install, plan</h3>
+<p><strong>Files:</strong>
+- Create: <code>templates/agents/setup.md</code>
+- Modify: <code>bin/install.js</code>. Add the constants and functions below near the other install functions (after <code>installFiles</code>), and add them to <code>module.exports</code>.
+- Test: <code>test/install.test.js</code>, appending the block below.</p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>renderTemplate</code>, <code>toSkillCommandRefs</code>, <code>toSkillFrontmatter</code>, <code>skillDirName</code>, <code>validateTemplates</code>, <code>assertTemplatesExist</code>, <code>isKitGuideFile</code>, <code>readMeta</code>, <code>GUIDE_FILES</code>, <code>COMMAND_FILES</code>, <code>SKILL_FILES</code>, <code>ASSET_FILES</code>, <code>TARGETS</code> (cursor/codex <code>omit</code> and <code>blocks</code>), <code>pkg</code>.
+- Produces:
+  - <code>AGENT_HOSTS = ['cursor','codex']</code>, <code>SKILL_PREAMBLE</code> (string), <code>SETUP_COMMAND</code>, <code>SETUP_DISPATCH</code>, <code>SETUP_FLOW</code>
+  - <code>resolveAgents({ project, homeDir, cwd })</code> returns <code>{ base, root, skillsDir, metaFile, mode, skillInstallPath, hosts: [{ host, guidesDir, installPath, omit }] }</code>
+  - <code>renderSkill(src, dest, agents, { templatesDir, version, pkgName })</code> returns a string
+  - <code>installAgentsFiles(agents, opts)</code> returns <code>string[]</code> (paths written)
+  - <code>plannedAgentsWrites(agents, opts)</code> returns <code>{ kind, src?, dest }[]</code>
+  - a <code>skills</code> render profile in <code>TARGETS</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing tests</strong></li>
+</ul>
+<pre><code class="language-js">// --- One install: the ~/.agents/ location ---
+const {
+  resolveAgents, installAgentsFiles, plannedAgentsWrites, SKILL_PREAMBLE, AGENT_HOSTS,
+} = require('../bin/install.js');
+
+function agentsTree(root) {
+  const out = [];
+  (function walk(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p); else out.push(p);
+    }
+  })(root);
+  return out.sort();
+}
+
+test('resolveAgents lays out one skills dir and a guide folder per host', () =&gt; {
+  const a = resolveAgents({ homeDir: '/h', cwd: '/r' });
+  assert.equal(a.skillsDir, path.join('/h', '.agents', 'skills'));
+  assert.deepEqual(a.hosts.map((h) =&gt; h.host), ['cursor', 'codex']);
+  assert.equal(a.hosts[0].guidesDir, path.join('/h', '.agents', 'setup', 'slashforge', 'cursor'));
+  const p = resolveAgents({ project: true, homeDir: '/h', cwd: '/r' });
+  assert.equal(p.skillInstallPath, '.agents/setup/slashforge/&lt;host&gt;');
+  assert.equal(p.hosts[1].installPath, '.agents/setup/slashforge/codex');
+});
+
+// Review Focus 2: paths inside a skill are always forward-slashed.
+test('skill guide paths use / and a literal &lt;host&gt;, on every platform', () =&gt; {
+  const a = resolveAgents({ homeDir: 'C:\\Users\\me', cwd: 'C:\\r' });
+  assert.ok(!a.skillInstallPath.includes('\\'), a.skillInstallPath);
+  assert.ok(a.skillInstallPath.endsWith('/&lt;host&gt;'));
+});
+
+test('installAgentsFiles writes per-host guides, neutral skills and one meta', () =&gt; {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  for (const h of a.hosts) {
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'forge-workflow.md')), `${h.host} guides`);
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'forge-setup-flow.md')), `${h.host} setup flow`);
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'forge-splice.js')), `${h.host} assets`);
+    // The guides read meta.json from their own folder (forge-instructions.md says so).
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(h.guidesDir, 'meta.json'), 'utf8')).hosts, ['cursor', 'codex']);
+  }
+  assert.ok(fs.existsSync(path.join(a.hosts[0].guidesDir, 'forge-agents.md')), 'cursor: markdown subagents');
+  assert.ok(fs.existsSync(path.join(a.hosts[1].guidesDir, 'forge-agents-codex.md')), 'codex: TOML subagents');
+  assert.ok(!fs.existsSync(path.join(a.hosts[1].guidesDir, 'forge-agents.md')));
+  const meta = JSON.parse(fs.readFileSync(a.metaFile, 'utf8'));
+  assert.deepEqual(meta.hosts, ['cursor', 'codex']);
+  assert.ok(meta.commands.includes('/slashforge-code'));
+  for (const c of [...COMMAND_FILES, ...SKILL_FILES]) {
+    assert.ok(fs.existsSync(path.join(a.skillsDir, 'slashforge-' + path.basename(c, '.md'), 'SKILL.md')), c);
+  }
+});
+
+test('every skill is host-neutral: preamble, &lt;host&gt; paths, / form, no host blocks', () =&gt; {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  for (const dir of fs.readdirSync(a.skillsDir)) {
+    const body = fs.readFileSync(path.join(a.skillsDir, dir, 'SKILL.md'), 'utf8');
+    assert.ok(body.includes(SKILL_PREAMBLE), `${dir}: preamble`);
+    assert.match(body, new RegExp(`^---\\nname: ${dir}\\n`), `${dir}: name matches dir`);
+    assert.ok(!/\/slashforge:[a-z]/.test(body), `${dir}: colon form left`);
+    assert.ok(!body.replace(SKILL_PREAMBLE, '').includes('$slashforge-'), `${dir}: Codex form belongs in the preamble only`);
+    assert.ok(!/&lt;!--\/?target/.test(body), `${dir}: marker left`);
+    // Every guide the skill names exists in both host folders.
+    for (const m of body.matchAll(/setup\/slashforge\/&lt;host&gt;\/([\w.-]+)/g)) {
+      for (const h of a.hosts) {
+        assert.ok(fs.existsSync(path.join(h.guidesDir, m[1])), `${dir} → ${h.host}/${m[1]}`);
+      }
+    }
+  }
+});
+
+test('the setup skill dispatches to the per-host setup flow', () =&gt; {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const skill = fs.readFileSync(path.join(a.skillsDir, 'slashforge-setup', 'SKILL.md'), 'utf8');
+  assert.match(skill, /&lt;host&gt;\/forge-setup-flow\.md/);
+  const cursor = fs.readFileSync(path.join(a.hosts[0].guidesDir, 'forge-setup-flow.md'), 'utf8');
+  const codex = fs.readFileSync(path.join(a.hosts[1].guidesDir, 'forge-setup-flow.md'), 'utf8');
+  assert.match(cursor, /\.cursor\//);
+  assert.ok(!cursor.includes('.codex/agents'), 'cursor flow names Codex layout');
+  assert.match(codex, /\.codex\/agents/);
+  assert.match(codex, /\$slashforge-/, 'codex guides use the $ form');
+});
+
+// Review Focus 1: an earlier per-target build left guides at the root.
+test('installAgentsFiles clears kit files an old layout left at the root', () =&gt; {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  fs.mkdirSync(a.root, { recursive: true });
+  fs.writeFileSync(path.join(a.root, 'forge-workflow.md'), 'old');
+  fs.writeFileSync(path.join(a.root, 'forge-splice.js'), 'old');
+  fs.writeFileSync(path.join(a.root, 'notes.md'), 'mine');
+  installAgentsFiles(a, {});
+  assert.deepEqual(fs.readdirSync(a.root).sort(), ['codex', 'cursor', 'meta.json', 'notes.md']);
+});
+
+// Review Focus 3: a second install writes the same set, nothing more.
+test('installing twice leaves exactly the same files', () =&gt; {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const first = agentsTree(path.join(home, '.agents'));
+  installAgentsFiles(a, {});
+  assert.deepEqual(agentsTree(path.join(home, '.agents')), first);
+});
+
+test('plannedAgentsWrites and installAgentsFiles name the same files', () =&gt; {
+  for (const project of [false, true]) {
+    const home = tmp();
+    const a = resolveAgents({ project, homeDir: home, cwd: home });
+    const planned = plannedAgentsWrites(a).map((w) =&gt; w.dest).sort();
+    assert.deepEqual(planned, installAgentsFiles(a, {}).slice().sort());
+  }
+});
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run them to see them fail</strong></li>
+</ul>
+<p>Run: <code>node --test --test-name-pattern="resolveAgents|skill guide paths|installAgentsFiles|host-neutral|setup skill dispatches|old layout|installing twice|plannedAgentsWrites"</code>
+Expected: FAIL, with <code>resolveAgents is not a function</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Create the setup dispatcher template</strong></li>
+</ul>
+<p><code>templates/agents/setup.md</code>:</p>
+<pre><code class="language-markdown">---
+name: /slashforge:setup
+description: One-time repo setup — explore the codebase, ask clarifying questions, and create AGENTS.md plus tailored rules, skills, subagents and hooks in your host's own layout. Handles both fresh repos and partial setups.
+---
+
+Read `{{INSTALL_PATH}}/forge-setup-flow.md` in full before doing anything else. It is the
+complete setup procedure, written for your host, and you follow it phase by phase.
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Add the <code>skills</code> profile and sigil</strong></li>
+</ul>
+<p>In <code>TARGETS</code>, directly after the <code>codex</code> entry, add:</p>
+<pre><code class="language-js">  // The one host-neutral skill set in ~/.agents/skills, read by Cursor and Codex.
+  // Rendered, never installed on its own; its host-specific parts are in the
+  // per-host guides, reached through the &lt;host&gt; path in SKILL_PREAMBLE.
+  skills: {
+    dirname: '.agents', commandsSubdir: 'skills', layout: 'skills',
+    namePrefix: 'slashforge-', blocks: ['agents', 'neutral'], omit: [],
+  },
+</code></pre>
+<p>Change <code>TARGET_SIGILS</code> to <code>{ claude: '/', agents: '/', cursor: '/', codex: '$', skills: '/' }</code>.</p>
+<ul>
+<li>[ ] <strong>Step 5: Add the agents-location functions</strong></li>
+</ul>
+<p>Insert after <code>installFiles</code>:</p>
+<pre><code class="language-js">// Hosts that read the shared .agents/ location. Each gets its own guide folder,
+// because their setup layouts differ; they share one skill set.
+const AGENT_HOSTS = ['cursor', 'codex'];
+
+// The one runtime decision: which host folder to read. Rendered into every skill.
+const SKILL_PREAMBLE = [
+  'You are running in Cursor or in Codex. In every path below, replace &lt;host&gt; with',
+  'cursor or codex to match. Commands are written /slashforge-name; in Codex invoke',
+  'them as $slashforge-name. If you cannot tell which host you are in: a .codex/',
+  'folder in the repo means Codex and a .cursor/ folder means Cursor; if neither',
+  'or both, ask the user once and use that answer for the rest of the session.',
+].join('\n');
+
+const SETUP_COMMAND = path.join('slashforge', 'setup.md');
+// Stands in for setup.md in .agents/skills: setup's procedure is host-specific, so
+// the skill only dispatches to forge-setup-flow.md in the host's own guide folder.
+const SETUP_DISPATCH = path.join('agents', 'setup.md');
+// setup.md rendered for one host, installed as a guide. Generated, so the setup
+// procedure keeps a single source.
+const SETUP_FLOW = 'forge-setup-flow.md';
+
+function resolveAgents({ project = false, homeDir = os.homedir(), cwd = process.cwd() } = {}) {
+  const base = path.join(project ? cwd : homeDir, '.agents');
+  const root = path.join(base, 'setup', 'slashforge');
+  const rootPath = project ? '.agents/setup/slashforge' : root.split(path.sep).join('/');
+  return {
+    base,
+    root,
+    skillsDir: path.join(base, 'skills'),
+    metaFile: path.join(root, 'meta.json'),
+    mode: project ? 'project' : 'global',
+    skillInstallPath: `${rootPath}/&lt;host&gt;`,
+    hosts: AGENT_HOSTS.map((host) =&gt; ({
+      host,
+      guidesDir: path.join(root, host),
+      installPath: `${rootPath}/${host}`,
+      omit: TARGETS[host].omit,
+    })),
+  };
+}
+
+function skillFilePath(agents, file) {
+  return path.join(agents.skillsDir, skillDirName(file, 'slashforge-'), 'SKILL.md');
+}
+
+function withPreamble(content) {
+  const lines = content.split('\n');
+  const end = lines.findIndex((l, i) =&gt; i &gt; 0 &amp;&amp; l.trim() === '---');
+  lines.splice(end + 1, 0, '', SKILL_PREAMBLE);
+  return lines.join('\n');
+}
+
+// src is the template read; dest names the skill (setup.md's dispatcher is read
+// from SETUP_DISPATCH but installed as slashforge-setup).
+function renderSkill(src, dest, agents, { templatesDir = TEMPLATES_DIR, version = pkg.version, pkgName = pkg.name } = {}) {
+  let out = renderTemplate(fs.readFileSync(path.join(templatesDir, src), 'utf8'), {
+    installPath: agents.skillInstallPath, version, pkgName, targetName: 'skills',
+  });
+  out = toSkillCommandRefs(out, 'slashforge-', 'skills');
+  out = toSkillFrontmatter(out, skillDirName(dest, 'slashforge-'));
+  return withPreamble(out);
+}
+
+function renderHostGuide(src, host, { templatesDir = TEMPLATES_DIR, version = pkg.version, pkgName = pkg.name } = {}) {
+  const out = renderTemplate(fs.readFileSync(path.join(templatesDir, src), 'utf8'), {
+    installPath: host.installPath, version, pkgName, targetName: host.host,
+  });
+  return toSkillCommandRefs(out, 'slashforge-', host.host);
+}
+
+function plannedAgentsWrites(agents, {
+  templatesDir = TEMPLATES_DIR,
+  guideFiles = GUIDE_FILES,
+  commandFiles = COMMAND_FILES,
+  assetFiles = ASSET_FILES,
+  skillFiles = SKILL_FILES,
+} = {}) {
+  const writes = [];
+  for (const h of agents.hosts) {
+    for (const f of guideFiles) {
+      if (h.omit.includes(f)) continue;
+      writes.push({ kind: 'guide', src: path.join(templatesDir, f), dest: path.join(h.guidesDir, f) });
+    }
+    writes.push({ kind: 'guide', src: path.join(templatesDir, SETUP_COMMAND), dest: path.join(h.guidesDir, SETUP_FLOW) });
+    for (const a of assetFiles) {
+      writes.push({ kind: 'asset', src: path.join(templatesDir, a), dest: path.join(h.guidesDir, a) });
+    }
+    writes.push({ kind: 'meta', dest: path.join(h.guidesDir, 'meta.json') });
+  }
+  for (const c of [...commandFiles, ...skillFiles]) {
+    const src = c === SETUP_COMMAND ? SETUP_DISPATCH : c;
+    writes.push({ kind: 'command', src: path.join(templatesDir, src), dest: skillFilePath(agents, c) });
+  }
+  writes.push({ kind: 'meta', dest: agents.metaFile });
+  return writes;
+}
+
+function installAgentsFiles(agents, {
+  templatesDir = TEMPLATES_DIR,
+  version = pkg.version,
+  pkgName = pkg.name,
+  guideFiles = GUIDE_FILES,
+  commandFiles = COMMAND_FILES,
+  assetFiles = ASSET_FILES,
+  skillFiles = SKILL_FILES,
+} = {}) {
+  validateTemplates(guideFiles, templatesDir);
+  validateTemplates(commandFiles, templatesDir);
+  validateTemplates(skillFiles, templatesDir);
+  validateTemplates([SETUP_DISPATCH], templatesDir);
+  assertTemplatesExist(assetFiles, templatesDir);
+  const opts = { templatesDir, version, pkgName };
+  const written = [];
+  const write = (dest, content) =&gt; {
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.writeFileSync(dest, content);
+    written.push(dest);
+  };
+  fs.mkdirSync(agents.root, { recursive: true });
+  // An earlier per-target build installed guides straight into the root. They are
+  // kit files the new layout never reads; the user's own files stay.
+  for (const entry of fs.readdirSync(agents.root)) {
+    const p = path.join(agents.root, entry);
+    if (entry !== 'meta.json' &amp;&amp; fs.statSync(p).isFile() &amp;&amp; isKitGuideFile(entry, guideFiles)) fs.rmSync(p);
+  }
+  for (const h of agents.hosts) {
+    for (const f of guideFiles) {
+      if (h.omit.includes(f)) continue;
+      write(path.join(h.guidesDir, f), renderHostGuide(f, h, opts));
+    }
+    write(path.join(h.guidesDir, SETUP_FLOW), renderHostGuide(SETUP_COMMAND, h, opts));
+    for (const a of assetFiles) {
+      fs.mkdirSync(h.guidesDir, { recursive: true });
+      fs.copyFileSync(path.join(templatesDir, a), path.join(h.guidesDir, a));
+      written.push(path.join(h.guidesDir, a));
+    }
+    // A guide dropped in a later version, or omitted for this host, is stale prose.
+    // (Runs before this host's meta.json is written; meta never matches forge-*.md.)
+    const keep = new Set(written.filter((w) =&gt; path.dirname(w) === h.guidesDir).map((w) =&gt; path.basename(w)));
+    for (const entry of fs.readdirSync(h.guidesDir)) {
+      if (/^forge-[a-z0-9-]*\.md$/.test(entry) &amp;&amp; !keep.has(entry)) fs.rmSync(path.join(h.guidesDir, entry));
+    }
+  }
+  for (const c of [...commandFiles, ...skillFiles]) {
+    const src = c === SETUP_COMMAND ? SETUP_DISPATCH : c;
+    write(skillFilePath(agents, c), renderSkill(src, c, agents, opts));
+  }
+  const meta = JSON.stringify({
+    package: pkgName,
+    version,
+    installed_at: new Date().toISOString(),
+    mode: agents.mode,
+    hosts: AGENT_HOSTS,
+    commands: commandFiles.map((c) =&gt; '/' + skillDirName(c, 'slashforge-')),
+  }, null, 2) + '\n';
+  // One at the root for status and uninstall, and one in each host folder, where
+  // setup's guides read it (&quot;meta.json … same folder as this file&quot;).
+  for (const h of agents.hosts) write(path.join(h.guidesDir, 'meta.json'), meta);
+  write(agents.metaFile, meta);
+  return written;
+}
+</code></pre>
+<p>Add to <code>module.exports</code>: <code>AGENT_HOSTS, SKILL_PREAMBLE, SETUP_DISPATCH, SETUP_FLOW, resolveAgents, renderSkill, installAgentsFiles, plannedAgentsWrites</code>.</p>
+<ul>
+<li>[ ] <strong>Step 6: Run the new tests</strong></li>
+</ul>
+<p>Run: the Step 2 command.
+Expected: PASS, 8 tests. If "host-neutral" fails on <code>$slashforge-</code>, the likely cause is a command template that hard-codes the Codex form outside the preamble. Replace it with <code>/slashforge-…</code>, because the preamble covers Codex.</p>
+<ul>
+<li>[ ] <strong>Step 7: Run the whole suite</strong></li>
+</ul>
+<p>Run: <code>node --test</code>
+Expected: every existing test still passes. Nothing old has changed yet.</p>
+<ul>
+<li>[ ] <strong>Step 8: Commit</strong></li>
+</ul>
+<pre><code class="language-bash">git add bin/install.js templates/agents/setup.md test/install.test.js
+git commit -m &quot;feat(install): the .agents location with per-host guides and neutral skills
+
+Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;
+</code></pre>
+<hr />
+<h3>Task 3: The CLI installs both locations; <code>--target</code> is refused</h3>
+<p><strong>Files:</strong>
+- Modify: <code>bin/install.js</code>: <code>install</code>, <code>printStatus</code>, <code>uninstall</code>, <code>uninstallFiles</code>, <code>warnIfShadowed</code>, <code>printHelp</code>, <code>main</code>. Delete <code>otherTargetInstalled</code>.
+- Test: <code>test/install.test.js</code>, where CLI tests are replaced as listed in Step 1.</p>
+<p><strong>Interfaces:</strong>
+- Consumes: everything Task 2 produced, plus <code>resolveTarget({ homeDir, cwd, project })</code> (claude), <code>installFiles</code>, <code>plannedWrites</code>, <code>hasKitFiles</code>, <code>isKitGuideFile</code>, <code>readMeta</code>, <code>prompt</code>.
+- Produces:
+  - <code>removeKitFiles(dir, guideFiles)</code> returns <code>string[]</code>
+  - <code>uninstallAgentsFiles(agents, opts)</code> returns <code>string[]</code>
+  - <code>TARGET_REMOVED</code> (string)
+  - <code>install({ dryRun, assumeYes, project })</code> with no target parameter
+  - <code>printStatus({ project })</code>
+  - <code>uninstall({ project, assumeYes, interactive })</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Delete the CLI tests for removed behaviour, and write their replacements</strong></li>
+</ul>
+<p>Delete these tests from <code>test/install.test.js</code> by name:
+- <code>dry-run with --target cursor writes nothing</code>
+- <code>an unknown target exits 1 with the valid names</code>
+- <code>status reports the vendor target after installing to it</code>
+- <code>the completion message does not name the wrong vendor</code>
+- <code>installing a different vendor target over another refuses without a yes</code>
+- <code>an explicit --yes replaces the other vendor install and says so</code>
+- <code>updating the same vendor target without a terminal still needs no flag</code>
+- <code>a dry run over another vendor target warns and writes nothing</code>
+- <code>status reports the target actually installed, not the one asked about</code>
+- <code>the closing message names the installed host and its invocation form</code></p>
+<p>Then delete the helper functions <code>agentsEnv</code> and <code>runCli</code> that only those tests used, and append:</p>
+<pre><code class="language-js">// --- One install: the CLI ---
+function cliEnv() {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  delete env.SLASHFORGE_YES;
+  return { home, env };
+}
+const cli = (args, env, cwd) =&gt; require('child_process').spawnSync('node', [BIN, ...args], {
+  env, cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+});
+
+test('one install sets up both locations and names all three forms', () =&gt; {
+  const { home, env } = cliEnv();
+  const r = cli([], env);
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')));
+  assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code', 'SKILL.md')));
+  assert.ok(fs.existsSync(path.join(home, '.agents', 'setup', 'slashforge', 'codex', 'forge-workflow.md')));
+  for (const form of ['/slashforge:code', '/slashforge-code', '$slashforge-code']) {
+    assert.ok(r.stdout.includes(form), `closing message should show ${form}`);
+  }
+});
+
+test('--target is refused in both spellings, and nothing is written', () =&gt; {
+  const { home, env } = cliEnv();
+  for (const args of [['--target', 'cursor'], ['--target=codex'], ['status', '--target', 'claude']]) {
+    const r = cli(args, env);
+    assert.equal(r.status, 1, args.join(' '));
+    assert.match(r.stderr, /--target is no longer needed: one install sets up Claude Code, Cursor and Codex\./);
+  }
+  assert.deepEqual(fs.readdirSync(home), []);
+});
+
+test('the dry run lists both locations and writes nothing', () =&gt; {
+  const { home, env } = cliEnv();
+  const r = cli(['--dry-run'], env);
+  assert.equal(r.status, 0, r.stderr);
+  const announced = r.stdout.split('\n').filter((l) =&gt; l.includes('→')).map((l) =&gt; l.split('→ ')[1].trim()).sort();
+  assert.deepEqual(fs.readdirSync(home), []);
+  cli(['--yes'], env);
+  const written = [];
+  (function walk(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p); else written.push(p);
+    }
+  })(home);
+  assert.deepEqual(announced, written.sort());
+});
+
+test('status reports both locations and flags a missing one', () =&gt; {
+  const { home, env } = cliEnv();
+  cli([], env);
+  const both = cli(['status'], env).stdout;
+  assert.match(both, /Claude Code/);
+  assert.match(both, /Cursor \+ Codex/);
+  assert.match(both, /\$slashforge-code/);
+  fs.rmSync(path.join(home, '.agents'), { recursive: true });
+  const one = cli(['status'], env).stdout;
+  assert.match(one, /Cursor \+ Codex:\s+not installed/);
+});
+
+test('uninstall removes both locations and keeps user files in each', () =&gt; {
+  const { home, env } = cliEnv();
+  cli([], env);
+  const mineC = path.join(home, '.claude', 'setup', 'slashforge', 'notes.md');
+  const mineA = path.join(home, '.agents', 'setup', 'slashforge', 'cursor', 'notes.md');
+  fs.writeFileSync(mineC, 'x');
+  fs.writeFileSync(mineA, 'x');
+  const r = cli(['uninstall', '--yes'], env);
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(fs.existsSync(mineC) &amp;&amp; fs.existsSync(mineA), 'user files survive');
+  assert.match(r.stdout, /kept .*cursor/s);
+  assert.ok(!fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code')));
+  assert.match(cli(['status'], env).stdout, /not installed/);
+});
+
+// Review Focus 4: other tools' skills in the shared folder are untouched.
+test('install and uninstall leave other tools\' skills alone', () =&gt; {
+  const { home, env } = cliEnv();
+  const foreign = path.join(home, '.agents', 'skills', 'other-tool', 'SKILL.md');
+  fs.mkdirSync(path.dirname(foreign), { recursive: true });
+  fs.writeFileSync(foreign, 'x');
+  cli([], env);
+  cli(['uninstall', '--yes'], env);
+  assert.equal(fs.readFileSync(foreign, 'utf8'), 'x');
+});
+
+test('uninstall without a terminal still needs --yes; updates still do not', () =&gt; {
+  const { home, env } = cliEnv();
+  assert.equal(cli([], env).status, 0);
+  assert.equal(cli([], env).status, 0, 'a second install updates without a flag');
+  const r = cli(['uninstall'], env);
+  assert.equal(r.status, 1);
+  assert.ok(fs.existsSync(path.join(home, '.agents', 'skills', 'slashforge-code')));
+});
+
+// Spec, failure handling: one location failing must not undo the other.
+test('a failure in one location is reported and the other stays installed', () =&gt; {
+  const { home, env } = cliEnv();
+  fs.writeFileSync(path.join(home, '.agents'), 'not a directory');
+  const r = cli([], env);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /Cursor \+ Codex:/);
+  assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')), 'Claude install kept');
+});
+
+test('a project install notes a global .agents install as well', () =&gt; {
+  const { home, env } = cliEnv();
+  const repo = tmp();
+  cli([], env);
+  const r = cli(['--project'], env, repo);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /global install.*runs instead/is, 'Claude Code shadow warning');
+  assert.match(r.stdout, /Cursor and Codex may list both copies/);
+  assert.ok(fs.existsSync(path.join(repo, '.agents', 'skills', 'slashforge-code', 'SKILL.md')));
+});
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run them to see them fail</strong></li>
+</ul>
+<p>Run: <code>node --test --test-name-pattern="one install sets up|--target is refused|dry run lists both|status reports both|uninstall removes both|other tools' skills|uninstall without a terminal still|project install notes"</code>
+Expected: FAIL. For example, <code>.agents/skills/slashforge-code/SKILL.md</code> doesn't exist after <code>npx slashforge</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Extract <code>removeKitFiles</code>, add <code>uninstallAgentsFiles</code></strong></li>
+</ul>
+<p>Replace the guides-dir block in <code>uninstallFiles</code> (the part starting at <code>// The guides dir gets the same care</code>) with a call to this helper, and put the helper above <code>uninstallFiles</code>:</p>
+<pre><code class="language-js">// Removes the kit's own files from dir, and dir itself only once nothing else is
+// left. Returns what it removed: the dir if it went, else each file.
+function removeKitFiles(dir, guideFiles = GUIDE_FILES) {
+  if (!fs.existsSync(dir)) return [];
+  const kit = fs.readdirSync(dir).filter((n) =&gt; isKitGuideFile(n, guideFiles));
+  for (const n of kit) fs.rmSync(path.join(dir, n), { force: true });
+  if (fs.readdirSync(dir).length === 0) { fs.rmdirSync(dir); return [dir]; }
+  return kit.map((n) =&gt; path.join(dir, n));
+}
+</code></pre>
+<p>In <code>uninstallFiles</code>, the block becomes <code>removed.push(...removeKitFiles(target.guidesDir, guideFiles));</code>. Then add:</p>
+<pre><code class="language-js">function uninstallAgentsFiles(agents, { guideFiles = GUIDE_FILES, commandFiles = COMMAND_FILES, skillFiles = SKILL_FILES } = {}) {
+  const removed = [];
+  // .agents/skills is shared with other tools: only the kit's own dirs go.
+  for (const c of [...commandFiles, ...skillFiles]) {
+    const dir = path.dirname(skillFilePath(agents, c));
+    if (fs.existsSync(dir)) { fs.rmSync(dir, { recursive: true, force: true }); removed.push(dir); }
+  }
+  if (fs.existsSync(agents.skillsDir) &amp;&amp; fs.readdirSync(agents.skillsDir).length === 0) {
+    fs.rmdirSync(agents.skillsDir);
+    removed.push(agents.skillsDir);
+  }
+  for (const h of agents.hosts) removed.push(...removeKitFiles(h.guidesDir, [...guideFiles, SETUP_FLOW]));
+  removed.push(...removeKitFiles(agents.root, guideFiles));
+  return removed;
+}
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Rewrite <code>install</code></strong></li>
+</ul>
+<p>Replace the whole <code>install</code> function, and delete <code>otherTargetInstalled</code>:</p>
+<pre><code class="language-js">const TARGET_REMOVED = '--target is no longer needed: one install sets up Claude Code, Cursor and Codex.';
+
+async function install({ dryRun, assumeYes, project = false }) {
+  const claude = resolveTarget({ project });
+  const agents = resolveAgents({ project });
+
+  validateTemplates(GUIDE_FILES, TEMPLATES_DIR);
+  validateTemplates(COMMAND_FILES, TEMPLATES_DIR);
+  validateTemplates(SKILL_FILES, TEMPLATES_DIR);
+  validateTemplates([SETUP_DISPATCH], TEMPLATES_DIR);
+  assertTemplatesExist(ASSET_FILES, TEMPLATES_DIR);
+
+  const alreadyInstalled = hasKitFiles(claude.guidesDir) || hasKitFiles(agents.root);
+  if (!dryRun &amp;&amp; alreadyInstalled) {
+    if (assumeYes) {
+      console.log(`slashforge is already installed. Updating to v${pkg.version} (--yes).`);
+    } else {
+      const answer = await prompt(`slashforge is already installed. Update to v${pkg.version}? (y/n): `);
+      if (answer.toLowerCase() !== 'y') {
+        console.log('Skipped. No changes made.');
+        return;
+      }
+    }
+  }
+
+  if (dryRun) {
+    console.log(`\nDry-run (no files written) — would install v${pkg.version}:\n`);
+    for (const w of [...plannedWrites(claude, {}), ...plannedAgentsWrites(agents)]) {
+      const label = w.kind === 'asset' ? 'copy  ' : w.kind === 'meta' ? 'write ' : 'render';
+      const base = w.src ? path.basename(w.src) : path.basename(w.dest);
+      console.log(`  ${label} ${base.padEnd(36)} → ${w.dest}`);
+    }
+    console.log(`\nRerun without --dry-run to install.`);
+    return;
+  }
+
+  // Each location is installed on its own, so one failing (a read-only ~/.agents,
+  // say) is reported without undoing the other. A re-run is safe.
+  const failures = [];
+  for (const [label, run] of [
+    ['Claude Code', () =&gt; installFiles(claude, {})],
+    ['Cursor + Codex', () =&gt; installAgentsFiles(agents, {})],
+  ]) {
+    try { run(); } catch (err) { failures.push(`${label}: ${err.message}`); }
+  }
+  if (failures.length) {
+    for (const f of failures) console.error(`✗ ${f}`);
+    process.exitCode = 1;
+  }
+
+  console.log(`\n✓ v${pkg.version} installed`);
+  console.log(`✓ Claude Code:     ${path.join(claude.commandsDir, 'slashforge')}  (guides: ${claude.guidesDir})`);
+  console.log(`✓ Cursor + Codex:  ${agents.skillsDir}  (guides: ${path.join(agents.root, '{cursor,codex}')})`);
+
+  reportLegacyLeftovers(claude);
+
+  console.log('\nDone! Open Claude Code in any repo:');
+  console.log('  • /slashforge:setup — one-time repo setup');
+  console.log('  • /slashforge:code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
+  console.log('  • /slashforge:code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
+  console.log('  • /slashforge:investigate [symptom] — read-only research, produces a findings report');
+  console.log('  • /slashforge:review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
+  console.log('\nIn Cursor the same commands are /slashforge-setup, /slashforge-code, …');
+  console.log('In Codex they are $slashforge-setup, $slashforge-code, …');
+
+  warnIfShadowed(claude, agents);
+  await warnIfOutdated();
+}
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 5: Rewrite <code>warnIfShadowed</code>, <code>printStatus</code> and <code>uninstall</code></strong></li>
+</ul>
+<pre><code class="language-js">function warnIfShadowed(claude, agents) {
+  if (claude.mode !== 'project') return;
+  const globalClaude = resolveTarget();
+  if (globalClaude.guidesDir !== claude.guidesDir &amp;&amp; hasKitFiles(globalClaude.guidesDir)) {
+    const meta = readMeta(globalClaude.metaFile);
+    const version = meta ? `v${meta.version}` : 'an unknown version';
+    console.log(`\n⚠  A global install (${version}) is in ${path.dirname(path.dirname(globalClaude.guidesDir))}.`);
+    console.log('   Claude Code prefers personal commands, so the global install runs instead of');
+    console.log(`   this project copy. \`npx ${pkg.name} uninstall --yes\` removes the global one.`);
+  }
+  const globalAgents = resolveAgents();
+  if (agents &amp;&amp; globalAgents.root !== agents.root &amp;&amp; hasKitFiles(globalAgents.root)) {
+    console.log(`\n⚠  SlashForge is also installed in ${globalAgents.base}.`);
+    console.log('   Cursor and Codex may list both copies of each command. Pick one install mode per team.');
+  }
+}
+
+async function printStatus({ project = false } = {}) {
+  const claude = resolveTarget({ project });
+  const agents = resolveAgents({ project });
+  if (!hasKitFiles(claude.guidesDir) &amp;&amp; !hasKitFiles(agents.root)) {
+    console.log('slashforge: not installed.');
+    console.log(`Run \`npx ${pkg.name}\` to install v${pkg.version}.`);
+    await warnIfOutdated();
+    return;
+  }
+  const versionLine = (meta) =&gt; {
+    if (!meta) return 'unknown (legacy install — no meta.json)';
+    return `v${meta.version}${meta.version !== pkg.version ? '  ← update available' : ''}`;
+  };
+  console.log('\nslashforge status');
+  console.log(`  Package version (current): v${pkg.version}`);
+
+  if (hasKitFiles(claude.guidesDir)) {
+    const guides = fs.readdirSync(claude.guidesDir).filter((f) =&gt; f.endsWith('.md') &amp;&amp; isKitGuideFile(f)).sort();
+    const commands = COMMAND_FILES.filter((c) =&gt; fs.existsSync(commandPath(claude, c))).sort();
+    console.log(`\n  Claude Code (${path.dirname(path.dirname(claude.guidesDir))})`);
+    console.log(`    Installed version:  ${versionLine(readMeta(claude.metaFile))}`);
+    console.log(`    Guide files:        ${guides.length} (${claude.guidesDir})`);
+    console.log(`    Installed commands: ${commands.length}`);
+    for (const c of commands) console.log(`      • ${commandName(c)}`);
+  } else {
+    console.log(`\n  Claude Code:     not installed — run \`npx ${pkg.name}\` to add it.`);
+  }
+
+  if (hasKitFiles(agents.root)) {
+    console.log(`\n  Cursor + Codex (${agents.base})`);
+    console.log(`    Installed version:  ${versionLine(readMeta(agents.metaFile))}`);
+    for (const h of agents.hosts) {
+      const n = fs.existsSync(h.guidesDir) ? fs.readdirSync(h.guidesDir).filter((f) =&gt; f.endsWith('.md')).length : 0;
+      console.log(`    Guide files (${h.host}): ${n} (${h.guidesDir})`);
+    }
+    const skills = COMMAND_FILES.filter((c) =&gt; fs.existsSync(skillFilePath(agents, c))).sort();
+    console.log(`    Installed commands: ${skills.length}`);
+    for (const c of skills) {
+      const name = skillDirName(c, 'slashforge-');
+      console.log(`      • /${name} (Cursor), $${name} (Codex)`);
+    }
+  } else {
+    console.log(`\n  Cursor + Codex:  not installed — run \`npx ${pkg.name}\` to add it.`);
+  }
+
+  warnIfShadowed(claude, agents);
+  await warnIfOutdated();
+}
+
+async function uninstall({ project, assumeYes, interactive = true }) {
+  const claude = resolveTarget({ project });
+  const agents = resolveAgents({ project });
+  const installed = hasKitFiles(claude.guidesDir) ||
+    fs.existsSync(claude.legacyGuidesDir) ||
+    COMMAND_FILES.some((c) =&gt; fs.existsSync(commandPath(claude, c))) ||
+    LEGACY_COMMAND_FILES.some((c) =&gt; fs.existsSync(path.join(claude.commandsDir, c))) ||
+    hasKitFiles(agents.root) ||
+    COMMAND_FILES.some((c) =&gt; fs.existsSync(skillFilePath(agents, c)));
+  if (!installed) {
+    console.log('slashforge is not installed at this location. Nothing to remove.');
+    return;
+  }
+  if (!assumeYes &amp;&amp; !interactive) {
+    console.error('Refusing to uninstall without a terminal to confirm on. Re-run with --yes to remove the kit.');
+    process.exitCode = 1;
+    return;
+  }
+  if (!assumeYes) {
+    const answer = await prompt(`Remove slashforge from ${path.dirname(path.dirname(claude.guidesDir))} and ${agents.base}? (y/n): `);
+    if (answer.toLowerCase() !== 'y') {
+      console.log('Skipped. No changes made.');
+      return;
+    }
+  }
+  const removed = [...uninstallFiles(claude, {}), ...uninstallAgentsFiles(agents, {})];
+  console.log('\n✓ Uninstalled slashforge');
+  for (const p of removed) console.log(`  removed ${p}`);
+  for (const dir of [claude.guidesDir, agents.root, ...agents.hosts.map((h) =&gt; h.guidesDir)]) {
+    if (fs.existsSync(dir) &amp;&amp; fs.statSync(dir).isDirectory()) {
+      const left = fs.readdirSync(dir).sort().join(', ');
+      if (left) console.log(`  kept    ${dir} — it holds files slashforge did not install: ${left}`);
+    }
+  }
+}
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 6: Rewrite <code>printHelp</code> and <code>main</code></strong></li>
+</ul>
+<p>In <code>printHelp</code>:
+- delete the <code>--target &lt;n&gt;</code> line
+- change the <code>--project</code> line to <code>'  --project    Install into ./.claude/ and ./.agents/ of the current repo'</code>
+- change the <code>uninstall</code> line to <code>'  uninstall    Remove the kit (use --project for the repo copy)'</code></p>
+<p>In <code>main</code>, delete the two lines that call <code>parseTargetArg</code> and <code>resolveTargetName</code>, and put this directly after the <code>--help</code> block:</p>
+<pre><code class="language-js">  if (args.some((a) =&gt; a === '--target' || a.startsWith('--target='))) {
+    console.error(TARGET_REMOVED);
+    process.exitCode = 1;
+    closeRl();
+    return;
+  }
+</code></pre>
+<p>Then change the three calls: <code>printStatus({ project })</code>, <code>uninstall({ project, assumeYes: explicitYes, interactive })</code> and <code>install({ dryRun, assumeYes, project })</code>. Remove the <code>explicitYes</code> and <code>interactive</code> arguments from the install call, but keep computing both variables, because uninstall needs them.</p>
+<ul>
+<li>[ ] <strong>Step 7: Run the new tests, then the whole suite</strong></li>
+</ul>
+<p>Run: the Step 2 command, adding <code>|a failure in one location</code> to the pattern.
+Expected: PASS, 9 tests.</p>
+<p>Run: <code>node --test</code>
+Expected: the only failures are tests listed in Task 4 Step 1, the ones that still call <code>resolveTarget({ target: 'cursor' | 'codex' | 'agents' })</code>. Note which fail, and don't fix them here.</p>
+<ul>
+<li>[ ] <strong>Step 8: Commit</strong></li>
+</ul>
+<pre><code class="language-bash">git add bin/install.js test/install.test.js
+git commit -m &quot;feat(cli): one install for all three hosts; --target is refused
+
+Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;
+</code></pre>
+<hr />
+<h3>Task 4: Remove the per-target install paths</h3>
+<p><strong>Files:</strong>
+- Modify: <code>bin/install.js</code>, <code>test/install.test.js</code>, <code>test/docs-claims.test.js</code>, <code>test/docs-targets.test.js</code>, and every <code>templates/forge-*.md</code> that has <code>&lt;!--target:neutral--&gt;</code> blocks (13 files; list them with <code>grep -l '&lt;!--target:neutral--&gt;' templates/forge-*.md</code>).</p>
+<p><strong>Interfaces:</strong>
+- Consumes: Tasks 2 and 3.
+- Produces:
+  - <code>resolveTarget({ project, homeDir, cwd })</code>, which is Claude-only
+  - <code>TARGETS</code> with keys <code>claude</code>, <code>cursor</code>, <code>codex</code> and <code>skills</code>: render profiles, not CLI targets
+  - <code>profilesFor(file)</code> returns <code>string[]</code>
+  - removed: <code>TARGET_ALIASES</code>, <code>resolveTargetName</code>, <code>parseTargetArg</code>, the <code>agents</code> key, and every <code>layout === 'skills'</code> branch in <code>installFiles</code>, <code>uninstallFiles</code>, <code>plannedWrites</code>, <code>commandName</code> and <code>commandPath</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Re-point or delete the old target tests</strong></li>
+</ul>
+<p>In <code>test/install.test.js</code>:</p>
+<p><strong>Delete these tests.</strong> The behaviour they covered is removed, and Task 2 or Task 3 covers what replaced it:
+- <code>resolveTarget agents global uses ~/.agents and the skills layout</code>
+- <code>resolveTarget agents project uses cwd</code>
+- <code>resolveTargetName normalises aliases and rejects unknowns</code>
+- <code>parseTargetArg reads both flag forms and defaults to claude</code>
+- <code>plannedWrites for the agents target names skill paths and skips setup</code>
+- <code>setup is omitted on the vendor-neutral target but present elsewhere</code>
+- <code>setup stays omitted on the vendor-neutral agents target</code>
+- <code>core workflow guides dispatch no agents on the agents target</code>
+- <code>remaining guides and code.md dispatch no agents on the agents target</code>
+- <code>the markdown subagent guide still reads coherently on the agents target</code>
+- <code>instructions stay coherent on the vendor-neutral target</code>
+- <code>install summary lists the paths it actually wrote</code></p>
+<p><strong>Rewrite these onto <code>resolveAgents</code> and <code>installAgentsFiles</code>.</strong> Keep each test's assertions and change only the setup lines, from <code>const target = resolveTarget({ target: 'cursor', … }); installFiles(target, {})</code> to <code>const a = resolveAgents({ homeDir: home, cwd: home }); installAgentsFiles(a, {})</code>. Use <code>a.skillsDir</code> in place of <code>target.commandsDir</code>, and <code>a.hosts[0].guidesDir</code> (cursor) or <code>a.hosts[1].guidesDir</code> (codex) in place of <code>target.guidesDir</code>.
+- <code>agents install writes SKILL.md dirs with a rewritten name</code>
+- <code>every installed SKILL.md name is valid and matches its parent dir</code>
+- <code>agents skills render with no leftover placeholder</code>: the allowed leftover is exactly <code>&lt;host&gt;</code>, so the check becomes <code>/\{\{[A-Z_]+\}\}/</code>
+- <code>agents guides are installed alongside the skills</code>
+- <code>skills layout rewrites in-body command references to the hyphen form</code>
+- <code>uninstall removes only slashforge dirs from the shared skills root</code>, using <code>uninstallAgentsFiles(a, {})</code>
+- <code>uninstall prunes the skills root only when it is left empty</code>, using <code>uninstallAgentsFiles(a, {})</code>
+- <code>uninstall on the agents target never touches .claude</code>, using <code>uninstallAgentsFiles(a, {})</code>
+- <code>each target receives only its own entry-file guide</code>: compare <code>claude.guidesDir</code>, <code>a.hosts[0].guidesDir</code> and <code>a.hosts[1].guidesDir</code>
+- <code>codex gets the TOML subagent guide, the others get the markdown one</code>: the same three folders
+- <code>installed codex guides never name the slash form of a command</code>: read from <code>a.hosts[1].guidesDir</code>
+- <code>meta.json and status report the host invocation form</code>: assert <code>JSON.parse(a.metaFile).commands</code> includes <code>/slashforge-code</code>, and that <code>status</code> output includes <code>$slashforge-code</code>
+- <code>setup verify step fails on oversized files for cursor and codex</code>: in <code>verifyScript(targetName)</code>, read <code>forge-instructions.md</code> from the host's folder in <code>resolveAgents(...).hosts</code></p>
+<p><strong>Rewrite these onto the <code>claude</code> target.</strong> They test omit mechanics, not vendors. Replace <code>target: 'cursor'</code> with no target, and keep the <code>target.omit = [...]</code> override:
+- <code>a guide in the target omit list is not installed</code>
+- <code>omitting a guide does not omit the commands</code>
+- <code>the install summary does not list an omitted guide</code>
+- <code>plannedWrites agrees with installFiles about omitted guides</code></p>
+<p><strong>Rename the profile in these:</strong> use <code>renderAll('skills')</code> in place of <code>renderAll('agents')</code>:
+- <code>no rendered file dispatches an agent on the agents target</code>: rename it to <code>no skill dispatches an agent</code>, and restrict it to the keys under <code>slashforge/</code>
+- <code>a neutral block renders only on the vendor-neutral target</code>: rename it to <code>a neutral block renders only in the skills profile</code>
+- <code>neutral is a block name but never an install target</code>: replace its body with <code>assert.ok(TARGETS.skills.blocks.includes('neutral')); assert.ok(!('agents' in TARGETS));</code>
+- <code>only the claude target carries a legacy guides dir</code>: replace its body with <code>assert.ok(resolveTarget({homeDir:'/h'}).legacyGuidesDir); assert.ok(!('legacyGuidesDir' in resolveAgents({homeDir:'/h'})));</code></p>
+<p><strong>Replace my earlier dry-run equality test:</strong> change <code>plannedWrites and installFiles name exactly the same files, on every target</code> to loop over <code>[false, true]</code> for <code>project</code>, on the Claude target only. Task 2 covers the agents side.</p>
+<p>Then add:</p>
+<pre><code class="language-js">test('neutral blocks live only in command and skill templates', () =&gt; {
+  for (const f of GUIDE_FILES) {
+    const body = fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8');
+    assert.ok(!body.includes('&lt;!--target:neutral--&gt;'), `${f}: guides never render neutral`);
+  }
+});
+</code></pre>
+<p>In <code>test/docs-claims.test.js</code>, the test <code>every target in the docs table is a real install target</code> becomes:</p>
+<pre><code class="language-js">test('the docs table documents each host', () =&gt; {
+  const cli = fs.readFileSync(path.join(ROOT, 'docs/src/content/docs/reference/cli.md'), 'utf8');
+  for (const host of ['Claude Code', 'Cursor', 'Codex']) {
+    assert.ok(cli.includes(host), `cli.md should document ${host}`);
+  }
+  assert.ok(!cli.includes('--target'), 'cli.md still documents --target');
+});
+</code></pre>
+<p>In <code>test/docs-targets.test.js</code>, <code>installPathFor matches what the installer actually does</code> becomes:</p>
+<pre><code class="language-js">test('installPathFor matches what the installer actually does', async () =&gt; {
+  const { installPathFor } = await load();
+  const { resolveTarget, resolveAgents } = require('../bin/install.js');
+  const c = resolveTarget({ homeDir: '~' });
+  assert.equal(installPathFor('guides', 'claude'), c.guidesDir + '/');
+  const a = resolveAgents({ homeDir: '~' });
+  for (const h of a.hosts) {
+    assert.equal(installPathFor('guides', h.host), h.guidesDir + '/');
+    assert.equal(installPathFor('commands', h.host), a.skillsDir + '/');
+  }
+});
+</code></pre>
+<p>Also update <code>installPathFor gives each target its real directories</code>:
+- <code>installPathFor('guides','cursor')</code> is <code>'~/.agents/setup/slashforge/cursor/'</code>
+- the same call with <code>'codex'</code> is <code>'~/.agents/setup/slashforge/codex/'</code></p>
+<ul>
+<li>[ ] <strong>Step 2: Run them to see them fail</strong></li>
+</ul>
+<p>Run: <code>node --test</code>
+Expected: FAIL. The new <code>neutral blocks live only…</code> test fails because of the guide <code>neutral</code> blocks, and the <code>docs-targets</code> tests fail on the per-host guide paths. The rewritten install tests should pass already.</p>
+<ul>
+<li>[ ] <strong>Step 3: Strip the dead <code>neutral</code> blocks from the guides</strong></li>
+</ul>
+<pre><code class="language-bash">node -e '
+const fs = require(&quot;fs&quot;), path = require(&quot;path&quot;);
+const { GUIDE_FILES } = require(&quot;./bin/install.js&quot;);
+const RE = /^[ \t]*&lt;!--target:neutral--&gt;[ \t]*\n[\s\S]*?^[ \t]*&lt;!--\/target--&gt;[ \t]*\n?/gm;
+for (const f of GUIDE_FILES) {
+  const p = path.join(&quot;templates&quot;, f), s = fs.readFileSync(p, &quot;utf8&quot;), t = s.replace(RE, &quot;&quot;);
+  if (t !== s) { fs.writeFileSync(p, t); console.log(&quot;stripped&quot;, f); }
+}'
+</code></pre>
+<p>Expected: 13 <code>stripped</code> lines.</p>
+<ul>
+<li>[ ] <strong>Step 4: Simplify the installer</strong></li>
+</ul>
+<p>In <code>bin/install.js</code>:
+- <strong><code>TARGETS</code>:</strong> delete the <code>agents</code> entry. From <code>cursor</code>, <code>codex</code> and <code>skills</code>, delete <code>dirname</code>, <code>commandsSubdir</code>, <code>layout</code> and <code>namePrefix</code>, keeping <code>blocks</code> and <code>omit</code>. Replace the comments above <code>TARGETS</code> with: <code>// Render profiles. claude renders ~/.claude; cursor and codex render their own guide folder under ~/.agents/setup/slashforge; skills renders the one host-neutral skill set in ~/.agents/skills.</code>
+- <strong><code>TARGET_SIGILS</code>:</strong> <code>{ claude: '/', cursor: '/', codex: '$', skills: '/' }</code>.
+- <strong>Deletions:</strong> <code>TARGET_ALIASES</code>, <code>resolveTargetName</code> and <code>parseTargetArg</code>, and their <code>module.exports</code> entries.
+- <strong><code>resolveTarget</code></strong> becomes:</p>
+<pre><code class="language-js">function resolveTarget({ project = false, homeDir = os.homedir(), cwd = process.cwd() } = {}) {
+  const base = path.join(project ? cwd : homeDir, '.claude');
+  const guidesDir = path.join(base, 'setup', 'slashforge');
+  return {
+    target: 'claude',
+    omit: TARGETS.claude.omit,
+    guidesDir,
+    legacyGuidesDir: path.join(base, 'setup', LEGACY_GUIDES_DIRNAME),
+    commandsDir: path.join(base, 'commands'),
+    metaFile: path.join(guidesDir, 'meta.json'),
+    installPath: project ? '.claude/setup/slashforge' : guidesDir.split(path.sep).join('/'),
+    mode: project ? 'project' : 'global',
+  };
+}
+</code></pre>
+<ul>
+<li><strong>The skills-layout branches:</strong> delete them from <code>installFiles</code> (the <code>toSkillCommandRefs</code> call on guides and the <code>if (target.layout === 'skills')</code> destination branch), <code>uninstallFiles</code> (the <code>if (target.layout === 'skills')</code> block), <code>commandName</code> (the <code>target</code> parameter and its branch) and <code>commandPath</code> (it always returns <code>path.join(target.commandsDir, file)</code>).</li>
+<li><strong>Validation per profile.</strong> Add <code>profilesFor</code> and use it in <code>validateTemplates</code>, replacing <code>for (const name of Object.keys(TARGETS))</code> with <code>for (const name of profilesFor(file))</code>:</li>
+</ul>
+<pre><code class="language-js">// The profiles a template is actually rendered for. Validating a template for a
+// profile that never renders it would demand frontmatter it never needs.
+function profilesFor(file) {
+  if (file === SETUP_DISPATCH) return ['skills'];
+  if (file === SETUP_COMMAND) return ['claude', 'cursor', 'codex'];
+  if (COMMAND_FILES.includes(file) || SKILL_FILES.includes(file)) return ['claude', 'skills'];
+  if (GUIDE_FILES.includes(file)) return ['claude', 'cursor', 'codex'].filter((p) =&gt; !TARGETS[p].omit.includes(file));
+  return Object.keys(TARGETS);
+}
+</code></pre>
+<p><code>validateTemplates</code> is defined above <code>SETUP_COMMAND</code> and the file lists, but it only calls <code>profilesFor</code> at run time, so that ordering is fine.
+- <strong>setup.md's neutral description:</strong> delete the <code>&lt;!--target:neutral--&gt;</code> description block in <code>templates/slashforge/setup.md</code> (lines 12–14). The skills profile now uses <code>templates/agents/setup.md</code>.</p>
+<ul>
+<li>[ ] <strong>Step 5: Point the docs switcher at the per-host guide folders</strong></li>
+</ul>
+<p>In <code>docs/src/targets.mjs</code>, replace <code>INSTALL_PATHS</code> and <code>installPathFor</code>:</p>
+<pre><code class="language-js">export const INSTALL_PATHS = {
+  guides: {
+    claude: '~/.claude/setup/slashforge/',
+    cursor: '~/.agents/setup/slashforge/cursor/',
+    codex: '~/.agents/setup/slashforge/codex/',
+  },
+  commands: { claude: '~/.claude/commands/slashforge/', cursor: '~/.agents/skills/', codex: '~/.agents/skills/' },
+  root: { claude: '~/.claude/', cursor: '~/.agents/', codex: '~/.agents/' },
+};
+
+export function installPathFor(kind, target) {
+  const set = INSTALL_PATHS[kind];
+  return set ? set[target] || set.claude : '';
+}
+</code></pre>
+<p>Also update the doc comment above it: "Where an install lands, per host. Cursor and Codex share one skill set but each has its own guide folder."</p>
+<ul>
+<li>[ ] <strong>Step 6: Run everything</strong></li>
+</ul>
+<p>Run: <code>node --test</code>
+Expected: PASS, all tests, including <code>test/claude-render.test.js</code>. If a test that renders <em>every</em> template for <em>every</em> profile now fails on <code>setup.md</code> or <code>agents/setup.md</code> frontmatter, restrict that loop with <code>profilesFor(file)</code>, the same rule <code>validateTemplates</code> uses. If that one fails, a change reached the Claude render: the diff names the file, so fix it at the source, and never by regenerating the fixture.</p>
+<p>Run: <code>grep -n "layout === 'skills'\|resolveTargetName\|parseTargetArg\|TARGET_ALIASES" bin/install.js</code>
+Expected: no output.</p>
+<ul>
+<li>[ ] <strong>Step 7: Commit</strong></li>
+</ul>
+<pre><code class="language-bash">git add -A bin templates test docs/src/targets.mjs
+git commit -m &quot;refactor(install): drop per-target install paths; render profiles only
+
+Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;
+</code></pre>
+<hr />
+<h3>Task 5: Docs, package metadata, changelog</h3>
+<p><strong>Files:</strong>
+- Modify:
+  - <code>README.md</code>
+  - <code>docs/src/content/docs/guides/installation.md</code>, <code>guides/introduction.md</code>
+  - <code>docs/src/content/docs/reference/cli.md</code>, <code>reference/troubleshooting.md</code>
+  - <code>docs/src/content/docs/commands/slashforge-setup.md</code>
+  - <code>docs/src/pages/index.astro</code>
+  - <code>package.json</code>, <code>CHANGELOG.md</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: the CLI behaviour from Task 3.
+- Produces: docs with no <code>--target</code>, which the docs-claims test from Task 4 enforces.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing test</strong></li>
+</ul>
+<p>Append to <code>test/docs-claims.test.js</code>:</p>
+<pre><code class="language-js">test('no user-facing doc still tells people to pass --target', () =&gt; {
+  const files = [
+    'README.md',
+    'docs/src/content/docs/guides/installation.md',
+    'docs/src/content/docs/guides/introduction.md',
+    'docs/src/content/docs/reference/cli.md',
+    'docs/src/content/docs/reference/troubleshooting.md',
+    'docs/src/content/docs/commands/slashforge-setup.md',
+    'docs/src/pages/index.astro',
+  ];
+  for (const f of files) {
+    const body = fs.readFileSync(path.join(ROOT, f), 'utf8');
+    const lines = body.split('\n').filter((l) =&gt; l.includes('--target') &amp;&amp; !/no longer needed/.test(l));
+    assert.deepEqual(lines, [], `${f} still mentions --target`);
+  }
+  const pkg = require('../package.json');
+  assert.match(pkg.description, /Claude Code, Cursor(,)? and Codex/);
+});
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run it to see it fail</strong></li>
+</ul>
+<p>Run: <code>node --test test/docs-claims.test.js</code>
+Expected: FAIL, naming the first file that still mentions <code>--target</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Update each file</strong></li>
+</ul>
+<p>Rules for every file:
+- <strong>Every <code>npx slashforge --target cursor|codex|agents</code> becomes <code>npx slashforge</code>.</strong>
+- <strong>Every sentence explaining how to pick a target</strong> becomes: "One command sets up Claude Code, Cursor and Codex. Commands are <code>/slashforge:code</code> in Claude Code, <code>/slashforge-code</code> in Cursor and <code>$slashforge-code</code> in Codex."
+- <strong>The CLI reference:</strong>
+  - The "Targets" section becomes a "Hosts" section. It has a table of <code>Host | Commands live in | Guides live in | Invoked as</code> with three rows, one per host, using the paths from <code>INSTALL_PATHS</code>.
+  - It keeps the subsections "Why the names differ", "What setup writes on each target" and "Graphify on each target", renamed to "…on each host".
+  - It gains one short paragraph: "The first thing each Cursor or Codex command does is work out which of the two it is running in and read that host's guides; if it can't tell, it asks you once."
+  - Its <code>status</code> example output is replaced with a real <code>node bin/install.js status</code> output, captured from a throwaway <code>HOME</code> after an install.
+- <strong>README "What gets installed"</strong> gains two rows: <code>Cursor + Codex commands | ~/.agents/skills/slashforge-*/</code> and <code>Cursor / Codex guides | ~/.agents/setup/slashforge/{cursor,codex}/</code>.
+- <strong>Remove every sentence about "one install at a time" and "replaces the other target".</strong>
+- <strong><code>package.json</code> <code>description</code>:</strong> <code>"Workflow slash commands for AI coding agents — setup, code, investigate and review-pr. One install for Claude Code, Cursor and Codex."</code>
+- <strong><code>CHANGELOG.md</code></strong>, under <code>## [Unreleased]</code>, add:</p>
+<pre><code class="language-markdown">### Added
+- **Cursor and Codex support, from the same install.** `npx slashforge` now sets up Claude Code, Cursor and Codex together; there is no flag to choose. Claude Code is unchanged. Cursor and Codex share one skill set in `~/.agents/skills/` (`/slashforge-code` in Cursor, `$slashforge-code` in Codex), and each reads its own guides from `~/.agents/setup/slashforge/cursor/` or `…/codex/`, so setup writes each host's native layout: `.mdc` rules and `.cursor/hooks.json` in Cursor, nested `AGENTS.md` and TOML subagents in Codex. `status` and `uninstall` cover both locations.
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Run the docs checks</strong></li>
+</ul>
+<p>Run: <code>node --test &amp;&amp; cd docs &amp;&amp; rm -rf node_modules/.astro &amp;&amp; npm run build &amp;&amp; for c in links targets a11y facts; do node ../.github/scripts/check-docs-$c.mjs || exit 1; done</code>
+Expected: all tests pass, the build exits 0, and there are four <code>✓</code>-style success lines.</p>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code class="language-bash">git add README.md docs/src package.json CHANGELOG.md test/docs-claims.test.js
+git commit -m &quot;docs: one install for Claude Code, Cursor and Codex
+
+Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;
+</code></pre>
+<hr />
+<h3>Task 6: Verify end to end, push, hand over the manual checks</h3>
+<p><strong>Files:</strong> none changed, unless verification finds a defect. Any fix goes back to the task that owns it.</p>
+<ul>
+<li>[ ] <strong>Step 1: Full suite and docs</strong></li>
+</ul>
+<p>Run: <code>node --test 2&gt;&amp;1 | tail -8</code>
+Expected: <code>ℹ fail 0</code>.</p>
+<ul>
+<li>[ ] <strong>Step 2: CLI end to end in a throwaway HOME</strong></li>
+</ul>
+<pre><code class="language-bash">H=$(mktemp -d); export HOME=$H USERPROFILE=$H SLASHFORGE_NO_UPDATE_CHECK=1
+node bin/install.js --target cursor &lt;/dev/null; echo &quot;target exit $?&quot;   # expect 1
+test -z &quot;$(ls -A $H)&quot; &amp;&amp; echo &quot;nothing written&quot;                         # expect printed
+node bin/install.js &lt;/dev/null | tail -4
+ls $H/.agents/setup/slashforge                    # expect: codex cursor meta.json
+ls $H/.agents/skills | wc -l                      # expect: 13
+grep -c &quot;replace &lt;host&gt;&quot; $H/.agents/skills/slashforge-code/SKILL.md   # expect: 1
+node bin/install.js status | head -20
+echo mine &gt; $H/.agents/setup/slashforge/codex/notes.md
+node bin/install.js uninstall &lt;/dev/null; echo &quot;no-tty exit $?&quot;         # expect 1
+node bin/install.js uninstall --yes | tail -3                          # expect a &quot;kept … codex&quot; line
+ls $H/.agents/setup/slashforge/codex                                   # expect: notes.md
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Push to PR #58 and wait for CI</strong></li>
+</ul>
+<pre><code class="language-bash">git push origin feat/cursor-codex-targets
+gh pr checks 58 --watch
+</code></pre>
+<p>Expected: every check passes. <strong>Do not merge.</strong></p>
+<ul>
+<li>[ ] <strong>Step 4: Hand the owner the manual checklist</strong></li>
+</ul>
+<p>Post this checklist to the owner (it's in the spec's "Manual verification before merge" section) and wait. It needs the real apps.
+1. Run <code>npx slashforge</code> from the branch build on a fresh <code>HOME</code>.
+2. <strong>Claude Code:</strong> <code>/slashforge:code</code> is listed.
+3. <strong>Cursor:</strong> each command appears once as <code>/slashforge-code</code>, and it reads <code>…/cursor/</code>.
+4. <strong>Codex:</strong> <code>$slashforge-code</code> works, and it reads <code>…/codex/</code>.
+5. <strong>Setup in a scratch repo in each vendor host</strong> writes that host's native files.</p>
+
+</body>
+</html>
