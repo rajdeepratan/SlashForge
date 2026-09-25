@@ -6,6 +6,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **Cursor and Codex support, from the same install.** `npx slashforge` now sets up Claude Code, Cursor and Codex together; there is no flag to choose. Claude Code is unchanged. Cursor and Codex share one skill set in `~/.agents/skills/` (`/slashforge-code` in Cursor, `$slashforge-code` in Codex), and each reads its own guides from `~/.agents/setup/slashforge/cursor/` or `…/codex/`, so setup writes each host's native layout: `.mdc` rules and `.cursor/hooks.json` in Cursor, nested `AGENTS.md` and TOML subagents in Codex. `status` and `uninstall` cover both locations.
+
 ### Fixed
 - **`uninstall` keeps your own files in `setup/slashforge/`** ([#82](https://github.com/rajdeepratan/SlashForge/issues/82)). The commands folder already lost only the files the kit installed, and was kept if anything else was in it; the guides folder was deleted wholesale, taking any file you had put there with it. It now gets the same care: the kit's guides, assets, `meta.json` and any older `forge-*.md` guide are removed, the folder goes only once it's empty, and uninstall says what it kept. A folder holding only your files no longer counts as an install for `status`, the update prompt or a second uninstall. Found by [Stephane Pareilleux](https://github.com/spareilleux).
 

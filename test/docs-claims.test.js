@@ -70,3 +70,22 @@ test('the docs table documents each host', () => {
     assert.ok(cli.includes(host), `cli.md should document ${host}`);
   }
 });
+
+test('no user-facing doc still tells people to pass --target', () => {
+  const files = [
+    'README.md',
+    'docs/src/content/docs/guides/installation.md',
+    'docs/src/content/docs/guides/introduction.md',
+    'docs/src/content/docs/reference/cli.md',
+    'docs/src/content/docs/reference/troubleshooting.md',
+    'docs/src/content/docs/commands/slashforge-setup.md',
+    'docs/src/pages/index.astro',
+  ];
+  for (const f of files) {
+    const body = fs.readFileSync(path.join(ROOT, f), 'utf8');
+    const lines = body.split('\n').filter((l) => l.includes('--target') && !/no longer needed/.test(l));
+    assert.deepEqual(lines, [], `${f} still mentions --target`);
+  }
+  const pkg = require('../package.json');
+  assert.match(pkg.description, /Claude Code, Cursor(,)? and Codex/);
+});

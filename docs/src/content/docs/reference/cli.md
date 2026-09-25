@@ -1,6 +1,6 @@
 ---
 title: CLI reference
-description: The three things the npm package itself does, and the targets it installs to.
+description: The three things the npm package itself does, and where it installs for each host.
 ---
 
 ==The slash commands run inside your coding agent.== The package has a small CLI of
@@ -8,9 +8,7 @@ its own for getting them on and off your machine.
 
 | Command | What it does |
 | --- | --- |
-| `npx slashforge` | Installs guide files, the four commands, and the nine discipline skills into `~/.claude/` |
-| `npx slashforge --target cursor` | Installs into `~/.agents/skills/` for Cursor |
-| `npx slashforge --target codex` | Same directory, rendered for Codex |
+| `npx slashforge` | Installs guide files, the four commands and the nine discipline skills for Claude Code, Cursor and Codex |
 | `npx slashforge status` | Reports what is installed, at which version, without changing anything |
 | `npx slashforge uninstall` | Removes the guides and commands it installed |
 
@@ -18,8 +16,7 @@ its own for getting them on and off your machine.
 
 | Flag | Effect |
 | --- | --- |
-| `--project` | Install into the current repo instead of your home directory |
-| `--target <name>` | `claude` (default), `cursor`, `codex`, or `agents` |
+| `--project` | Install into the current repo (`./.claude/` and `./.agents/`) instead of your home directory |
 | `--dry-run` | Print planned file writes without touching the filesystem |
 | `--yes`, `-y` | Non-interactive; auto-confirm the update and uninstall prompts |
 | `--help`, `-h` | Full usage |
@@ -33,35 +30,25 @@ to ask on, it refuses and exits 1 unless `--yes` or `SLASHFORGE_YES=1` is given.
 SLASHFORGE_YES=1 npx slashforge
 ```
 
-## Targets
+## Hosts
 
-SlashForge installs to one target at a time. ==The default is Claude Code, and
-nothing about it has changed.==
+==One install serves all three hosts.== There is nothing to choose.
 
-| Target | Installs to | Commands look like |
-| --- | --- | --- |
-| `claude` (default) | `~/.claude/commands/slashforge/` | `/slashforge:code` |
-| `cursor` | `~/.agents/skills/slashforge-code/SKILL.md` | `/slashforge-code` |
-| `codex` | `~/.agents/skills/slashforge-code/SKILL.md` | `$slashforge-code` |
-| `agents` | `~/.agents/skills/slashforge-code/SKILL.md` | `/slashforge-code` |
+| Host | Commands live in | Guides live in | Invoked as |
+| --- | --- | --- | --- |
+| Claude Code | `~/.claude/commands/slashforge/` | `~/.claude/setup/slashforge/` | `/slashforge:code` |
+| Cursor | `~/.agents/skills/` | `~/.agents/setup/slashforge/cursor/` | `/slashforge-code` |
+| Codex | `~/.agents/skills/` | `~/.agents/setup/slashforge/codex/` | `$slashforge-code` |
 
-==All three non-Claude targets install to the same place==, because Cursor and
-Codex both read `.agents/skills/`. They are separate targets anyway, because
-`/slashforge:setup` writes each host's own layout and those layouts genuinely
-differ — see [What setup writes on each target](#what-setup-writes-on-each-target).
+==Cursor and Codex share one set of skills==, because both read `.agents/skills/`.
+Each still has its own guide folder, because `/slashforge:setup` writes each host's
+own layout and those layouts genuinely differ — see
+[What setup writes on each host](#what-setup-writes-on-each-host).
 
-==The shared directory holds one of them at a time.== Installing a different target
-over an existing one stops and says what it will replace; confirm at the prompt, or
-pass `--yes` where there is no terminal. `status` reports the target actually
-installed, and warns if you asked about another.
+The first thing each Cursor or Codex command does is work out which of the two it is
+running in and read that host's guides; if it can't tell, it asks you once.
 
-Pick `agents` only when you do not know which host will run the commands. It is
-the vendor-neutral fallback, and it is the one target where setup is unavailable:
-with no host known, there is no layout to scaffold.
-
-```bash
-npx slashforge --target cursor      # or --target=cursor
-```
+`--target` is gone. Passing it exits with a message saying it is no longer needed.
 
 ### Why the names differ
 
@@ -76,7 +63,7 @@ skills directory.
 Cross-references inside the installed files are rewritten to match, so a
 workflow that hands off to another command names one that exists on your target.
 
-### What setup writes on each target
+### What setup writes on each host
 
 ==`/slashforge:setup` runs on all three hosts== and scaffolds each one's native
 layout. It never writes `CLAUDE.md` or `.claude/` on a vendor target.
@@ -110,7 +97,7 @@ Codex invokes skills as `$slashforge-setup` rather than `/slashforge-setup`.
 Switch the tabs on any command block and the docs show the form your host uses.
 :::
 
-### Graphify on each target
+### Graphify on each host
 
 If you accept the Graphify offer during setup, it wires itself in per host:
 
@@ -175,32 +162,38 @@ Reports the installed version, the guide files present, the commands registered,
 It changes nothing.
 
 ```bash
-npx slashforge status                 # the claude target
-npx slashforge status --target cursor # the agents target
+npx slashforge status
 ```
 
 ```
+
 slashforge status
-  Target:                    claude
   Package version (current): v4.5.0
-  Installed version:         v4.5.0
-  Installed at:              2026-08-01T15:37:54.153Z
-  Guide files:               16 (~/.claude/setup/slashforge)
-    • forge-agents.md
-    • forge-claude-md.md
-    • forge-commands.md
-    ...
-  Installed commands:        4
-    • /slashforge:code
-    • /slashforge:investigate
-    • /slashforge:review-pr
-    • /slashforge:setup
+
+  Claude Code (~/.claude)
+    Installed version:  v4.5.0
+    Guide files:        16 (~/.claude/setup/slashforge)
+    Installed commands: 4
+      • /slashforge:code
+      • /slashforge:investigate
+      • /slashforge:review-pr
+      • /slashforge:setup
+
+  Cursor + Codex (~/.agents)
+    Installed version:  v4.5.0
+    Guide files (cursor): 16 (~/.agents/setup/slashforge/cursor)
+    Guide files (codex): 16 (~/.agents/setup/slashforge/codex)
+    Installed commands: 4
+      • /slashforge-code (Cursor), $slashforge-code (Codex)
+      • /slashforge-investigate (Cursor), $slashforge-investigate (Codex)
+      • /slashforge-review-pr (Cursor), $slashforge-review-pr (Codex)
+      • /slashforge-setup (Cursor), $slashforge-setup (Codex)
 ```
 
-With `--project` on the `claude` target, it also warns when SlashForge is installed
-globally as well. Claude Code prefers personal commands over project ones, so the
-global copy is the one that runs, not the one committed to the repo. A `--project`
-install prints the same warning.
+With `--project`, it also warns when SlashForge is installed globally as well. Claude
+Code prefers personal commands over project ones, so the global copy is the one that
+runs, not the one committed to the repo; Cursor and Codex may list both copies. A
+`--project` install prints the same warnings.
 
 On a machine with nothing installed it says so, rather than reporting an empty
 install:
@@ -217,10 +210,9 @@ absent.
 ## uninstall
 
 ```bash
-npx slashforge uninstall                    # from ~/.claude/
-npx slashforge uninstall --project          # from ./.claude/
-npx slashforge uninstall --target cursor    # from ~/.agents/skills/
-npx slashforge uninstall --yes              # in a script, where there is no prompt
+npx slashforge uninstall            # from ~/.claude/ and ~/.agents/
+npx slashforge uninstall --project  # from ./.claude/ and ./.agents/
+npx slashforge uninstall --yes      # in a script, where there is no prompt
 ```
 
 ==Removes only the files SlashForge installed==, and recognises the v2 and v3

@@ -135,8 +135,8 @@ what runs at each phase.
 ==Claude Code and Cursor today; Codex unverified== — the rename to the vendor-neutral
 `/slashforge:` namespace in v3.0.0 was groundwork for exactly that.
 
-Install for Cursor with `npx slashforge --target cursor`. That writes
-`.agents/skills/`, the directory Codex reads as well.
+The same `npx slashforge` sets up Cursor and Codex as well. It writes
+`.agents/skills/`, the directory both of them read.
 
 Commands are spelled differently on each agent. Pick yours in the header and
 every command in these docs changes to match — including `setup`, which runs on

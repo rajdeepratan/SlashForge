@@ -16,12 +16,12 @@ fills gaps rather than overwriting==.
 :::note
 ==This command runs on all three hosts== and writes each one's native layout —
 `.cursor/rules/*.mdc` and `.cursor/agents/` on Cursor, nested `AGENTS.md` and
-`.codex/agents/*.toml` on Codex. It never writes `CLAUDE.md` or `.claude/` on a
-vendor target. See
-[What setup writes on each target](/slashforge/reference/cli/#what-setup-writes-on-each-target).
+`.codex/agents/*.toml` on Codex. It never writes `CLAUDE.md` or `.claude/` in
+Cursor or Codex. See
+[What setup writes on each host](/slashforge/reference/cli/#what-setup-writes-on-each-host).
 
-It is unavailable only on `--target agents`, the vendor-neutral fallback: with no
-host known there is no layout to scaffold.
+On Cursor and Codex it first works out which host it is running in, then reads
+that host's own setup guide.
 :::
 
 ## What it creates

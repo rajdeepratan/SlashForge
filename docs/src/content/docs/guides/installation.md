@@ -15,19 +15,17 @@ Claude Code in any repo and type `/` — you should see `/slashforge:setup`,
 
 ### Using Cursor or Codex
 
-```bash
-npx slashforge --target cursor
-```
+The same `npx slashforge` sets them up too — there is nothing to choose.
 
-That installs to `~/.agents/skills/`, which ==Cursor and Codex both read==. Type `/`
+It installs to `~/.agents/skills/`, which ==Cursor and Codex both read==. Type `/`
 in Cursor and you should see `/slashforge-setup`, `/slashforge-code`,
 `/slashforge-investigate` and `/slashforge-review-pr`. In Codex they are invoked with
 `$` — `$slashforge-code`.
 
-==Install for the agent you actually use.== `--target cursor` and `--target codex`
-write to the same directory but render different content, because setup scaffolds each
-host's own layout, so the directory holds one of them at a time. Installing the other
-target later stops and asks before replacing it (or needs `--yes` with no terminal).
+==Each host still gets its own setup.== Cursor and Codex share the skills, but setup
+scaffolds each host's own layout, so their guides live in separate folders:
+`~/.agents/setup/slashforge/cursor/` and `…/codex/`. The first thing each command does
+is work out which of the two it is running in; if it can't tell, it asks you once.
 
 Two differences worth knowing before you start:
 
@@ -36,10 +34,10 @@ Two differences worth knowing before you start:
   invoked with `$` rather than `/`.
 - ==Setup scaffolds your host's own layout.== On Cursor that is `.cursor/rules/*.mdc`
   and `.cursor/agents/`; on Codex, nested `AGENTS.md` and `.codex/agents/*.toml`. It
-  never writes `CLAUDE.md` or `.claude/` on a vendor target. Every step below applies
+  never writes `CLAUDE.md` or `.claude/` in Cursor or Codex. Every step below applies
   to all three hosts.
 
-See [the CLI reference](/slashforge/reference/cli/) for the full target list.
+See [the CLI reference](/slashforge/reference/cli/#hosts) for where each host's files land.
 
 ## Your first run
 

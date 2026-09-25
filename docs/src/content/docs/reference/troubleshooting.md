@@ -19,8 +19,8 @@ description: The handful of things that actually go wrong, and what to do about 
 ### In Cursor or Codex
 
 :::steps
-1. **Check you installed the right target.** A plain `npx slashforge` installs for Claude Code only. You need `npx slashforge --target cursor`.
-2. Run `npx slashforge status --target cursor` — note the `--target`, or it reports on the Claude install instead and will say "not installed" even when the agents install is fine.
+1. **Check the install reached `~/.agents/`.** Run `npx slashforge status`: it reports Claude Code and Cursor + Codex separately, and says if either is missing. Re-running `npx slashforge` fills the gap.
+2. **Older releases installed Claude Code only.** If you set up before Cursor and Codex support arrived, run `npx slashforge` again.
 3. **On Cursor and Codex the commands are hyphenated** — `/slashforge-code`, not `/slashforge:code` — because neither supports the `:` namespace.
 4. **In Codex, use `$`.** The skills are invoked as `$slashforge-code` rather than with a slash.
 5. **Restart the editor.** Skills are discovered at session start.
@@ -32,9 +32,8 @@ description: The handful of things that actually go wrong, and what to do about 
 your host's own layout: `.cursor/rules/*.mdc` and `.cursor/agents/` on Cursor,
 nested `AGENTS.md` and `.codex/agents/*.toml` on Codex. It never writes `.claude/`.
 
-The one exception is `--target agents`, the vendor-neutral fallback. Setup is not
-installed there, because with no host known there is no layout to scaffold —
-install with `--target cursor` or `--target codex` instead.
+If setup writes the wrong host's files, it guessed the host wrong: tell it
+"you are in Cursor" (or Codex) and run it again.
 :::
 
 ## It installed an old version
