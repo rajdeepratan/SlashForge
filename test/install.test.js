@@ -2235,6 +2235,11 @@ test('a failure in one location is reported and the other stays installed', () =
   assert.equal(r.status, 1);
   assert.match(r.stderr, /Cursor \+ Codex:/);
   assert.ok(fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge', 'code.md')), 'Claude install kept');
+  // The output must not claim the failed location is installed.
+  assert.doesNotMatch(r.stdout, /✓ Cursor \+ Codex/, 'a failed location is not reported as installed');
+  assert.doesNotMatch(r.stdout, /In Cursor the same commands/, 'no usage lines for a location that failed');
+  assert.doesNotMatch(r.stdout, /✓ v[\d.]+ installed/, 'a partial install is not reported as a full one');
+  assert.match(r.stdout, /partially installed/);
 });
 
 test('a project install notes a global .agents install as well', () => {

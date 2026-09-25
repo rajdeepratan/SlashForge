@@ -116,7 +116,7 @@ When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code 
 2. Review must check:
    - Matches the approved plan — no scope creep, no missing pieces
    - No duplicate code, no dead code, no debug leftovers, no hardcoded secrets
-- Follows `.claude/rules/` and the user's coding style
+   - Follows `.claude/rules/` and the user's coding style
    - No unintended breaking changes to public APIs, exports, or shared interfaces
    - Production-ready: error handling at boundaries, no unsafe assumptions
 3. **For bug fixes:** root cause is addressed, not just the symptom. The regression test meaningfully covers the bug.

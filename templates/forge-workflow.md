@@ -158,13 +158,13 @@ When uncertain, pick `slashforge:tdd` and note the reasoning. `/slashforge:code 
    - Matches the approved plan — no scope creep, no missing pieces
    - No duplicate code, no dead code, no debug leftovers, no hardcoded secrets
    <!--target:claude-->
-- Follows `.claude/rules/` and the user's coding style
+   - Follows `.claude/rules/` and the user's coding style
 <!--/target-->
 <!--target:cursor-->
-- Follows `.cursor/rules/` and the user's coding style
+   - Follows `.cursor/rules/` and the user's coding style
 <!--/target-->
 <!--target:codex-->
-- Follows the nearest `AGENTS.md` and the user's coding style
+   - Follows the nearest `AGENTS.md` and the user's coding style
 <!--/target-->
    - No unintended breaking changes to public APIs, exports, or shared interfaces
    - Production-ready: error handling at boundaries, no unsafe assumptions

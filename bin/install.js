@@ -973,31 +973,39 @@ async function install({ dryRun, assumeYes, project = false }) {
   // Each location is installed on its own, so one failing (a read-only ~/.agents,
   // say) is reported without undoing the other. A re-run is safe.
   const failures = [];
-  for (const [label, run] of [
-    ['Claude Code', () => installFiles(claude, {})],
-    ['Cursor + Codex', () => installAgentsFiles(agents, {})],
+  const ok = {};
+  for (const [key, label, run] of [
+    ['claude', 'Claude Code', () => installFiles(claude, {})],
+    ['agents', 'Cursor + Codex', () => installAgentsFiles(agents, {})],
   ]) {
-    try { run(); } catch (err) { failures.push(`${label}: ${err.message}`); }
+    try { run(); ok[key] = true; } catch (err) { failures.push(`${label}: ${err.message}`); }
   }
   if (failures.length) {
     for (const f of failures) console.error(`✗ ${f}`);
     process.exitCode = 1;
   }
 
-  console.log(`\n✓ v${pkg.version} installed`);
-  console.log(`✓ Claude Code:     ${path.join(claude.commandsDir, 'slashforge')}  (guides: ${claude.guidesDir})`);
-  console.log(`✓ Cursor + Codex:  ${agents.skillsDir}  (guides: ${path.join(agents.root, '{cursor,codex}')})`);
+  // Report only what landed: a location that failed gets no ✓ and no usage lines,
+  // or a user reading the last lines believes it is set up.
+  console.log(failures.length
+    ? `\n⚠ v${pkg.version} partially installed — re-run \`npx ${pkg.name}\` after fixing the error above`
+    : `\n✓ v${pkg.version} installed`);
+  if (ok.claude) console.log(`✓ Claude Code:     ${path.join(claude.commandsDir, 'slashforge')}  (guides: ${claude.guidesDir})`);
+  if (ok.agents) console.log(`✓ Cursor + Codex:  ${agents.skillsDir}  (guides: ${path.join(agents.root, '{cursor,codex}')})`);
 
-  reportLegacyLeftovers(claude);
-
-  console.log('\nDone! Open Claude Code in any repo:');
-  console.log('  • /slashforge:setup — one-time repo setup');
-  console.log('  • /slashforge:code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
-  console.log('  • /slashforge:code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
-  console.log('  • /slashforge:investigate [symptom] — read-only research, produces a findings report');
-  console.log('  • /slashforge:review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
-  console.log('\nIn Cursor the same commands are /slashforge-setup, /slashforge-code, …');
-  console.log('In Codex they are $slashforge-setup, $slashforge-code, …');
+  if (ok.claude) {
+    reportLegacyLeftovers(claude);
+    console.log('\nDone! Open Claude Code in any repo:');
+    console.log('  • /slashforge:setup — one-time repo setup');
+    console.log('  • /slashforge:code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
+    console.log('  • /slashforge:code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
+    console.log('  • /slashforge:investigate [symptom] — read-only research, produces a findings report');
+    console.log('  • /slashforge:review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
+  }
+  if (ok.agents) {
+    console.log(ok.claude ? '\nIn Cursor the same commands are /slashforge-setup, /slashforge-code, …' : '\nIn Cursor the commands are /slashforge-setup, /slashforge-code, …');
+    console.log('In Codex they are $slashforge-setup, $slashforge-code, …');
+  }
 
   warnIfShadowed(claude, agents);
   await warnIfOutdated();
