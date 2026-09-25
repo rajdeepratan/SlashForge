@@ -1159,7 +1159,12 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 /* On the landing page the picker sits in the banner, above the two buttons, and
    its menu opens from the left edge there. The banner's own "Your agent" label
    names it, so the button's "Agent:" prefix would only repeat it. */
+/* The picker row and the buttons share one box as wide as the buttons, so the
+   picker stretches to end exactly under View on GitHub. */
+.hero__controls { width: max-content; max-width: 100%; }
 .hero__agent { margin-top: 38px; display: flex; align-items: center; gap: 16px; }
+.agentsw--hero { flex: 1; }
+.agentsw--hero .agentsw__btn { width: 100%; justify-content: space-between; }
 .hero__agent .label { margin: 0; font-size: 16px; }
 /* The buttons follow the picker, so they sit closer than they do after the tagline. */
 .hero__agent + .actions { margin-top: 24px; }
