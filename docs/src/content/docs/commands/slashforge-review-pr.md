@@ -1,14 +1,14 @@
 ---
-title: /slashforge:review-pr
+title: /slashforge-review-pr
 description: Review a pull request against your repo's own rules and conventions, then post line-level comments or approve — only after you confirm.
 ---
 
 ```
-/slashforge:review-pr              # PRs awaiting your review
-/slashforge:review-pr 42           # that PR, whatever your relationship to it
-/slashforge:review-pr --assigned   # PRs assigned to you
-/slashforge:review-pr --mine       # your own PRs (comment only)
-/slashforge:review-pr --all        # all three, grouped
+/slashforge-review-pr              # PRs awaiting your review
+/slashforge-review-pr 42           # that PR, whatever your relationship to it
+/slashforge-review-pr --assigned   # PRs assigned to you
+/slashforge-review-pr --mine       # your own PRs (comment only)
+/slashforge-review-pr --all        # all three, grouped
 ```
 
 :::note

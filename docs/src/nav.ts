@@ -13,7 +13,7 @@
 /**
  * `claudeOnly` marks a page whose subject does not exist on the other targets
  * — not merely one written in Claude Code's terms. Plan mode and `/init` are
- * Claude Code features, and `/slashforge:setup` is not installed anywhere
+ * Claude Code features, and `/slashforge-setup` is not installed anywhere
  * else. Such a page is hidden from the sidebar and the pager when another
  * agent is selected, and says so if reached directly.
  */
@@ -37,10 +37,10 @@ export const NAV: NavGroup[] = [
   {
     label: 'Commands',
     items: [
-      { label: '/slashforge:setup', slug: 'commands/slashforge-setup' },
-      { label: '/slashforge:code', slug: 'commands/slashforge-code' },
-      { label: '/slashforge:investigate', slug: 'commands/slashforge-investigate' },
-      { label: '/slashforge:review-pr', slug: 'commands/slashforge-review-pr' },
+      { label: '/slashforge-setup', slug: 'commands/slashforge-setup' },
+      { label: '/slashforge-code', slug: 'commands/slashforge-code' },
+      { label: '/slashforge-investigate', slug: 'commands/slashforge-investigate' },
+      { label: '/slashforge-review-pr', slug: 'commands/slashforge-review-pr' },
     ],
   },
   {

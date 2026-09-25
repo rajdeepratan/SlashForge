@@ -89,3 +89,18 @@ test('no user-facing doc still tells people to pass --target', () => {
   const pkg = require('../package.json');
   assert.match(pkg.description, /Claude Code, Cursor(,)? and Codex/);
 });
+
+test('no user-facing doc names a command in the colon form', () => {
+  const files = [];
+  (function walk(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p); else if (/\.(md|mdx|astro|ts)$/.test(e.name)) files.push(p);
+    }
+  })(path.join(ROOT, 'docs/src'));
+  files.push(path.join(ROOT, 'README.md'));
+  const RE = /(?<![\w.~-])\/?slashforge:[a-z]/;
+  const hits = files.filter((f) => !f.endsWith('changelog.md') && !f.endsWith('migrating.md')
+    && RE.test(fs.readFileSync(f, 'utf8')));
+  assert.deepEqual(hits.map((f) => path.relative(ROOT, f)), []);
+});

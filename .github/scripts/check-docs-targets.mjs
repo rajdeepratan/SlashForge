@@ -43,7 +43,7 @@ for (const page of pages) {
   const rel = page.slice(root.length);
 
   for (const m of html.matchAll(/<span data-cmd="([a-z-]+)">([^<]*)<\/span>/g)) {
-    if (m[2] !== '/slashforge:' + m[1]) {
+    if (m[2] !== '/slashforge-' + m[1]) {
       fail(`${rel}: ${m[1]} rendered as "${m[2]}", expected the Claude Code form`);
     }
     if (!SWITCHABLE.includes(m[1])) {

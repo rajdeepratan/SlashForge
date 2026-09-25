@@ -36,12 +36,12 @@ SLASHFORGE_YES=1 npx slashforge
 
 | Host | Commands live in | Guides live in | Invoked as |
 | --- | --- | --- | --- |
-| Claude Code | `~/.claude/commands/slashforge/` | `~/.claude/setup/slashforge/` | `/slashforge:code` |
+| Claude Code | `~/.claude/commands/` (as `slashforge-*.md`) | `~/.claude/setup/slashforge/` | `/slashforge-code` |
 | Cursor | `~/.agents/skills/` | `~/.agents/setup/slashforge/cursor/` | `/slashforge-code` |
 | Codex | `~/.agents/skills/` | `~/.agents/setup/slashforge/codex/` | `$slashforge-code` |
 
 ==Cursor and Codex share one set of skills==, because both read `.agents/skills/`.
-Each still has its own guide folder, because `/slashforge:setup` writes each host's
+Each still has its own guide folder, because `/slashforge-setup` writes each host's
 own layout and those layouts genuinely differ — see
 [What setup writes on each host](#what-setup-writes-on-each-host).
 
@@ -53,7 +53,7 @@ running in and read that host's guides; if it can't tell, it asks you once.
 ### Why the names differ
 
 ==On Cursor and Codex the commands are hyphenated== — `/slashforge-code`, not
-`/slashforge:code` — because neither supports the `:` namespace.
+`/slashforge-code` — because neither supports the `:` namespace.
 
 A skill there is named by the folder that holds its `SKILL.md`, and nesting does
 not change that. The prefix has to live in the name itself, or the commands would
@@ -65,7 +65,7 @@ workflow that hands off to another command names one that exists on your target.
 
 ### What setup writes on each host
 
-==`/slashforge:setup` runs on all three hosts== and scaffolds each one's native
+==`/slashforge-setup` runs on all three hosts== and scaffolds each one's native
 layout. It never writes `CLAUDE.md` or `.claude/` on a vendor target.
 
 | Layer | Claude Code | Cursor | Codex |
@@ -174,10 +174,10 @@ slashforge status
     Installed version:  v4.5.0
     Guide files:        16 (~/.claude/setup/slashforge)
     Installed commands: 4
-      • /slashforge:code
-      • /slashforge:investigate
-      • /slashforge:review-pr
-      • /slashforge:setup
+      • /slashforge-code
+      • /slashforge-investigate
+      • /slashforge-review-pr
+      • /slashforge-setup
 
   Cursor + Codex (~/.agents)
     Installed version:  v4.5.0
@@ -221,13 +221,13 @@ rather than orphaned.
 
 :::note
 ==Without `--project`, uninstall touches nothing but `~/.claude/`.== A repo's own
-`.claude/` directory — the configuration `/slashforge:setup` generated — is
+`.claude/` directory — the configuration `/slashforge-setup` generated — is
 yours and is never read or removed. `--project` is the one case where it acts on
 a repo, and only on the repo you run it in.
 :::
 
-==If you have added your own commands under `~/.claude/commands/slashforge/`, they
-are left alone and the directory is kept.==
+==Your own commands in `~/.claude/commands/` are left alone==, even ones named like
+the kit's: uninstall removes only the `slashforge-*.md` files it installed.
 
 The same care applies to `.agents/skills/`, which you likely share with other
 tools: uninstall removes ==only the `slashforge-*` directories it created==, and

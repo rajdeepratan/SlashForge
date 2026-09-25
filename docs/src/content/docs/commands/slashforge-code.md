@@ -1,12 +1,12 @@
 ---
-title: /slashforge:code
+title: /slashforge-code
 description: End-to-end development workflow — plan, confirm, branch, implement, verify, review, PR. Add -quick for lean mode.
 ---
 
 ```
-/slashforge:code
-/slashforge:code -quick
-/slashforge:code [file]
+/slashforge-code
+/slashforge-code -quick
+/slashforge-code [file]
 ```
 
 :::note
@@ -22,9 +22,9 @@ order, with four points where it stops and waits for you.==
 The argument is optional. Pass a description, a file, or nothing:
 
 ```
-/slashforge:code
-/slashforge:code investigation-2026-08-02-1432.html
-/slashforge:code docs/spec.md
+/slashforge-code
+/slashforge-code investigation-2026-08-02-1432.html
+/slashforge-code docs/spec.md
 ```
 
 ==If the argument resolves to a **file**, it is read as the requirements document==
@@ -33,7 +33,7 @@ already answered it. Anything else is treated as a free-form description, and
 no argument at all means it asks.
 
 The main source of those files is
-[`/slashforge:investigate`](/slashforge/commands/slashforge-investigate/), which
+[`/slashforge-investigate`](/slashforge/commands/slashforge-investigate/), which
 ends by printing exactly this command with its report filename filled in.
 Pasting it carries the root cause into a fresh session rather than making you
 restate the bug from memory.
@@ -94,7 +94,7 @@ If you want a materially cheaper run, that lever is
 ## Lean mode
 
 ```
-/slashforge:code -quick
+/slashforge-code -quick
 ```
 
 ==For small, well-scoped changes where the full ceremony is overkill==: single-file
@@ -170,7 +170,7 @@ cover. If there is no specialist agent, no scoped rule, and no mention in
 2. **Phase 7 (safety net)** — the `code-reviewer` agent re-checks the diff. If
    gaps remain, ==it raises a **note**, not a block. The PR can still merge==.
 
-Skipped on `-quick`, on trivial auto-detect, and on `/slashforge:investigate`.
+Skipped on `-quick`, on trivial auto-detect, and on `/slashforge-investigate`.
 
 **Cost:** ~100–300 tokens when no gaps are found; ~300–600 when gaps surface and
 you decline; ~3–8k when you accept and files are generated.
@@ -178,7 +178,7 @@ you decline; ~3–8k when you accept and files are generated.
 **Why it exists:** ==without it, every new domain silently widens the gap between
 what the repo does and what `.claude/` knows.== Agents stay generic, rules stop
 matching, `CLAUDE.md` drifts. This closes the loop incrementally instead of
-relying on you to remember to re-run `/slashforge:setup`.
+relying on you to remember to re-run `/slashforge-setup`.
 
 ## Skills per phase
 
@@ -186,13 +186,13 @@ These ship with SlashForge and are always available:
 
 | Phase | Skill |
 | --- | --- |
-| 1 | `slashforge:brainstorm` (full mode only) |
-| 2 | `slashforge:plan` |
-| 4 | `slashforge:worktree` (only when isolation is warranted) |
-| 5 | `slashforge:debug` (bugs) · `slashforge:parallel` (independent units) · `slashforge:tdd` (everything else) |
-| 6 | `slashforge:verify` |
-| 7 | `slashforge:request-review` |
-| 9 | `slashforge:review-feedback` |
+| 1 | `slashforge-brainstorm` (full mode only) |
+| 2 | `slashforge-plan` |
+| 4 | `slashforge-worktree` (only when isolation is warranted) |
+| 5 | `slashforge-debug` (bugs) · `slashforge-parallel` (independent units) · `slashforge-tdd` (everything else) |
+| 6 | `slashforge-verify` |
+| 7 | `slashforge-request-review` |
+| 9 | `slashforge-review-feedback` |
 
 Phases 3, 8 and 10 use no skill — they are user gates and git operations the
 workflow handles directly.

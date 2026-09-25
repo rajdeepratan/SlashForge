@@ -11,7 +11,7 @@ import {
 /**
  * Wraps per-target text in spans the client script can rewrite.
  *
- *   /slashforge:code            -> <span data-cmd="code">/slashforge:code</span>
+ *   /slashforge-code            -> <span data-cmd="code">/slashforge-code</span>
  *   ~/.claude/setup/slashforge/ -> <span data-path="guides">…</span>
  *
  * Spans ship already rendered in the Claude Code form, so the page is correct

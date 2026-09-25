@@ -10,8 +10,8 @@ npx slashforge
 ```
 
 ==That installs the guide files and the four commands into `~/.claude/`.== Open
-Claude Code in any repo and type `/` — you should see `/slashforge:setup`,
-`/slashforge:code`, `/slashforge:investigate`, and `/slashforge:review-pr`.
+Claude Code in any repo and type `/` — you should see `/slashforge-setup`,
+`/slashforge-code`, `/slashforge-investigate`, and `/slashforge-review-pr`.
 
 ### Using Cursor or Codex
 
@@ -56,7 +56,7 @@ what runs at each phase.
 **3. Set up the repo.** Open Claude Code in your project and run:
 
 ```
-/slashforge:setup
+/slashforge-setup
 ```
 
 It explores the codebase, asks you questions in batches, and ==generates
@@ -67,7 +67,7 @@ silently.
 **4. Do some work.**
 
 ```
-/slashforge:code
+/slashforge-code
 ```
 
 It asks what you want to build, then walks the ten phases, ==stopping at four
@@ -79,9 +79,9 @@ points for your approval==. For a small change, add `-quick`.
 npx slashforge status
 ```
 
-==That's the whole loop. `/slashforge:setup` once per repo, `/slashforge:code` per
-change==, [`/slashforge:review-pr`](/slashforge/commands/slashforge-review-pr/) to review
-someone else's, and [`/slashforge:investigate`](/slashforge/commands/slashforge-investigate/)
+==That's the whole loop. `/slashforge-setup` once per repo, `/slashforge-code` per
+change==, [`/slashforge-review-pr`](/slashforge/commands/slashforge-review-pr/) to review
+someone else's, and [`/slashforge-investigate`](/slashforge/commands/slashforge-investigate/)
 when you need to understand a bug before touching it.
 
 ## Requirements
@@ -99,7 +99,7 @@ explicit:
 | | Required? | When you deal with it |
 | --- | --- | --- |
 | [superpowers](/slashforge/guides/skills/) | No — nothing invokes or checks for it | Never prompted for. Install it only if you want its own library |
-| [Graphify](/slashforge/guides/graphify/) | No, fully optional | `/slashforge:setup` offers it mid-run, on supported languages only |
+| [Graphify](/slashforge/guides/graphify/) | No, fully optional | `/slashforge-setup` offers it mid-run, on supported languages only |
 
 ==You do not need to prepare anything.== Install SlashForge, run a command, and it
 will offer what it needs when it needs it.

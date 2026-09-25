@@ -24,7 +24,7 @@ valuable — and it is the one gate SlashForge shares.
 | **After approval** | Stops enforcing | Verification, code review, and PR phases still run |
 | **Verification** | Not required | Phase 6 must pass lint, tests, and build — a failure stops the run before a PR exists |
 | **Branch and PR** | Left to the conversation | Each is an explicit decision you answer |
-| **Persistence** | Ephemeral — the next session starts cold | `/slashforge:setup` writes `CLAUDE.md` and `.claude/`, so the next session starts informed |
+| **Persistence** | Ephemeral — the next session starts cold | `/slashforge-setup` writes `CLAUDE.md` and `.claude/`, so the next session starts informed |
 | **Repeatability** | As consistent as that day's prompt | The phases run identically every time, for everyone on the team |
 
 :::note[Not exclusive]
@@ -37,9 +37,9 @@ ten phases care that a plan was confirmed, not how you drafted it.
 Claude Code ships with a built-in `/init`, and it is good at what it does. The
 distinction is narrower than "which tool is better":
 
-> **`/init` writes a file. `/slashforge:setup` installs a workflow.**
+> **`/init` writes a file. `/slashforge-setup` installs a workflow.**
 
-| | `/init` (built-in) | `/slashforge:setup` |
+| | `/init` (built-in) | `/slashforge-setup` |
 | --- | --- | --- |
 | **Writes `CLAUDE.md`** | Yes | Yes |
 | **Asks clarifying questions** | No — discovers and suggests | Yes, in batches, before writing anything |
@@ -48,7 +48,7 @@ distinction is narrower than "which tool is better":
 | **Agents** | None | Mandatory `developer`, `code-reviewer`, `git`, plus specialists |
 | **Monorepos** | Single-repo focused | Root plus a `CLAUDE.md` per app |
 | **Safe to re-run** | Suggests `CLAUDE.md` improvements | Yes — `generated_by` markers decide what may be overwritten |
-| **Installs a workflow** | No | Yes — `/slashforge:code` and its ten phases |
+| **Installs a workflow** | No | Yes — `/slashforge-code` and its ten phases |
 
 ==The opinionation is the point.== It produces the same structure every time, which
 is what makes the output reviewable across a team.
@@ -62,7 +62,7 @@ alone is the right amount of process== — the gates cost more than they save, a
 `/init` is fast, unopinionated, and already installed.
 
 :::caution[Honest limit]
-SlashForge is deliberately heavy. A full `/slashforge:code` run costs
+SlashForge is deliberately heavy. A full `/slashforge-code` run costs
 [100–250k tokens](/slashforge/commands/slashforge-code/) and stops to ask you
 four questions. ==If what you want is an agent that turns a prompt into a patch as
 fast as possible, this is the wrong tool and it will annoy you.==
@@ -71,11 +71,11 @@ fast as possible, this is the wrong tool and it will annoy you.==
 ## Using both
 
 ==They compose.== Run `/init` first for a starter `CLAUDE.md`, then
-`/slashforge:setup` — ==its Update flow reads what is already there and fills gaps
+`/slashforge-setup` — ==its Update flow reads what is already there and fills gaps
 rather than overwriting==.
 
-Files `/slashforge:setup` did not generate carry no `generated_by` marker, so
+Files `/slashforge-setup` did not generate carry no `generated_by` marker, so
 they are treated as yours: edited to fill gaps, never overwritten. See
-[`/slashforge:setup`](/slashforge/commands/slashforge-setup/) for how the markers
+[`/slashforge-setup`](/slashforge/commands/slashforge-setup/) for how the markers
 work.
 

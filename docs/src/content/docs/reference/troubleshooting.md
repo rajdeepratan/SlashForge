@@ -21,7 +21,7 @@ description: The handful of things that actually go wrong, and what to do about 
 :::steps
 1. **Check the install reached `~/.agents/`.** Run `npx slashforge status`: it reports Claude Code and Cursor + Codex separately, and says if either is missing. Re-running `npx slashforge` fills the gap.
 2. **Older releases installed Claude Code only.** If you set up before Cursor and Codex support arrived, run `npx slashforge` again.
-3. **On Cursor and Codex the commands are hyphenated** — `/slashforge-code`, not `/slashforge:code` — because neither supports the `:` namespace.
+3. **On Cursor and Codex the commands are hyphenated** — `/slashforge-code`, not `/slashforge-code` — because neither supports the `:` namespace.
 4. **In Codex, use `$`.** The skills are invoked as `$slashforge-code` rather than with a slash.
 5. **Restart the editor.** Skills are discovered at session start.
 6. Confirm the files are on disk: `ls ~/.agents/skills/`. You should see a `slashforge-code` directory containing `SKILL.md`.
@@ -59,7 +59,7 @@ tell you whether the copy you just ran is current.
 
 ==Usually one of two things, and both are working as designed.==
 
-- **`/slashforge:code` classified the task as trivial.** Phase 1 auto-detects
+- **`/slashforge-code` classified the task as trivial.** Phase 1 auto-detects
   small changes and skips brainstorming. Say `full flow` to override. See
   [Skills](/slashforge/guides/skills/) for what runs at each phase.
 - **`-quick` is doing what it says.** Lean mode skips brainstorming and swaps
@@ -81,7 +81,7 @@ overwritten.==
 
 ## Graphify is not being offered
 
-`/slashforge:setup` only offers it when **at least 70% of non-trivial source
+`/slashforge-setup` only offers it when **at least 70% of non-trivial source
 files** are in a supported language. On YAML, shell, or config-only repos it
 skips silently. ==That is intended, not a failure== — see
 [Graphify](/slashforge/guides/graphify/) for the supported languages.

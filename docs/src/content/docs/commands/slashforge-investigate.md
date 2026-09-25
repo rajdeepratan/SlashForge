@@ -1,11 +1,11 @@
 ---
-title: /slashforge:investigate
+title: /slashforge-investigate
 description: Read-only research — reproduce and root-cause a bug, then produce a findings report.
 ---
 
 ```
-/slashforge:investigate
-/slashforge:investigate [symptom]
+/slashforge-investigate
+/slashforge-investigate [symptom]
 ```
 
 :::note
@@ -29,7 +29,7 @@ without worrying about what it might do to your working tree.
 - You need the reasoning written down for someone else
 
 ==If you already know the cause and want it fixed, use
-[`/slashforge:code`](/slashforge/commands/slashforge-code/) instead== — its Phase 5 runs
+[`/slashforge-code`](/slashforge/commands/slashforge-code/) instead== — its Phase 5 runs
 systematic debugging as part of shipping the fix.
 
 ## What it produces
@@ -82,15 +82,15 @@ The run ends with the report's path, ready to paste:
 
 ```
 Investigation complete → docs/slashforge/investigations/investigation-2026-08-02-1432.html
-Want me to fix this? Run /slashforge:code investigation-2026-08-02-1432.html
+Want me to fix this? Run /slashforge-code investigation-2026-08-02-1432.html
 ```
 
 The two lines use different forms on purpose. The pointer after the arrow is the
 full path — where the file lives, clickable in most terminals. The command takes
-the **bare filename**, which `/slashforge:code` resolves against
+the **bare filename**, which `/slashforge-code` resolves against
 `docs/slashforge/investigations/`, so there is less to type or paste.
 
-That handover is the point. ==`/slashforge:code` reads the report as its
+That handover is the point. ==`/slashforge-code` reads the report as its
 requirements document, so the root cause survives into a fresh session instead of
 being retyped from memory== — see
 [its Argument section](/slashforge/commands/slashforge-code/#argument).
@@ -118,7 +118,7 @@ layers means reading all three. Reproduction adds command output on top, and a
 failing build or test suite can be verbose.
 
 ==It is the cheapest command that produces a durable artefact==, which is the
-argument for reaching for it before `/slashforge:code` on anything you do not
+argument for reaching for it before `/slashforge-code` on anything you do not
 yet understand. Diagnosing at investigate prices and handing the report forward
 costs less than diagnosing midway through a full run.
 
@@ -128,8 +128,8 @@ The argument is optional and freeform — a symptom, an error message, a failing
 test name, or a description:
 
 ```
-/slashforge:investigate the auth middleware drops the session on refresh
-/slashforge:investigate TypeError: cannot read property 'id' of undefined
+/slashforge-investigate the auth middleware drops the session on refresh
+/slashforge-investigate TypeError: cannot read property 'id' of undefined
 ```
 
 Without one, it asks what you are seeing.

@@ -1,6 +1,6 @@
 ---
 title: Migrating
-description: Every upgrade path in one place. Skip this page unless you installed before v4.
+description: Every upgrade path in one place. Skip this page unless you installed before v5.
 ---
 
 ==Newest first. Find the version you are on, apply that section, and stop== — each
@@ -9,8 +9,41 @@ one is self-contained, and if you are two hops back you can do both at once.
 :::note
 ==Your repo's own `.claude/` directory survives every migration on this page.==
 Only the files under `~/.claude/` are replaced. The configuration
-`/slashforge:setup` generated is yours.
+`/slashforge-setup` generated is yours.
 :::
+
+## v4 to v5
+
+==v5.0.0 changes the command names, and installs for Cursor and Codex too.==
+
+| v4 (Claude Code) | v5 (Claude Code and Cursor) | v5 (Codex) |
+| --- | --- | --- |
+| `/slashforge:setup` | `/slashforge-setup` | `$slashforge-setup` |
+| `/slashforge:code` | `/slashforge-code` | `$slashforge-code` |
+| `/slashforge:code -quick` | `/slashforge-code -quick` | `$slashforge-code -quick` |
+| `/slashforge:investigate` | `/slashforge-investigate` | `$slashforge-investigate` |
+| `/slashforge:review-pr` | `/slashforge-review-pr` | `$slashforge-review-pr` |
+
+The nine discipline skills follow the same pattern: `slashforge:plan` becomes
+`slashforge-plan`.
+
+:::steps
+1. Run `npx slashforge`. It installs the new commands and ==removes the v4 ones by
+   name== — the 13 files it put in `~/.claude/commands/slashforge/`, then the folder if
+   nothing else is left. A command of your own in that folder is kept.
+2. Restart Claude Code, so it drops the old `/slashforge:` entries.
+3. Update anything of your own that types the old name: scripts, notes, team docs.
+:::
+
+There is no `--target` any more. One install sets up Claude Code, Cursor and Codex;
+passing `--target` exits with a message saying so.
+
+### Why
+
+==The same name on every host.== The `:` only existed because Claude Code turns a
+commands subfolder into a namespace. Neither Cursor nor Codex supports that, so their
+commands were already `slashforge-code`. Claude Code now installs flat
+`slashforge-*.md` files and matches them.
 
 ## v3 to v4
 

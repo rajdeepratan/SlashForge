@@ -17,19 +17,18 @@ Two things land on your machine:
 | What | Where |
 | --- | --- |
 | Guide files | `~/.claude/setup/slashforge/` |
-| Commands | `~/.claude/commands/slashforge/` |
+| Commands | `~/.claude/commands/` (as `slashforge-*.md`) |
 
 The commands are thin. ==They point at the guide files, which carry the actual
 workflow.== That separation is why a command can change modes — `-quick` simply
 loads one extra guide.
 
-Commands live in a `slashforge/` subdirectory, which is what produces the
-`/slashforge:` prefix and keeps them from colliding with commands you already
-have.
+Every command carries the `slashforge-` prefix, which keeps it from colliding
+with commands you already have — and it is the same name on every host.
 
 ## The vocabulary
 
-`/slashforge:setup` generates five kinds of file into your repo. They are Claude
+`/slashforge-setup` generates five kinds of file into your repo. They are Claude
 Code concepts rather than SlashForge inventions, but you will see the words
 constantly, so:
 
@@ -46,13 +45,13 @@ constantly, so:
 
 ==Each command triggers one distinct workflow.==
 
-### `/slashforge:setup`
+### `/slashforge-setup`
 
 One-time repo setup. Explores the codebase, asks clarifying questions in
 batches, then ==creates `CLAUDE.md` plus tailored rules, skills, agents,
 commands, and hooks in `.claude/`==. Handles fresh repos and partial setups.
 
-### `/slashforge:code`
+### `/slashforge-code`
 
 The full ten-phase development workflow, ending in a merged PR. Four points
 stop and wait for you: plan confirmation, branch decision, PR target, and
@@ -62,14 +61,14 @@ Pass `-quick` for lean mode on small changes — it skips brainstorming, uses a
 two-section plan, and swaps the agent code review for an inline checklist.
 ==Every user gate and the lint/test/build verification stay.==
 
-### `/slashforge:investigate`
+### `/slashforge-investigate`
 
 Read-only research. Reproduces a bug, finds the root cause, and writes a report
 to `docs/slashforge/investigations/`. ==No branch, no PR, no code changes.== It ends by handing the
-report path to `/slashforge:code`, so the fix starts with the diagnosis already
+report path to `/slashforge-code`, so the fix starts with the diagnosis already
 loaded instead of you restating the bug.
 
-### `/slashforge:review-pr`
+### `/slashforge-review-pr`
 
 Reviews someone's pull request against *your* repo's standards — `CLAUDE.md`,
 `.claude/rules/`, and the conventions in the surrounding code — then posts
@@ -100,12 +99,12 @@ to a workflow this heavy.
 
 | Mode | Cost |
 | --- | --- |
-| `/slashforge:setup` | ~50–120k tokens, once per repo |
+| `/slashforge-setup` | ~50–120k tokens, once per repo |
 | Full run | 100–250k tokens per feature |
 | Full run, with Graphify indexed | ~75–225k tokens |
 | `-quick` | ~40–70k tokens per change |
-| `/slashforge:investigate` | ~15–60k tokens per report |
-| `/slashforge:review-pr` | ~15–70k tokens per review |
+| `/slashforge-investigate` | ~15–60k tokens per report |
+| `/slashforge-review-pr` | ~15–70k tokens per review |
 
 ==The range is driven by the size of the feature, not by the tooling== — a
 single-module change lands near the bottom, a multi-layer feature near the top.
@@ -132,8 +131,8 @@ what runs at each phase.
 
 ## Supported tools
 
-==Claude Code and Cursor today; Codex unverified== — the rename to the vendor-neutral
-`/slashforge:` namespace in v3.0.0 was groundwork for exactly that.
+==Claude Code, Cursor and Codex== — every command has the same `slashforge-` name on
+all three; only Codex invokes it with `$` instead of `/`.
 
 The same `npx slashforge` sets up Cursor and Codex as well. It writes
 `.agents/skills/`, the directory both of them read.

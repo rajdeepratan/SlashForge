@@ -4,10 +4,9 @@ description: SlashForge ships every discipline skill the workflow uses. No plugi
 ---
 
 SlashForge ships **its own discipline skills**. They install with the package and ==are always
-available — no plugin, no marketplace, nothing to add==. On Claude Code they live under the
-`slashforge:` namespace; on the `cursor` / `codex` target they are named `slashforge-brainstorm`,
-`slashforge-plan` and so on, since neither tool supports a `:` namespace. The table below uses
-the Claude Code form.
+available — no plugin, no marketplace, nothing to add==. On every host they are named
+`slashforge-brainstorm`, `slashforge-plan` and so on; the prefix keeps them from colliding with
+skills you already have.
 
 The [superpowers](https://github.com/obra/superpowers) plugin used to be a preflight gate: every
 command stopped, checked for it, and warned about degraded mode if it was missing. ==That is no
@@ -18,20 +17,20 @@ with it.
 
 | Phase | Skill |
 | --- | --- |
-| 1 Intake | `slashforge:brainstorm` (full mode only) |
-| 2 Plan | `slashforge:plan` |
-| 4 Branch | `slashforge:worktree` (only when isolation is warranted) |
-| 5 Implement | `slashforge:debug` (bugs) · `slashforge:parallel` (independent units) · `slashforge:tdd` (everything else) |
-| 6 Verify | `slashforge:verify` |
-| 7 Review | `slashforge:request-review` |
-| 9 PR feedback | `slashforge:review-feedback` |
+| 1 Intake | `slashforge-brainstorm` (full mode only) |
+| 2 Plan | `slashforge-plan` |
+| 4 Branch | `slashforge-worktree` (only when isolation is warranted) |
+| 5 Implement | `slashforge-debug` (bugs) · `slashforge-parallel` (independent units) · `slashforge-tdd` (everything else) |
+| 6 Verify | `slashforge-verify` |
+| 7 Review | `slashforge-request-review` |
+| 9 PR feedback | `slashforge-review-feedback` |
 
 ==Phases 3, 8 and 10 use no skill== — they are user gates and git operations the workflow handles
 directly.
 
-Three skills carry names worth distinguishing: ==`slashforge:request-review` gets **your own** work
-reviewed before it ships==, ==`slashforge:review-feedback` handles comments **you received**==, and the
-==`/slashforge:review-pr` command reviews **someone else's** pull request==.
+Three skills carry names worth distinguishing: ==`slashforge-request-review` gets **your own** work
+reviewed before it ships==, ==`slashforge-review-feedback` handles comments **you received**==, and the
+==`/slashforge-review-pr` command reviews **someone else's** pull request==.
 
 All nine are adapted from superpowers under the MIT licence, © 2025 Jesse Vincent. Each file
 carries the notice, because skills install into `~/.claude/` detached from this repo.
@@ -68,5 +67,5 @@ npx slashforge
 ## Graphify
 
 [Graphify](/slashforge/guides/graphify/) is the other optional integration, and works
-differently — a **one-time setup-time offer** inside `/slashforge:setup` rather than a
+differently — a **one-time setup-time offer** inside `/slashforge-setup` rather than a
 per-command check. Once installed, its own hook surfaces graph context automatically.

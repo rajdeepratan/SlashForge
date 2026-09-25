@@ -41,16 +41,15 @@ export const SWITCHABLE = [
 ];
 
 export function commandForm(name, target) {
-  if (target === 'cursor') return `/slashforge-${name}`;
-  if (target === 'codex') return `$slashforge-${name}`;
-  return `/slashforge:${name}`;
+  return target === 'codex' ? `$slashforge-${name}` : `/slashforge-${name}`;
 }
 
 // Longest first, so the alternation can never settle on a prefix: without this
 // `review-pr` would be tried before `review-feedback`.
 const alternation = [...SWITCHABLE].sort((a, b) => b.length - a.length).join('|');
 
-export const COMMAND_RE = new RegExp(`/slashforge:(${alternation})\\b`, 'g');
+// A command, never a path segment: `~/.agents/skills/slashforge-code/` is a directory.
+export const COMMAND_RE = new RegExp(`(?<![\\w./~-])/slashforge-(${alternation})\\b`, 'g');
 
 /**
  * Where an install lands, per host. Cursor and Codex share one skill set in
@@ -64,7 +63,7 @@ export const INSTALL_PATHS = {
     cursor: '~/.agents/setup/slashforge/cursor/',
     codex: '~/.agents/setup/slashforge/codex/',
   },
-  commands: { claude: '~/.claude/commands/slashforge/', cursor: '~/.agents/skills/', codex: '~/.agents/skills/' },
+  commands: { claude: '~/.claude/commands/', cursor: '~/.agents/skills/', codex: '~/.agents/skills/' },
   root: { claude: '~/.claude/', cursor: '~/.agents/', codex: '~/.agents/' },
 };
 
@@ -135,7 +134,7 @@ export function renderReplayLine(src, target) {
   return target === 'codex' && text.startsWith('$ $') ? text.slice(2) : text;
 }
 
-const WHOLE_LABEL_RE = new RegExp(`^/slashforge:(${alternation})$`);
+const WHOLE_LABEL_RE = new RegExp(`^/slashforge-(${alternation})$`);
 
 /**
  * The command name when a label is exactly one command, else null.

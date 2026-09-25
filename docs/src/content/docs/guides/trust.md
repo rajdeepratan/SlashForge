@@ -11,17 +11,17 @@ git operations in your repo. That deserves a page, not a footnote.
 | Path | When |
 | --- | --- |
 | `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow, plus `forge-report-shell.html` (shared document styling), `forge-open.sh` (opens a document in your browser), and `forge-splice.js` and `forge-review-payload.js` (build documents and review payloads; files rather than inline scripts, so a permission rule can allow each by its path) |
-| `~/.claude/commands/slashforge/` | On install — the four command files, plus SlashForge's nine discipline skills (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`) |
-| `<repo>/CLAUDE.md` | On `/slashforge:setup`, after you answer its questions |
-| `<repo>/.claude/` | On `/slashforge:setup` — rules, skills, agents, commands, hooks |
-| `<repo>/docs/slashforge/investigations/` | On `/slashforge:investigate` — the findings report |
-| `<repo>/docs/slashforge/specs/` | On `/slashforge:code` full path — the design spec from Phase 1 |
-| `<repo>/docs/slashforge/plans/` | On `/slashforge:code` full path — the implementation plan from Phase 2 |
-| `<repo>/docs/slashforge/reviews/` | On `/slashforge:review-pr` — the review document |
+| `~/.claude/commands/` | On install — the four command files, plus SlashForge's nine discipline skills, each a `slashforge-*.md` file (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`) |
+| `<repo>/CLAUDE.md` | On `/slashforge-setup`, after you answer its questions |
+| `<repo>/.claude/` | On `/slashforge-setup` — rules, skills, agents, commands, hooks |
+| `<repo>/docs/slashforge/investigations/` | On `/slashforge-investigate` — the findings report |
+| `<repo>/docs/slashforge/specs/` | On `/slashforge-code` full path — the design spec from Phase 1 |
+| `<repo>/docs/slashforge/plans/` | On `/slashforge-code` full path — the implementation plan from Phase 2 |
+| `<repo>/docs/slashforge/reviews/` | On `/slashforge-review-pr` — the review document |
 
 ==Nothing is written outside those paths.== Every generated file carries a
 `generated_by` marker; ==remove or edit it and that file is treated as yours
-permanently==. See [`/slashforge:setup`](/slashforge/commands/slashforge-setup/)
+permanently==. See [`/slashforge-setup`](/slashforge/commands/slashforge-setup/)
 for how the markers decide what may be refreshed.
 
 ## What it runs
@@ -52,7 +52,7 @@ it is the last thing that happens.
 | **Auto-install** | [superpowers](/slashforge/guides/skills/) is optional and never offered mid-run; [Graphify](/slashforge/guides/graphify/) is a one-time offer during setup. You see the exact shell command before anything runs |
 | **Force-push** | Not at any phase |
 | **Merge for you** | Phase 8 opens the PR. Merging is yours |
-| **Post a review unasked** | `/slashforge:review-pr` shows the exact text first and never picks approve vs request-changes for you |
+| **Post a review unasked** | `/slashforge-review-pr` shows the exact text first and never picks approve vs request-changes for you |
 | **Delete a branch silently** | Phase 10 asks before cleanup |
 | **Touch code in `investigate`** | No branch, no commits, no edits — the constraint is the feature |
 | **Phone home** | No telemetry. Graphify, if you accept it, indexes entirely locally |
