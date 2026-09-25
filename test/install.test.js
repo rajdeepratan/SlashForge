@@ -15,6 +15,7 @@ const {
   installFiles,
   uninstallFiles,
   commandName,
+  toSkillFrontmatter,
   commandPath,
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
@@ -2458,4 +2459,25 @@ test('the Graphify guide names each host\'s own integration', () => {
     assert.doesNotMatch(renderAll(host)['forge-graph.md'], /Claude Code Glob\/Grep hook/, host);
   }
   assert.match(renderAll('cursor')['forge-graph.md'], /\.cursor\/rules\/graphify\.mdc/);
+});
+
+// --- Remaining review items on #58 ---
+test('toSkillFrontmatter finds a closing fence with trailing whitespace', () => {
+  const out = toSkillFrontmatter('---\nname: /slashforge-code\ndescription: d\n---  \nbody\n', 'slashforge-code');
+  assert.match(out, /^name: slashforge-code$/m);
+});
+
+// The validator and the stripper must agree on what a marker is: one it accepts
+// but the stripper cannot see ships to every host as raw text.
+test('a target marker that is not on its own line is refused', () => {
+  const inline = 'text <!--target:claude-->x<!--/target--> more\n';
+  assert.ok(findTargetBlockErrors(inline, 'f.md').length > 0, 'inline marker must be an error');
+});
+
+test('a template saved with Windows line endings renders like any other', () => {
+  const src = '---\r\nname: x\r\ndescription: d\r\n---\r\nshared\r\n<!--target:claude-->\r\nclaude only\r\n<!--/target-->\r\n<!--target:cursor-->\r\ncursor only\r\n<!--/target-->\r\n';
+  assert.deepEqual(findTargetBlockErrors(src, 'f.md'), []);
+  const out = renderTemplate(src, { installPath: '/p', version: '0', pkgName: 'x', targetName: 'claude' });
+  assert.ok(out.includes('claude only') && !out.includes('cursor only'), out);
+  assert.ok(!out.includes('<!--'), 'no marker survives');
 });

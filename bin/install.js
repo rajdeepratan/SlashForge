@@ -272,7 +272,8 @@ function skillDirName(file, prefix = '') {
 // block so a body line beginning 'name:' is never touched.
 function toSkillFrontmatter(content, skillName) {
   const lines = content.split(/\r?\n/);
-  const end = lines.indexOf('---', 1);
+  // Trimmed like parseFrontmatter's, so a trailing space does not hide the fence.
+  const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
   for (let i = 1; i < end; i += 1) {
     if (/^name\s*:/.test(lines[i])) {
       lines[i] = `name: ${skillName}`;
@@ -337,7 +338,8 @@ function blockNamesFor(targetName) {
 
 function stripTargetBlocks(content, targetName) {
   const keep = blockNamesFor(targetName);
-  return content.replace(TARGET_BLOCK_RE, (_match, name, body) =>
+  // Windows line endings would hide every fence from the line-anchored pattern.
+  return content.replace(/\r\n/g, '\n').replace(TARGET_BLOCK_RE, (_match, name, body) =>
     (keep.includes(name) ? body : '')
   );
 }
@@ -355,13 +357,20 @@ const TARGET_TOKEN_RE = /<!--target:([a-z-]+)-->|<!--\/target-->/g;
 // the damage is prose a model then follows. So malformed markers stop the
 // install rather than being stripped on a best-effort basis.
 function findTargetBlockErrors(content, file) {
+  content = content.replace(/\r\n/g, '\n');
   const errors = [];
   let open = null;
   let match;
+  const lines = content.split('\n');
   TARGET_TOKEN_RE.lastIndex = 0;
   while ((match = TARGET_TOKEN_RE.exec(content)) !== null) {
     const name = match[1];
     const line = content.slice(0, match.index).split('\n').length;
+    // The stripper only sees a marker alone on its line; one it cannot see would
+    // ship to every host as raw text, so it is refused here instead.
+    if (lines[line - 1].trim() !== match[0]) {
+      errors.push(`${file}:${line}: target marker must be on its own line`);
+    }
     if (name === undefined) {
       if (open === null) errors.push(`${file}:${line}: <!--/target--> with no open block`);
       else open = null;
