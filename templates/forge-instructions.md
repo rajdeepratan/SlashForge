@@ -127,7 +127,7 @@ Reference this file whenever asked to create the repo's entry file, agents, rule
 | Rules | nested `AGENTS.md` — Codex has no rules directory |
 | Skills | `.agents/skills/<name>/SKILL.md` |
 | Commands | none — prompts are deprecated; write a skill |
-| Hooks | `.codex/hooks.json` (beta; needs `[features] codex_hooks = true`) |
+| Hooks | `.codex/hooks.json` (project hooks load once `.codex/` is trusted) |
 <!--/target-->
 <!--target:neutral-->
 | File | Location |

@@ -1776,8 +1776,55 @@ test('the hooks guide carries each host hook file and gate', () => {
 
   const codex = renderAll('codex')['forge-hooks.md'];
   assert.match(codex, /\.codex\/hooks\.json/);
-  assert.match(codex, /codex_hooks = true/, 'must document the beta feature gate');
-  assert.match(codex, /beta/i);
+  // Hooks left beta: on by default, behind `[features] hooks`, not `codex_hooks`.
+  assert.match(codex, /hooks = true/, 'must name the feature flag');
+  assert.doesNotMatch(codex, /codex_hooks/, 'the old beta flag name is gone');
+});
+
+// The event names, config shape and exit codes used to be shared by every target,
+// which gave Cursor Claude Code's hook model: a .cursor/hooks.json with PostToolUse
+// and a nested hooks array, which Cursor never fires.
+test('the cursor hooks guide describes Cursor\'s schema, not Claude Code\'s', () => {
+  const cursor = renderAll('cursor')['forge-hooks.md'];
+  for (const claudeOnly of ['PostToolUse', 'PreToolUse', 'SessionStart', 'UserPromptSubmit',
+    'settings.json', '$CLAUDE_PROJECT_DIR', 'disableAllHooks', '/update-config', '"type": "http"']) {
+    assert.ok(!cursor.includes(claudeOnly), `cursor render still names Claude Code's ${claudeOnly}`);
+  }
+  for (const event of ['afterFileEdit', 'beforeShellExecution', 'beforeReadFile', 'stop', 'sessionStart']) {
+    assert.ok(cursor.includes(`\`${event}\``), `cursor render should name ${event}`);
+  }
+  assert.match(cursor, /failClosed/);
+  assert.match(cursor, /"permission": "deny"/);
+
+  // The example config must be one Cursor would actually load.
+  const m = cursor.match(/```json\n([\s\S]*?)```/);
+  assert.ok(m, 'no example hooks.json');
+  const config = JSON.parse(m[1]);
+  assert.equal(config.version, 1, 'Cursor requires "version": 1');
+  for (const [event, entries] of Object.entries(config.hooks)) {
+    assert.match(event, /^[a-z]/, `${event}: Cursor events are camelCase`);
+    for (const e of entries) {
+      assert.equal(typeof e.command, 'string', `${event}: each entry needs a command`);
+      assert.ok(!('hooks' in e), `${event}: Cursor entries are flat, not nested`);
+    }
+  }
+});
+
+test('the claude hooks guide keeps Claude Code\'s schema', () => {
+  const claude = renderAll('claude')['forge-hooks.md'];
+  for (const s of ['PostToolUse', 'settings.json', '$CLAUDE_PROJECT_DIR', 'disableAllHooks']) {
+    assert.ok(claude.includes(s), `claude render lost ${s}`);
+  }
+  assert.ok(!claude.includes('beforeShellExecution'));
+});
+
+test('the codex hooks guide uses Codex\'s handler types and a git-root path', () => {
+  const codex = renderAll('codex')['forge-hooks.md'];
+  assert.match(codex, /mcp_tool/);
+  assert.ok(!codex.includes('"type": "http"') && !/\| `agent` \|/.test(codex), 'Codex has no http or agent hooks');
+  assert.match(codex, /git rev-parse --show-toplevel/);
+  const m = codex.match(/```json\n([\s\S]*?)```/);
+  assert.ok(m && JSON.parse(m[1]).hooks, 'the codex example must parse');
 });
 
 test('the skills guide names each host skills directory', () => {
