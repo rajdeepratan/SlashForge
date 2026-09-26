@@ -1,5 +1,5 @@
 ---
-name: /slashforge:request-review
+name: /slashforge-request-review
 description: Get your own work reviewed before it goes out — by a fresh reviewer with crafted context, not your session history. Use after implementing, before pushing or opening a PR.
 ---
 
@@ -31,7 +31,7 @@ Review early, review often. The person who wrote the code is the worst judge of 
 clear — they can see what they meant.
 
 This is for **your own work before it ships**. For someone else's pull request use
-`/slashforge:review-pr`; for handling comments you received, `slashforge:review-feedback`.
+`/slashforge-review-pr`; for handling comments you received, `slashforge-review-feedback`.
 
 ## Give the reviewer crafted context, never your session history
 
@@ -51,7 +51,18 @@ exactly the signal worth having.
 - **Matches the plan** — nothing missing, nothing extra. Scope creep is a finding.
 - **No duplicate or dead code**, no debug leftovers, no hardcoded secrets.
 - **No unintended breaking changes** to public APIs, exports, or shared interfaces.
+<!--target:claude-->
 - **Follows `.claude/rules/`** and the conventions already in the surrounding code.
+<!--/target-->
+<!--target:cursor-->
+- **Follows `.cursor/rules/`** and the conventions already in the surrounding code.
+<!--/target-->
+<!--target:codex-->
+- **Follows the nearest `AGENTS.md`** and the conventions already in the surrounding code.
+<!--/target-->
+<!--target:neutral-->
+- **Follows the repo's rule files** and the conventions already in the surrounding code.
+<!--/target-->
 - **Production-ready** — error handling at boundaries, no unsafe assumptions about input,
   ordering, or nullability.
 - **For a bug fix** — the root cause is addressed rather than the symptom, and the regression test
@@ -69,7 +80,7 @@ Sort by severity and act in order:
 finding does not hold for this codebase, say so with the reasoning and the code that proves it.
 Silent compliance with a wrong finding makes the code worse and teaches nothing.
 
-Re-run the verification after applying fixes — `slashforge:verify`. Changes made in response to
+Re-run the verification after applying fixes — `slashforge-verify`. Changes made in response to
 review are still changes, and a fix applied without a fresh test run is an unverified claim like
 any other.
 

@@ -1,5 +1,5 @@
 ---
-name: /slashforge:investigate
+name: /slashforge-investigate
 description: Research-only flow — reproduce and root-cause a bug or suspected issue. Produces a findings report. No branch, no PR, no code changes.
 ---
 
@@ -7,8 +7,8 @@ description: Research-only flow — reproduce and root-cause a bug or suspected 
 
 Read the following in full — together they are your complete workflow guide:
 
-- {{INSTALL_PATH}}/forge-workflow-investigation.md
-- {{INSTALL_PATH}}/forge-workflow-agents.md
+- {{INSTALL_PATH}}/slashforge-workflow-investigation.md
+- {{INSTALL_PATH}}/slashforge-workflow-agents.md
 
 You MUST follow every phase in order. Do not skip phases. Do not combine phases.
 
@@ -33,16 +33,27 @@ report.
 
 - **I1 — Investigation Intake:** parse input, extract expected vs. actual behaviour, ask clarifying questions until the scope is clear
 - **I2 — Investigate (read-only):** reproduce, bisect, trace, read code. Consults the code graph when Graphify is installed. **No edits to application code**
-- **I3 — Report & hand-off:** write the findings report, open it, summarise in chat, hand off to `/slashforge:code`
+- **I3 — Report & hand-off:** write the findings report, open it, summarise in chat, hand off to `/slashforge-code`
 
 **Skills per phase (use the `Skill` tool, do not paraphrase). It ships with SlashForge:**
-- Phase I2 — `slashforge:debug`
+- Phase I2 — `slashforge-debug`
 
 ## The deliverable
 
 A findings report at `docs/slashforge/investigations/investigation-<YYYY-MM-DD-HHMM>.html` — five
 sections, written as a body fragment and spliced into the shipped report shell. Never regenerate
+<!--target:claude-->
 the shell's CSS, and never write the report under `.claude/`, which is hidden in Finder.
+<!--/target-->
+<!--target:cursor-->
+the shell's CSS, and never write the report under `.cursor/`, which is hidden in Finder.
+<!--/target-->
+<!--target:codex-->
+the shell's CSS, and never write the report under `.codex/`, which is hidden in Finder.
+<!--/target-->
+<!--target:neutral-->
+the shell's CSS, and never write the report under a dot-directory, which is hidden in Finder.
+<!--/target-->
 
 **Summarise in chat — never print the HTML.** The file is the report; the chat gets the one-line
 conclusion, the root cause, the path, and the hand-off line. Phase I3 carries the fragment spec,

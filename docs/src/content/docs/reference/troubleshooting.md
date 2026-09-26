@@ -5,14 +5,34 @@ description: The handful of things that actually go wrong, and what to do about 
 
 ## The commands do not appear
 
-==By far the most common one.== You type `/` in Claude Code and see nothing named
-`slashforge`.
+==By far the most common one.== You type `/` and see nothing named `slashforge`.
+
+### In Claude Code
 
 :::steps
 1. Run `npx slashforge status` — it reports what is installed and where.
 2. **Restart Claude Code.** Command files are read at startup.
-3. If `status` shows a v3 `forge/` layout, you are typing the old namespace. It is `/slashforge:` now — see [Migrating](/slashforge/reference/migrating/).
+3. **Check the name.** Every version before 5.0 used a different spelling; since 5.0 it is `/slashforge-code`, with a `-`, on every agent. See [Migrating](/slashforge/reference/migrating/).
 4. If `status` shows nothing installed, re-run `npx slashforge` and watch for a permissions error on `~/.claude/`.
+:::
+
+### In Cursor or Codex
+
+:::steps
+1. **Check the install reached `~/.agents/`.** Run `npx slashforge status`: it reports Claude Code and Cursor + Codex separately, and says if either is missing. Re-running `npx slashforge` fills the gap.
+2. **Older releases installed Claude Code only.** If you set up before Cursor and Codex support arrived, run `npx slashforge` again.
+3. **In Codex, use `$`.** The skills are invoked as `$slashforge-code` rather than with a slash.
+4. **Restart the editor.** Skills are discovered at session start.
+5. Confirm the files are on disk: `ls ~/.agents/skills/`. You should see a `slashforge-code` directory containing `SKILL.md`.
+:::
+
+:::note
+==`/slashforge-setup` runs here too== — `$slashforge-setup` in Codex. It scaffolds
+your host's own layout: `.cursor/rules/*.mdc` and `.cursor/agents/` on Cursor,
+nested `AGENTS.md` and `.codex/agents/*.toml` on Codex. It never writes `.claude/`.
+
+If setup writes the wrong host's files, it guessed the host wrong: tell it
+"you are in Cursor" (or Codex) and run it again.
 :::
 
 ## It installed an old version
@@ -38,7 +58,7 @@ tell you whether the copy you just ran is current.
 
 ==Usually one of two things, and both are working as designed.==
 
-- **`/slashforge:code` classified the task as trivial.** Phase 1 auto-detects
+- **`/slashforge-code` classified the task as trivial.** Phase 1 auto-detects
   small changes and skips brainstorming. Say `full flow` to override. See
   [Skills](/slashforge/guides/skills/) for what runs at each phase.
 - **`-quick` is doing what it says.** Lean mode skips brainstorming and swaps
@@ -60,7 +80,7 @@ overwritten.==
 
 ## Graphify is not being offered
 
-`/slashforge:setup` only offers it when **at least 70% of non-trivial source
+`/slashforge-setup` only offers it when **at least 70% of non-trivial source
 files** are in a supported language. On YAML, shell, or config-only repos it
 skips silently. ==That is intended, not a failure== — see
 [Graphify](/slashforge/guides/graphify/) for the supported languages.

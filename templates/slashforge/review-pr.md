@@ -1,5 +1,5 @@
 ---
-name: /slashforge:review-pr
+name: /slashforge-review-pr
 description: Review a pull request against this repo's own rules and conventions, then post line-level comments or approve — only after you confirm. Lists PRs awaiting your review; pass --assigned, --mine or --all to change what it looks for.
 ---
 
@@ -35,8 +35,8 @@ argument.
 
 Read the following in full — together they are your complete workflow guide:
 
-- {{INSTALL_PATH}}/forge-workflow-review-pr.md
-- {{INSTALL_PATH}}/forge-workflow-agents.md
+- {{INSTALL_PATH}}/slashforge-workflow-review-pr.md
+- {{INSTALL_PATH}}/slashforge-workflow-agents.md
 
 You MUST follow every phase in order. Do not skip phases. Do not combine phases.
 
@@ -52,7 +52,18 @@ only writes are to GitHub, and only after the user approves the exact text at th
 
 - **R1 — Find the PRs:** run the query the argument selected; list with author and size, ask which
 - **R2 — Gather context:** `gh pr view` / `checks` / `diff`; own-PR check, prior reviews, CI state, size check
-- **R3 — Review against *this* repo:** `CLAUDE.md`, `.claude/rules/`, surrounding conventions, then the Phase 7 checklist from `forge-workflow.md`
+<!--target:claude-->
+- **R3 — Review against *this* repo:** `CLAUDE.md`, `.claude/rules/`, surrounding conventions, then the Phase 7 checklist from `slashforge-workflow.md`
+<!--/target-->
+<!--target:cursor-->
+- **R3 — Review against *this* repo:** `AGENTS.md`, `.cursor/rules/`, surrounding conventions, then the Phase 7 checklist from `slashforge-workflow.md`
+<!--/target-->
+<!--target:codex-->
+- **R3 — Review against *this* repo:** `AGENTS.md` (including nested ones), surrounding conventions, then the Phase 7 checklist from `slashforge-workflow.md`
+<!--/target-->
+<!--target:neutral-->
+- **R3 — Review against *this* repo:** the entry file, the repo's rule files, surrounding conventions, then the Phase 7 checklist from `slashforge-workflow.md`
+<!--/target-->
 - **R4 — Write the review document:** `docs/slashforge/reviews/<YYYY-MM-DD>-pr-<N>.html`, body fragment only, spliced into the shipped shell
 - **R5 — The gate:** show the exact GitHub text, then ask `approve` · `comment` · `request-changes` · `edit` · `cancel`
 - **R6 — Post it:** one review through the reviews API, prose never touching JSON syntax

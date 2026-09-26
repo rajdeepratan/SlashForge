@@ -1,6 +1,6 @@
 ---
 title: What a run looks like
-description: One pass through /slashforge:code and one through /slashforge:review-pr, from prompt to gate, so you can judge the shape of the output before installing anything.
+description: One pass through /slashforge-code and one through /slashforge-review-pr, from prompt to gate, so you can judge the shape of the output before installing anything.
 ---
 
 ==Everything below is shaped like output rather than description.== This is the
@@ -8,9 +8,9 @@ whole reason to read the docs before installing: you can decide whether the
 process suits you without running it once.
 
 Two runs: shipping a change of your own with
-[`/slashforge:code`](/slashforge/commands/slashforge-code/), then reviewing
+[`/slashforge-code`](/slashforge/commands/slashforge-code/), then reviewing
 someone else's with
-[`/slashforge:review-pr`](/slashforge/commands/slashforge-review-pr/).
+[`/slashforge-review-pr`](/slashforge/commands/slashforge-review-pr/).
 
 ## The prompt
 
@@ -18,7 +18,7 @@ You invoke the command and say what you want in plain language. There is no
 argument syntax to learn.
 
 ```
-> /slashforge:code
+> /slashforge-code
 
   Add rate limiting to the public API — 100 req/min per key,
   429 with a Retry-After header.
@@ -100,7 +100,7 @@ base.
 :::
 
 The full phase-by-phase reference lives on
-[`/slashforge:code`](/slashforge/commands/slashforge-code/), including what each
+[`/slashforge-code`](/slashforge/commands/slashforge-code/), including what each
 of the four gates asks and what `-quick` changes.
 
 ## Reviewing someone else's work
@@ -115,7 +115,7 @@ With no argument it looks for what is actually waiting on you — GitHub's
 teams never set the second one on a PR.
 
 ```
-> /slashforge:review-pr
+> /slashforge-review-pr
 
   AWAITING YOUR REVIEW
     1. #42  Add retry to upload queue     +180 −24  (6 files)
@@ -148,9 +148,11 @@ so the option is withdrawn up front rather than after the work is done.
 
 ## The findings
 
-Judged against `CLAUDE.md`, any `.claude/rules/` whose scope matches the changed
-files, and the conventions actually in the surrounding code — not a generic
-notion of good code.
+Judged against the entry file (`CLAUDE.md`, or `AGENTS.md` on Cursor and Codex), the
+rules whose scope matches the changed files, and the conventions actually in the
+surrounding code — not a generic notion of good code. ==The rule file below follows
+the agent picked in the header==: a `.claude/rules/` file, a `.cursor/rules/*.mdc`
+rule, or on Codex the nested `AGENTS.md` in `src/`.
 
 ```
 FINDINGS
@@ -207,4 +209,4 @@ summary body, and the command tells you which moved rather than dropping them.
 :::
 
 The full reference, including `--assigned`, `--mine` and `--all`, lives on
-[`/slashforge:review-pr`](/slashforge/commands/slashforge-review-pr/).
+[`/slashforge-review-pr`](/slashforge/commands/slashforge-review-pr/).

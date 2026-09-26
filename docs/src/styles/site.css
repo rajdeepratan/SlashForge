@@ -49,6 +49,34 @@
   --mark-bg: #4d1a0c;
 }
 
+/* The accent follows the coding agent chosen in the picker, so a switch is
+   visible across the whole page, not only in the commands that change. Set on
+   <html> as data-target, before first paint (Head.astro) and on every switch
+   (site.js). Claude's clay (its brand colour), Cursor's gold (from its app's
+   Build button; Cursor publishes no brand colour) and Codex's purple (from its
+   product page). Each keeps white-on-fill and text-on-background contrast at or
+   above the ember it replaces, in both themes. With no agent set (no script),
+   the ember above stands. */
+[data-target='claude'] {
+  --ember: #c15f3c; --ember-hover: #a54e30; --accent-text: #9e4526;
+  --sel-bg: #f7e1d8; --mark-bg: #f3d5c8;
+}
+[data-target='cursor'] {
+  --ember: #8a6a00; --ember-hover: #735800; --accent-text: #735800;
+  --sel-bg: #f5ecc8; --mark-bg: #efe2b0;
+}
+[data-target='codex'] {
+  --ember: #5b4ff0; --ember-hover: #4a3fd6; --accent-text: #4a3fd6;
+  --sel-bg: #e3e0fd; --mark-bg: #d8d4fb;
+}
+/* The replay terminals are always dark, so they take each agent's on-dark shades. */
+[data-target='claude'] { --term-cmd: #d97757; --term-phase: #e08a6a; }
+[data-target='cursor'] { --term-cmd: #e0b93a; --term-phase: #f0c850; }
+[data-target='codex']  { --term-cmd: #8b82ff; --term-phase: #a59cff; }
+[data-theme='dark'][data-target='claude'] { --accent-text: #e08a6a; --sel-bg: #3a1a10; --mark-bg: #4a2416; }
+[data-theme='dark'][data-target='cursor'] { --accent-text: #f0c850; --sel-bg: #332a0a; --mark-bg: #42370f; }
+[data-theme='dark'][data-target='codex']  { --accent-text: #a59cff; --sel-bg: #1e1a45; --mark-bg: #28235a; }
+
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
@@ -64,7 +92,7 @@ body {
 a { color: inherit; text-decoration: none; }
 ::selection { background: var(--ember); color: #f3f2f2; }
 
-:is(a, button, summary, input, [tabindex]):focus-visible {
+:is(a, button, summary, input, select, [tabindex]):focus-visible {
   outline: 2px solid var(--ember);
   outline-offset: 2px;
 }
@@ -336,6 +364,33 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 }
 
 /* Callouts: an ember frame with a solid ember label. Never a tinted panel. */
+/* Pages, sidebar entries and pager cells whose subject exists only on Claude
+   Code. Hidden once another agent is selected; before the script runs there is
+   no data-target and everything shows, which is the Claude Code view and the
+   correct default. */
+[data-target='cursor'] [data-claude-only],
+[data-target='codex'] [data-claude-only] {
+  display: none;
+}
+
+/* The page itself stays reachable — deep links and search results still land
+   here — so instead of hiding it, it leads with the fact. Inverted against the
+   ember frame of .note so it reads as a statement about the page rather than
+   an aside within it. */
+.claudeonly {
+  display: none;
+  border: 2px solid var(--rule);
+  background: var(--code-bg);
+  padding: 16px 20px;
+  margin: 0 0 32px;
+  font-size: 15px;
+}
+
+[data-target='cursor'] .claudeonly,
+[data-target='codex'] .claudeonly {
+  display: block;
+}
+
 .note {
   border: 2px solid var(--ember);
   padding: 18px 20px;
@@ -587,8 +642,52 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   margin-top: 14px;
 }
 .rail__cmd i { color: var(--muted); font-style: normal; }
-.rail__note { font-size: 13.5px; line-height: 1.65; color: var(--muted); margin: 16px 0 0; }
-.rail__note strong { color: var(--text); font-weight: 600; }
+.rail__note { font-size: 17px; line-height: 1.65; color: var(--muted); margin: 18px 0 0; }
+.rail__note strong { color: var(--text); font-weight: 700; }
+
+/* Read once, in full, by screen readers; the ticker beside it is decorative. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The host names roll upward, one at a time. The track repeats the first name
+   at the end, so jumping back to the start is invisible. Only for readers who
+   have not asked for less motion; everyone else sees the static list. */
+.ticker { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .rail__hosts { display: none; }
+  .ticker {
+    display: inline-block;
+    height: 1.65em;
+    overflow: hidden;
+    vertical-align: top;
+  }
+  .ticker__track {
+    display: flex;
+    flex-direction: column;
+    animation: ticker 7.2s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+  }
+  .ticker__track strong {
+    display: block;
+    height: 1.65em;
+    line-height: 1.65em;
+    white-space: nowrap;
+  }
+}
+@keyframes ticker {
+  0%, 27%   { transform: translateY(0); }
+  33%, 60%  { transform: translateY(-25%); }
+  66%, 93%  { transform: translateY(-50%); }
+  100%      { transform: translateY(-75%); }
+}
 .rail__facts { display: flex; align-items: center; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
 /* The separator takes the fact colour at half strength: --hairline is tuned for
    2px rules and disappears against the dark background at 1px of type. */
@@ -677,9 +776,14 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   overflow-x: auto;
 }
 .term__body div { white-space: pre-wrap; min-height: 1.7em; }
-.t-cmd { color: #ec3013; }
+/* Codex invokes commands with $ rather than /, so the mock's own $ prompt
+   would render as "$ $slashforge-code" and read like a typo. Dropped for that
+   target only; every other target keeps the prompt. */
+[data-target='codex'] .t-prompt { display: none; }
+
+.t-cmd { color: var(--term-cmd, #ec3013); }
 .t-you { color: #f3f2f2; font-weight: 500; }
-.t-phase { color: #ff6a4d; font-weight: 500; }
+.t-phase { color: var(--term-phase, #ff6a4d); font-weight: 500; }
 .t-out { color: #a09a97; }
 .t-ok { color: #f3f2f2; font-weight: 500; }
 
@@ -944,6 +1048,159 @@ td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap;
 
 .code__copy:hover { color: var(--text); }
 .code__copy[data-copied] { color: var(--ember); }
+
+/* ---------- target switcher ---------- */
+
+/* One rule set serves both the tab strip in a command block's bar and the
+   control in the header, so the two can never drift apart visually. Colours
+   come from the tokens, so dark mode follows without a second block. */
+.code__tabs { display: flex; }
+
+.code__tabs button {
+  font-family: var(--font);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  cursor: pointer;
+  border: 1px solid var(--hairline);
+  border-right-width: 0;
+  background: transparent;
+  color: var(--muted);
+}
+
+.code__tabs button:last-child { border-right-width: 1px; }
+.code__tabs button:hover { color: var(--text); }
+
+.code__tabs button[aria-selected='true'] {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: #f3f2f2;
+}
+
+/* The selected tab owns the shared edge, or its neighbour's grey border cuts
+   across the ember block. */
+.code__tabs button[aria-selected='true'] + button { border-left-color: var(--ember); }
+
+/* The header control is shaped like .theme-btn beside it — same rule, same
+   uppercase text, same ember hover — so the two read as a pair rather than the
+   agent picker shouting over the nav.
+
+   The panel is a real element rather than a native <select> popup, which the
+   OS draws rounded, shadowed and floating. Here: a hard 2px rule, a flat
+   surface, no radius, no shadow. */
+.agentsw { position: relative; }
+
+.agentsw__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 2px solid var(--rule);
+  background: transparent;
+  padding: 6px 10px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.agentsw__btn:hover,
+.agentsw__btn[aria-expanded='true'] {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: #f3f2f2;
+}
+
+.agentsw__label { color: var(--muted); }
+.agentsw__btn:hover .agentsw__label,
+.agentsw__btn[aria-expanded='true'] .agentsw__label { color: #f3f2f2; }
+
+/* A chevron drawn from two borders rather than an SVG, so it inherits
+   currentColor through the ember state. */
+.agentsw__caret {
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  pointer-events: none;
+}
+
+.agentsw__btn[aria-expanded='true'] .agentsw__caret {
+  transform: translateY(1px) rotate(-135deg);
+}
+
+.agentsw__menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 30;
+  min-width: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Overlaps the trigger's bottom rule so the two share one line. */
+  margin-top: -2px;
+  border: 2px solid var(--rule);
+  background: var(--surface);
+}
+
+/* The panel sets an explicit display, and an author display always beats the
+   UA rule behind the `hidden` attribute — without this the menu is visible at
+   load and stays open after a choice, however faithfully the script toggles
+   the attribute. */
+.agentsw__menu[hidden] { display: none; }
+
+.agentsw__item {
+  border: 0;
+  background: transparent;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Hover is a quiet fill and the current choice is the ember one, so the two
+   never read as the same state. */
+.agentsw__item:hover { background: var(--code-bg); }
+
+.agentsw__item[aria-checked='true'] {
+  background: var(--ember);
+  color: #f3f2f2;
+}
+
+/* Same budget reasoning as the socials row below: at this width the label is
+   the part that can go, leaving "CLAUDE" — about as wide as "DARK". */
+@media (max-width: 640px) {
+  .agentsw__label { display: none; }
+}
+
+/* On the landing page the picker sits in the banner, above the two buttons, and
+   its menu opens from the left edge there. The banner's own "Your agent" label
+   names it, so the button's "Agent:" prefix would only repeat it. */
+/* The picker row and the buttons share one box as wide as the buttons, so the
+   picker stretches to end exactly under View on GitHub. */
+.hero__controls { width: max-content; max-width: 100%; }
+.hero__agent { margin-top: 38px; display: flex; align-items: center; gap: 16px; }
+.agentsw--hero { flex: 1; }
+.agentsw--hero .agentsw__btn { width: 100%; justify-content: space-between; }
+.hero__agent .label { margin: 0; font-size: 16px; }
+/* The buttons follow the picker, so they sit closer than they do after the tagline. */
+.hero__agent + .actions { margin-top: 24px; }
+.agentsw--hero .agentsw__label { display: none; }
+.agentsw--hero .agentsw__menu { left: 0; right: auto; }
+/* Sized to match the Get Started button beside it, not the header control. */
+.agentsw--hero .agentsw__btn { font-size: 16px; letter-spacing: 0.04em; padding: 10px 16px; gap: 10px; }
+.agentsw--hero .agentsw__item { font-size: 16px; padding: 10px 16px; }
 
 /* Shiki emits both themes inline and switches on a CSS variable, so the code
    colours follow the theme toggle without a second stylesheet. */

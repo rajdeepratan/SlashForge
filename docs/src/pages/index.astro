@@ -9,14 +9,17 @@
  * physically could not reach the viewport edges.
  */
 import Base from '../layouts/Base.astro';
+import AgentSwitcher from '../components/AgentSwitcher.astro';
 import { version, nodeFloor } from '../pkg';
+
+import { splitCommandText } from '../targets.mjs';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-// Kept in sync with the phases on /slashforge:code. This is the shape of a run,
+// Kept in sync with the phases on /slashforge-code. This is the shape of a run,
 // not a transcript of one — the annotated page says so explicitly.
 const DEMO: [string, string][] = [
-  ['t-cmd', '$ /slashforge:code'],
+  ['t-cmd', '$ /slashforge-code'],
   ['t-you', '> add rate limiting to the public API'],
   ['t-out', ''],
   ['t-phase', 'PHASE 2 · PLAN'],
@@ -39,7 +42,7 @@ const DEMO: [string, string][] = [
 ];
 
 const REVIEW_DEMO: [string, string][] = [
-  ['t-cmd', '$ /slashforge:review-pr'],
+  ['t-cmd', '$ /slashforge-review-pr'],
   ['t-out', ''],
   ['t-phase', 'AWAITING YOUR REVIEW'],
   ['t-out', '  1. #42  Add retry to upload queue   +180 −24  (6 files)'],
@@ -49,7 +52,7 @@ const REVIEW_DEMO: [string, string][] = [
   ['t-phase', 'CONTEXT'],
   ['t-out', '  CI green · 2 existing comments · author is not you'],
   ['t-out', ''],
-  ['t-phase', 'FINDINGS · against CLAUDE.md and .claude/rules/'],
+  ['t-phase', 'FINDINGS · against the repo entry file and rules'],
   ['t-out', '  blocking    retry.ts:38   no cap, retries forever'],
   ['t-out', '  should fix  retry.ts:52   swallows the abort signal'],
   ['t-out', '  nit         retry.ts:12   name says ms, value is s'],
@@ -64,22 +67,22 @@ const REVIEW_DEMO: [string, string][] = [
 
 const commands = [
   {
-    name: '/slashforge:setup',
+    name: '/slashforge-setup',
     href: 'commands/slashforge-setup',
-    desc: 'One-time repo setup. Explores the codebase, asks clarifying questions, then generates CLAUDE.md, rules, skills, agents, commands, and hooks tailored to it.',
+    desc: 'One-time repo setup. Explores the codebase, asks clarifying questions, then generates an entry file plus rules, skills, subagents, commands, and hooks tailored to it. Runs on every agent and writes each one\u2019s own layout.',
   },
   {
-    name: '/slashforge:code',
+    name: '/slashforge-code',
     href: 'commands/slashforge-code',
     desc: 'End-to-end development. Ten phases from plan to merged PR, with mandatory stop-and-confirm gates. Add -quick for lean mode on small changes.',
   },
   {
-    name: '/slashforge:investigate',
+    name: '/slashforge-investigate',
     href: 'commands/slashforge-investigate',
     desc: 'Read-only research. Reproduces and root-causes a bug, then writes a findings report. Never touches your code.',
   },
   {
-    name: '/slashforge:review-pr',
+    name: '/slashforge-review-pr',
     href: 'commands/slashforge-review-pr',
     desc: "Reviews a pull request against your repo's own rules and conventions, then posts line-level comments or approves. Never posts without showing you the exact text.",
   },
@@ -93,7 +96,7 @@ const costs = [
   {
     label: 'Repo setup',
     value: '50–120k',
-    note: 'Once per repo, before anything else. The largest fixed load of any command, then it writes your .claude/.',
+    note: 'Once per repo, before anything else. The largest fixed load of any command, then it writes your agent’s setup.',
   },
   {
     label: 'Full run',
@@ -124,8 +127,9 @@ const costs = [
 ---
 
 <Base
+  agentInHeader={false}
   title="SlashForge — workflow slash commands for AI coding agents"
-  description="Workflow slash commands for AI coding agents — /slashforge:setup, /slashforge:code, /slashforge:investigate, /slashforge:review-pr."
+  description="Workflow slash commands for AI coding agents — /slashforge-setup, /slashforge-code, /slashforge-investigate, /slashforge-review-pr. For Claude Code, Cursor and Codex."
   rawTitle
 >
   <main>
@@ -134,23 +138,41 @@ const costs = [
         <div class="hero__copy">
           <h1 class="hero__title">Workflow slash commands for AI coding agents.</h1>
           <p class="hero__line hero__line--accent">Guardrails, not autocomplete.</p>
-          <div class="actions">
-            <a class="btn btn--primary" href={`${base}/guides/introduction/`}>Get Started</a>
-            <a
-              class="btn btn--ghost"
-              href="https://github.com/rajdeepratan/SlashForge"
-              target="_blank"
-              rel="noopener"
-            >
-              View on GitHub
-            </a>
+          <div class="hero__controls">
+            <div class="hero__agent">
+              <div class="label">Your agent</div>
+              <AgentSwitcher placement="hero" />
+            </div>
+
+            <div class="actions">
+              <a class="btn btn--primary" href={`${base}/guides/introduction/`}>Get Started</a>
+              <a
+                class="btn btn--ghost"
+                href="https://github.com/rajdeepratan/SlashForge"
+                target="_blank"
+                rel="noopener"
+              >
+                View on GitHub
+              </a>
+            </div>
           </div>
 
           <div class="rail">
             <div class="label">Install</div>
             <div class="rail__cmd"><i>$ </i>npx slashforge</div>
             <p class="rail__note">
-              Supports <strong>Claude Code</strong> today. Cursor and Codex targets are planned.
+              <span class="sr-only">One install for Claude Code, Cursor and Codex.</span>
+              <span aria-hidden="true">
+                One install for{' '}
+                <span class="rail__hosts">
+                  <strong>Claude Code</strong>, <strong>Cursor</strong> and <strong>Codex</strong>.
+                </span>
+                <span class="ticker">
+                  <span class="ticker__track">
+                    <strong>Claude Code.</strong><strong>Cursor.</strong><strong>Codex.</strong><strong>Claude Code.</strong>
+                  </span>
+                </span>
+              </span>
             </p>
             <div class="rail__facts"><span>Node {nodeFloor}</span><span>MIT</span><span>v{version}</span></div>
           </div>
@@ -178,7 +200,23 @@ const costs = [
                   <span class="term__status" data-replay-status>complete</span>
                 </div>
                 <div class="term__body" data-replay-body>
-                  {DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
+                  {
+                    DEMO.map(([kind, text]) => (
+                      <div class={kind} data-line={text}>
+                        {
+                          splitCommandText(text).map((p, i) =>
+                            p.cmd ? (
+                              <span data-cmd={p.cmd}>{p.text}</span>
+                            ) : kind === 't-cmd' && i === 0 ? (
+                              <span class="t-prompt">{p.text}</span>
+                            ) : (
+                              p.text
+                            )
+                          )
+                        }
+                      </div>
+                    ))
+                  }
                 </div>
               </div>
             </div>
@@ -197,7 +235,23 @@ const costs = [
                   <span class="term__status" data-replay-status>complete</span>
                 </div>
                 <div class="term__body" data-replay-body>
-                  {REVIEW_DEMO.map(([kind, text]) => <div class={kind}>{text}</div>)}
+                  {
+                    REVIEW_DEMO.map(([kind, text]) => (
+                      <div class={kind} data-line={text}>
+                        {
+                          splitCommandText(text).map((p, i) =>
+                            p.cmd ? (
+                              <span data-cmd={p.cmd}>{p.text}</span>
+                            ) : kind === 't-cmd' && i === 0 ? (
+                              <span class="t-prompt">{p.text}</span>
+                            ) : (
+                              p.text
+                            )
+                          )
+                        }
+                      </div>
+                    ))
+                  }
                 </div>
               </div>
             </div>
@@ -216,12 +270,21 @@ const costs = [
           {
             commands.map((c) => (
               <a class="cell cell--link" href={`${base}/${c.href}/`}>
-                <code>{c.name}</code>
+                <code>
+                  {splitCommandText(c.name).map((p) => (p.cmd ? <span data-cmd={p.cmd}>{p.text}</span> : p.text))}
+                </code>
                 <p>{c.desc}</p>
               </a>
             ))
           }
         </div>
+        <p class="caveat">
+          Names follow the agent picked in the header. Codex invokes them with{' '}
+          <code>$</code> rather than <code>/</code>. All four run on every agent —{' '}
+          <code>setup</code> writes each host's own layout, so on Cursor you get{' '}
+          <code>.cursor/rules/*.mdc</code> and on Codex nested <code>AGENTS.md</code> plus{' '}
+          <code>.codex/agents/*.toml</code>, never <code>.claude/</code>.
+        </p>
       </div>
     </section>
 

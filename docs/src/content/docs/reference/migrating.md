@@ -1,6 +1,6 @@
 ---
 title: Migrating
-description: Every upgrade path in one place. Skip this page unless you installed before v4.
+description: Every upgrade path in one place. Skip this page unless you installed before v5.
 ---
 
 ==Newest first. Find the version you are on, apply that section, and stop== — each
@@ -9,8 +9,46 @@ one is self-contained, and if you are two hops back you can do both at once.
 :::note
 ==Your repo's own `.claude/` directory survives every migration on this page.==
 Only the files under `~/.claude/` are replaced. The configuration
-`/slashforge:setup` generated is yours.
+`/slashforge-setup` generated is yours — though after v4 to v5 it may still name the
+old commands; step 3 of that section covers it.
 :::
+
+## v4 to v5
+
+==v5.0.0 changes the command names, and installs for Cursor and Codex too.==
+
+| v4 (Claude Code) | v5 (Claude Code and Cursor) | v5 (Codex) |
+| --- | --- | --- |
+| `/slashforge:setup` | `/slashforge-setup` | `$slashforge-setup` |
+| `/slashforge:code` | `/slashforge-code` | `$slashforge-code` |
+| `/slashforge:code -quick` | `/slashforge-code -quick` | `$slashforge-code -quick` |
+| `/slashforge:investigate` | `/slashforge-investigate` | `$slashforge-investigate` |
+| `/slashforge:review-pr` | `/slashforge-review-pr` | `$slashforge-review-pr` |
+
+The nine discipline skills follow the same pattern: `slashforge:plan` becomes
+`slashforge-plan`.
+
+:::steps
+1. Run `npx slashforge`. It installs the new commands and ==removes the v4 ones by
+   name== — the 13 files it put in `~/.claude/commands/slashforge/`, then the folder if
+   nothing else is left. A command of your own in that folder is kept.
+2. Restart Claude Code, so it drops the old `/slashforge:` entries.
+3. In each repo you set up with v4, run `/slashforge-setup` to refresh the files it
+   generated — its `CLAUDE.md` routing table and `.claude/agents/` files still name
+   `/slashforge:code` and `slashforge:tdd`. Or replace `slashforge:` with `slashforge-`
+   in them yourself. `npx slashforge`, run inside such a repo, lists the files that
+   still need it.
+4. In a repo that committed a v4 project install (`.claude/commands/slashforge/`), run
+   `npx slashforge --project` and commit the result.
+5. Update anything else of your own that types the old name: scripts, notes, team docs.
+:::
+
+### Why
+
+==The same name on every host.== The `:` only existed because Claude Code turns a
+commands subfolder into a namespace. Neither Cursor nor Codex supports that, so their
+commands were already `slashforge-code`. Claude Code now installs flat
+`slashforge-*.md` files and matches them.
 
 ## v3 to v4
 
@@ -55,8 +93,8 @@ stop working.==
 | `/quick` | `/forge:code -quick` |
 | `/investigate` | `/forge:investigate` |
 
-`/setup-claude` was tied to a single vendor, which does not survive the planned
-Cursor and Codex support. The namespace also stops `/code` colliding with
+`/setup-claude` was tied to a single vendor, which does not survive the Cursor
+and Codex support that has since shipped. The namespace also stops `/code` colliding with
 commands you already have — a real risk when the same commands are installed
 across many repos.
 
@@ -125,8 +163,8 @@ what will actually trip you up:==
 | `/quick` | `/slashforge:code -quick` |
 | `/investigate` | `/slashforge:investigate` |
 
-`claude-setup-kit` tied the project to one vendor. Cursor and Codex support is
-planned, and a name built around a single tool does not survive that. The same
+`claude-setup-kit` tied the project to one vendor. Cursor and Codex support has
+since shipped, and a name built around a single tool would not have survived it. The same
 reasoning drove `/setup-claude` → `/slashforge:setup` one release later.
 
 ## Upgrading, whichever hop you are on

@@ -1,17 +1,22 @@
 ---
-title: /slashforge:review-pr
+title: /slashforge-review-pr
 description: Review a pull request against your repo's own rules and conventions, then post line-level comments or approve — only after you confirm.
 ---
 
 ```
-/slashforge:review-pr              # PRs awaiting your review
-/slashforge:review-pr 42           # that PR, whatever your relationship to it
-/slashforge:review-pr --assigned   # PRs assigned to you
-/slashforge:review-pr --mine       # your own PRs (comment only)
-/slashforge:review-pr --all        # all three, grouped
+/slashforge-review-pr              # PRs awaiting your review
+/slashforge-review-pr 42           # that PR, whatever your relationship to it
+/slashforge-review-pr --assigned   # PRs assigned to you
+/slashforge-review-pr --mine       # your own PRs (comment only)
+/slashforge-review-pr --all        # all three, grouped
 ```
 
-==Reviews a pull request against **your repo's** standards== — `CLAUDE.md`, `.claude/rules/`, and the
+:::note
+==Using Cursor or Codex? Pick your agent in the header== and every command on this page
+changes with it. See [Hosts](/slashforge/reference/cli/#hosts) for what else differs.
+:::
+
+==Reviews a pull request against **your repo's** standards== — the entry file, your rules, and the
 conventions actually in the surrounding code — then posts line-level comments or an approval.
 
 > **It never posts anything without your explicit yes.**
@@ -67,7 +72,8 @@ repo says about itself:
 - Breaking changes to public APIs, exports, or shared interfaces
 - Error handling at boundaries; unsafe assumptions
 - Tests that actually cover the change — for a bugfix, one that fails without the fix
-- Conformance to `.claude/rules/` and existing style
+- Conformance to your rules and existing style — `CLAUDE.md` and `.claude/rules/` on Claude Code,
+  `AGENTS.md` and `.cursor/rules/` on Cursor, `AGENTS.md` and its nested copies on Codex
 
 ==Findings are sorted by severity.== Three that would break production matter more than twenty style
 nits, and ==the review says which are blocking==.

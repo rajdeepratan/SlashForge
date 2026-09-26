@@ -10,18 +10,18 @@ git operations in your repo. That deserves a page, not a footnote.
 
 | Path | When |
 | --- | --- |
-| `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow, plus `forge-report-shell.html` (shared document styling), `forge-open.sh` (opens a document in your browser), and `forge-splice.js` and `forge-review-payload.js` (build documents and review payloads; files rather than inline scripts, so a permission rule can allow each by its path) |
-| `~/.claude/commands/slashforge/` | On install — the four command files, plus SlashForge's nine discipline skills (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`) |
-| `<repo>/CLAUDE.md` | On `/slashforge:setup`, after you answer its questions |
-| `<repo>/.claude/` | On `/slashforge:setup` — rules, skills, agents, commands, hooks |
-| `<repo>/docs/slashforge/investigations/` | On `/slashforge:investigate` — the findings report |
-| `<repo>/docs/slashforge/specs/` | On `/slashforge:code` full path — the design spec from Phase 1 |
-| `<repo>/docs/slashforge/plans/` | On `/slashforge:code` full path — the implementation plan from Phase 2 |
-| `<repo>/docs/slashforge/reviews/` | On `/slashforge:review-pr` — the review document |
+| `~/.claude/setup/slashforge/` (Claude Code), `~/.agents/setup/slashforge/cursor/` and `…/codex/` | On install — the guide files that carry the workflow, plus `slashforge-report-shell.html` (shared document styling), `slashforge-open.sh` (opens a document in your browser), and `slashforge-splice.js` and `slashforge-review-payload.js` (build documents and review payloads; files rather than inline scripts, so a permission rule can allow each by its path) |
+| `~/.claude/commands/` (Claude Code), `~/.agents/skills/` (Cursor and Codex) | On install — the four commands, plus SlashForge's nine discipline skills, each named `slashforge-<name>` (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`) |
+| `<repo>/CLAUDE.md` or `<repo>/AGENTS.md` | On `/slashforge-setup`, after you answer its questions — `CLAUDE.md` on Claude Code, `AGENTS.md` on Cursor and Codex |
+| `<repo>/.claude/`, `<repo>/.cursor/` or `<repo>/.codex/` | On `/slashforge-setup` — rules, skills, agents, commands, hooks, in the layout of the agent you ran it in |
+| `<repo>/docs/slashforge/investigations/` | On `/slashforge-investigate` — the findings report |
+| `<repo>/docs/slashforge/specs/` | On `/slashforge-code` full path — the design spec from Phase 1 |
+| `<repo>/docs/slashforge/plans/` | On `/slashforge-code` full path — the implementation plan from Phase 2 |
+| `<repo>/docs/slashforge/reviews/` | On `/slashforge-review-pr` — the review document |
 
 ==Nothing is written outside those paths.== Every generated file carries a
 `generated_by` marker; ==remove or edit it and that file is treated as yours
-permanently==. See [`/slashforge:setup`](/slashforge/commands/slashforge-setup/)
+permanently==. See [`/slashforge-setup`](/slashforge/commands/slashforge-setup/)
 for how the markers decide what may be refreshed.
 
 ## What it runs
@@ -35,8 +35,8 @@ One exception worth naming, because it is the only thing that reaches outside
 your repo: whenever a command writes an HTML document — an investigation report,
 a design spec, or an implementation plan — it asks your OS to open it in your
 default browser. `open` on macOS, `xdg-open` on Linux, `wslview` on WSL, `start`
-on Windows. ==Claude Code will prompt you for that command the first time, so
-nothing launches without your say-so.==
+on Windows. ==Your agent asks before running that command, unless you have already
+allowed it, so nothing launches without your say-so.==
 
 It is best-effort and deliberately timid. Over SSH, or on a headless Linux box
 with no `$DISPLAY`, it skips the step silently and just tells you the path. ==A
@@ -49,10 +49,10 @@ it is the last thing that happens.
 
 | Never | Detail |
 | --- | --- |
-| **Auto-install** | [superpowers](/slashforge/guides/skills/) is optional and never offered mid-run; [Graphify](/slashforge/guides/graphify/) is a one-time offer during setup. You see the exact shell command before anything runs |
+| **Auto-install** | [Graphify](/slashforge/guides/graphify/) is a one-time offer during setup. You see the exact shell command before anything runs |
 | **Force-push** | Not at any phase |
 | **Merge for you** | Phase 8 opens the PR. Merging is yours |
-| **Post a review unasked** | `/slashforge:review-pr` shows the exact text first and never picks approve vs request-changes for you |
+| **Post a review unasked** | `/slashforge-review-pr` shows the exact text first and never picks approve vs request-changes for you |
 | **Delete a branch silently** | Phase 10 asks before cleanup |
 | **Touch code in `investigate`** | No branch, no commits, no edits — the constraint is the feature |
 | **Phone home** | No telemetry. Graphify, if you accept it, indexes entirely locally |
@@ -61,7 +61,7 @@ it is the last thing that happens.
 
 ==Commit it.==
 
-`CLAUDE.md` and `.claude/` are the point — ==they are what makes the next session,
+The entry file and your agent's folder (`.claude/`, `.cursor/` or `.codex/`) are the point — ==they are what makes the next session,
 and everyone else on the team, start informed rather than cold.== Generated
 configuration that lives only on one machine buys you nothing on the second run.
 
@@ -73,13 +73,13 @@ else in your repo.
 
 The one directory worth considering for `.gitignore` is `docs/slashforge/investigations/`, if
 you would rather keep findings reports local. It sits under `docs/` rather
-than inside `.claude/` so the reports are visible in Finder and open in a
+than inside your agent's folder so the reports are visible in Finder and open in a
 browser without a code editor — the trade-off is that it shows up in `git
 status`. ==SlashForge will not edit your `.gitignore`==; adding that line is yours.
 
 :::note
-`npx slashforge uninstall` removes only what it put in `~/.claude/`. ==A repo's own
-`.claude/` directory is yours and is never touched.== See the
+`npx slashforge uninstall` removes only what it put in `~/.claude/` and `~/.agents/`.
+==A repo's own `.claude/`, `.cursor/` or `.codex/` directory is yours and is never touched.== See the
 [CLI reference](/slashforge/reference/cli/).
 :::
 
