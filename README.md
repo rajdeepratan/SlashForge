@@ -28,25 +28,29 @@ One `npx slashforge` sets it up for **Claude Code**, **Cursor** and **Codex** to
 The commands have the same name everywhere: `/slashforge-code` in Claude Code and Cursor,
 `$slashforge-code` in Codex, which invokes every skill with `$`.
 
-All four commands,
-`setup` included, run on every host: setup writes each host's own layout —
-`.cursor/rules/*.mdc` and `.cursor/agents/` on Cursor, nested `AGENTS.md` and
-`.codex/agents/*.toml` on Codex — and never writes `CLAUDE.md` or `.claude/` in
-Cursor or Codex.
-
 ---
 
 ## What it does
 
-Installs a collection of guide files plus four slash commands that cover the full lifecycle from repo setup through shipped PRs, code review, and bug investigations.
+Installs a collection of guide files plus four commands that cover the full lifecycle from repo setup through shipped PRs, code review, and bug investigations. They work the same way in **Claude Code**, **Cursor** and **Codex**; each one reads and writes your agent's own files.
+
+| | Claude Code | Cursor | Codex |
+| --- | --- | --- | --- |
+| Invoke as | `/slashforge-code` | `/slashforge-code` | `$slashforge-code` |
+| Entry file | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` |
+| Rules | `.claude/rules/*.md` | `.cursor/rules/*.mdc` | nested `AGENTS.md` |
+| Agents | `.claude/agents/*.md` | `.cursor/agents/*.md` | `.codex/agents/*.toml` |
+| Hooks | `.claude/settings.json` | `.cursor/hooks.json` | `.codex/hooks.json` |
+
+Below, commands are written with `/`; in Codex type `$` instead.
 
 **Commands installed:**
 
-- **`/slashforge-setup`** — one-time repo setup. Explores the repo, asks clarifying questions, then creates `CLAUDE.md`, agents, rules, skills, commands, and hooks tailored to the codebase. Handles both fresh repos and partial setups. ~50–120k tokens, paid once — it has the largest fixed instruction load of any command (~20k before it reads a line of your code) and writes a dozen or more files.
+- **`/slashforge-setup`** — one-time repo setup. Explores the repo, asks clarifying questions, then creates the entry file (`CLAUDE.md` or `AGENTS.md`), agents, rules, skills, commands, and hooks tailored to the codebase, in your agent's layout. Handles both fresh repos and partial setups. ~50–120k tokens, paid once — it has the largest fixed instruction load of any command (~20k before it reads a line of your code) and writes a dozen or more files.
 - **`/slashforge-code`** — freeform end-to-end development workflow. Ten phases: plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup. ~100–250k tokens per feature without Graphify; ~75–225k with it indexed.
 - **`/slashforge-code -quick`** — lean version of `/slashforge-code` for small changes. Skips brainstorming, uses a minimal plan (Changes + Test strategy only), and replaces the agent-driven code review with an inline self-review checklist. Keeps every user gate (plan, branch, PR, cleanup) and Phase 6 lint/test/build verification. ~40–70k tokens per change. Use for typo fixes, copy changes, config tweaks, renames, single-file refactors.
 - **`/slashforge-investigate [symptom]`** — read-only research. Reproduces and root-causes a suspected bug, produces a findings report saved to `docs/slashforge/investigations/`, then hands the report path to `/slashforge-code` so the fix starts with the diagnosis already loaded. ~15–60k tokens, set by how far the trail runs — it writes one report, not code.
-- **`/slashforge-review-pr [number]`** — reviews a PR against this repo's `CLAUDE.md`, `.claude/rules/` and existing conventions, then posts line-level comments or an approval. Lists the PRs awaiting your review when there is more than one. Never posts without showing you the exact text and asking. ~15–70k tokens per review, set almost entirely by the size of the diff.
+- **`/slashforge-review-pr [number]`** — reviews a PR against this repo's entry file, rules and existing conventions, then posts line-level comments or an approval. Lists the PRs awaiting your review when there is more than one. Never posts without showing you the exact text and asking. ~15–70k tokens per review, set almost entirely by the size of the diff.
 
 ---
 
@@ -61,7 +65,7 @@ Installs a collection of guide files plus four slash commands that cover the ful
 | **`-quick` mode** | 40–70k per change. Skips brainstorming and the agent review; keeps every gate and the lint/test/build verification |
 | **`/slashforge-review-pr`** | 15–70k per review, driven almost entirely by diff size |
 | **`/slashforge-investigate`** | 15–60k per report. No code is written, so the cost is reading — how far the trail runs |
-| **`/slashforge-setup`** | 50–120k, **once per repo.** Reads ~20k of its own instructions, then explores and writes your `.claude/` |
+| **`/slashforge-setup`** | 50–120k, **once per repo.** Reads ~20k of its own instructions, then explores and writes your agent's setup |
 | **What you get for it** | Nothing ships that was not planned, gated, verified and reviewed |
 
 These are rough totals that don't separate prompt cache reads from fresh input. Most of what a run reads is the same guides and files again on each turn, and the prompt cache serves those re-reads at a reduced price. The range is driven by the size of the work, not the tooling. A single-file copy change lands near the bottom; a multi-layer feature near the top.
@@ -152,8 +156,8 @@ The guide files cover:
 - **Agents** — how to create agent files, per-agent skill mappings, monorepo structure
 - **Commands** — how to create slash commands (and the commands ↔ skills merger)
 - **Hooks** — how to configure automated behaviors (`.claude/settings.json`, `.cursor/hooks.json` or `.codex/hooks.json`: events, scopes, common patterns)
-- **CLAUDE.md** — entry point file, `@path` imports, `AGENTS.md` interop
-- **Memory** — when and how to use Claude Code's persistent memory system
+- **Entry file** — `CLAUDE.md` or `AGENTS.md`, `@path` imports, interop between the two
+- **Memory** (Claude Code only) — when and how to use its persistent memory system
 
 ---
 
@@ -234,9 +238,9 @@ The check auto-skips on `/slashforge-code -quick`, `/slashforge-code` trivial, a
 
 ---
 
-## Auto-coverage check (`.claude/` + `CLAUDE.md`)
+## Auto-coverage check
 
-When `/slashforge-code` runs on a non-trivial feature, the kit checks whether the feature introduces a new domain (framework, layer, language, pattern) that `.claude/` doesn't yet cover. If gaps exist — no specialist agent, no scoped rule, no mention in `CLAUDE.md`'s tech stack — the check fires twice:
+When `/slashforge-code` runs on a non-trivial feature, the kit checks whether the feature introduces a new domain (framework, layer, language, pattern) that your agent's setup doesn't yet cover. If gaps exist — no specialist agent, no scoped rule, no mention in the entry file's tech stack — the check fires twice. Examples below use Claude Code's paths; Cursor and Codex check their own (`.cursor/agents/` and `.cursor/rules/`, or `.codex/agents/` and nested `AGENTS.md`).
 
 1. **Phase 2 (proactive)** — before the plan is written, the kit asks: *"This feature introduces [domain X]. `.claude/` is missing [agent / rule / CLAUDE.md update]. Add these to the plan as Phase 2.5 updates so they ship in this PR? (y/n)"* If you accept, the new `.claude/` files are drafted in Phase 5 alongside the feature code.
 2. **Phase 7 (safety net)** — the `code-reviewer` agent re-checks the diff. If gaps remain (you said no at Phase 2, or a new gap surfaced during implementation), it raises a review **note** suggesting an addition before merge or as a follow-up `/slashforge-setup` run. Note, not a block — the PR can still merge.
@@ -248,7 +252,7 @@ When `/slashforge-code` runs on a non-trivial feature, the kit checks whether th
 
 **Cost:** ~100–300 tokens per run when no gaps detected; ~300–600 when gaps surface and you decline; ~3–8k extra when you accept and new files are generated as part of the feature. See `slashforge-coverage.md` for the detection matrix and heuristic.
 
-**Why it matters:** without this, every new domain silently widens the gap between what's in the repo and what `.claude/` knows about. Specialist agents stay generic, rules don't enforce domain conventions, `CLAUDE.md` drifts from reality. Coverage check closes the loop incrementally instead of relying on the user to remember to re-run `/slashforge-setup`.
+**Why it matters:** without this, every new domain silently widens the gap between what's in the repo and what your agent's setup knows about. Specialist agents stay generic, rules don't enforce domain conventions, the entry file drifts from reality. Coverage check closes the loop incrementally instead of relying on the user to remember to re-run `/slashforge-setup`.
 
 ---
 
@@ -305,7 +309,7 @@ Don't use for: bug fixes where the root cause isn't already understood (use `/sl
 ```
 /slashforge-investigate "users see 500 when uploading >10MB files"
 ```
-Read-only research. No branches, no PRs, no code changes. Produces a findings report (summary, reproduction, root cause, affected scope, suggested next step) written as a self-contained HTML file to `docs/slashforge/investigations/investigation-<timestamp>.html` — outside `.claude/`, so it is visible in Finder rather than buried in a dot-directory.
+Read-only research. No branches, no PRs, no code changes. Produces a findings report (summary, reproduction, root cause, affected scope, suggested next step) written as a self-contained HTML file to `docs/slashforge/investigations/investigation-<timestamp>.html` — outside your agent's dot-directory, so it is visible in Finder rather than buried.
 
 The report is then **opened in your default browser** (`open` / `xdg-open` / `wslview` / `start`, skipped silently over SSH or on a headless box), and chat gets a short plain-text summary rather than the raw HTML. Styling comes from `slashforge-report-shell.html`, installed with the guides — each run writes only its body fragment, so every report looks identical and the CSS is never regenerated. The finished file still inlines everything and opens offline.
 
@@ -327,7 +331,7 @@ The command takes the bare filename — `/slashforge-code` resolves it against `
 /slashforge-review-pr --mine       # your own PRs (comment only — GitHub blocks self-approval)
 /slashforge-review-pr --all        # all three, grouped
 ```
-Reviews a pull request against **your repo's** standards — `CLAUDE.md`, `.claude/rules/`, and the conventions actually in the surrounding code — then posts line-level comments or an approval.
+Reviews a pull request against **your repo's** standards — the entry file (`CLAUDE.md` or `AGENTS.md`), your rules (`.claude/rules/`, `.cursor/rules/`, or nested `AGENTS.md` on Codex), and the conventions actually in the surrounding code — then posts line-level comments or an approval.
 
 With no argument it searches `review-requested:@me`, since that is what "waiting on me" means on GitHub; `assignee` is a different relationship and usually empty, so filtering on it would show an empty list. It widens to assignee only if the first search comes back empty, and says so. The flags override that: `--assigned` if your team routes reviews by assigning, `--mine` for self-review, `--all` for everything grouped. Drafts are skipped, a single PR is reviewed without a menu, and no PRs means it says so rather than inventing work.
 
@@ -349,7 +353,7 @@ Requires `gh` installed and authenticated — checked up front, so it stops with
 
 ## `/slashforge-setup` vs Anthropic's `/init`
 
-Claude Code ships with a built-in `/init` command. The two are complementary, not competitors:
+Claude Code ships with a built-in `/init` command (Cursor and Codex have their own starters). The comparison below is for Claude Code; the two are complementary, not competitors:
 
 | | `/init` (built-in) | `/slashforge-setup` (this kit) |
 |---|---|---|
@@ -368,7 +372,9 @@ Claude Code ships with a built-in `/init` command. The two are complementary, no
 
 Everything the workflow enforces comes from files in your repo, so changing the behaviour means editing those rather than configuring SlashForge.
 
-**Verification commands** live in `CLAUDE.md`. Phase 6 runs exactly what you put here:
+The paths below are Claude Code's; the table under [What it does](#what-it-does) has Cursor's and Codex's.
+
+**Verification commands** live in the entry file (`CLAUDE.md`, or `AGENTS.md` on Cursor and Codex). Phase 6 runs exactly what you put here:
 
 ```markdown
 ## Commands
@@ -380,7 +386,7 @@ Everything the workflow enforces comes from files in your repo, so changing the 
 
 If a command is missing, Phase 6 asks for it rather than guessing or skipping.
 
-**Coding standards** live in `.claude/rules/`. One file per concern. A rule with no `paths` field loads at session start; add one and it loads only when a matching file is touched, which keeps frontend rules out of backend work:
+**Coding standards** live in `.claude/rules/`. One file per concern. A rule with no `paths` field loads at session start; add one and it loads only when a matching file is touched, which keeps frontend rules out of backend work (Cursor's `.mdc` rules use `globs`; Codex puts a nested `AGENTS.md` in the directory it governs):
 
 ```yaml
 ---
@@ -391,7 +397,7 @@ paths:
 
 Both `/slashforge-code` Phase 7 and `/slashforge-review-pr` judge against these.
 
-**Agents** live in `.claude/agents/`. `/slashforge-setup` generates a set matched to the codebase; edit them, or add your own for a concern the generated set missed.
+**Agents** live in `.claude/agents/` (`.cursor/agents/`, or `.codex/agents/*.toml` on Codex). `/slashforge-setup` generates a set matched to the codebase; edit them, or add your own for a concern the generated set missed.
 
 All of it is generated by `/slashforge-setup` and then yours. Every generated file carries a `generated_by` marker — edit or remove it and that file is never refreshed again, so your changes survive a re-run.
 
@@ -399,7 +405,7 @@ All of it is generated by `/slashforge-setup` and then yours. Every generated fi
 
 ## Monorepo support
 
-`/slashforge-setup` handles monorepos — it creates a root `CLAUDE.md` with shared global agents, and a separate `CLAUDE.md` with app-specific rules, skills, and agents for each app.
+`/slashforge-setup` handles monorepos — it creates a root entry file (`CLAUDE.md` or `AGENTS.md`) with shared global agents, and a separate one with app-specific rules, skills, and agents for each app.
 
 ---
 
@@ -431,7 +437,7 @@ That last line is the one worth knowing: **`npx` prefers an executable already o
 
 The check has a 1.5 second timeout and fails silently — offline installs are unaffected. It is skipped under `CI`, and `SLASHFORGE_NO_UPDATE_CHECK=1` turns it off.
 
-**Safe re-runs of `/slashforge-setup`.** Every file `/slashforge-setup` creates in a repo's `.claude/` and the root `CLAUDE.md` now carries a `generated_by` marker (YAML frontmatter for `.claude/` files, an HTML comment for `CLAUDE.md`). On re-run, the Update flow uses the marker to tell kit-generated files from files you've edited:
+**Safe re-runs of `/slashforge-setup`.** Every file `/slashforge-setup` creates carries a `generated_by` marker — YAML frontmatter for markdown files, an HTML comment for `CLAUDE.md` and `AGENTS.md`, and a pair of TOML keys for Codex's `.codex/agents/*.toml`. On re-run, the Update flow uses the marker to tell kit-generated files from files you've edited:
 
 - Marker present, version current → safe to refresh
 - Marker present, version older → stale; proposes a refresh and asks before overwriting
