@@ -28,7 +28,7 @@ export const NAV: NavGroup[] = [
     label: 'Start here',
     items: [
       { label: 'Introduction', slug: 'guides/introduction' },
-      { label: 'Plan mode and /init', slug: 'guides/plan-mode-and-init', claudeOnly: true },
+      { label: 'Plan mode and /init', slug: 'guides/plan-mode-and-init' },
       { label: 'What a run looks like', slug: 'guides/example-run' },
       { label: 'What it does to your machine', slug: 'guides/trust' },
       { label: 'Installation', slug: 'guides/installation' },

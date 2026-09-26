@@ -148,8 +148,9 @@ so the option is withdrawn up front rather than after the work is done.
 
 ## The findings
 
-Judged against `CLAUDE.md`, any `.claude/rules/` whose scope matches the changed
-files, and the conventions actually in the surrounding code — not a generic
+Judged against the entry file, any rules whose scope matches the changed files
+(this run is in Claude Code, so `CLAUDE.md` and `.claude/rules/`; on Cursor and Codex,
+`AGENTS.md` with `.cursor/rules/` or nested `AGENTS.md`), and the conventions actually in the surrounding code — not a generic
 notion of good code.
 
 ```

@@ -12,12 +12,14 @@ letting it freewheel from prompt to patch.
 
 ## What gets installed
 
-Two things land on your machine:
+Two things land on your machine, for each agent:
 
-| What | Where |
-| --- | --- |
-| Guide files | `~/.claude/setup/slashforge/` |
-| Commands | `~/.claude/commands/` — each named `slashforge-<name>` |
+| What | Claude Code | Cursor | Codex |
+| --- | --- | --- | --- |
+| Guide files | `~/.claude/setup/slashforge/` | `~/.agents/setup/slashforge/cursor/` | `~/.agents/setup/slashforge/codex/` |
+| Commands | `~/.claude/commands/slashforge-<name>.md` | `~/.agents/skills/slashforge-<name>/` | `~/.agents/skills/slashforge-<name>/` |
+
+Cursor and Codex share the same `~/.agents/skills/` folders; only their guides are separate.
 
 The commands are thin. ==They point at the guide files, which carry the actual
 workflow.== That separation is why a command can change modes — `-quick` simply
@@ -28,18 +30,18 @@ with commands you already have — and it is the same name on every host.
 
 ## The vocabulary
 
-`/slashforge-setup` generates five kinds of file into your repo. They are Claude
-Code concepts rather than SlashForge inventions, but you will see the words
-constantly, so:
+`/slashforge-setup` generates six kinds of file into your repo. They are concepts
+all three agents share rather than SlashForge inventions, though each keeps them
+in its own place:
 
-| Term | What it is |
-| --- | --- |
-| `CLAUDE.md` | The root instruction file the agent reads first — architecture, conventions, and where to route a given kind of request |
-| `rules/` | Conventions the agent must follow. Short, imperative, always in context |
-| `skills/` | Repo-specific procedures — how to add a migration, how to ship a component |
-| `agents/` | Specialist sub-agents invoked for one job, such as code review or git operations |
-| `commands/` | Repo-specific slash commands, on top of the three SlashForge installs |
-| `hooks/` | Automated behaviours that fire on an event, without being asked |
+| Term | What it is | Claude Code | Cursor | Codex |
+| --- | --- | --- | --- | --- |
+| Entry file | The root instruction file the agent reads first — architecture, conventions, and where to route a given kind of request | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` |
+| Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | `.claude/rules/` | `.cursor/rules/*.mdc` | nested `AGENTS.md` |
+| Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.claude/skills/` | `.cursor/skills/` | `.agents/skills/` |
+| Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.claude/agents/` | `.cursor/agents/` | `.codex/agents/*.toml` |
+| Commands | Repo-specific commands, on top of the four SlashForge installs | `.claude/commands/` | `.cursor/commands/` | none — a skill instead |
+| Hooks | Automated behaviours that fire on an event, without being asked | `.claude/settings.json` | `.cursor/hooks.json` | `.codex/hooks.json` |
 
 ## The four commands
 
@@ -48,8 +50,8 @@ constantly, so:
 ### `/slashforge-setup`
 
 One-time repo setup. Explores the codebase, asks clarifying questions in
-batches, then ==creates `CLAUDE.md` plus tailored rules, skills, agents,
-commands, and hooks in `.claude/`==. Handles fresh repos and partial setups.
+batches, then ==creates the entry file plus tailored rules, skills, agents,
+commands, and hooks in your agent's own layout==. Handles fresh repos and partial setups.
 
 ### `/slashforge-code`
 
@@ -70,8 +72,8 @@ loaded instead of you restating the bug.
 
 ### `/slashforge-review-pr`
 
-Reviews someone's pull request against *your* repo's standards — `CLAUDE.md`,
-`.claude/rules/`, and the conventions in the surrounding code — then posts
+Reviews someone's pull request against *your* repo's standards — the entry
+file, your rules, and the conventions in the surrounding code — then posts
 line-level comments or an approval. With no argument it lists the PRs waiting on
 your review.
 
@@ -119,15 +121,11 @@ patch as fast as possible, this is the wrong tool.== See
 lighter option is the right call.
 :::
 
-## Superpowers
+## Skills
 
-SlashForge integrates with the [superpowers](https://github.com/obra/superpowers)
-plugin when installed, invoking a specific skill per phase — brainstorming for
-intake, test-driven-development for implementation, and so on.
-
-==SlashForge ships every discipline skill the workflow uses, so no plugin is
-required and none is checked for.== See [Skills](/slashforge/guides/skills/) for
-what runs at each phase.
+==SlashForge ships every discipline skill the workflow uses== — brainstorming for
+intake, test-driven development for implementation, and so on. Nothing else needs
+installing. See [Skills](/slashforge/guides/skills/) for what runs at each phase.
 
 ## Supported tools
 

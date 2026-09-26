@@ -12,7 +12,7 @@ description: The handful of things that actually go wrong, and what to do about 
 :::steps
 1. Run `npx slashforge status` — it reports what is installed and where.
 2. **Restart Claude Code.** Command files are read at startup.
-3. If `status` shows a v3 `forge/` layout, you are typing the old namespace. It is `/slashforge:` now — see [Migrating](/slashforge/reference/migrating/).
+3. **Check the name.** Every version before 5.0 used a different spelling; since 5.0 it is `/slashforge-code`, with a `-`, on every agent. See [Migrating](/slashforge/reference/migrating/).
 4. If `status` shows nothing installed, re-run `npx slashforge` and watch for a permissions error on `~/.claude/`.
 :::
 
@@ -21,10 +21,9 @@ description: The handful of things that actually go wrong, and what to do about 
 :::steps
 1. **Check the install reached `~/.agents/`.** Run `npx slashforge status`: it reports Claude Code and Cursor + Codex separately, and says if either is missing. Re-running `npx slashforge` fills the gap.
 2. **Older releases installed Claude Code only.** If you set up before Cursor and Codex support arrived, run `npx slashforge` again.
-3. **On Cursor and Codex the commands are hyphenated** — `/slashforge-code`, not `/slashforge-code` — because neither supports the `:` namespace.
-4. **In Codex, use `$`.** The skills are invoked as `$slashforge-code` rather than with a slash.
-5. **Restart the editor.** Skills are discovered at session start.
-6. Confirm the files are on disk: `ls ~/.agents/skills/`. You should see a `slashforge-code` directory containing `SKILL.md`.
+3. **In Codex, use `$`.** The skills are invoked as `$slashforge-code` rather than with a slash.
+4. **Restart the editor.** Skills are discovered at session start.
+5. Confirm the files are on disk: `ls ~/.agents/skills/`. You should see a `slashforge-code` directory containing `SKILL.md`.
 :::
 
 :::note

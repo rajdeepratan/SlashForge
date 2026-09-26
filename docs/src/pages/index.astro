@@ -52,7 +52,7 @@ const REVIEW_DEMO: [string, string][] = [
   ['t-phase', 'CONTEXT'],
   ['t-out', '  CI green · 2 existing comments · author is not you'],
   ['t-out', ''],
-  ['t-phase', 'FINDINGS · against CLAUDE.md and .claude/rules/'],
+  ['t-phase', 'FINDINGS · against the repo entry file and rules'],
   ['t-out', '  blocking    retry.ts:38   no cap, retries forever'],
   ['t-out', '  should fix  retry.ts:52   swallows the abort signal'],
   ['t-out', '  nit         retry.ts:12   name says ms, value is s'],
@@ -96,7 +96,7 @@ const costs = [
   {
     label: 'Repo setup',
     value: '50–120k',
-    note: 'Once per repo, before anything else. The largest fixed load of any command, then it writes your .claude/.',
+    note: 'Once per repo, before anything else. The largest fixed load of any command, then it writes your agent’s setup.',
   },
   {
     label: 'Full run',

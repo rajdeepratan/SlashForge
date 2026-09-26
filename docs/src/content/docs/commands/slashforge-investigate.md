@@ -45,7 +45,7 @@ A findings report saved to `docs/slashforge/investigations/`, covering:
 ==The report is a document, not a patch. Deciding what to do with it is yours.==
 
 It is a self-contained HTML file — no external CSS, no JavaScript, no network —
-written to `docs/slashforge/investigations/investigation-<timestamp>.html`. It sits under `docs/` rather than inside `.claude/` because dot-directories are
+written to `docs/slashforge/investigations/investigation-<timestamp>.html`. It sits under `docs/` rather than inside your agent's folder (`.claude/`, `.cursor/`, `.codex/`) because dot-directories are
 hidden in Finder and most file explorers; these reports are meant to be
 double-clicked by a human, not just read by an agent.
 

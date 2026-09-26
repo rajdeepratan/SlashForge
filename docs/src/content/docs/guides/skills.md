@@ -8,11 +8,6 @@ available — no plugin, no marketplace, nothing to add==. On every host they ar
 `slashforge-brainstorm`, `slashforge-plan` and so on; the prefix keeps them from colliding with
 skills you already have.
 
-The [superpowers](https://github.com/obra/superpowers) plugin used to be a preflight gate: every
-command stopped, checked for it, and warned about degraded mode if it was missing. ==That is no
-longer the case.== **SlashForge needs no plugin at all** — every discipline the workflow uses ships
-with it.
-
 ## What ships with SlashForge
 
 | Phase | Skill |
@@ -32,24 +27,17 @@ Three skills carry names worth distinguishing: ==`slashforge-request-review` get
 reviewed before it ships==, ==`slashforge-review-feedback` handles comments **you received**==, and the
 ==`/slashforge-review-pr` command reviews **someone else's** pull request==.
 
-All nine are adapted from superpowers under the MIT licence, © 2025 Jesse Vincent. Each file
-carries the notice, because skills install into `~/.claude/` detached from this repo.
+## Where they install
 
-## Do you need the superpowers plugin?
+| Claude Code | Cursor and Codex |
+| --- | --- |
+| `~/.claude/commands/slashforge-<skill>.md` | `~/.agents/skills/slashforge-<skill>/SKILL.md` |
 
-**No.** ==As of v4.3.0 nothing in SlashForge invokes it, checks for it, or behaves differently when
-it is present.== There is no preflight, no prompt, and no degraded mode, because there is nothing to
-degrade.
+Codex invokes them with `$` (`$slashforge-plan`) like every other skill; Claude Code and Cursor use `/`.
 
-## Installing it anyway
-
-```
-/plugin install superpowers@claude-plugins-official
-```
-
-It is a good library in its own right and covers ground SlashForge does not — writing skills,
-condition-based waiting, defence in depth. ==Install it because you want those, not because
-SlashForge needs it.==
+All nine are adapted from [superpowers](https://github.com/obra/superpowers) under the MIT
+licence, © 2025 Jesse Vincent. Each file carries the notice, because skills install into your
+home directory detached from this repo.
 
 :::note
 ==Skills are detected once per session.== One installed mid-session may not be visible until the next
@@ -66,6 +54,7 @@ npx slashforge
 
 ## Graphify
 
-[Graphify](/slashforge/guides/graphify/) is the other optional integration, and works
-differently — a **one-time setup-time offer** inside `/slashforge-setup` rather than a
-per-command check. Once installed, its own hook surfaces graph context automatically.
+[Graphify](/slashforge/guides/graphify/) is the one optional integration — a **one-time
+setup-time offer** inside `/slashforge-setup` rather than a per-command check. Once installed it
+surfaces graph context automatically: through a hook on Claude Code and Codex, and an always-on
+rule on Cursor.

@@ -215,7 +215,7 @@ rather than orphaned.
 
 :::note
 ==Without `--project`, uninstall touches nothing but `~/.claude/` and `~/.agents/`.== A repo's own
-`.claude/` directory — the configuration `/slashforge-setup` generated — is
+`.claude/`, `.cursor/` or `.codex/` directory — the configuration `/slashforge-setup` generated — is
 yours and is never read or removed. `--project` is the one case where it acts on
 a repo, and only on the repo you run it in.
 :::

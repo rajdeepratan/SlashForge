@@ -91,21 +91,18 @@ when you need to understand a bug before touching it.
 
 ==That is all SlashForge itself requires.==
 
-## Optional integrations
+## Optional integration
 
-Two, and **neither has to be installed first**. This trips people up, so to be
-explicit:
-
-| | Required? | When you deal with it |
-| --- | --- | --- |
-| [superpowers](/slashforge/guides/skills/) | No — nothing invokes or checks for it | Never prompted for. Install it only if you want its own library |
-| [Graphify](/slashforge/guides/graphify/) | No, fully optional | `/slashforge-setup` offers it mid-run, on supported languages only |
+One, [Graphify](/slashforge/guides/graphify/), and **it does not have to be
+installed first**. `/slashforge-setup` offers it mid-run, on supported languages
+only. Every discipline skill the workflow uses [ships with SlashForge](/slashforge/guides/skills/),
+so there is no plugin to add.
 
 ==You do not need to prepare anything.== Install SlashForge, run a command, and it
 will offer what it needs when it needs it.
 
 :::note
-Graphify is a Python CLI, so accepting that one needs Python 3.10+ and `uv`
+Graphify is a Python CLI, so accepting it needs Python 3.10+ and `uv`
 (or `pipx`/`pip`) on your machine. ==Nothing to do up front== — the
 [Graphify page](/slashforge/guides/graphify/) covers the prerequisites and the
 optional extras when you get there.

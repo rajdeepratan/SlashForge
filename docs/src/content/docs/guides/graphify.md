@@ -20,7 +20,8 @@ Swift, Lua, Zig, PowerShell, Elixir, Objective-C, Julia, Verilog, SystemVerilog,
 Vue, Svelte, Dart.
 
 This is a **setup-time offer, not a per-command check**. Once installed,
-==Graphify's own PreToolUse hook on Glob/Grep surfaces graph context automatically==.
+==Graphify surfaces graph context automatically== — through its own hook on Claude Code
+and Codex, and an always-applied rule on Cursor.
 
 ## Prerequisites
 
@@ -42,15 +43,19 @@ deciding afterwards.
 
 ## Ask first, never auto-install
 
-Every install step is a shell command Claude could run itself. ==It doesn't. You
-are shown the exact four commands before anything is authorised:==
+Every install step is a shell command your agent could run itself. ==It doesn't. You
+are shown the exact commands before anything is authorised:==
 
 ```bash
 uv tool install graphifyy        # or: pipx install graphifyy / pip install graphifyy
 graphify install
 graphify .                       # initial indexing — seconds to minutes
-graphify claude install          # appends CLAUDE.md section + Glob/Grep PreToolUse hook
+graphify claude install          # Claude Code: CLAUDE.md section + Glob/Grep PreToolUse hook
+graphify cursor install          # Cursor: an always-applied .cursor/rules/graphify.mdc rule
+graphify codex install           # Codex: AGENTS.md section + PreToolUse hook
 ```
+
+Only the last line differs, and setup runs just the one for the agent you're in.
 
 ==Say `n` and `/slashforge-setup` skips it silently.== Re-run `/slashforge-setup` later and
 the offer fires again.
