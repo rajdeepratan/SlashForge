@@ -112,8 +112,8 @@ trivial, and repos without Graphify — zero overhead there.
 
 ## Upstream notes
 
-Graphify is pre-1.0 (v0.5.0 as of 2026-04-23). If install commands change
-upstream, re-run `npx slashforge` to pull updated guide content.
+Graphify is pre-1.0 and releases often, so its interfaces can shift. If install
+commands change upstream, re-run `npx slashforge` to pull updated guide content.
 
 ==The PyPI package is **`graphifyy`** — double `y`.== Other `graphify*` packages are
 unaffiliated.

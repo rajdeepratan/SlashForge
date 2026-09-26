@@ -17,6 +17,7 @@ import {
   COMMAND_RE,
   wholeLabelCommand,
   installPathFor,
+  examplePathFor,
 } from '../../docs/src/targets.mjs';
 
 const base = process.env.DOCS_BASE_PATH ?? '/slashforge';
@@ -55,6 +56,19 @@ for (const page of pages) {
   for (const m of html.matchAll(/<span data-path="([a-z]+)">([^<]*)<\/span>/g)) {
     const want = installPathFor(m[1], 'claude');
     if (m[2] !== want) fail(`${rel}: ${m[1]} path rendered "${m[2]}", expected "${want}"`);
+  }
+
+  for (const m of html.matchAll(/<span data-example-path="([a-z]+)">([^<]*)<\/span>/g)) {
+    const want = examplePathFor(m[1], 'claude');
+    if (m[2] !== want) fail(`${rel}: example ${m[1]} rendered "${m[2]}", expected "${want}"`);
+  }
+
+  // A page that names the ~/.agents/ paths is showing every agent's side by side.
+  // Swapping its ~/.claude/ paths as well would turn the Claude Code column into a
+  // copy of the Cursor one the moment a reader picks Cursor.
+  const mainHtml = (/<main class="main">([\s\S]*?)<\/main>/.exec(html) ?? [])[1] ?? '';
+  if (mainHtml.includes('~/.agents/') && /data-path=/.test(mainHtml)) {
+    fail(`${rel}: swaps ~/.claude/ paths on a page that already shows each agent's paths`);
   }
 
 

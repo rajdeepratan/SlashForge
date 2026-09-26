@@ -157,3 +157,16 @@ test('every target has an accent colour in both themes', () => {
     assert.match(css, new RegExp(`\\[data-theme='dark'\\]\\[data-target='${t}'\\]\\s*\\{[^}]*--accent-text:`), `${t} dark`);
   }
 });
+
+// The example run's replay names a repo rule file. It follows the chosen agent,
+// because each keeps its rules somewhere different.
+test('the example rule file follows the chosen agent', async () => {
+  const { examplePathFor, EXAMPLE_PATH_RE } = await import('../docs/src/targets.mjs');
+  assert.equal(examplePathFor('rule', 'claude'), '.claude/rules/errors.md');
+  assert.equal(examplePathFor('rule', 'cursor'), '.cursor/rules/errors.mdc');
+  assert.equal(examplePathFor('rule', 'codex'), 'src/AGENTS.md');
+  EXAMPLE_PATH_RE.lastIndex = 0;
+  assert.ok(EXAMPLE_PATH_RE.test('  Repo conventions   follows .claude/rules/errors.md'));
+  EXAMPLE_PATH_RE.lastIndex = 0;
+  assert.ok(!EXAMPLE_PATH_RE.test('see ~/.claude/setup/slashforge/'), 'install paths are not example paths');
+});

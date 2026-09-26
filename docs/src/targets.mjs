@@ -64,6 +64,31 @@ export const INSTALL_PATHS = {
   root: { claude: '~/.claude/', cursor: '~/.agents/', codex: '~/.agents/' },
 };
 
+/**
+ * Repo files the worked example names, per agent. Each keeps its rules somewhere
+ * different, so the example's replay follows the agent picked in the header.
+ * Only these exact strings swap; the install paths above never do, because every
+ * page that names one shows all three side by side.
+ */
+export const EXAMPLE_PATHS = {
+  rule: { claude: '.claude/rules/errors.md', cursor: '.cursor/rules/errors.mdc', codex: 'src/AGENTS.md' },
+};
+
+export function examplePathFor(kind, target) {
+  const set = EXAMPLE_PATHS[kind];
+  return set ? set[target] || set.claude : '';
+}
+
+export const EXAMPLE_PATH_RE = new RegExp(
+  '(' + Object.values(EXAMPLE_PATHS).map((s) => s.claude.replace(/[.\\/]/g, '\\$&')).join('|') + ')',
+  'g'
+);
+
+export function examplePathKind(value) {
+  const hit = Object.entries(EXAMPLE_PATHS).find(([, s]) => s.claude === value);
+  return hit ? hit[0] : null;
+}
+
 export function installPathFor(kind, target) {
   const set = INSTALL_PATHS[kind];
   return set ? set[target] || set.claude : '';

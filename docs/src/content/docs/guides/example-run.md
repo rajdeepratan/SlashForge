@@ -148,10 +148,11 @@ so the option is withdrawn up front rather than after the work is done.
 
 ## The findings
 
-Judged against the entry file, any rules whose scope matches the changed files
-(this run is in Claude Code, so `CLAUDE.md` and `.claude/rules/`; on Cursor and Codex,
-`AGENTS.md` with `.cursor/rules/` or nested `AGENTS.md`), and the conventions actually in the surrounding code — not a generic
-notion of good code.
+Judged against the entry file (`CLAUDE.md`, or `AGENTS.md` on Cursor and Codex), the
+rules whose scope matches the changed files, and the conventions actually in the
+surrounding code — not a generic notion of good code. ==The rule file below follows
+the agent picked in the header==: a `.claude/rules/` file, a `.cursor/rules/*.mdc`
+rule, or on Codex the nested `AGENTS.md` in `src/`.
 
 ```
 FINDINGS

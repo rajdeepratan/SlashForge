@@ -3,16 +3,15 @@ import {
   COMMAND_RE,
   commandForm,
   DEFAULT_TARGET,
-  PATH_RE,
-  pathKind,
-  installPathFor,
+  EXAMPLE_PATH_RE,
+  examplePathKind,
+  examplePathFor,
 } from '../targets.mjs';
 
 /**
  * Wraps per-target text in spans the client script can rewrite.
  *
  *   /slashforge-code            -> <span data-cmd="code">/slashforge-code</span>
- *   ~/.claude/setup/slashforge/ -> <span data-path="guides">…</span>
  *
  * Spans ship already rendered in the Claude Code form, so the page is correct
  * before any script runs and stays correct if scripts never run. Only the text
@@ -80,18 +79,19 @@ export function rehypeCommandNames() {
       }))
     );
 
-    // Where an install lands differs per target, so a reader on Cursor is
-    // otherwise told their files are somewhere they are not.
+    // Install paths are not swapped: every page that names one now shows each
+    // agent's path side by side, and swapping would collapse the comparison.
+    // The worked example's repo files are, so its replay matches the reader's agent.
     visit(
       tree,
       'text',
-      markAll(PATH_RE, (m) => {
-        const kind = pathKind(m[0]);
+      markAll(EXAMPLE_PATH_RE, (m) => {
+        const kind = examplePathKind(m[0]);
         return {
           type: 'element',
           tagName: 'span',
-          properties: { 'data-path': kind },
-          children: [{ type: 'text', value: installPathFor(kind, DEFAULT_TARGET) }],
+          properties: { 'data-example-path': kind },
+          children: [{ type: 'text', value: examplePathFor(kind, DEFAULT_TARGET) }],
         };
       })
     );
