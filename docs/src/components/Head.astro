@@ -104,5 +104,13 @@ const schema = rawTitle
 			theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 		}
 		document.documentElement.dataset.theme = theme;
+		// The chosen coding agent sets the accent colour, so it too must land
+		// before first paint or the page flashes the default accent.
+		let target = 'claude';
+		try {
+			const saved = localStorage.getItem('sf-target');
+			if (saved === 'cursor' || saved === 'codex' || saved === 'claude') target = saved;
+		} catch {}
+		document.documentElement.dataset.target = target;
 	})();
 </script>

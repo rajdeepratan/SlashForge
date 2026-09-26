@@ -139,3 +139,21 @@ test('COMMAND_RE finds commands and never a path segment', async () => {
   const hits = [...s.matchAll(COMMAND_RE)].map((m) => m.index);
   assert.deepEqual(hits, [4]);
 });
+
+// Head.astro's inline script sets the accent before first paint, so it has to
+// repeat the agent names and the storage key without importing them.
+test('the pre-paint agent script knows every target and the storage key', async () => {
+  const { TARGETS, STORAGE_KEY, DEFAULT_TARGET } = await load();
+  const head = require('fs').readFileSync(require('path').join(__dirname, '..', 'docs/src/components/Head.astro'), 'utf8');
+  assert.ok(head.includes(`'${STORAGE_KEY}'`), 'storage key');
+  assert.ok(head.includes(`let target = '${DEFAULT_TARGET}'`), 'default target');
+  for (const t of TARGETS) assert.ok(head.includes(`'${t}'`), `target ${t}`);
+});
+
+test('every target has an accent colour in both themes', () => {
+  const css = require('fs').readFileSync(require('path').join(__dirname, '..', 'docs/src/styles/site.css'), 'utf8');
+  for (const t of ['claude', 'cursor', 'codex']) {
+    assert.match(css, new RegExp(`\\[data-target='${t}'\\] \\{[^}]*--ember:`), `${t} light`);
+    assert.match(css, new RegExp(`\\[data-theme='dark'\\]\\[data-target='${t}'\\]\\s*\\{[^}]*--accent-text:`), `${t} dark`);
+  }
+});
