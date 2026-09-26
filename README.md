@@ -179,16 +179,7 @@ Three names are deliberately distinct: `slashforge-request-review` reviews **you
 
 They are adapted from [superpowers](https://github.com/obra/superpowers) under the MIT licence, © 2025 Jesse Vincent, with the notice carried in each skill file.
 
-**The superpowers plugin is not required at all.** Nothing invokes it, checks for it, or behaves differently when it is present. There is no preflight, no prompt, and no degraded mode.
-
-**Superpowers** — not required; install only if you want its own library. In Claude Code:
-```
-/plugin install superpowers@claude-plugins-official
-```
-For Cursor and Codex, see [its README](https://github.com/obra/superpowers).
-It is a good library in its own right and covers ground SlashForge does not. Install it for that, not for SlashForge.
-
-**Graphify is the other optional integration**, and works differently — a one-time setup-time offer inside `/slashforge-setup`, not re-checked per command. See the Graphify section below.
+**Graphify is the one optional integration** — a one-time setup-time offer inside `/slashforge-setup`, not re-checked per command. See the Graphify section below.
 
 ---
 
