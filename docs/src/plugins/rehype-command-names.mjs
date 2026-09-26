@@ -33,7 +33,7 @@ import {
  *   changelog.md — generated from /CHANGELOG.md; a v4.0.0 entry has to keep the
  *                  spelling that actually shipped
  *   migrating.md — v2/v3/v4 tables, including paths that no longer exist at all
- *   cli.md       — the Targets table contrasts ~/.claude with ~/.agents, so
+ *   cli.md       — the Hosts table contrasts ~/.claude with ~/.agents, so
  *                  switching both columns would make them identical
  */
 const VERBATIM = ['changelog.md', 'migrating.md', 'cli.md'];

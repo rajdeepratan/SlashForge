@@ -10,8 +10,8 @@ description: End-to-end development workflow — plan, confirm, branch, implemen
 ```
 
 :::note
-==Using Cursor or Codex? Switch the tabs above== and every command on this page changes
-with them. See [Targets](/slashforge/reference/cli/#targets) for what else differs.
+==Using Cursor or Codex? Pick your agent in the header== and every command on this page
+changes with it. See [Hosts](/slashforge/reference/cli/#hosts) for what else differs.
 :::
 
 The full development workflow, from an idea to a merged PR. ==Ten phases, run in

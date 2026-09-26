@@ -52,8 +52,9 @@
 /* The accent follows the coding agent chosen in the picker, so a switch is
    visible across the whole page, not only in the commands that change. Set on
    <html> as data-target, before first paint (Head.astro) and on every switch
-   (site.js). Claude's clay; Cursor's amber and Codex's purple, taken from their
-   own sites. Each keeps white-on-fill and text-on-background contrast at or
+   (site.js). Claude's clay (its brand colour), Cursor's gold (from its app's
+   Build button; Cursor publishes no brand colour) and Codex's purple (from its
+   product page). Each keeps white-on-fill and text-on-background contrast at or
    above the ember it replaces, in both themes. With no agent set (no script),
    the ember above stands. */
 [data-target='claude'] {
@@ -61,8 +62,8 @@
   --sel-bg: #f7e1d8; --mark-bg: #f3d5c8;
 }
 [data-target='cursor'] {
-  --ember: #a8651c; --ember-hover: #8c5317; --accent-text: #8a5214;
-  --sel-bg: #f5e6d0; --mark-bg: #f1dcc0;
+  --ember: #8a6a00; --ember-hover: #735800; --accent-text: #735800;
+  --sel-bg: #f5ecc8; --mark-bg: #efe2b0;
 }
 [data-target='codex'] {
   --ember: #5b4ff0; --ember-hover: #4a3fd6; --accent-text: #4a3fd6;
@@ -70,10 +71,10 @@
 }
 /* The replay terminals are always dark, so they take each agent's on-dark shades. */
 [data-target='claude'] { --term-cmd: #d97757; --term-phase: #e08a6a; }
-[data-target='cursor'] { --term-cmd: #cf8a3a; --term-phase: #e0a458; }
+[data-target='cursor'] { --term-cmd: #e0b93a; --term-phase: #f0c850; }
 [data-target='codex']  { --term-cmd: #8b82ff; --term-phase: #a59cff; }
 [data-theme='dark'][data-target='claude'] { --accent-text: #e08a6a; --sel-bg: #3a1a10; --mark-bg: #4a2416; }
-[data-theme='dark'][data-target='cursor'] { --accent-text: #e0a458; --sel-bg: #33230d; --mark-bg: #422e12; }
+[data-theme='dark'][data-target='cursor'] { --accent-text: #f0c850; --sel-bg: #332a0a; --mark-bg: #42370f; }
 [data-theme='dark'][data-target='codex']  { --accent-text: #a59cff; --sel-bg: #1e1a45; --mark-bg: #28235a; }
 
 *, *::before, *::after { box-sizing: border-box; }

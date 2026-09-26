@@ -60,7 +60,7 @@ the cross-references in its guides use `$` too.
 ### What setup writes on each host
 
 ==`/slashforge-setup` runs on all three hosts== and scaffolds each one's native
-layout. It never writes `CLAUDE.md` or `.claude/` on a vendor target.
+layout. It never writes `CLAUDE.md` or `.claude/` in Cursor or Codex.
 
 | Layer | Claude Code | Cursor | Codex |
 | --- | --- | --- | --- |
@@ -88,18 +88,18 @@ alone, or mirror the content into both. It never rewrites it silently.
 
 :::note
 Codex invokes skills as `$slashforge-setup` rather than `/slashforge-setup`.
-Switch the tabs on any command block and the docs show the form your host uses.
+Pick your agent in the header and the docs show the form your host uses.
 :::
 
 ### Graphify on each host
 
 If you accept the Graphify offer during setup, it wires itself in per host:
 
-| Target | Command | What it writes |
+| Host | Command | What it writes |
 | --- | --- | --- |
-| `claude` | `graphify claude install` | `CLAUDE.md` section + a PreToolUse hook |
-| `cursor` | `graphify cursor install` | `.cursor/rules/graphify.mdc` |
-| `codex` | `graphify codex install` | `AGENTS.md` section + a PreToolUse hook |
+| Claude Code | `graphify claude install` | `CLAUDE.md` section + a PreToolUse hook |
+| Cursor | `graphify cursor install` | `.cursor/rules/graphify.mdc` |
+| Codex | `graphify codex install` | `AGENTS.md` section + a PreToolUse hook |
 
 Setup always writes its own files first and runs Graphify's step last, so
 Graphify's addition survives and is left alone on future re-runs.
@@ -124,8 +124,8 @@ files need to catch up.
 npx slashforge --project
 ```
 
-Vendors the guides and commands into the repo's `./.claude/` with repo-relative
-paths. ==Commit it and your teammates get the commands with no global install.==
+Vendors the guides and commands into the repo's `./.claude/` and `./.agents/` with
+repo-relative paths. ==Commit it and your teammates get the commands with no global install.==
 
 ### The update check
 
@@ -152,8 +152,8 @@ turns it off.
 
 ## status
 
-Reports the installed version, the guide files present, the commands registered,
-It changes nothing.
+Reports the installed version, the guide files present and the commands registered,
+for Claude Code and for Cursor + Codex. It changes nothing.
 
 ```bash
 npx slashforge status
@@ -162,10 +162,10 @@ npx slashforge status
 ```
 
 slashforge status
-  Package version (current): v4.5.0
+  Package version (current): v5.0.0
 
   Claude Code (~/.claude)
-    Installed version:  v4.5.0
+    Installed version:  v5.0.0
     Guide files:        16 (~/.claude/setup/slashforge)
     Installed commands: 4
       • /slashforge-code
@@ -174,7 +174,7 @@ slashforge status
       • /slashforge-setup
 
   Cursor + Codex (~/.agents)
-    Installed version:  v4.5.0
+    Installed version:  v5.0.0
     Guide files (cursor): 16 (~/.agents/setup/slashforge/cursor)
     Guide files (codex): 16 (~/.agents/setup/slashforge/codex)
     Installed commands: 4
@@ -194,7 +194,7 @@ install:
 
 ```
 slashforge: not installed.
-Run `npx slashforge` to install v4.5.0.
+Run `npx slashforge` to install v5.0.0.
 ```
 
 ==`status` recognises the older v2 and v3 layouts as well as the current one==, so
@@ -209,7 +209,7 @@ npx slashforge uninstall --project  # from ./.claude/ and ./.agents/
 npx slashforge uninstall --yes      # in a script, where there is no prompt
 ```
 
-==Removes only the files SlashForge installed==, and recognises the v2 and v3
+==Removes only the files SlashForge installed==, and recognises the v2, v3 and v4
 layouts alongside the current one — so an upgraded install can be cleaned up
 rather than orphaned.
 

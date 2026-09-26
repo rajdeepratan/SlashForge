@@ -9,8 +9,8 @@ description: One command to install, then your first run end to end.
 npx slashforge
 ```
 
-==That installs the guide files and the four commands into `~/.claude/`.== Open
-Claude Code in any repo and type `/` — you should see `/slashforge-setup`,
+==That installs the guide files and the four commands for Claude Code, Cursor and
+Codex== — into `~/.claude/` and `~/.agents/`. Open Claude Code in any repo and type `/` — you should see `/slashforge-setup`,
 `/slashforge-code`, `/slashforge-investigate`, and `/slashforge-review-pr`.
 
 ### Using Cursor or Codex
@@ -30,8 +30,7 @@ is work out which of the two it is running in; if it can't tell, it asks you onc
 Two differences worth knowing before you start:
 
 - ==Commands have the same name on every agent.== Only Codex invokes them with `$`
-  rather than `/`; the switcher in the header, or the tabs on any command block, show
-  the form your agent takes.
+  rather than `/`; pick your agent in the header and the docs show the form it takes.
 - ==Setup scaffolds your host's own layout.== On Cursor that is `.cursor/rules/*.mdc`
   and `.cursor/agents/`; on Codex, nested `AGENTS.md` and `.codex/agents/*.toml`. It
   never writes `CLAUDE.md` or `.claude/` in Cursor or Codex. Every step below applies
@@ -53,14 +52,15 @@ npx slashforge
 uses, so there is no plugin step.== See [Skills](/slashforge/guides/skills/) for
 what runs at each phase.
 
-**3. Set up the repo.** Open Claude Code in your project and run:
+**3. Set up the repo.** Open your coding agent in your project and run:
 
 ```
 /slashforge-setup
 ```
 
 It explores the codebase, asks you questions in batches, and ==generates
-`CLAUDE.md` plus `.claude/` rules, agents, skills, and hooks==. This is also where
+rules, agents, skills, and hooks in your agent's own layout== — `CLAUDE.md` and
+`.claude/` on Claude Code, `AGENTS.md` plus `.cursor/` or `.codex/` on the others. This is also where
 Graphify is offered, if your languages are supported — say no and it skips
 silently.
 
@@ -86,8 +86,8 @@ when you need to understand a bug before touching it.
 
 ## Requirements
 
-- **Node.js 18+**
-- **Claude Code**
+- **Node.js 16+**
+- **Claude Code, Cursor or Codex** — any one of them, or all three
 
 ==That is all SlashForge itself requires.==
 

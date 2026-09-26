@@ -12,8 +12,8 @@ description: Review a pull request against your repo's own rules and conventions
 ```
 
 :::note
-==Using Cursor or Codex? Switch the tabs above== and every command on this page changes
-with them. See [Targets](/slashforge/reference/cli/#targets) for what else differs.
+==Using Cursor or Codex? Pick your agent in the header== and every command on this page
+changes with it. See [Hosts](/slashforge/reference/cli/#hosts) for what else differs.
 :::
 
 ==Reviews a pull request against **your repo's** standards== — `CLAUDE.md`, `.claude/rules/`, and the

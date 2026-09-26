@@ -92,17 +92,17 @@ Running it again on a machine that already has it installed will prompt you to u
 ### Installer flags and subcommands
 
 ```bash
-slashforge --dry-run   # Print planned file writes without touching the filesystem
-slashforge --yes       # Non-interactive — auto-confirm the update prompt
-slashforge status      # Show installed version, guide count, and available update
-slashforge --help      # Full usage
+slashforge --dry-run    # Print planned file writes without touching the filesystem
+slashforge --yes        # Non-interactive — auto-confirm the update prompt
+slashforge status       # Show installed version, guide count, and available update
+slashforge --help       # Full usage
 slashforge --project    # Install into ./.claude/ and ./.agents/ in the current repo (committable, no global install needed)
-slashforge uninstall    # Remove the kit from both locations (add --project for the repo copy)
+slashforge uninstall    # Remove the kit from ~/.claude/ and ~/.agents/ (add --project for the repo copy)
 ```
 
 `--yes` / `-y` is also enabled by `SLASHFORGE_YES=1` (or the deprecated `CLAUDE_SETUP_KIT_YES=1`) or when stdin is not a TTY — safe to use in CI, devcontainers, or anywhere the install shouldn't block on an interactive prompt.
 
-`--project` vendors both the guide files and the four command files into the repo's `./.claude/` with repo-relative paths — commit it and teammates get the commands with no global install. `uninstall` reverses either install (pass `--project` to target the repo copy).
+`--project` vendors the guide files and commands into the repo's `./.claude/` and `./.agents/` with repo-relative paths — commit them and teammates get the commands with no global install, whichever agent they use. `uninstall` reverses either install (pass `--project` for the repo copy).
 
 ### Claude Code, Cursor and Codex
 
@@ -141,9 +141,7 @@ Every template is frontmatter-validated before any write — a broken guide (mis
 | Cursor + Codex commands and skills | `~/.agents/skills/slashforge-*/` |
 | Cursor / Codex guides | `~/.agents/setup/slashforge/{cursor,codex}/` |
 
-For Cursor and Codex each command, `setup` included, is `~/.agents/skills/slashforge-<name>/SKILL.md`, shared by both hosts; Codex invokes them with `$` rather than `/`. Each host reads its own guides from `~/.agents/setup/slashforge/cursor/` or `…/codex/`.
-
-Every command carries the `slashforge-` prefix, which keeps it from colliding with your own commands — the same name on every host. `--project` writes the same files under the repo's `./.claude/` and `./.agents/`. `-quick` is a mode of `/slashforge-code`, not a separate command; it loads one extra guide file.
+`--project` writes the same files under the repo's `./.claude/` and `./.agents/`. `-quick` is a mode of `/slashforge-code`, not a separate command; it loads one extra guide file.
 
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification
@@ -153,7 +151,7 @@ The guide files cover:
 - **Skills** — how to create skills using Anthropic's `SKILL.md` directory format
 - **Agents** — how to create agent files, per-agent skill mappings, monorepo structure
 - **Commands** — how to create slash commands (and the commands ↔ skills merger)
-- **Hooks** — how to configure automated behaviors in `settings.json` (events, scopes, common patterns)
+- **Hooks** — how to configure automated behaviors (`.claude/settings.json`, `.cursor/hooks.json` or `.codex/hooks.json`: events, scopes, common patterns)
 - **CLAUDE.md** — entry point file, `@path` imports, `AGENTS.md` interop
 - **Memory** — when and how to use Claude Code's persistent memory system
 
@@ -173,7 +171,7 @@ Nine skills install with the package, each named `slashforge-<skill>`:
 | 7 Review | `slashforge-request-review` |
 | 9 PR feedback | `slashforge-review-feedback` |
 
-No plugin and no marketplace — they install into the commands directory SlashForge already owns.
+No plugin and no marketplace — they install alongside the commands: `~/.claude/commands/` for Claude Code, `~/.agents/skills/` for Cursor and Codex.
 
 Three names are deliberately distinct: `slashforge-request-review` reviews **your own** work before it ships, `slashforge-review-feedback` handles comments **you received**, and `/slashforge-review-pr` reviews **someone else's** pull request.
 
@@ -181,7 +179,7 @@ They are adapted from [superpowers](https://github.com/obra/superpowers) under t
 
 **The superpowers plugin is not required at all.** Nothing invokes it, checks for it, or behaves differently when it is present. There is no preflight, no prompt, and no degraded mode.
 
-**Superpowers** — not required; install only if you want its own library:
+**Superpowers** — not required; install only if you want its own library (Claude Code shown):
 ```
 /plugin install superpowers@claude-plugins-official
 ```
@@ -205,6 +203,8 @@ graphify install
 graphify .                       # initial indexing — seconds to minutes depending on repo size
 graphify claude install          # appends CLAUDE.md section + installs the Glob/Grep PreToolUse hook
 ```
+
+The last line is per host: Cursor gets `graphify cursor install` (a `.cursor/rules/graphify.mdc` rule) and Codex `graphify codex install` (an `AGENTS.md` section plus a hook).
 
 Say `n` and `/slashforge-setup` skips it silently. Re-run `/slashforge-setup` later and the offer fires again.
 
@@ -254,7 +254,7 @@ When `/slashforge-code` runs on a non-trivial feature, the kit checks whether th
 
 ## Usage
 
-Once installed, open Claude Code in any repo.
+Once installed, open Claude Code, Cursor or Codex in any repo. The examples below use `/`; in Codex type `$` instead (`$slashforge-code`).
 
 **One-time repo setup:**
 ```
@@ -403,13 +403,19 @@ All of it is generated by `/slashforge-setup` and then yours. Every generated fi
 
 ---
 
+## Upgrading from 4.x
+
+5.0 renames every command: the `:` after `slashforge` becomes a `-`, so `/slashforge-code` is the same name in Claude Code, Cursor and Codex. Re-running `npx slashforge` removes the 4.x commands, so you won't see both. Anything of yours that types the old name (notes, scripts, aliases) needs the new one. See [Migrating](https://www.rajdeepratan.com/slashforge/reference/migrating/) for the full list.
+
+---
+
 ## Updating
 
 Re-run the install command to update your guide files to the latest version:
 
 ```bash
 npx slashforge
-# → "slashforge is already installed. Update to v3.0.x? (y/n)"
+# → "slashforge is already installed. Update to v5.0.0? (y/n)"
 ```
 
 Both `npx slashforge` and `npx slashforge status` check npm afterwards and say so if a newer release exists:
