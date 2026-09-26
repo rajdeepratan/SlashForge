@@ -961,10 +961,44 @@ function warnAboutV4Repo({ cwd = process.cwd(), homeDir = os.homedir(), project 
   }
 }
 
+// Commands an earlier release left in ~/.claude/commands/, named as they were typed.
+// 4.x's are removed by the next install; v2 and v3 files are only ever reported,
+// because install never deletes files it no longer writes.
+function olderClaudeCommands(claude) {
+  const on = (c) => fs.existsSync(path.join(claude.commandsDir, c));
+  const name = (c) => path.basename(c, '.md');
+  const v2Present = fs.existsSync(claude.legacyGuidesDir) || on('setup-claude.md');
+  return {
+    v4: V4_COMMAND_FILES.filter(on).map((c) => `/${COMMAND_NAMESPACE}:${name(c)}`),
+    v3: LEGACY_COMMAND_FILES.filter((c) => path.dirname(c) === LEGACY_COMMAND_NAMESPACE && on(c))
+      .map((c) => `/${LEGACY_COMMAND_NAMESPACE}:${name(c)}`),
+    // v2's flat code.md could as easily be the user's own, so it counts only
+    // beside something unmistakably v2.
+    v2: v2Present ? LEGACY_COMMAND_FILES.filter((c) => path.dirname(c) === '.' && on(c)).map((c) => `/${name(c)}`) : [],
+    v2Guides: fs.existsSync(claude.legacyGuidesDir),
+  };
+}
+
+function printOlderClaudeCommands(old, claude) {
+  if (old.v4.length) {
+    console.log(`    4.x commands:       ${old.v4.length} (${old.v4.join(', ')})`);
+    console.log(`      Run \`npx ${pkg.name}\` to replace them with the /slashforge-* commands.`);
+  }
+  if (old.v3.length) console.log(`    v3 commands:        ${old.v3.length} (${old.v3.join(', ')})`);
+  if (old.v2.length) console.log(`    v2 commands:        ${old.v2.length} (${old.v2.join(', ')})`);
+  if (old.v2Guides) console.log(`    v2 guides:          ${claude.legacyGuidesDir}`);
+  if (old.v3.length || old.v2.length || old.v2Guides) {
+    console.log('      No longer used. Safe to delete; `uninstall` removes them with the rest.');
+  }
+}
+
 async function printStatus({ project = false } = {}) {
   const claude = resolveTarget({ project });
   const agents = resolveAgents({ project });
-  if (!hasKitFiles(claude.guidesDir) && !hasKitFiles(agents.root)) {
+  const old = olderClaudeCommands(claude);
+  const hasOld = old.v4.length + old.v3.length + old.v2.length > 0 || old.v2Guides;
+  const claudeInstalled = hasKitFiles(claude.guidesDir) || hasOld;
+  if (!claudeInstalled && !hasKitFiles(agents.root)) {
     console.log('slashforge: not installed.');
     console.log(`Run \`npx ${pkg.name}\` to install v${pkg.version}.`);
     await warnIfOutdated();
@@ -979,14 +1013,15 @@ async function printStatus({ project = false } = {}) {
   console.log('\nslashforge status');
   console.log(`  Package version (current): v${pkg.version}`);
 
-  if (hasKitFiles(claude.guidesDir)) {
-    const guides = fs.readdirSync(claude.guidesDir).filter((f) => f.endsWith('.md') && isKitGuideFile(f)).sort();
+  if (claudeInstalled) {
+    const guides = !fs.existsSync(claude.guidesDir) ? [] : fs.readdirSync(claude.guidesDir).filter((f) => f.endsWith('.md') && isKitGuideFile(f)).sort();
     const commands = COMMAND_FILES.filter((c) => fs.existsSync(commandPath(claude, c))).sort();
     console.log(`\n  Claude Code (${path.dirname(path.dirname(claude.guidesDir))})`);
     console.log(`    Installed version:  ${versionLine(readMeta(claude.metaFile))}`);
     console.log(`    Guide files:        ${guides.length} (${claude.guidesDir})`);
     console.log(`    Installed commands: ${commands.length}`);
     for (const c of commands) console.log(`      • ${commandName(c)}`);
+    printOlderClaudeCommands(old, claude);
   } else {
     console.log(`\n  Claude Code:     not installed — run \`npx ${pkg.name}\` to add it.`);
   }

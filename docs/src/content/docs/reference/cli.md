@@ -197,7 +197,8 @@ slashforge: not installed.
 Run `npx slashforge` to install v5.0.0.
 ```
 
-==`status` recognises the older v2 and v3 layouts as well as the current one==, so
+==`status` recognises the older v2, v3 and 4.x layouts as well as the current one==,
+listing any old commands under their own heading with what to do about them, so
 an install upgraded across a rename still reports accurately instead of looking
 absent.
 

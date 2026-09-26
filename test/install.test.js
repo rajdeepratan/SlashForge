@@ -2323,7 +2323,8 @@ test('uninstall removes both the flat files and 4.x leftovers; status lists the 
   fs.writeFileSync(path.join(ns, 'code.md'), 'old');
   const status = execFileSync('node', [BIN, 'status'], { env, encoding: 'utf8' });
   assert.match(status, /• \/slashforge-code/);
-  assert.doesNotMatch(status, /\/slashforge:code/);
+  assert.doesNotMatch(status, /• \/slashforge:code/, 'a 4.x leftover is not listed as an installed command');
+  assert.match(status, /4\.x commands:\s+1 \(\/slashforge:code\)/, 'it is reported as a leftover instead');
   execFileSync('node', [BIN, 'uninstall', '--yes'], { env });
   assert.ok(!fs.existsSync(ns));
   assert.ok(!fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge-code.md')));
@@ -2535,4 +2536,48 @@ test('uninstall removes forge-* leftovers as well as slashforge-* files', () => 
   for (const n of OLD_KIT_NAMES) fs.writeFileSync(path.join(claude.guidesDir, n), 'old');
   uninstallFiles(claude, {});
   assert.ok(!fs.existsSync(claude.guidesDir), 'every kit file, old or new, is gone');
+});
+
+// status must describe an install made by an older release, not report it as
+// empty or absent — the CLI reference promises it recognises earlier layouts.
+function statusOf(home) {
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  return execFileSync('node', [BIN, 'status'], { env, encoding: 'utf8' });
+}
+
+test('status reports a 4.x install by its old command names', () => {
+  const home = tmp();
+  const guides = path.join(home, '.claude', 'setup', 'slashforge');
+  fs.mkdirSync(guides, { recursive: true });
+  fs.writeFileSync(path.join(guides, 'forge-workflow.md'), '---\nname: x\ndescription: y\n---\n');
+  fs.writeFileSync(path.join(guides, 'meta.json'), JSON.stringify({ version: '4.5.0' }));
+  const cmds = path.join(home, '.claude', 'commands', 'slashforge');
+  fs.mkdirSync(cmds, { recursive: true });
+  fs.writeFileSync(path.join(cmds, 'code.md'), 'x');
+  fs.writeFileSync(path.join(cmds, 'tdd.md'), 'x');
+  const out = statusOf(home);
+  assert.match(out, /Guide files:\s+1/, 'the forge-* guide is counted');
+  assert.match(out, /\/slashforge:code/, 'the 4.x command is named as it is typed');
+  assert.match(out, /4\.x/, 'the old commands are labelled as 4.x');
+  assert.match(out, /npx slashforge/, 'it says how to upgrade');
+});
+
+test('status reports a v2 install rather than "not installed"', () => {
+  const home = tmp();
+  fs.mkdirSync(path.join(home, '.claude', 'setup', 'claude-setup'), { recursive: true });
+  fs.mkdirSync(path.join(home, '.claude', 'commands'), { recursive: true });
+  fs.writeFileSync(path.join(home, '.claude', 'commands', 'setup-claude.md'), 'x');
+  const out = statusOf(home);
+  assert.doesNotMatch(out, /not installed\./, 'a v2 install is not "not installed"');
+  assert.match(out, /v2/, 'it is labelled as v2');
+  assert.match(out, /setup-claude/, 'the v2 command is named');
+});
+
+test('status reports a v3 install by its forge commands', () => {
+  const home = tmp();
+  fs.mkdirSync(path.join(home, '.claude', 'commands', 'forge'), { recursive: true });
+  fs.writeFileSync(path.join(home, '.claude', 'commands', 'forge', 'code.md'), 'x');
+  const out = statusOf(home);
+  assert.doesNotMatch(out, /not installed\./);
+  assert.match(out, /\/forge:code/, 'the v3 command is named as it is typed');
 });
