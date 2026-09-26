@@ -104,7 +104,7 @@ slashforge --project    # Install into ./.claude/ and ./.agents/ in the current 
 slashforge uninstall    # Remove the kit from ~/.claude/ and ~/.agents/ (add --project for the repo copy)
 ```
 
-`--yes` / `-y` is also enabled by `SLASHFORGE_YES=1` (or the deprecated `CLAUDE_SETUP_KIT_YES=1`) or when stdin is not a TTY — safe to use in CI, devcontainers, or anywhere the install shouldn't block on an interactive prompt.
+`--yes` / `-y` is also enabled by `SLASHFORGE_YES=1`. When stdin is not a TTY the update prompt confirms itself, so CI, devcontainers and anywhere else the install must not block work without the flag. `uninstall` does not: with no terminal to ask on, it refuses unless `--yes` or `SLASHFORGE_YES=1` is given.
 
 `--project` vendors the guide files and commands into the repo's `./.claude/` and `./.agents/` with repo-relative paths — commit them and teammates get the commands with no global install, whichever agent they use. `uninstall` reverses either install (pass `--project` for the repo copy).
 
@@ -136,24 +136,25 @@ Every template is frontmatter-validated before any write — a broken guide (mis
 
 | What | Where |
 |---|---|
-| Guide files, the report shell and its helper scripts | `~/.claude/setup/slashforge/` |
+| Guide files, the report shell and its helper scripts (Claude Code) | `~/.claude/setup/slashforge/` |
 | `/slashforge-setup` command | `~/.claude/commands/slashforge-setup.md` |
 | `/slashforge-code` command | `~/.claude/commands/slashforge-code.md` |
 | `/slashforge-investigate` command | `~/.claude/commands/slashforge-investigate.md` |
 | `/slashforge-review-pr` command | `~/.claude/commands/slashforge-review-pr.md` |
 | Nine skills (`/slashforge-plan`, `/slashforge-verify`, …) | `~/.claude/commands/slashforge-*.md` |
 | Cursor + Codex commands and skills | `~/.agents/skills/slashforge-*/` |
-| Cursor / Codex guides | `~/.agents/setup/slashforge/{cursor,codex}/` |
+| Cursor / Codex guides, report shell and helper scripts | `~/.agents/setup/slashforge/{cursor,codex}/` |
 
 `--project` writes the same files under the repo's `./.claude/` and `./.agents/`. `-quick` is a mode of `/slashforge-code`, not a separate command; it loads one extra guide file.
 
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification
-- **Graph** — optional Graphify integration: setup-time install offer, runtime freshness check, and the SUMMARY.html synthesis prompt
-- **Workflow** — the ten-phase development loop used by `/slashforge-code` and `/slashforge-code -quick` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across four focused files (base phases, investigation flow, PR review flow, agent selection)
+- **Graph** — optional Graphify integration: setup-time install offer, runtime freshness check, and the SUMMARY.html synthesis prompt (two files)
+- **Workflow** — the ten-phase development loop used by `/slashforge-code` and `/slashforge-code -quick` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across five focused files (base phases, `-quick` overrides, investigation flow, PR review flow, agent selection)
+- **Coverage** — the auto-coverage check that spots new domains your setup doesn't cover yet
 - **Rules** — how to create rule files for a repo (including path-scoped rules)
 - **Skills** — how to create skills using Anthropic's `SKILL.md` directory format
-- **Agents** — how to create agent files, per-agent skill mappings, monorepo structure
+- **Agents** — how to create agent files, per-agent skill mappings, monorepo structure (Codex gets its own TOML version)
 - **Commands** — how to create slash commands (and the commands ↔ skills merger)
 - **Hooks** — how to configure automated behaviors (`.claude/settings.json`, `.cursor/hooks.json` or `.codex/hooks.json`: events, scopes, common patterns)
 - **Entry file** — `CLAUDE.md` or `AGENTS.md`, `@path` imports, interop between the two
@@ -197,9 +198,9 @@ It is a good library in its own right and covers ground SlashForge does not. Ins
 
 [Graphify](https://github.com/safishamsi/graphify) is a local AST-level knowledge graph engine. Once indexed against your repo, agents can query the call graph, blast radius, and dependency surface directly instead of grepping raw files.
 
-**When it's offered:** `/slashforge-setup` detects language fit during exploration — if ≥ 70% of non-trivial source files are in Graphify-supported languages (Python, JS/TS, Go, Rust, Java, C/C++, Ruby, C#, Kotlin, Scala, PHP, Swift, Lua, Zig, PowerShell, Elixir, Objective-C, Julia, Verilog, SystemVerilog, Vue, Svelte, Dart), the command offers to install and index. On YAML / shell / config-only repos it skips silently — no prompt. This is a **setup-time offer, not a per-command preflight** — once installed, Graphify's own PreToolUse hook on Glob/Grep surfaces graph context automatically on every command.
+**When it's offered:** `/slashforge-setup` detects language fit during exploration — if ≥ 70% of non-trivial source files are in Graphify-supported languages (Python, JS/TS, Go, Rust, Java, C/C++, Ruby, C#, Kotlin, Scala, PHP, Swift, Lua, Zig, PowerShell, Elixir, Objective-C, Julia, Verilog, SystemVerilog, Vue, Svelte, Dart), the command offers to install and index. On YAML / shell / config-only repos it skips silently — no prompt. This is a **setup-time offer, not a per-command preflight** — once installed, Graphify surfaces graph context automatically on every command (a PreToolUse hook on Claude Code and Codex, an always-on rule on Cursor).
 
-**Ask-first, never auto-install.** Even though every install step is a shell command Claude could run via Bash, the integration shows you the exact four commands before asking — you see what's going onto your machine before authorising anything:
+**Ask-first, never auto-install.** Even though every install step is a shell command your agent could run itself, the integration shows you the exact four commands before asking — you see what's going onto your machine before authorising anything:
 
 ```bash
 uv tool install graphifyy        # or: pipx install graphifyy / pip install graphifyy
@@ -226,7 +227,7 @@ The check auto-skips on `/slashforge-code -quick`, `/slashforge-code` trivial, a
 |---|---|---|
 | `/slashforge-code` full flow (real feature, real bug — the default for non-trivial work) | yes | **−10 to −25k** |
 | `/slashforge-investigate` | yes | **−15 to −30k** (biggest single win — blast radius is exactly what the graph is built for) |
-| `/slashforge-code` trivial auto-detect (typo, one-line tweak — Claude classifies this automatically) | no | graph skipped — load overhead exceeds value on typo-sized work |
+| `/slashforge-code` trivial auto-detect (typo, one-line tweak — the agent classifies this automatically) | no | graph skipped — load overhead exceeds value on typo-sized work |
 | `/slashforge-code -quick` (you opted into lean mode) | no | graph skipped — same reason |
 
 **Keeping the graph fresh.** Two ways:
@@ -288,7 +289,7 @@ Freeform workflow. Starts with *"What do you want to build, fix, or change?"* an
 
 The gates are the product. Everything between them runs without interruption.
 
-Phase 1 **auto-classifies** the task as trivial or full based on an explicit checklist (≤ 2 files, no new abstraction / dependency / public API, no force-full keywords like `refactor` or `migrate`). Claude announces the decision (*"Treating this as trivial: single-file string change. Say 'full flow' to override."*) and proceeds — trivial tasks skip brainstorming and use a lean plan (Changes + Test strategy only), full tasks run the whole flow. You can override with `full flow` or `quick` in your reply. Phases 3–10 run normally in both paths, so every gate and the Phase 6 verification stay in place.
+Phase 1 **auto-classifies** the task as trivial or full based on an explicit checklist (≤ 2 files, no new abstraction / dependency / public API, no force-full keywords like `refactor` or `migrate`). The agent announces the decision (*"Treating this as trivial: single-file string change. Say 'full flow' to override."*) and proceeds — trivial tasks skip brainstorming and use a lean plan (Changes + Test strategy only), full tasks run the whole flow. You can override with `full flow` or `quick` in your reply. Phases 3–10 run normally in both paths, so every gate and the Phase 6 verification stay in place.
 
 ```
 /slashforge-code -quick
@@ -299,7 +300,7 @@ Lean workflow for small changes where the full `/slashforge-code` ceremony is ov
 - **Phase 2** — lean plan: **Changes** and **Test strategy** only (other sections included only when they genuinely apply)
 - **Phase 7** — replace the `code-reviewer` agent pass with an inline self-review checklist (plan match, no debug leftovers, no hardcoded values, repo conventions, no unintended public-API change)
 
-All four user gates stay (plan confirmation, branch, PR, cleanup). Phase 6 lint/test/build verification stays. Phase 5 runs TDD when the change is testable, straight implementation otherwise. No `systematic-debugging`, no `subagent-driven-development`.
+All four user gates stay (plan confirmation, branch, PR, cleanup). Phase 6 lint/test/build verification stays. Phase 5 runs TDD when the change is testable, straight implementation otherwise. No `slashforge-debug`, no `slashforge-parallel`.
 
 `/slashforge-code -quick` does **not auto-escalate** — if the plan reveals more than 2 files or a new abstraction, it stops and tells you to restart with `/slashforge-code`. Typical footprint: **40–70k tokens** (vs `/slashforge-code`'s 100–250k).
 
