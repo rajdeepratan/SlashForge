@@ -134,16 +134,13 @@ Every template is frontmatter-validated before any write — a broken guide (mis
 
 ## What gets installed
 
-| What | Where |
-|---|---|
-| Guide files, the report shell and its helper scripts (Claude Code) | `~/.claude/setup/slashforge/` |
-| `/slashforge-setup` command | `~/.claude/commands/slashforge-setup.md` |
-| `/slashforge-code` command | `~/.claude/commands/slashforge-code.md` |
-| `/slashforge-investigate` command | `~/.claude/commands/slashforge-investigate.md` |
-| `/slashforge-review-pr` command | `~/.claude/commands/slashforge-review-pr.md` |
-| Nine skills (`/slashforge-plan`, `/slashforge-verify`, …) | `~/.claude/commands/slashforge-*.md` |
-| Cursor + Codex commands and skills | `~/.agents/skills/slashforge-*/` |
-| Cursor / Codex guides, report shell and helper scripts | `~/.agents/setup/slashforge/{cursor,codex}/` |
+| What | Claude Code | Cursor | Codex |
+|---|---|---|---|
+| Four commands (`setup`, `code`, `investigate`, `review-pr`) | `~/.claude/commands/slashforge-<name>.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` |
+| Nine skills (`plan`, `verify`, …) | `~/.claude/commands/slashforge-<skill>.md` | `~/.agents/skills/slashforge-<skill>/SKILL.md` | `~/.agents/skills/slashforge-<skill>/SKILL.md` |
+| Guide files, the report shell and its helper scripts | `~/.claude/setup/slashforge/` | `~/.agents/setup/slashforge/cursor/` | `~/.agents/setup/slashforge/codex/` |
+
+Cursor and Codex share the same skill folders; only their guides are separate.
 
 `--project` writes the same files under the repo's `./.claude/` and `./.agents/`. `-quick` is a mode of `/slashforge-code`, not a separate command; it loads one extra guide file.
 
@@ -184,10 +181,11 @@ They are adapted from [superpowers](https://github.com/obra/superpowers) under t
 
 **The superpowers plugin is not required at all.** Nothing invokes it, checks for it, or behaves differently when it is present. There is no preflight, no prompt, and no degraded mode.
 
-**Superpowers** — not required; install only if you want its own library (Claude Code shown):
+**Superpowers** — not required; install only if you want its own library. In Claude Code:
 ```
 /plugin install superpowers@claude-plugins-official
 ```
+For Cursor and Codex, see [its README](https://github.com/obra/superpowers).
 It is a good library in its own right and covers ground SlashForge does not. Install it for that, not for SlashForge.
 
 **Graphify is the other optional integration**, and works differently — a one-time setup-time offer inside `/slashforge-setup`, not re-checked per command. See the Graphify section below.
@@ -200,20 +198,22 @@ It is a good library in its own right and covers ground SlashForge does not. Ins
 
 **When it's offered:** `/slashforge-setup` detects language fit during exploration — if ≥ 70% of non-trivial source files are in Graphify-supported languages (Python, JS/TS, Go, Rust, Java, C/C++, Ruby, C#, Kotlin, Scala, PHP, Swift, Lua, Zig, PowerShell, Elixir, Objective-C, Julia, Verilog, SystemVerilog, Vue, Svelte, Dart), the command offers to install and index. On YAML / shell / config-only repos it skips silently — no prompt. This is a **setup-time offer, not a per-command preflight** — once installed, Graphify surfaces graph context automatically on every command (a PreToolUse hook on Claude Code and Codex, an always-on rule on Cursor).
 
-**Ask-first, never auto-install.** Even though every install step is a shell command your agent could run itself, the integration shows you the exact four commands before asking — you see what's going onto your machine before authorising anything:
+**Ask-first, never auto-install.** Even though every install step is a shell command your agent could run itself, the integration shows you the exact commands before asking — you see what's going onto your machine before authorising anything:
 
 ```bash
 uv tool install graphifyy        # or: pipx install graphifyy / pip install graphifyy
 graphify install
 graphify .                       # initial indexing — seconds to minutes depending on repo size
-graphify claude install          # appends CLAUDE.md section + installs the Glob/Grep PreToolUse hook
+graphify claude install          # Claude Code: appends a CLAUDE.md section + a Glob/Grep PreToolUse hook
+graphify cursor install          # Cursor: writes an always-applied .cursor/rules/graphify.mdc rule
+graphify codex install           # Codex: appends an AGENTS.md section + a PreToolUse hook
 ```
 
-The last line is per host: Cursor gets `graphify cursor install` (a `.cursor/rules/graphify.mdc` rule) and Codex `graphify codex install` (an `AGENTS.md` section plus a hook).
+Only the last line differs, and setup runs just the one for the agent you're in.
 
 Say `n` and `/slashforge-setup` skips it silently. Re-run `/slashforge-setup` later and the offer fires again.
 
-**SUMMARY.html auto-synthesis.** After the four commands succeed, `/slashforge-setup` synthesises `graphify-out/SUMMARY.html` automatically — a human-readable, browser-renderable interpretation of Graphify's machine-formatted `GRAPH_REPORT.md` (~400 lines), with god nodes, surprising connections marked real or false-positive, plain-language community labels, and CLI query examples. Self-contained HTML with embedded CSS — no external assets, opens cleanly offline. Costs a one-time ~5–15k tokens, no second prompt — your yes to Graphify covers it.
+**SUMMARY.html auto-synthesis.** After those commands succeed, `/slashforge-setup` synthesises `graphify-out/SUMMARY.html` automatically — a human-readable, browser-renderable interpretation of Graphify's machine-formatted `GRAPH_REPORT.md` (~400 lines), with god nodes, surprising connections marked real or false-positive, plain-language community labels, and CLI query examples. Self-contained HTML with embedded CSS — no external assets, opens cleanly offline. Costs a one-time ~5–15k tokens, no second prompt — your yes to Graphify covers it.
 
 **Auto-freshness on subsequent runs.** Once Graphify is installed, the kit checks whether the graph is in sync with your recent code changes before each graph-consulting command. The check fires on `/slashforge-code` full flow, `/slashforge-investigate`, and `/slashforge-setup` Update flow.
 
@@ -241,9 +241,9 @@ The check auto-skips on `/slashforge-code -quick`, `/slashforge-code` trivial, a
 
 ## Auto-coverage check
 
-When `/slashforge-code` runs on a non-trivial feature, the kit checks whether the feature introduces a new domain (framework, layer, language, pattern) that your agent's setup doesn't yet cover. If gaps exist — no specialist agent, no scoped rule, no mention in the entry file's tech stack — the check fires twice. Examples below use Claude Code's paths; Cursor and Codex check their own (`.cursor/agents/` and `.cursor/rules/`, or `.codex/agents/` and nested `AGENTS.md`).
+When `/slashforge-code` runs on a non-trivial feature, the kit checks whether the feature introduces a new domain (framework, layer, language, pattern) that your agent's setup doesn't yet cover. If gaps exist — no specialist agent, no scoped rule, no mention in the entry file's tech stack — the check fires twice. Each agent checks its own files: `.claude/agents/` and `.claude/rules/` on Claude Code, `.cursor/agents/` and `.cursor/rules/` on Cursor, `.codex/agents/` and nested `AGENTS.md` on Codex.
 
-1. **Phase 2 (proactive)** — before the plan is written, the kit asks: *"This feature introduces [domain X]. `.claude/` is missing [agent / rule / CLAUDE.md update]. Add these to the plan as Phase 2.5 updates so they ship in this PR? (y/n)"* If you accept, the new `.claude/` files are drafted in Phase 5 alongside the feature code.
+1. **Phase 2 (proactive)** — before the plan is written, the kit asks: *"This feature introduces [domain X]. Your setup is missing [agent / rule / entry-file update]. Add these to the plan as Phase 2.5 updates so they ship in this PR? (y/n)"* If you accept, the new files are drafted in Phase 5 alongside the feature code, in your agent's layout.
 2. **Phase 7 (safety net)** — the `code-reviewer` agent re-checks the diff. If gaps remain (you said no at Phase 2, or a new gap surfaced during implementation), it raises a review **note** suggesting an addition before merge or as a follow-up `/slashforge-setup` run. Note, not a block — the PR can still merge.
 
 **Auto-skipped on:**
@@ -321,6 +321,8 @@ Investigation complete → docs/slashforge/investigations/investigation-2026-08-
 Want me to fix this? Run /slashforge-code investigation-2026-08-02-1432.html
 ```
 
+In Codex the hand-off reads `$slashforge-code investigation-2026-08-02-1432.html`.
+
 The command takes the bare filename — `/slashforge-code` resolves it against `docs/slashforge/investigations/`. Pass it and the fix command reads the report instead of asking you to restate the bug, so the root cause survives into a fresh session. Every gate still applies; the report's suggested fix is a proposal, not an approved plan.
 
 ---
@@ -352,20 +354,20 @@ Requires `gh` installed and authenticated — checked up front, so it stops with
 
 ---
 
-## `/slashforge-setup` vs Anthropic's `/init`
+## `/slashforge-setup` vs a built-in starter
 
-Claude Code ships with a built-in `/init` command (Cursor and Codex have their own starters). The comparison below is for Claude Code; the two are complementary, not competitors:
+Claude Code and Codex each ship an `/init` that writes one starter file: `CLAUDE.md` in Claude Code, `AGENTS.md` in Codex. In Cursor the equivalent is asking the agent to write your rules. They are complementary to setup, not competitors:
 
-| | `/init` (built-in) | `/slashforge-setup` (this kit) |
+| | Built-in starter | `/slashforge-setup` (this kit) |
 |---|---|---|
-| Creates | `CLAUDE.md` only (or + skills/hooks with `CLAUDE_CODE_NEW_INIT=1`) | Full `.claude/` — rules, skills, agents, commands, hooks, plus `CLAUDE.md` |
+| Creates | One entry file (`CLAUDE.md` or `AGENTS.md`; Claude Code adds skills/hooks with `CLAUDE_CODE_NEW_INIT=1`) | The whole layout: entry file, rules, skills, agents, commands, hooks (`.claude/`, `.cursor/` or `.codex/`) |
 | Approach | Discovers and suggests — opinion-light | Opinionated — enforces multi-agent layout, 200-line cap, global vs specialist split |
 | Agents | None | Mandatory: `developer`, `code-reviewer`, `git`, plus specialists |
 | Workflow | None | Four commands: `/slashforge-setup` (setup), `/slashforge-code` (full flow, `-quick` for lean), `/slashforge-investigate` (read-only research), `/slashforge-review-pr` (PR review) |
-| Monorepo | Single-repo focused | Root + per-app `CLAUDE.md` flow |
-| Existing setup | Suggests improvements to `CLAUDE.md` | Full Update flow — reads everything in `.claude/` and fills gaps |
+| Monorepo | Single-repo focused | Root + per-app entry file flow |
+| Existing setup | Suggests improvements to the entry file | Full Update flow — reads your existing setup and fills gaps |
 
-**Use `/init`** for a lightweight starter `CLAUDE.md` on a personal project. **Use `/slashforge-setup`** when the repo needs a disciplined `.claude/` layout, specialist agents, or a defined team workflow. You can also run `/init` first for a starter, then `/slashforge-setup` in Update mode to enrich it.
+**Use the starter** for a lightweight entry file on a personal project. **Use `/slashforge-setup`** when the repo needs a disciplined layout, specialist agents, or a defined team workflow. You can also run the starter first, then `/slashforge-setup` in Update mode to enrich it.
 
 ---
 
@@ -373,9 +375,7 @@ Claude Code ships with a built-in `/init` command (Cursor and Codex have their o
 
 Everything the workflow enforces comes from files in your repo, so changing the behaviour means editing those rather than configuring SlashForge.
 
-The paths below are Claude Code's; the table under [What it does](#what-it-does) has Cursor's and Codex's.
-
-**Verification commands** live in the entry file (`CLAUDE.md`, or `AGENTS.md` on Cursor and Codex). Phase 6 runs exactly what you put here:
+**Verification commands** live in the entry file: `CLAUDE.md` on Claude Code, `AGENTS.md` on Cursor and Codex. Phase 6 runs exactly what you put here:
 
 ```markdown
 ## Commands
@@ -387,18 +387,24 @@ The paths below are Claude Code's; the table under [What it does](#what-it-does)
 
 If a command is missing, Phase 6 asks for it rather than guessing or skipping.
 
-**Coding standards** live in `.claude/rules/`. One file per concern. A rule with no `paths` field loads at session start; add one and it loads only when a matching file is touched, which keeps frontend rules out of backend work (Cursor's `.mdc` rules use `globs`; Codex puts a nested `AGENTS.md` in the directory it governs):
+**Coding standards** live in your agent's rules, one file per concern, and each can be scoped so frontend rules stay out of backend work:
+
+| | Where | Scoped by |
+|---|---|---|
+| Claude Code | `.claude/rules/*.md` | a `paths` field; without one the rule loads at session start |
+| Cursor | `.cursor/rules/*.mdc` | `globs`, or `alwaysApply: true` for every request |
+| Codex | nested `AGENTS.md` | the directory it sits in; Codex loads every one from the root down to the file being edited |
 
 ```yaml
 ---
-paths:
+paths:                # Claude Code; Cursor writes `globs: src/api/**/*.ts`
   - "src/api/**/*.ts"
 ---
 ```
 
 Both `/slashforge-code` Phase 7 and `/slashforge-review-pr` judge against these.
 
-**Agents** live in `.claude/agents/` (`.cursor/agents/`, or `.codex/agents/*.toml` on Codex). `/slashforge-setup` generates a set matched to the codebase; edit them, or add your own for a concern the generated set missed.
+**Agents** live in `.claude/agents/` on Claude Code, `.cursor/agents/` on Cursor and `.codex/agents/*.toml` on Codex. `/slashforge-setup` generates a set matched to the codebase; edit them, or add your own for a concern the generated set missed.
 
 All of it is generated by `/slashforge-setup` and then yours. Every generated file carries a `generated_by` marker — edit or remove it and that file is never refreshed again, so your changes survive a re-run.
 
