@@ -58,6 +58,8 @@ Below, commands are written with `/`; in Codex type `$` instead.
 
 **It is deliberately heavy.** If you want a prompt turned into a patch as fast as possible, this is the wrong tool — the cost below is the point, not an inefficiency to be tuned away.
 
+Commands below are written the way Claude Code and Cursor type them (`/slashforge-setup`); in Codex use `$` instead (`$slashforge-setup`). The costs are the same work on any host.
+
 | | |
 | --- | --- |
 | **Full run** | 100–250k tokens per feature |
@@ -68,7 +70,7 @@ Below, commands are written with `/`; in Codex type `$` instead.
 | **`/slashforge-setup`** | 50–120k, **once per repo.** Reads ~20k of its own instructions, then explores and writes your agent's setup |
 | **What you get for it** | Nothing ships that was not planned, gated, verified and reviewed |
 
-These are rough totals that don't separate prompt cache reads from fresh input. Most of what a run reads is the same guides and files again on each turn, and the prompt cache serves those re-reads at a reduced price. The range is driven by the size of the work, not the tooling. A single-file copy change lands near the bottom; a multi-layer feature near the top.
+These are rough totals, measured on Claude Code, that don't separate prompt cache reads from fresh input. Cursor and Codex run the same phases and read the same guides, but the exact count depends on the model you pick there. Most of what a run reads is the same guides and files again on each turn, and the prompt cache serves those re-reads at a reduced price. The range is driven by the size of the work, not the tooling. A single-file copy change lands near the bottom; a multi-layer feature near the top.
 
 For a review, the diff *is* the cost: a three-file PR is around 2k tokens of diff, a fourteen-file one around 42k — a twentyfold spread before anything else is read. Past roughly 1,500 changed lines the command says so rather than pretending a single pass was thorough.
 
