@@ -1,5 +1,5 @@
 ---
-name: Claude Development Workflow — PR Review Flow
+name: SlashForge Workflow — PR Review Flow
 description: Read-only PR review flow used by /slashforge-review-pr — discovery, review against the repo's own rules, the review document, and the posting gate
 ---
 

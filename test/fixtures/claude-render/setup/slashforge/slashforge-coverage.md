@@ -1,5 +1,5 @@
 ---
-name: Claude Setup — .claude/ Coverage Check
+name: SlashForge — .claude/ Coverage Check
 description: Detection logic for new domains not covered by .claude/ + CLAUDE.md. Fires at Phase 2 (proactive) and inside the code-reviewer agent at Phase 7 (safety net). Suggests creating agents/rules/skills/CLAUDE.md updates so .claude/ grows alongside the codebase. Auto-skipped on /slashforge-code -quick, /slashforge-code trivial, and /slashforge-investigate.
 ---
 

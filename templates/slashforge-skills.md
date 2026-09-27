@@ -1,6 +1,6 @@
 ---
 <!--target:claude-->
-name: Claude Setup — Skill Files
+name: SlashForge — Skill Files
 description: How to create skill files in .claude/skills/ when setting up Claude for a repo
 <!--/target-->
 <!--target:cursor-->
@@ -16,7 +16,7 @@ description: How to create skill files in .agents/skills/ when setting up Codex 
 # Creating Skill Files
 
 <!--target:claude-->
-Skills = **step-by-step recipes** Claude can load on demand. Unlike CLAUDE.md (always in context) or rules (loaded per-path), a skill's body only enters context when it's invoked — so long reference material costs almost nothing until needed.
+Skills = **step-by-step recipes** the agent can load on demand. Unlike CLAUDE.md (always in context) or rules (loaded per-path), a skill's body only enters context when it's invoked — so long reference material costs almost nothing until needed.
 <!--/target-->
 <!--target:cursor-->
 Skills = **step-by-step recipes** the agent can load on demand. Unlike `AGENTS.md` (always in context) or rules (loaded per-glob), a skill's body only enters context when it's invoked — so long reference material costs almost nothing until needed.

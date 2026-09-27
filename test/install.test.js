@@ -2641,3 +2641,18 @@ test('no Cursor guide says Graphify installs a hook', () => {
     }
   }
 });
+
+// The Cursor and Codex guides are read by those agents; they should not speak
+// as Claude or name Claude Code's tools as if they were the host's.
+test('Cursor and Codex guides do not speak as Claude', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const bad = /Claude Setup|Claude Development Workflow|Claude could|via Bash|\bClaude (runs|can|should|follows|uses|citing|still|self-selects|selects|doesn't)\b|Claude to decide|Claude from|Glob\/Grep|Glob or Grep/;
+  for (const h of a.hosts) {
+    for (const f of fs.readdirSync(h.guidesDir).filter((n) => n.endsWith('.md'))) {
+      const m = bad.exec(fs.readFileSync(path.join(h.guidesDir, f), 'utf8'));
+      assert.ok(!m, h.host + '/' + f + ': "' + (m && m[0]) + '"');
+    }
+  }
+});

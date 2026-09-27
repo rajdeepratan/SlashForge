@@ -1,5 +1,5 @@
 ---
-name: Claude Development Workflow — Investigation Flow
+name: SlashForge Workflow — Investigation Flow
 description: Read-only investigation flow used by /slashforge-investigate — reproduction, root-cause analysis, and findings report
 ---
 

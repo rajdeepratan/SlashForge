@@ -1,5 +1,5 @@
 ---
-name: Claude Setup — Hooks
+name: SlashForge — Hooks
 <!--target:claude-->
 description: How to configure automated behaviors via hooks in .claude/settings.json
 <!--/target-->

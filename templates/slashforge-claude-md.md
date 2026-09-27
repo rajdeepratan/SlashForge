@@ -1,5 +1,5 @@
 ---
-name: Claude Setup — CLAUDE.md
+name: SlashForge — CLAUDE.md
 description: How to create CLAUDE.md at the repo root when setting up Claude for a repo
 ---
 

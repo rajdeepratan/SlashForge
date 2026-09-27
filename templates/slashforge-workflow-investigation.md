@@ -1,5 +1,5 @@
 ---
-name: Claude Development Workflow — Investigation Flow
+name: SlashForge Workflow — Investigation Flow
 description: Read-only investigation flow used by /slashforge-investigate — reproduction, root-cause analysis, and findings report
 ---
 
@@ -38,7 +38,7 @@ This file is loaded by `/slashforge-investigate`.
 2. **If a code graph is available** (`GRAPH_REPORT.md` exists at repo root — Graphify is installed), run the freshness check from `slashforge-graph.md` Runtime section first, then consult the graph before grep/glob. Investigation is the scenario the graph is built for — blast radius, call paths, affected surface. The `graphify` PreToolUse hook should surface graph context automatically before any Glob/Grep call; if it doesn't, read `GRAPH_REPORT.md` directly.
 <!--/target-->
 <!--target:codex-->
-2. **If a code graph is available** (`GRAPH_REPORT.md` exists at repo root — Graphify is installed), run the freshness check from `slashforge-graph.md` Runtime section first, then consult the graph before grep/glob. Investigation is the scenario the graph is built for — blast radius, call paths, affected surface. The `graphify` PreToolUse hook should surface graph context automatically before any Glob/Grep call; if it doesn't, read `GRAPH_REPORT.md` directly.
+2. **If a code graph is available** (`GRAPH_REPORT.md` exists at repo root — Graphify is installed), run the freshness check from `slashforge-graph.md` Runtime section first, then consult the graph before grep/glob. Investigation is the scenario the graph is built for — blast radius, call paths, affected surface. The `graphify` PreToolUse hook should surface graph context automatically before a search; if it doesn't, read `GRAPH_REPORT.md` directly.
 <!--/target-->
 <!--target:cursor-->
 2. **If a code graph is available** (`GRAPH_REPORT.md` exists at repo root — Graphify is installed), run the freshness check from `slashforge-graph.md` Runtime section first, then consult the graph before grep/glob. Investigation is the scenario the graph is built for — blast radius, call paths, affected surface. Graphify's always-applied `.cursor/rules/graphify.mdc` rule points you at the graph; read `GRAPH_REPORT.md` directly for the detail.

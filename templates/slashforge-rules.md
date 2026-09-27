@@ -1,6 +1,6 @@
 ---
 <!--target:claude-->
-name: Claude Setup — Rule Files
+name: SlashForge — Rule Files
 description: How to create rule files in .claude/rules/ when setting up Claude for a repo
 <!--/target-->
 <!--target:cursor-->

@@ -31,7 +31,7 @@ PreToolUse hook would normally surface a graph summary before Glob/Grep, that's
 <!--/target-->
 <!--target:codex-->
 **Code graph (Graphify) in lean mode:** skip it. If Graphify is installed and its
-PreToolUse hook would normally surface a graph summary before Glob/Grep, that's
+PreToolUse hook would normally surface a graph summary before a search, that's
 <!--/target-->
 <!--target:cursor-->
 **Code graph (Graphify) in lean mode:** skip it. If Graphify is installed, its

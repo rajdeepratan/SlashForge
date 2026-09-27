@@ -1,5 +1,5 @@
 ---
-name: Claude Setup — Memory System
+name: SlashForge — Memory System
 description: How to use Claude Code's persistent memory system within a repo setup
 ---
 

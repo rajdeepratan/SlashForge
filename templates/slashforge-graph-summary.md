@@ -1,5 +1,5 @@
 ---
-name: Claude Setup — SUMMARY.html Synthesis Prompt
+name: SlashForge — SUMMARY.html Synthesis Prompt
 description: Prompt template for synthesising graphify-out/SUMMARY.html from graphify-out/GRAPH_REPORT.md. Runs automatically inside /slashforge-setup on the Graphify yes-path — no second prompt. Produces a human-readable interpretive summary as a self-contained HTML file, not a reformat.
 ---
 

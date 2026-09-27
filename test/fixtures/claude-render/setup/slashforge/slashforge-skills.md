@@ -1,11 +1,11 @@
 ---
-name: Claude Setup — Skill Files
+name: SlashForge — Skill Files
 description: How to create skill files in .claude/skills/ when setting up Claude for a repo
 ---
 
 # Creating Skill Files
 
-Skills = **step-by-step recipes** Claude can load on demand. Unlike CLAUDE.md (always in context) or rules (loaded per-path), a skill's body only enters context when it's invoked — so long reference material costs almost nothing until needed.
+Skills = **step-by-step recipes** the agent can load on demand. Unlike CLAUDE.md (always in context) or rules (loaded per-path), a skill's body only enters context when it's invoked — so long reference material costs almost nothing until needed.
 
 Derive tasks from the repo's domain — think "add a new X", "create a Y", "wire up a Z". Examples: `add-endpoint`, `add-migration`, `add-page`, `add-metric`, `add-handler`.
 

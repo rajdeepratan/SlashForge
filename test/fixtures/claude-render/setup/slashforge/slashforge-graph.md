@@ -1,5 +1,5 @@
 ---
-name: Claude Setup — Graphify Integration
+name: SlashForge — Graphify Integration
 description: Setup-time offer that builds a queryable code graph for the repo, so agents can query the call graph instead of exploring raw files. Saves ~10–30k tokens per non-trivial command run. Runs only inside /slashforge-setup. Follows show-commands-then-ask pattern — never auto-installs.
 ---
 
@@ -13,7 +13,7 @@ Graphify builds an AST-level knowledge graph of a repo — nodes for functions/c
 
 ## Ask-First — NEVER Auto-Install
 
-Even though every install step is a pure shell command Claude could run via Bash without further prompts, the integration **must not install silently or by default**. Show the user the exact commands, then ask. Capability is not consent.
+Even though every install step is a pure shell command the agent could run itself without further prompts, the integration **must not install silently or by default**. Show the user the exact commands, then ask. Capability is not consent.
 
 This applies even when the user said "sure" to the offer in principle — the y/n prompt is for the final commands, not the intent.
 
@@ -55,7 +55,7 @@ Use this block for both Branch A and Branch B. Drop the `uv`/Python cost bullet 
 > - **Python 3.10+ and `uv` (or `pipx`/`pip`)** installed on your machine *(Branch A only — skip this line on Branch B)*
 > - Initial indexing takes a few seconds on small repos, several minutes on large monorepos
 > - One-time **~5–15k tokens** to synthesise `graphify-out/SUMMARY.html` (the human-readable version of the graph report) right after indexing
-> - The graph must be kept fresh — run `graphify watch .` in a terminal tab, or re-run `graphify .` after major refactors, to avoid Claude citing relationships that no longer exist
+> - The graph must be kept fresh — run `graphify watch .` in a terminal tab, or re-run `graphify .` after major refactors, to avoid the agent citing relationships that no longer exist
 
 ---
 
@@ -89,10 +89,10 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 4. **On no:** skip silently. Do not re-ask during this session. On the next `/slashforge-setup` re-run, the offer fires again.
 
 ### Provision (Provision phase — on yes)
-5. Run the **first three** commands in order via Bash, stopping on any failure and surfacing the error verbatim. The user still sees each Bash call through the normal permission-prompt flow unless they've pre-allowed shell commands. **Do not run `graphify claude install` here** — it appends to `CLAUDE.md` and must wait until the kit has written `CLAUDE.md`.
+5. Run the **first three** commands in order in the shell, stopping on any failure and surfacing the error verbatim. The user still sees each shell command through the normal permission-prompt flow unless they've pre-allowed shell commands. **Do not run `graphify claude install` here** — it appends to `CLAUDE.md` and must wait until the kit has written `CLAUDE.md`.
 
 ### Hook-in (last, after the kit's `CLAUDE.md` is written)
-6. Run `graphify claude install` via Bash — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
+6. Run `graphify claude install` in the shell — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
 7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `slashforge-graph-summary.md`. **No second prompt** — the user's yes to Graphify covers this. ~5–15k tokens, one-time.
 
 ---
@@ -112,10 +112,10 @@ Common case for users who already have `graphify` installed globally and are set
 4. **On no:** skip silently. Do not re-ask during this session. On the next `/slashforge-setup` re-run, the offer fires again.
 
 ### Provision (Provision phase — on yes)
-5. Run **`graphify .`** via Bash, stopping on any failure and surfacing the error verbatim. **Do not run `graphify claude install` here** — defer it to Hook-in.
+5. Run **`graphify .`** in the shell, stopping on any failure and surfacing the error verbatim. **Do not run `graphify claude install` here** — defer it to Hook-in.
 
 ### Hook-in (last, after the kit's `CLAUDE.md` is written)
-6. Run `graphify claude install` via Bash — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
+6. Run `graphify claude install` in the shell — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.
 7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `slashforge-graph-summary.md`. **No second prompt.** ~5–15k tokens, one-time.
 
 ---
@@ -192,7 +192,7 @@ Print exactly:
 
 > *"Graph is N days behind the latest source commit (M commits since last index). Re-run `graphify .` to refresh? (y/n) — declining is fine; the graph will still answer questions but may cite relationships that have changed."*
 
-- **On yes:** run `graphify .` via Bash. Same "show command then run" discipline — the user has already seen what runs because the command is in the prompt. After it succeeds, **re-synthesise SUMMARY.html** by re-following `slashforge-graph-summary.md` (no second prompt — same authorisation as the install-time SUMMARY.html write).
+- **On yes:** run `graphify .` in the shell. Same "show command then run" discipline — the user has already seen what runs because the command is in the prompt. After it succeeds, **re-synthesise SUMMARY.html** by re-following `slashforge-graph-summary.md` (no second prompt — same authorisation as the install-time SUMMARY.html write).
 - **On no:** proceed with the stale graph. Do not warn again in this command — the user has seen and decided.
 
 ### Cost summary
@@ -211,6 +211,6 @@ Steady-state cost on a healthy repo (graph fresh, watch running): negligible. Bi
 ## Caveats
 
 - **Stale-graph correctness risk.** A graph that's 2 weeks old in an actively-refactored repo will make Claude cite relationships that no longer exist. `graphify watch` is not optional — it's the mitigation. Tell the user this explicitly.
-- **Language coverage is partial.** Non-supported files (YAML, shell, config) are not in the graph. Claude still greps those; the graph just covers the code surface it supports.
+- **Language coverage is partial.** Non-supported files (YAML, shell, config) are not in the graph. The agent still greps those; the graph just covers the code surface it supports.
 - **Graphify is pre-1.0 and releases often.** Interfaces may shift upstream. If `graphify` commands change, re-run `npx slashforge` to pull updated guide content.
 - **Never add a `--yes` / auto-install flag to this offer.** Principle: the user sees what's being installed on their machine.

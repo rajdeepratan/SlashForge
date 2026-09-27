@@ -1,9 +1,9 @@
 ---
 <!--target:claude-->
-name: Claude Development Workflow — Agent Selection
+name: SlashForge Workflow — Agent Selection
 <!--/target-->
 <!--target:agents-->
-name: Claude Development Workflow — Task Handling
+name: SlashForge Workflow — Task Handling
 <!--/target-->
 <!--target:claude-->
 description: Agent selection table, mandatory multiple-agent rule, and self-sufficiency rules shared across all workflow commands
@@ -32,7 +32,7 @@ This file is loaded alongside `slashforge-workflow.md` by every workflow command
 <!--target:claude-->
 ## Agent Selection Table
 
-Claude self-selects the correct agent based on the task type. The user will never specify.
+The agent self-selects the correct agent based on the task type. The user will never specify.
 
 | Task type | Agent |
 |---|---|
@@ -76,7 +76,7 @@ catch the same class of mistake.
 ## Self-Sufficiency Rules
 
 <!--target:claude-->
-- Claude selects agents based on task type — never ask the user which agent to use
+- The agent selects agents based on task type — never ask the user which agent to use
 - If a needed agent is missing, create it silently and notify the user after
 <!--/target-->
 <!--target:agents-->

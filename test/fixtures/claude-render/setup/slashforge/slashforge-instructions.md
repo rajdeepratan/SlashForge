@@ -1,9 +1,9 @@
 ---
-name: Claude Setup Instructions
+name: SlashForge Setup Instructions
 description: Entry point for setting up CLAUDE.md, agents, rules, and skills in any repo — golden rules, creation order, and verification
 ---
 
-# Claude Setup Instructions
+# SlashForge Setup Instructions
 
 Reference this file whenever asked to create `CLAUDE.md`, agents, rules, or skills in any repo.
 
