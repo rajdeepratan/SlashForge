@@ -2656,3 +2656,17 @@ test('Cursor and Codex guides do not speak as Claude', () => {
     }
   }
 });
+
+// A teammate's committed .cursor/ folder should not outweigh the agent knowing
+// which product it is running in.
+test('the skill preamble trusts the agent before folders', () => {
+  assert.match(SKILL_PREAMBLE, /you know which product you are running in/i);
+  assert.match(SKILL_PREAMBLE, /only if you cannot tell/i);
+});
+
+test('the install summary names all three agents', () => {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  const out = execFileSync('node', [BIN, '--yes'], { env, encoding: 'utf8' });
+  assert.match(out, /Open Claude Code, Cursor or Codex in any repo/);
+});

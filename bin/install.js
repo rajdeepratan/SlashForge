@@ -516,12 +516,16 @@ function installFiles(target, {
 const AGENT_HOSTS = ['cursor', 'codex'];
 
 // The one runtime decision: which host folder to read. Rendered into every skill.
+// The agent's own knowledge of its product comes first: a repo can hold a
+// teammate's .cursor/ or .codex/ folder, so the folders are only a fallback.
 const SKILL_PREAMBLE = [
-  'You are running in Cursor or in Codex. In every path below, replace <host> with',
-  'cursor or codex to match. Commands are written /slashforge-name; in Codex invoke',
-  'them as $slashforge-name. If you cannot tell which host you are in: a .codex/',
-  'folder in the repo means Codex and a .cursor/ folder means Cursor; if neither',
-  'or both, ask the user once and use that answer for the rest of the session.',
+  'You are running in Cursor or in Codex.',
+  'You know which product you are running in: use that.',
+  'In every path below, replace <host> with cursor or codex to match. Commands are',
+  'written /slashforge-name; in Codex invoke them as $slashforge-name.',
+  'Only if you cannot tell: a .codex/ folder in the repo suggests Codex and a',
+  '.cursor/ folder Cursor; if neither or both, ask the user once and use that',
+  'answer for the rest of the session.',
 ].join('\n');
 
 // Cursor and Codex let the agent start a skill on its own when a prompt looks
@@ -1170,7 +1174,7 @@ async function install({ dryRun, assumeYes, project = false }) {
 
   if (ok.claude) {
     reportLegacyLeftovers(claude);
-    console.log('\nDone! Open Claude Code or Cursor in any repo:');
+    console.log('\nDone! Open Claude Code, Cursor or Codex in any repo:');
     console.log('  • /slashforge-setup — one-time repo setup');
     console.log('  • /slashforge-code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
     console.log('  • /slashforge-code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');

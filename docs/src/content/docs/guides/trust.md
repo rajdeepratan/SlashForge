@@ -12,6 +12,8 @@ git operations in your repo. That deserves a page, not a footnote.
 | --- | --- |
 | `~/.claude/setup/slashforge/` (Claude Code), `~/.agents/setup/slashforge/cursor/` and `…/codex/` | On install — the guide files that carry the workflow, plus `slashforge-report-shell.html` (shared document styling), `slashforge-open.sh` (opens a document in your browser), and `slashforge-splice.js` and `slashforge-review-payload.js` (build documents and review payloads; files rather than inline scripts, so a permission rule can allow each by its path) |
 | `~/.claude/commands/` (Claude Code), `~/.agents/skills/` (Cursor and Codex) | On install — the four commands, plus SlashForge's nine discipline skills, each named `slashforge-<name>` (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`) |
+| `~/.agents/setup/slashforge/meta.json` | On install — the record of what was installed, which `status`, the update prompt and `uninstall` read |
+| `<repo>/.claude/` and `<repo>/.agents/` | Only with `npx slashforge --project` — the same files as above, vendored into the repo so teammates get them from git |
 | `<repo>/CLAUDE.md` or `<repo>/AGENTS.md` | On `/slashforge-setup`, after you answer its questions — `CLAUDE.md` on Claude Code, `AGENTS.md` on Cursor and Codex |
 | `<repo>/.claude/`, `<repo>/.cursor/` or `<repo>/.codex/` | On `/slashforge-setup` — rules, skills, agents, commands, hooks, in the layout of the agent you ran it in |
 | `<repo>/docs/slashforge/investigations/` | On `/slashforge-investigate` — the findings report |
