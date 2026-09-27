@@ -524,6 +524,12 @@ const SKILL_PREAMBLE = [
   'or both, ask the user once and use that answer for the rest of the session.',
 ].join('\n');
 
+// Cursor and Codex let the agent start a skill on its own when a prompt looks
+// relevant. The four commands must run only when typed, as in Claude Code: Cursor
+// reads disable-model-invocation from SKILL.md, Codex reads this file beside it.
+// The discipline skills stay invocable, because the workflow calls them by name.
+const INVOCATION_POLICY_YAML = 'policy:\n  allow_implicit_invocation: false\n';
+
 const SETUP_COMMAND = path.join('slashforge', 'setup.md');
 // Stands in for setup.md in .agents/skills: setup's procedure is host-specific, so
 // the skill only dispatches to slashforge-setup-flow.md in the host's own guide folder.
@@ -558,6 +564,18 @@ function skillFilePath(agents, file) {
   return path.join(agents.skillsDir, skillDirName(file, 'slashforge-'), 'SKILL.md');
 }
 
+function policyPath(agents, file) {
+  return path.join(path.dirname(skillFilePath(agents, file)), 'agents', 'openai.yaml');
+}
+
+// Adds a key as the last line of the frontmatter block.
+function withFrontmatterLine(content, line) {
+  const lines = content.split('\n');
+  const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
+  lines.splice(end, 0, line);
+  return lines.join('\n');
+}
+
 function withPreamble(content) {
   const lines = content.split('\n');
   const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
@@ -572,6 +590,7 @@ function renderSkill(src, dest, agents, { templatesDir = TEMPLATES_DIR, version 
     installPath: agents.skillInstallPath, version, pkgName, targetName: 'skills',
   });
   out = toSkillFrontmatter(out, skillDirName(dest, 'slashforge-'));
+  if (COMMAND_FILES.includes(dest)) out = withFrontmatterLine(out, 'disable-model-invocation: true');
   return withPreamble(out);
 }
 
@@ -604,6 +623,7 @@ function plannedAgentsWrites(agents, {
   for (const c of [...commandFiles, ...skillFiles]) {
     const src = c === SETUP_COMMAND ? SETUP_DISPATCH : c;
     writes.push({ kind: 'command', src: path.join(templatesDir, src), dest: skillFilePath(agents, c) });
+    if (commandFiles.includes(c)) writes.push({ kind: 'meta', dest: policyPath(agents, c) });
   }
   writes.push({ kind: 'meta', dest: agents.metaFile });
   return writes;
@@ -659,6 +679,7 @@ function installAgentsFiles(agents, {
   for (const c of [...commandFiles, ...skillFiles]) {
     const src = c === SETUP_COMMAND ? SETUP_DISPATCH : c;
     write(skillFilePath(agents, c), renderSkill(src, c, agents, opts));
+    if (commandFiles.includes(c)) write(policyPath(agents, c), INVOCATION_POLICY_YAML);
   }
   const meta = JSON.stringify({
     package: pkgName,
@@ -1315,6 +1336,7 @@ module.exports = {
   plannedWrites,
   AGENT_HOSTS,
   SKILL_PREAMBLE,
+  INVOCATION_POLICY_YAML,
   SETUP_DISPATCH,
   SETUP_FLOW,
   resolveAgents,

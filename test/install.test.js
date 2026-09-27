@@ -2581,3 +2581,29 @@ test('status reports a v3 install by its forge commands', () => {
   assert.doesNotMatch(out, /not installed\./);
   assert.match(out, /\/forge:code/, 'the v3 command is named as it is typed');
 });
+
+// --- Audit fixes (docs/slashforge/specs/2026-09-27-cursor-codex-audit-fixes-design.html) ---
+
+// Cursor and Codex let the agent start a skill on its own when a prompt looks
+// relevant. The four commands must run only when typed, as they do in Claude Code.
+test('the four commands run only when typed on Cursor and Codex', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  for (const c of COMMAND_FILES) {
+    const dir = path.join(a.skillsDir, skillDirName(c, 'slashforge-'));
+    const fm = fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8').split('\n---')[0];
+    assert.match(fm, /^disable-model-invocation: true$/m, c + ': Cursor flag');
+    const yaml = fs.readFileSync(path.join(dir, 'agents', 'openai.yaml'), 'utf8');
+    assert.match(yaml, /allow_implicit_invocation: false/, c + ': Codex policy');
+  }
+  for (const s of SKILL_FILES) {
+    const dir = path.join(a.skillsDir, skillDirName(s, 'slashforge-'));
+    assert.doesNotMatch(fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8'), /disable-model-invocation/, s);
+    assert.ok(!fs.existsSync(path.join(dir, 'agents')), s + ': discipline skills stay invocable');
+  }
+  const planned = plannedAgentsWrites(a).map((w) => w.dest);
+  assert.equal(planned.filter((d) => d.endsWith(path.join('agents', 'openai.yaml'))).length, COMMAND_FILES.length);
+  uninstallAgentsFiles(a);
+  assert.ok(!fs.existsSync(a.skillsDir) || !fs.readdirSync(a.skillsDir).some((d) => d.startsWith('slashforge-')));
+});
