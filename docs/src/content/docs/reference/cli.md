@@ -48,6 +48,12 @@ own layout and those layouts genuinely differ — see
 The first thing each Cursor or Codex command does is work out which of the two it is
 running in and read that host's guides; if it can't tell, it asks you once.
 
+==The four commands run only when you type them==, as in Claude Code. Cursor and Codex
+can otherwise start a skill on their own, so each command skill opts out:
+`disable-model-invocation: true` in its `SKILL.md` for Cursor, and an
+`agents/openai.yaml` beside it for Codex. The nine discipline skills stay available to
+the workflow.
+
 ### Why every name is `slashforge-`
 
 ==The same name on every host.== Cursor and Codex name a skill by the folder that
