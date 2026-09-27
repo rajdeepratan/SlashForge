@@ -42,7 +42,15 @@ all. That judgement still applies — only the file format changes.
 
 | Concept | Use when |
 |---|---|
+<!--target:claude-->
 | **Slash command** (skill with `disable-model-invocation: true`) | A human-triggered action with side effects — `/deploy`, `/run-checks`, `/add-metric`. You want control over timing. |
+<!--/target-->
+<!--target:cursor-->
+| **Slash command** (skill with `disable-model-invocation: true`) | A human-triggered action with side effects — `/deploy`, `/run-checks`, `/add-metric`. You want control over timing. |
+<!--/target-->
+<!--target:codex-->
+| **Slash command** (skill with `agents/openai.yaml` → `allow_implicit_invocation: false`) | A human-triggered action with side effects — `$deploy`, `$run-checks`, `$add-metric`. You want control over timing. |
+<!--/target-->
 | **Skill** (default, model-invocable) | Claude can auto-load it when relevant. Use for recipes Claude should run when it matches the description. |
 | **Rule** | Always-in-context behavior. Use for "how code must be written" — not "how to do X." |
 
@@ -86,6 +94,7 @@ Command name = filename (or directory name). `run-checks` becomes `/run-checks`.
 
 ---
 
+<!--target:claude-->
 ## Frontmatter for Commands
 
 Every command file must include the generated-by marker (see `slashforge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
@@ -137,6 +146,118 @@ Running `/fix-issue 123` replaces `$ARGUMENTS` with `123`.
 
 For positional args: `/migrate-component SearchBar React Vue` with `$0`, `$1`, `$2` gives `SearchBar`, `React`, `Vue`.
 
+<!--/target-->
+<!--target:cursor-->
+## Frontmatter for Commands
+
+A command is a skill that only runs when typed. Every command file must include the generated-by marker (see `slashforge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
+
+```yaml
+---
+name: deploy
+description: Deploy the application to production
+disable-model-invocation: true
+generated_by: [package]@[version]
+generated_at: [ISO 8601 timestamp]
+---
+```
+
+| Field | Purpose |
+|---|---|
+| `name` | Lowercase letters, digits and hyphens; must match the folder name |
+| `description` | Shown in the `/` menu, and used by the agent to decide when a skill applies |
+| `disable-model-invocation: true` | **Critical for commands with side effects.** The skill then runs only when the user types `/name`; the agent never starts it on its own. |
+| `paths` | Optional glob patterns that limit where the skill is offered, e.g. `"src/api/**/*.ts"` |
+| `metadata` | Optional key-value map for anything else |
+
+Cursor documents no other fields. Tool permissions are the user's Cursor settings, not something a command can grant itself.
+
+---
+
+## Passing Arguments
+
+There is no substitution variable. Whatever the user types after the command arrives with it in the message, so the command says what to do with it:
+
+```markdown
+---
+name: fix-issue
+description: Fix a GitHub issue by number
+disable-model-invocation: true
+---
+
+Fix the GitHub issue whose number the user gave after the command, following our
+coding standards. If no number was given, ask for one.
+
+1. Read the issue
+2. Understand the requirements
+3. Implement the fix
+4. Write tests
+5. Create a commit
+```
+
+Running `/fix-issue 123` gives the command the text `123`.
+
+<!--/target-->
+<!--target:codex-->
+## Frontmatter for Commands
+
+A would-be command is a skill that only runs when typed. Its `SKILL.md` carries the usual skill frontmatter, including the generated-by marker (see `slashforge-instructions.md` § Generated File Markers — read `meta.json` for the version and timestamp):
+
+```yaml
+---
+name: deploy
+description: Deploy the application to production
+generated_by: [package]@[version]
+generated_at: [ISO 8601 timestamp]
+---
+```
+
+| Field | Purpose |
+|---|---|
+| `name` | Lowercase letters, digits and hyphens; must match the folder name |
+| `description` | Shown in the skill list, and used by the agent to decide when a skill applies |
+
+**Anything with side effects must not start on its own.** Codex does not read that from `SKILL.md`: add `agents/openai.yaml` beside it:
+
+```
+.agents/skills/deploy/
+├── SKILL.md
+└── agents/
+    └── openai.yaml
+```
+
+```yaml
+policy:
+  allow_implicit_invocation: false
+```
+
+With that policy the skill runs only when the user types `$deploy`; the agent never starts it on its own.
+
+---
+
+## Passing Arguments
+
+There is no substitution variable. Whatever the user types after `$name` arrives with it in the message, so the skill says what to do with it:
+
+```markdown
+---
+name: fix-issue
+description: Fix a GitHub issue by number
+---
+
+Fix the GitHub issue whose number the user gave after the skill name, following
+our coding standards. If no number was given, ask for one.
+
+1. Read the issue
+2. Understand the requirements
+3. Implement the fix
+4. Write tests
+5. Create a commit
+```
+
+Running `$fix-issue 123` gives the skill the text `123`.
+
+<!--/target-->
 ---
 
 ## When to Create a Command

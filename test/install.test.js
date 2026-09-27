@@ -2607,3 +2607,23 @@ test('the four commands run only when typed on Cursor and Codex', () => {
   uninstallAgentsFiles(a);
   assert.ok(!fs.existsSync(a.skillsDir) || !fs.readdirSync(a.skillsDir).some((d) => d.startsWith('slashforge-')));
 });
+
+// The commands guide is what setup follows when it writes a repo's own commands.
+// Teaching Claude Code's fields to Cursor or Codex produces files they ignore.
+test('the commands guide teaches each vendor its own fields', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  for (const h of a.hosts) {
+    const g = fs.readFileSync(path.join(h.guidesDir, 'slashforge-commands.md'), 'utf8');
+    for (const f of ['allowed-tools', 'argument-hint', 'user-invocable', '$ARGUMENTS']) {
+      assert.ok(!g.includes(f), h.host + ' still teaches Claude Code field ' + f);
+    }
+  }
+  const codex = fs.readFileSync(path.join(a.root, 'codex', 'slashforge-commands.md'), 'utf8');
+  assert.match(codex, /agents\/openai\.yaml/);
+  assert.match(codex, /allow_implicit_invocation: false/);
+  assert.doesNotMatch(codex, /disable-model-invocation/, 'Codex ignores that key; its switch is openai.yaml');
+  const cursor = fs.readFileSync(path.join(a.root, 'cursor', 'slashforge-commands.md'), 'utf8');
+  assert.match(cursor, /disable-model-invocation: true/);
+});
