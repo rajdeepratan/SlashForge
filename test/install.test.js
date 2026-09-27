@@ -2627,3 +2627,17 @@ test('the commands guide teaches each vendor its own fields', () => {
   const cursor = fs.readFileSync(path.join(a.root, 'cursor', 'slashforge-commands.md'), 'utf8');
   assert.match(cursor, /disable-model-invocation: true/);
 });
+
+// On Cursor, `graphify cursor install` writes an always-applied rule, not a hook.
+test('no Cursor guide says Graphify installs a hook', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const dir = path.join(a.root, 'cursor');
+  for (const f of fs.readdirSync(dir).filter((n) => n.endsWith('.md'))) {
+    const body = fs.readFileSync(path.join(dir, f), 'utf8');
+    for (const line of body.split('\n').filter((l) => /PreToolUse/.test(l))) {
+      assert.ok(!/graph/i.test(line), f + ': ' + line.trim().slice(0, 90));
+    }
+  }
+});

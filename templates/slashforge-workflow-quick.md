@@ -25,8 +25,18 @@ mode so `slashforge-debug` runs in Phase 5).
 Lean mode **does not auto-escalate**. If you're unsure, use full `/slashforge-code` —
 its fast path already handles trivial tasks without the ceremony.
 
+<!--target:claude-->
 **Code graph (Graphify) in lean mode:** skip it. If Graphify is installed and its
 PreToolUse hook would normally surface a graph summary before Glob/Grep, that's
+<!--/target-->
+<!--target:codex-->
+**Code graph (Graphify) in lean mode:** skip it. If Graphify is installed and its
+PreToolUse hook would normally surface a graph summary before Glob/Grep, that's
+<!--/target-->
+<!--target:cursor-->
+**Code graph (Graphify) in lean mode:** skip it. If Graphify is installed, its
+always-applied rule still puts graph context in front of you, and that's
+<!--/target-->
 fine — but do not read `GRAPH_REPORT.md` proactively, do not run graph queries,
 and **do not run the freshness check** described in `slashforge-graph.md` Runtime
 section. The overhead (~2–5k tokens, plus ~50 for the freshness check) exceeds

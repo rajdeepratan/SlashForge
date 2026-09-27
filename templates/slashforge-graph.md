@@ -318,7 +318,15 @@ Branch B variant: *"This repo is now indexed. I've also synthesised `graphify-ou
 
 ## When a Graph is Present (runtime usage)
 
+<!--target:claude-->
 The PreToolUse hook Graphify installs handles the default case — agents see graph context before any Glob or Grep call. Two phase-specific reinforcements in case the hook misses:
+<!--/target-->
+<!--target:codex-->
+The PreToolUse hook Graphify installs handles the default case — agents see graph context before any Glob or Grep call. Two phase-specific reinforcements in case the hook misses:
+<!--/target-->
+<!--target:cursor-->
+The always-applied `.cursor/rules/graphify.mdc` rule Graphify writes handles the default case — it puts graph context in front of the agent on every request. Two phase-specific reinforcements in case it is not enough:
+<!--/target-->
 
 - **`slashforge-workflow.md` Phase 2 — Affected surface:** *"If `GRAPH_REPORT.md` exists at repo root, consult it for blast-radius of the entry-point symbols rather than guessing from filename proximity."*
 - **`slashforge-workflow-investigation.md` Phase I2:** *"If a graph is available, consult it first. Investigation is the scenario the graph is built for — blast radius, call paths, god-node identification."*
