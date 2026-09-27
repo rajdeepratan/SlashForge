@@ -133,7 +133,7 @@ repo-relative paths. ==Commit it and your teammates get the commands with no glo
 and print one warning if the copy you ran is older:
 
 ```
-⚠  This is v4.4.3. The current release is v4.5.0.
+⚠  This is v4.5.0. The current release is v5.0.0.
    `npx slashforge` runs a global install if you have one, and never checks npm:
      npm uninstall -g slashforge     # then re-run npx, or
      npm install -g slashforge@latest

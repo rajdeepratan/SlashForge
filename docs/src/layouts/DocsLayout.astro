@@ -6,7 +6,7 @@
  * markdown renderer extracted.
  */
 import Base from './Base.astro';
-import { NAV, groupOf, neighbours, isClaudeOnly } from '../nav';
+import { NAV, groupOf, neighbours } from '../nav';
 import { wholeLabelCommand } from '../targets.mjs';
 import { lastModified } from '../lastModified';
 
@@ -41,11 +41,6 @@ const kicker = groupOf(slug);
 // heading contradicts the code block directly beneath it.
 const titleCmd = wholeLabelCommand(title);
 
-// Pages whose subject does not exist on Cursor or Codex say so when one of
-// those is selected. The page stays reachable — deep links and search results
-// still land here — it just leads with the fact.
-const claudeOnlyPage = isClaudeOnly(slug);
-
 // Only h2 goes in the rail. h3 would double its length on the longer pages for
 // very little navigational value, and the reference shows one flat list.
 const toc = headings.filter((h) => h.depth === 2);
@@ -68,7 +63,6 @@ const toc = headings.filter((h) => h.depth === 2);
                   <a
                     href={href(item.slug)}
                     aria-current={item.slug === slug ? 'page' : undefined}
-                    data-claude-only={item.claudeOnly ? '' : undefined}
                   >
                     {
                       wholeLabelCommand(item.label)
@@ -90,21 +84,12 @@ const toc = headings.filter((h) => h.depth === 2);
       {description && <p class="lede">{description}</p>}
       <hr class="rule" />
 
-      {
-        claudeOnlyPage && (
-          <div class="claudeonly" data-claude-only-notice>
-            <strong>This page is about Claude Code.</strong> Plan mode and <code>/init</code> are
-            Claude Code features. Nothing here applies to the agent you have selected.
-          </div>
-        )
-      }
-
       <slot />
 
       <div class="pager">
         {
           prev ? (
-            <a href={prev.href} data-claude-only={prev.claudeOnly ? '' : undefined}>
+            <a href={prev.href}>
               <small>Previous</small>
               <strong>{prev.label}</strong>
             </a>
@@ -118,7 +103,7 @@ const toc = headings.filter((h) => h.depth === 2);
         }
         {
           next && (
-            <a href={next.href} data-claude-only={next.claudeOnly ? '' : undefined}>
+            <a href={next.href}>
               <small>Next</small>
               <strong>{next.label}</strong>
             </a>
