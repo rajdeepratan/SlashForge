@@ -572,29 +572,37 @@ function policyPath(agents, file) {
   return path.join(path.dirname(skillFilePath(agents, file)), 'agents', 'openai.yaml');
 }
 
+// Index of the frontmatter's closing fence. A template without one would have its
+// preamble or keys spliced into the wrong place, so it fails the install instead.
+function frontmatterEnd(lines) {
+  const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
+  if (!lines.length || lines[0].trim() !== '---' || end === -1) {
+    throw new Error('frontmatter has no closing --- fence');
+  }
+  return end;
+}
+
 // Adds a key as the last line of the frontmatter block.
 function withFrontmatterLine(content, line) {
   const lines = content.split('\n');
-  const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
-  lines.splice(end, 0, line);
+  lines.splice(frontmatterEnd(lines), 0, line);
   return lines.join('\n');
 }
 
 function withPreamble(content) {
   const lines = content.split('\n');
-  const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
-  lines.splice(end + 1, 0, '', SKILL_PREAMBLE);
+  lines.splice(frontmatterEnd(lines) + 1, 0, '', SKILL_PREAMBLE);
   return lines.join('\n');
 }
 
 // src is the template read; dest names the skill (setup.md's dispatcher is read
 // from SETUP_DISPATCH but installed as slashforge-setup).
-function renderSkill(src, dest, agents, { templatesDir = TEMPLATES_DIR, version = pkg.version, pkgName = pkg.name } = {}) {
+function renderSkill(src, dest, agents, { templatesDir = TEMPLATES_DIR, version = pkg.version, pkgName = pkg.name, commandFiles = COMMAND_FILES } = {}) {
   let out = renderTemplate(fs.readFileSync(path.join(templatesDir, src), 'utf8'), {
     installPath: agents.skillInstallPath, version, pkgName, targetName: 'skills',
   });
   out = toSkillFrontmatter(out, skillDirName(dest, 'slashforge-'));
-  if (COMMAND_FILES.includes(dest)) out = withFrontmatterLine(out, 'disable-model-invocation: true');
+  if (commandFiles.includes(dest)) out = withFrontmatterLine(out, 'disable-model-invocation: true');
   return withPreamble(out);
 }
 
@@ -682,7 +690,7 @@ function installAgentsFiles(agents, {
   }
   for (const c of [...commandFiles, ...skillFiles]) {
     const src = c === SETUP_COMMAND ? SETUP_DISPATCH : c;
-    write(skillFilePath(agents, c), renderSkill(src, c, agents, opts));
+    write(skillFilePath(agents, c), renderSkill(src, c, agents, { ...opts, commandFiles }));
     if (commandFiles.includes(c)) write(policyPath(agents, c), INVOCATION_POLICY_YAML);
   }
   const meta = JSON.stringify({

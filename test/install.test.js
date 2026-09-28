@@ -2712,3 +2712,29 @@ test("Cursor and Codex are not told to use Claude Code's Skill tool", () => {
     }
   }
 });
+
+// Ruling: the plan's first premise (setup skill written but not a command) does not
+// hold — a skill outside both lists is not written at all. Treating a discipline
+// skill as a command shows the same mismatch: the yaml follows the list passed in,
+// so the frontmatter flag must too.
+test('a custom command list keeps the flag and the policy file in step', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  const tdd = path.join('slashforge', 'tdd.md');
+  installAgentsFiles(a, {
+    commandFiles: [path.join('slashforge', 'code.md'), tdd],
+    skillFiles: SKILL_FILES.filter((s) => s !== tdd),
+  });
+  const dir = path.join(a.skillsDir, 'slashforge-tdd');
+  assert.ok(fs.existsSync(path.join(dir, 'agents', 'openai.yaml')), 'policy file follows the list');
+  assert.match(fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8'), /disable-model-invocation: true/, 'flag follows the same list');
+});
+
+test('rendering a skill with no closing frontmatter fence throws', () => {
+  const { renderSkill } = require('../bin/install.js');
+  const dir = tmp();
+  fs.mkdirSync(path.join(dir, 'slashforge'));
+  fs.writeFileSync(path.join(dir, 'slashforge', 'x.md'), '---\nname: x\ndescription: y\n');
+  const a = resolveAgents({ homeDir: dir, cwd: dir });
+  assert.throws(() => renderSkill(path.join('slashforge', 'x.md'), path.join('slashforge', 'x.md'), a, { templatesDir: dir }), /frontmatter/);
+});
