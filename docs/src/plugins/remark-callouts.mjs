@@ -64,6 +64,11 @@ export function remarkCallouts() {
     visit(tree, (node) => {
       if (node.type !== 'containerDirective') return;
 
+      // `:::agent` is owned by remark-agent-only, which runs after this plugin.
+      // Without this, an unknown-name directive is turned into a note here and
+      // its [claude,codex] label is consumed before that plugin reads it.
+      if (node.name === 'agent') return;
+
       if (node.name === 'steps') {
         if (toSteps(node)) return;
         file.message('":::steps" needs an ordered list inside it.', node);

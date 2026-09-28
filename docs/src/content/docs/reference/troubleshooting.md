@@ -5,15 +5,59 @@ description: The handful of things that actually go wrong, and what to do about 
 
 ## The commands do not appear
 
-==By far the most common one.== You type `/` in Claude Code and see nothing named
-`slashforge`.
+==By far the most common one.== You type `/` (`$` in Codex) and see nothing named `slashforge`.
+
+::::agent[claude]
+### In Claude Code
 
 :::steps
 1. Run `npx slashforge status` — it reports what is installed and where.
 2. **Restart Claude Code.** Command files are read at startup.
-3. If `status` shows a v3 `forge/` layout, you are typing the old namespace. It is `/slashforge:` now — see [Migrating](/slashforge/reference/migrating/).
+3. **Check the name.** Every version before 5.0 used a different spelling; since 5.0 it is `/slashforge-code`, with a `-`, on every agent. See [Migrating](/slashforge/reference/migrating/).
 4. If `status` shows nothing installed, re-run `npx slashforge` and watch for a permissions error on `~/.claude/`.
 :::
+::::
+
+::::agent[cursor,codex]
+### In Cursor or Codex
+
+:::steps
+1. **Check the install reached `~/.agents/`.** Run `npx slashforge status`: it reports Claude Code and Cursor + Codex separately, and says if either is missing. Re-running `npx slashforge` fills the gap.
+2. **Older releases installed Claude Code only.** If you set up before Cursor and Codex support arrived, run `npx slashforge` again.
+3. **In Codex, use `$`.** The skills are invoked as `$slashforge-code` rather than with a slash.
+4. **Restart Cursor, or start a new Codex session.** Skills are discovered at session start.
+5. Confirm the files are on disk: `ls ~/.agents/skills/`. You should see a `slashforge-code` directory containing `SKILL.md`.
+:::
+
+:::note
+==`/slashforge-setup` runs here too== — `$slashforge-setup` in Codex. It scaffolds
+your host's own layout: `.cursor/rules/*.mdc` and `.cursor/agents/` on Cursor,
+nested `AGENTS.md` and `.codex/agents/*.toml` on Codex. It never writes `.claude/`.
+
+If setup writes the wrong host's files, it guessed the host wrong: tell it
+"you are in Cursor" (or Codex) and run it again.
+:::
+::::
+
+::::agent[codex]
+## Codex does not list a slashforge skill
+
+The files are on disk, but `$slashforge-code` is missing from Codex's skill list, or
+shows with a cut-down description.
+
+==Codex caps the skill list it starts each session with== at roughly 2% of the model's
+context, or 8,000 characters when it cannot tell. Past that it shortens descriptions
+first, then leaves skills out and shows a warning. SlashForge adds 13 skills — about
+3,000 characters of names and descriptions, plus each skill's file path — so on a machine
+with many other skills installed one of them can fall off the list.
+
+:::steps
+1. **Type it by name anyway.** The cap only limits the list Codex starts each session
+   with, so `$slashforge-code` typed in full may still run. If it doesn't, step 2 fixes it.
+2. **Remove skills you no longer use** from `~/.agents/skills/` and the repo's
+   `.agents/skills/` to bring the list back under the cap.
+:::
+::::
 
 ## It installed an old version
 
@@ -38,7 +82,7 @@ tell you whether the copy you just ran is current.
 
 ==Usually one of two things, and both are working as designed.==
 
-- **`/slashforge:code` classified the task as trivial.** Phase 1 auto-detects
+- **`/slashforge-code` classified the task as trivial.** Phase 1 auto-detects
   small changes and skips brainstorming. Say `full flow` to override. See
   [Skills](/slashforge/guides/skills/) for what runs at each phase.
 - **`-quick` is doing what it says.** Lean mode skips brainstorming and swaps
@@ -60,7 +104,7 @@ overwritten.==
 
 ## Graphify is not being offered
 
-`/slashforge:setup` only offers it when **at least 70% of non-trivial source
+`/slashforge-setup` only offers it when **at least 70% of non-trivial source
 files** are in a supported language. On YAML, shell, or config-only repos it
 skips silently. ==That is intended, not a failure== — see
 [Graphify](/slashforge/guides/graphify/) for the supported languages.

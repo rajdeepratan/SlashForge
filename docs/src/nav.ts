@@ -21,19 +21,21 @@ export const NAV: NavGroup[] = [
     label: 'Start here',
     items: [
       { label: 'Introduction', slug: 'guides/introduction' },
-      { label: 'Plan mode and /init', slug: 'guides/plan-mode-and-init' },
       { label: 'What a run looks like', slug: 'guides/example-run' },
       { label: 'What it does to your machine', slug: 'guides/trust' },
       { label: 'Installation', slug: 'guides/installation' },
+      // A side comparison, so it follows the setup steps rather than sitting
+      // ahead of them for a newcomer.
+      { label: 'Plan mode and /init', slug: 'guides/plan-mode-and-init' },
     ],
   },
   {
     label: 'Commands',
     items: [
-      { label: '/slashforge:setup', slug: 'commands/slashforge-setup' },
-      { label: '/slashforge:code', slug: 'commands/slashforge-code' },
-      { label: '/slashforge:investigate', slug: 'commands/slashforge-investigate' },
-      { label: '/slashforge:review-pr', slug: 'commands/slashforge-review-pr' },
+      { label: '/slashforge-setup', slug: 'commands/slashforge-setup' },
+      { label: '/slashforge-code', slug: 'commands/slashforge-code' },
+      { label: '/slashforge-investigate', slug: 'commands/slashforge-investigate' },
+      { label: '/slashforge-review-pr', slug: 'commands/slashforge-review-pr' },
     ],
   },
   {
@@ -60,6 +62,7 @@ export const FLAT: (NavItem & { group: string })[] = NAV.flatMap((g) =>
   g.items.map((i) => ({ ...i, group: g.label }))
 );
 
+/** Whether a page's subject exists only on Claude Code. */
 /** The group a slug belongs to — used for the page kicker. */
 export function groupOf(slug: string): string {
   return FLAT.find((i) => i.slug === slug)?.group ?? '';
