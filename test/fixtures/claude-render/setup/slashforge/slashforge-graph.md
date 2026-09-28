@@ -103,8 +103,9 @@ Common case for users who already have `graphify` installed globally and are set
 
 ### Offer (Decide phase — run nothing)
 1. **Print the "Why it matters" block** above, dropping the `uv`/Python cost bullet (the CLI is already installed). You can prepend one short line: *"`graphify` is already on your `PATH`, so this is index-only — no CLI install needed."*
-2. **Show the exact two commands** that will run — the first runs now (Provision), the second runs last (Hook-in), after the kit writes `CLAUDE.md`:
+2. **Show the exact three commands** that will run — the first two run now (Provision), the third runs last (Hook-in), after the kit writes `CLAUDE.md`. The first registers Graphify's skill with this agent, which a CLI installed from another agent has not done:
    ```bash
+   graphify install                 # [Provision] registers the /graphify skill with Claude Code
    graphify .                       # [Provision] indexes this repo — seconds to minutes
    graphify claude install          # [Hook-in, runs LAST] appends CLAUDE.md section + installs Glob/Grep PreToolUse hook
    ```
@@ -112,7 +113,7 @@ Common case for users who already have `graphify` installed globally and are set
 4. **On no:** skip silently. Do not re-ask during this session. On the next `/slashforge-setup` re-run, the offer fires again.
 
 ### Provision (Provision phase — on yes)
-5. Run **`graphify .`** in the shell, stopping on any failure and surfacing the error verbatim. **Do not run `graphify claude install` here** — defer it to Hook-in.
+5. Run the **first two** commands in order in the shell, stopping on any failure and surfacing the error verbatim. **Do not run `graphify claude install` here** — defer it to Hook-in.
 
 ### Hook-in (last, after the kit's `CLAUDE.md` is written)
 6. Run `graphify claude install` in the shell — appends the `CLAUDE.md` section + installs the Glob/Grep PreToolUse hook.

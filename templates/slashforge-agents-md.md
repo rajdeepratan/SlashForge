@@ -101,8 +101,9 @@ That is a rule file, not a section of `AGENTS.md`, so it needs no space here —
 it in the Project References table.
 <!--/target-->
 <!--target:codex-->
-`graphify codex install` appends a `## graphify` section to `AGENTS.md` and registers a
-PreToolUse hook in `.codex/hooks.json`. It runs **after** the kit writes `AGENTS.md`, and
+`graphify codex install` appends a `## graphify` section to `AGENTS.md` — the always-on
+graph guidance on Codex. It also registers a PreToolUse hook, deliberately a no-op, in
+`.codex/hooks.json`. It runs **after** the kit writes `AGENTS.md`, and
 it preserves existing content.
 
 Its section carries no `generated_by` marker, which is deliberate: the kit's update flow

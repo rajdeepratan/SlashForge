@@ -42,13 +42,13 @@ shows with a cut-down description.
 
 ==Codex caps the skill list it starts each session with== at roughly 2% of the model's
 context, or 8,000 characters when it cannot tell. Past that it shortens descriptions
-first, then leaves skills out and shows a warning. SlashForge adds 13 skills, about
-2,900 characters between them, so on a machine with many other skills installed one of
-them can fall off the list.
+first, then leaves skills out and shows a warning. SlashForge adds 13 skills — about
+3,000 characters of names and descriptions, plus each skill's file path — so on a machine
+with many other skills installed one of them can fall off the list.
 
 :::steps
-1. **Type it by name anyway.** `$slashforge-code` still runs when you type it in full —
-   the cap only limits the list Codex shows up front.
+1. **Type it by name anyway.** The cap only limits the list Codex starts each session
+   with, so `$slashforge-code` typed in full may still run. If it doesn't, step 2 fixes it.
 2. **Remove skills you no longer use** from `~/.agents/skills/` and the repo's
    `.agents/skills/` to bring the list back under the cap.
 :::

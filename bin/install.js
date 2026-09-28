@@ -529,7 +529,7 @@ const SKILL_PREAMBLE = [
 ].join('\n');
 
 // Cursor and Codex let the agent start a skill on its own when a prompt looks
-// relevant. The four commands must run only when typed, as in Claude Code: Cursor
+// relevant. The four commands must run only when the user types them: Cursor
 // reads disable-model-invocation from SKILL.md, Codex reads this file beside it.
 // The discipline skills stay invocable, because the workflow calls them by name.
 const INVOCATION_POLICY_YAML = 'policy:\n  allow_implicit_invocation: false\n';
@@ -576,7 +576,7 @@ function policyPath(agents, file) {
 // preamble or keys spliced into the wrong place, so it fails the install instead.
 function frontmatterEnd(lines) {
   const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
-  if (!lines.length || lines[0].trim() !== '---' || end === -1) {
+  if (lines[0].trim() !== '---' || end === -1) {
     throw new Error('frontmatter has no closing --- fence');
   }
   return end;

@@ -22,7 +22,7 @@ in Cursor and you should see `/slashforge-setup`, `/slashforge-code`,
 `/slashforge-investigate` and `/slashforge-review-pr`. In Codex they are invoked with
 `$` — `$slashforge-code`.
 
-==The four commands run only when you type them==, as in Claude Code: the agent never
+==On Cursor and Codex the four commands run only when you type them==: the agent never
 starts one on its own because a prompt looked relevant.
 
 ==Each host still gets its own setup.== Cursor and Codex share the skills, but setup

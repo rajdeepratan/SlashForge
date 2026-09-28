@@ -2585,7 +2585,7 @@ test('status reports a v3 install by its forge commands', () => {
 // --- Audit fixes (docs/slashforge/specs/2026-09-27-cursor-codex-audit-fixes-design.html) ---
 
 // Cursor and Codex let the agent start a skill on its own when a prompt looks
-// relevant. The four commands must run only when typed, as they do in Claude Code.
+// relevant. The four commands must run only when the user types them.
 test('the four commands run only when typed on Cursor and Codex', () => {
   const home = tmp();
   const a = resolveAgents({ homeDir: home, cwd: home });
@@ -2683,9 +2683,17 @@ test('Graphify is installed and described per agent', () => {
   assert.match(codex, /graphify install --platform codex/);
   assert.match(cursor, /graphify install --platform agents/);
   for (const g of [codex, cursor]) assert.doesNotMatch(g, /^\s*graphify install\s+#/m, 'bare install is Claude Code only');
-  assert.match(codex, /multi_agent = true/);
+  // Every Codex branch that runs `graphify .` checks the setting first (A, B and the re-index).
+  assert.ok((codex.match(/multi_agent = true/g) || []).length >= 3, 'multi_agent checked before every graphify . on Codex');
+  // Branch B (CLI already on PATH, e.g. from a Claude Code setup) still registers the skill.
+  assert.ok((codex.match(/graphify install --platform codex/g) || []).length >= 2, 'Branch B registers the Codex skill');
+  assert.ok((cursor.match(/graphify install --platform agents/g) || []).length >= 2, 'Branch B registers the Cursor skill');
   for (const f of fs.readdirSync(path.join(a.root, 'codex')).filter((n) => n.endsWith('.md'))) {
-    assert.doesNotMatch(read('codex', f), /hook[^.\n]*(surfac|handles the default)/i, 'codex/' + f + ': the Codex hook is a no-op');
+    const body = read('codex', f);
+    assert.doesNotMatch(body, /hook[^.\n]*(surfac|handles the default|misses)/i, 'codex/' + f + ': the Codex hook is a no-op');
+    for (const line of body.split('\n').filter((l) => /PreToolUse/.test(l) && /graph/i.test(l))) {
+      assert.match(line, /no-op/, 'codex/' + f + ': a Codex hook mention must say it is a no-op: ' + line.trim().slice(0, 80));
+    }
   }
 });
 
@@ -2695,8 +2703,8 @@ test('the Codex commands guide is consistent with its opt-out', () => {
   installAgentsFiles(a, {});
   const codex = fs.readFileSync(path.join(a.root, 'codex', 'slashforge-commands.md'), 'utf8');
   assert.doesNotMatch(codex, /in place of a typed command name/);
-  assert.match(codex, /\$run-checks/);
-  assert.doesNotMatch(codex, /becomes `\/run-checks`/);
+  assert.match(codex, /is typed as `\$run-checks`/);
+  assert.doesNotMatch(codex, /`\/run-checks`/, 'no slash-form examples on Codex');
   const cursor = fs.readFileSync(path.join(a.root, 'cursor', 'slashforge-commands.md'), 'utf8');
   assert.match(cursor, /`icon`/);
   assert.match(cursor, /`color`/);

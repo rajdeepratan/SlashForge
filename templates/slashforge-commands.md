@@ -279,7 +279,15 @@ Create one if **all three** are true:
 2. It has a fixed sequence of steps (not "depends on context")
 3. Getting the steps wrong would cause real harm — wrong deploy target, missed lint, pushed secret
 
+<!--target:claude-->
 Examples: `/run-checks`, `/deploy`, `/cut-release`, `/add-metric`, `/open-pr`.
+<!--/target-->
+<!--target:cursor-->
+Examples: `/run-checks`, `/deploy`, `/cut-release`, `/add-metric`, `/open-pr`.
+<!--/target-->
+<!--target:codex-->
+Examples: `$run-checks`, `$deploy`, `$cut-release`, `$add-metric`, `$open-pr`.
+<!--/target-->
 
 Do not create a command for:
 - One-off tasks
