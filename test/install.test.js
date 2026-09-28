@@ -2688,3 +2688,16 @@ test('Graphify is installed and described per agent', () => {
     assert.doesNotMatch(read('codex', f), /hook[^.\n]*(surfac|handles the default)/i, 'codex/' + f + ': the Codex hook is a no-op');
   }
 });
+
+test('the Codex commands guide is consistent with its opt-out', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const codex = fs.readFileSync(path.join(a.root, 'codex', 'slashforge-commands.md'), 'utf8');
+  assert.doesNotMatch(codex, /in place of a typed command name/);
+  assert.match(codex, /\$run-checks/);
+  assert.doesNotMatch(codex, /becomes `\/run-checks`/);
+  const cursor = fs.readFileSync(path.join(a.root, 'cursor', 'slashforge-commands.md'), 'utf8');
+  assert.match(cursor, /`icon`/);
+  assert.match(cursor, /`color`/);
+});

@@ -29,8 +29,10 @@ they are global rather than per-repo — the wrong home for a repo convention, s
 would follow the user into every other project.
 
 Express every would-be command as a skill under `.agents/skills/` instead; see
-`slashforge-skills.md`. Front-load the trigger phrase in its `description`, because that is
-how the agent discovers it in place of a typed command name.
+`slashforge-skills.md`. A command with side effects is a skill the user types as `$name`,
+with the `agents/openai.yaml` policy below so the agent never starts it on its own. Only
+plain skills rely on their `description` to be picked up — front-load the trigger phrase
+there.
 
 The rest of this guide is about *deciding* whether something deserves to be a command at
 all. That judgement still applies — only the file format changes.
@@ -90,7 +92,15 @@ User-level commands (apply to all projects): `~/.cursor/skills/` or `~/.agents/s
 User-level skills (apply to all projects): `~/.agents/skills/`. Keep repo conventions in the repo — a user-level file follows the user into unrelated projects.
 <!--/target-->
 
+<!--target:claude-->
 Command name = filename (or directory name). `run-checks` becomes `/run-checks`.
+<!--/target-->
+<!--target:cursor-->
+Command name = filename (or directory name). `run-checks` becomes `/run-checks`.
+<!--/target-->
+<!--target:codex-->
+Skill name = directory name. `run-checks` is typed as `$run-checks`.
+<!--/target-->
 
 ---
 
@@ -168,6 +178,8 @@ generated_at: [ISO 8601 timestamp]
 | `description` | Shown in the `/` menu, and used by the agent to decide when a skill applies |
 | `disable-model-invocation: true` | **Critical for commands with side effects.** The skill then runs only when the user types `/name`; the agent never starts it on its own. |
 | `paths` | Optional glob patterns that limit where the skill is offered, e.g. `"src/api/**/*.ts"` |
+| `icon` | Optional badge icon when the skill is used as a Custom Mode |
+| `color` | Optional badge colour when the skill is used as a Custom Mode |
 | `metadata` | Optional key-value map for anything else |
 
 Cursor documents no other fields. Tool permissions are the user's Cursor settings, not something a command can grant itself.
