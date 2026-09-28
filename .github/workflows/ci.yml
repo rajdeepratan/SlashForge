@@ -65,6 +65,13 @@ jobs:
         working-directory: docs
         run: node ../.github/scripts/check-docs-targets.mjs
 
+      # The site shows one agent at a time, so a table with a column per agent
+      # is both over-wide and mostly irrelevant to any one reader — the shape
+      # that scrolled sideways on desktop and phone. Fail if one comes back.
+      - name: Check no over-wide per-agent tables
+        working-directory: docs
+        run: node ../.github/scripts/check-docs-width.mjs
+
       # An icon-only control with no accessible name renders correctly, so it
       # survives review. The header socials shipped unnamed on every page.
       - name: Check interactive elements have accessible names
