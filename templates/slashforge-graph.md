@@ -14,7 +14,7 @@ Graphify builds an AST-level knowledge graph of a repo — nodes for functions/c
 **This is not a preflight check.** Do not check for Graphify on every command — it is a repo-level dependency, offered once during `/slashforge-setup`. Once installed, its own `graphify cursor install` writes an always-applied rule that surfaces graph context for every subsequent command, with no extra guide-side enforcement needed.
 <!--/target-->
 <!--target:codex-->
-**This is not a preflight check.** Do not check for Graphify on every command — it is a repo-level dependency, offered once during `/slashforge-setup`. Once installed, its own `graphify codex install` writes the `AGENTS.md` section and registers a PreToolUse hook that auto-surfaces graph context for every subsequent command, with no extra guide-side enforcement needed.
+**This is not a preflight check.** Do not check for Graphify on every command — it is a repo-level dependency, offered once during `/slashforge-setup`. Once installed, its own `graphify codex install` writes the `AGENTS.md` section — the always-on graph guidance on Codex — with no extra guide-side enforcement needed. It also registers a `PreToolUse` hook in `.codex/hooks.json` that Graphify deliberately leaves as a no-op, because Codex rejects hook-injected context.
 <!--/target-->
 
 ---
@@ -103,7 +103,7 @@ Use this block for both Branch A and Branch B. Drop the `uv`/Python cost bullet 
 | **Hook-in** | Phase 4 (after kit writes `CLAUDE.md`) | `graphify claude install` (append + hook) + SUMMARY.html. | **Yes — must be last** |
 <!--/target-->
 <!--target:cursor-->
-| **Hook-in** | Phase 4 (after kit writes its rules) | `graphify cursor install` (append + hook) + SUMMARY.html. | **Yes — must be last** |
+| **Hook-in** | Phase 4 (after kit writes its rules) | `graphify cursor install` (writes the always-applied rule) + SUMMARY.html. | **Yes — must be last** |
 <!--/target-->
 <!--target:codex-->
 | **Hook-in** | Phase 4 (after kit writes `AGENTS.md`) | `graphify codex install` (append + hook) + SUMMARY.html. | **Yes — must be last** |
@@ -136,7 +136,15 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 <!--/target-->
    ```bash
    uv tool install graphifyy        # [Provision] installs the CLI (note: double-y package name)
-   graphify install                 # [Provision] Graphify's own first-run setup
+<!--target:claude-->
+   graphify install                 # [Provision] registers the /graphify skill with Claude Code
+<!--/target-->
+<!--target:cursor-->
+   graphify install --platform agents  # [Provision] registers the /graphify skill in ~/.agents/skills, which Cursor reads
+<!--/target-->
+<!--target:codex-->
+   graphify install --platform codex   # [Provision] registers the $graphify skill with Codex
+<!--/target-->
    graphify .                       # [Provision] indexes this repo — seconds to minutes
 <!--target:claude-->
    graphify claude install          # [Hook-in, runs LAST] appends CLAUDE.md section + installs Glob/Grep PreToolUse hook
@@ -145,7 +153,7 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
    graphify cursor install          # [Hook-in, runs LAST] writes .cursor/rules/graphify.mdc (always-applied rule)
 <!--/target-->
 <!--target:codex-->
-   graphify codex install          # [Hook-in, runs LAST] appends AGENTS.md section + registers PreToolUse hook
+   graphify codex install          # [Hook-in, runs LAST] appends the AGENTS.md section (the always-on guidance) + a no-op hook
 <!--/target-->
    ```
    If `uv` is not available on the user's system, fall back to `pipx install graphifyy` or `pip install graphifyy` — mention both alternatives before asking.
@@ -161,6 +169,7 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 <!--/target-->
 <!--target:codex-->
 5. Run the **first three** commands in order in the shell, stopping on any failure and surfacing the error verbatim. The user still sees each shell command through the normal permission-prompt flow unless they've pre-allowed shell commands. **Do not run `graphify codex install` here** — it appends to `AGENTS.md` and must wait until the kit has written `AGENTS.md`.
+   Before `graphify .`, check `~/.codex/config.toml` has `multi_agent = true` under `[features]` — Graphify's parallel extraction needs it on Codex. If it is missing, tell the user and offer to add it; do not edit their config unasked.
 <!--/target-->
 
 <!--target:claude-->
@@ -179,7 +188,7 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 6. Run `graphify cursor install` in the shell — writes `.cursor/rules/graphify.mdc`, an always-applied rule.
 <!--/target-->
 <!--target:codex-->
-6. Run `graphify codex install` in the shell — appends the `AGENTS.md` section + registers a PreToolUse hook in `.codex/hooks.json`.
+6. Run `graphify codex install` in the shell — appends the `AGENTS.md` section, the always-on graph guidance on Codex. It also registers a `PreToolUse` hook in `.codex/hooks.json` that Graphify deliberately leaves as a no-op, because Codex rejects hook-injected context.
 <!--/target-->
 7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `slashforge-graph-summary.md`. **No second prompt** — the user's yes to Graphify covers this. ~5–15k tokens, one-time.
 
@@ -209,7 +218,7 @@ Common case for users who already have `graphify` installed globally and are set
    graphify cursor install          # [Hook-in, runs LAST] writes .cursor/rules/graphify.mdc (always-applied rule)
 <!--/target-->
 <!--target:codex-->
-   graphify codex install          # [Hook-in, runs LAST] appends AGENTS.md section + registers PreToolUse hook
+   graphify codex install          # [Hook-in, runs LAST] appends the AGENTS.md section (the always-on guidance) + a no-op hook
 <!--/target-->
    ```
 3. **Ask explicitly:** *"Index this repo with these commands? (y/n)"* — no default-to-yes, no shortcut flag. Capture the answer; do not run anything yet.
@@ -224,6 +233,7 @@ Common case for users who already have `graphify` installed globally and are set
 <!--/target-->
 <!--target:codex-->
 5. Run **`graphify .`** in the shell, stopping on any failure and surfacing the error verbatim. **Do not run `graphify codex install` here** — defer it to Hook-in.
+   Before `graphify .`, check `~/.codex/config.toml` has `multi_agent = true` under `[features]` — Graphify's parallel extraction needs it on Codex. If it is missing, tell the user and offer to add it; do not edit their config unasked.
 <!--/target-->
 
 <!--target:claude-->
@@ -242,7 +252,7 @@ Common case for users who already have `graphify` installed globally and are set
 6. Run `graphify cursor install` in the shell — writes `.cursor/rules/graphify.mdc`, an always-applied rule.
 <!--/target-->
 <!--target:codex-->
-6. Run `graphify codex install` in the shell — appends the `AGENTS.md` section + registers a PreToolUse hook in `.codex/hooks.json`.
+6. Run `graphify codex install` in the shell — appends the `AGENTS.md` section, the always-on graph guidance on Codex. It also registers a `PreToolUse` hook in `.codex/hooks.json` that Graphify deliberately leaves as a no-op, because Codex rejects hook-injected context.
 <!--/target-->
 7. Synthesise `graphify-out/SUMMARY.html` from `graphify-out/GRAPH_REPORT.md` per `slashforge-graph-summary.md`. **No second prompt.** ~5–15k tokens, one-time.
 
@@ -309,7 +319,7 @@ Tell the user, verbatim (drop "installed and" on Branch B since the CLI was alre
 > *"Graphify is installed and this repo is indexed. I've also synthesised `graphify-out/SUMMARY.html` — the human-readable version of the graph report (read it once to anchor your mental model). Open a separate terminal tab and run `graphify watch .` to keep the graph in sync with file changes — without it, the graph goes stale and agents may cite relationships that no longer exist. The `.cursor/rules/graphify.mdc` rule is now in place; the agent will see graph context automatically on the next command."*
 <!--/target-->
 <!--target:codex-->
-> *"Graphify is installed and this repo is indexed. I've also synthesised `graphify-out/SUMMARY.html` — the human-readable version of the graph report (read it once to anchor your mental model). Open a separate terminal tab and run `graphify watch .` to keep the graph in sync with file changes — without it, the graph goes stale and agents may cite relationships that no longer exist. The Codex PreToolUse hook is now active; the agent will see graph context automatically on the next command."*
+> *"Graphify is installed and this repo is indexed. I've also synthesised `graphify-out/SUMMARY.html` — the human-readable version of the graph report (read it once to anchor your mental model). Open a separate terminal tab and run `graphify watch .` to keep the graph in sync with file changes — without it, the graph goes stale and agents may cite relationships that no longer exist. The `AGENTS.md` section Graphify added now points the agent at the graph on every command."*
 <!--/target-->
 
 Branch B variant: *"This repo is now indexed. I've also synthesised `graphify-out/SUMMARY.html`..."* (rest identical).
@@ -322,7 +332,7 @@ Branch B variant: *"This repo is now indexed. I've also synthesised `graphify-ou
 The PreToolUse hook Graphify installs handles the default case — agents see graph context before any Glob or Grep call. Two phase-specific reinforcements in case the hook misses:
 <!--/target-->
 <!--target:codex-->
-The PreToolUse hook Graphify installs handles the default case — agents see graph context before a search. Two phase-specific reinforcements in case the hook misses:
+The `AGENTS.md` section Graphify appends handles the default case — it is always in context on Codex, and the hook Graphify registers there is deliberately a no-op. Two phase-specific reinforcements in case the hook misses:
 <!--/target-->
 <!--target:cursor-->
 The always-applied `.cursor/rules/graphify.mdc` rule Graphify writes handles the default case — it puts graph context in front of the agent on every request. Two phase-specific reinforcements in case it is not enough:
@@ -386,7 +396,7 @@ Steady-state cost on a healthy repo (graph fresh, watch running): negligible. Bi
 
 ## Caveats
 
-- **Stale-graph correctness risk.** A graph that's 2 weeks old in an actively-refactored repo will make Claude cite relationships that no longer exist. `graphify watch` is not optional — it's the mitigation. Tell the user this explicitly.
+- **Stale-graph correctness risk.** A graph that's 2 weeks old in an actively-refactored repo will make the agent cite relationships that no longer exist. `graphify watch` is not optional — it's the mitigation. Tell the user this explicitly.
 - **Language coverage is partial.** Non-supported files (YAML, shell, config) are not in the graph. The agent still greps those; the graph just covers the code surface it supports.
 - **Graphify is pre-1.0 and releases often.** Interfaces may shift upstream. If `graphify` commands change, re-run `npx slashforge` to pull updated guide content.
 - **Never add a `--yes` / auto-install flag to this offer.** Principle: the user sees what's being installed on their machine.

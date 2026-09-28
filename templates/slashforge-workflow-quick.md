@@ -30,8 +30,8 @@ its fast path already handles trivial tasks without the ceremony.
 PreToolUse hook would normally surface a graph summary before Glob/Grep, that's
 <!--/target-->
 <!--target:codex-->
-**Code graph (Graphify) in lean mode:** skip it. If Graphify is installed and its
-PreToolUse hook would normally surface a graph summary before a search, that's
+**Code graph (Graphify) in lean mode:** skip it. If Graphify is installed, its
+`AGENTS.md` section still points you at the graph, and that's
 <!--/target-->
 <!--target:cursor-->
 **Code graph (Graphify) in lean mode:** skip it. If Graphify is installed, its

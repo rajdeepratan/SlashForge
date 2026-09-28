@@ -80,7 +80,7 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 2. **Show the exact four commands** that will run, so the user sees what they're authorising — note that the first three run now (Provision) and the fourth runs last (Hook-in), after the kit writes `CLAUDE.md`:
    ```bash
    uv tool install graphifyy        # [Provision] installs the CLI (note: double-y package name)
-   graphify install                 # [Provision] Graphify's own first-run setup
+   graphify install                 # [Provision] registers the /graphify skill with Claude Code
    graphify .                       # [Provision] indexes this repo — seconds to minutes
    graphify claude install          # [Hook-in, runs LAST] appends CLAUDE.md section + installs Glob/Grep PreToolUse hook
    ```
@@ -210,7 +210,7 @@ Steady-state cost on a healthy repo (graph fresh, watch running): negligible. Bi
 
 ## Caveats
 
-- **Stale-graph correctness risk.** A graph that's 2 weeks old in an actively-refactored repo will make Claude cite relationships that no longer exist. `graphify watch` is not optional — it's the mitigation. Tell the user this explicitly.
+- **Stale-graph correctness risk.** A graph that's 2 weeks old in an actively-refactored repo will make the agent cite relationships that no longer exist. `graphify watch` is not optional — it's the mitigation. Tell the user this explicitly.
 - **Language coverage is partial.** Non-supported files (YAML, shell, config) are not in the graph. The agent still greps those; the graph just covers the code surface it supports.
 - **Graphify is pre-1.0 and releases often.** Interfaces may shift upstream. If `graphify` commands change, re-run `npx slashforge` to pull updated guide content.
 - **Never add a `--yes` / auto-install flag to this offer.** Principle: the user sees what's being installed on their machine.

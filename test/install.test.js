@@ -2648,7 +2648,7 @@ test('Cursor and Codex guides do not speak as Claude', () => {
   const home = tmp();
   const a = resolveAgents({ homeDir: home, cwd: home });
   installAgentsFiles(a, {});
-  const bad = /Claude Setup|Claude Development Workflow|Claude could|via Bash|\bClaude (runs|can|should|follows|uses|citing|still|self-selects|selects|doesn't)\b|Claude to decide|Claude from|Glob\/Grep|Glob or Grep/;
+  const bad = /Claude Setup|Claude Development Workflow|Claude could|via Bash|\bClaude (runs|can|should|follows|uses|citing|cite|still|self-selects|selects|doesn't)\b|Claude to decide|Claude from|Glob\/Grep|Glob or Grep/;
   for (const h of a.hosts) {
     for (const f of fs.readdirSync(h.guidesDir).filter((n) => n.endsWith('.md'))) {
       const m = bad.exec(fs.readFileSync(path.join(h.guidesDir, f), 'utf8'));
@@ -2669,4 +2669,22 @@ test('the install summary names all three agents', () => {
   const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
   const out = execFileSync('node', [BIN, '--yes'], { env, encoding: 'utf8' });
   assert.match(out, /Open Claude Code, Cursor or Codex in any repo/);
+});
+
+// Graphify registers its skill per platform, and on Codex its hook is a no-op:
+// AGENTS.md carries the guidance (Graphify README, "Codex writes to AGENTS.md").
+test('Graphify is installed and described per agent', () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const read = (h, f) => fs.readFileSync(path.join(a.root, h, f), 'utf8');
+  const codex = read('codex', 'slashforge-graph.md');
+  const cursor = read('cursor', 'slashforge-graph.md');
+  assert.match(codex, /graphify install --platform codex/);
+  assert.match(cursor, /graphify install --platform agents/);
+  for (const g of [codex, cursor]) assert.doesNotMatch(g, /^\s*graphify install\s+#/m, 'bare install is Claude Code only');
+  assert.match(codex, /multi_agent = true/);
+  for (const f of fs.readdirSync(path.join(a.root, 'codex')).filter((n) => n.endsWith('.md'))) {
+    assert.doesNotMatch(read('codex', f), /hook[^.\n]*(surfac|handles the default)/i, 'codex/' + f + ': the Codex hook is a no-op');
+  }
 });
