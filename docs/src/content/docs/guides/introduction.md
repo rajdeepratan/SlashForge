@@ -12,12 +12,29 @@ letting it freewheel from prompt to patch.
 
 ## What gets installed
 
-Two things land on your machine, for each agent:
+Two things land on your machine. Where they go depends on your agent — pick yours
+in the header:
 
-| What | Claude Code | Cursor | Codex |
-| --- | --- | --- | --- |
-| Guide files | `~/.claude/setup/slashforge/` | `~/.agents/setup/slashforge/cursor/` | `~/.agents/setup/slashforge/codex/` |
-| Commands | `~/.claude/commands/slashforge-<name>.md` | `~/.agents/skills/slashforge-<name>/` | `~/.agents/skills/slashforge-<name>/` |
+:::agent[claude]
+| What | Where |
+| --- | --- |
+| Guide files | `~/.claude/setup/slashforge/` |
+| Commands | `~/.claude/commands/slashforge-<name>.md` |
+:::
+
+:::agent[cursor]
+| What | Where |
+| --- | --- |
+| Guide files | `~/.agents/setup/slashforge/cursor/` |
+| Commands | `~/.agents/skills/slashforge-<name>/` |
+:::
+
+:::agent[codex]
+| What | Where |
+| --- | --- |
+| Guide files | `~/.agents/setup/slashforge/codex/` |
+| Commands | `~/.agents/skills/slashforge-<name>/` |
+:::
 
 Cursor and Codex share the same `~/.agents/skills/` folders; only their guides are separate.
 
@@ -32,16 +49,40 @@ with commands you already have — and it is the same name on every host.
 
 `/slashforge-setup` generates six kinds of file into your repo. They are concepts
 all three agents share rather than SlashForge inventions, though each keeps them
-in its own place:
+in its own place — shown here for the agent picked in the header:
 
-| Term | What it is | Claude Code | Cursor | Codex |
-| --- | --- | --- | --- | --- |
-| Entry file | The root instruction file the agent reads first — architecture, conventions, and where to route a given kind of request | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` |
-| Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | `.claude/rules/` | `.cursor/rules/*.mdc` | nested `AGENTS.md` |
-| Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.claude/skills/` | `.cursor/skills/` | `.agents/skills/` |
-| Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.claude/agents/` | `.cursor/agents/` | `.codex/agents/*.toml` |
-| Commands | Repo-specific commands, on top of the four SlashForge installs | `.claude/commands/` | `.cursor/commands/` | none — a skill instead |
-| Hooks | Automated behaviours that fire on an event, without being asked | `.claude/settings.json` | `.cursor/hooks.json` | `.codex/hooks.json` |
+:::agent[claude]
+| Term | What it is | Where it lives |
+| --- | --- | --- |
+| Entry file | The root instruction file the agent reads first — architecture, conventions, and where to route a given kind of request | `CLAUDE.md` |
+| Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | `.claude/rules/` |
+| Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.claude/skills/` |
+| Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.claude/agents/` |
+| Commands | Repo-specific commands, on top of the four SlashForge installs | `.claude/commands/` |
+| Hooks | Automated behaviours that fire on an event, without being asked | `.claude/settings.json` |
+:::
+
+:::agent[cursor]
+| Term | What it is | Where it lives |
+| --- | --- | --- |
+| Entry file | The root instruction file the agent reads first — architecture, conventions, and where to route a given kind of request | `AGENTS.md` |
+| Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | `.cursor/rules/*.mdc` |
+| Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.cursor/skills/` |
+| Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.cursor/agents/` |
+| Commands | Repo-specific commands, on top of the four SlashForge installs | `.cursor/commands/` |
+| Hooks | Automated behaviours that fire on an event, without being asked | `.cursor/hooks.json` |
+:::
+
+:::agent[codex]
+| Term | What it is | Where it lives |
+| --- | --- | --- |
+| Entry file | The root instruction file the agent reads first — architecture, conventions, and where to route a given kind of request | `AGENTS.md` |
+| Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | nested `AGENTS.md` |
+| Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.agents/skills/` |
+| Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.codex/agents/*.toml` |
+| Commands | Repo-specific commands, on top of the four SlashForge installs | none — a skill instead |
+| Hooks | Automated behaviours that fire on an event, without being asked | `.codex/hooks.json` |
+:::
 
 ## The four commands
 

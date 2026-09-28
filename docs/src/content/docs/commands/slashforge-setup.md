@@ -27,14 +27,42 @@ that host's own setup guide.
 
 ## What it creates
 
-| Output | Purpose | Claude Code | Cursor | Codex |
-| --- | --- | --- | --- | --- |
-| Entry file | Root instructions — architecture, conventions, intent routing | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` |
-| Rules | Conventions the agent must follow | `.claude/rules/` | `.cursor/rules/*.mdc` | nested `AGENTS.md` |
-| Skills | Repo-specific procedures | `.claude/skills/` | `.cursor/skills/` | `.agents/skills/` |
-| Agents | Specialist agents, plus shared `git` and `code-reviewer` | `.claude/agents/` | `.cursor/agents/` | `.codex/agents/*.toml` |
-| Commands | Repo-specific commands | `.claude/commands/` | `.cursor/commands/` | none — a skill instead |
-| Hooks | Automated behaviours | `.claude/settings.json` | `.cursor/hooks.json` | `.codex/hooks.json` |
+Six kinds of file, in your agent's own layout — shown here for the agent picked in
+the header. See the CLI reference for
+[all three side by side](/slashforge/reference/cli/#what-setup-writes-on-each-host).
+
+:::agent[claude]
+| Output | Purpose | Where |
+| --- | --- | --- |
+| Entry file | Root instructions — architecture, conventions, intent routing | `CLAUDE.md` |
+| Rules | Conventions the agent must follow | `.claude/rules/` |
+| Skills | Repo-specific procedures | `.claude/skills/` |
+| Agents | Specialist agents, plus shared `git` and `code-reviewer` | `.claude/agents/` |
+| Commands | Repo-specific commands | `.claude/commands/` |
+| Hooks | Automated behaviours | `.claude/settings.json` |
+:::
+
+:::agent[cursor]
+| Output | Purpose | Where |
+| --- | --- | --- |
+| Entry file | Root instructions — architecture, conventions, intent routing | `AGENTS.md` |
+| Rules | Conventions the agent must follow | `.cursor/rules/*.mdc` |
+| Skills | Repo-specific procedures | `.cursor/skills/` |
+| Agents | Specialist agents, plus shared `git` and `code-reviewer` | `.cursor/agents/` |
+| Commands | Repo-specific commands | `.cursor/commands/` |
+| Hooks | Automated behaviours | `.cursor/hooks.json` |
+:::
+
+:::agent[codex]
+| Output | Purpose | Where |
+| --- | --- | --- |
+| Entry file | Root instructions — architecture, conventions, intent routing | `AGENTS.md` |
+| Rules | Conventions the agent must follow | nested `AGENTS.md` |
+| Skills | Repo-specific procedures | `.agents/skills/` |
+| Agents | Specialist agents, plus shared `git` and `code-reviewer` | `.codex/agents/*.toml` |
+| Commands | Repo-specific commands | none — a skill instead |
+| Hooks | Automated behaviours | `.codex/hooks.json` |
+:::
 
 ## Safe re-runs
 
