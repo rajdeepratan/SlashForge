@@ -10,34 +10,40 @@ npx slashforge
 ```
 
 ==That installs the guide files and the four commands for Claude Code, Cursor and
-Codex== — into `~/.claude/` and `~/.agents/`. Open Claude Code in any repo and type `/` — you should see `/slashforge-setup`,
-`/slashforge-code`, `/slashforge-investigate`, and `/slashforge-review-pr`.
+Codex== — into `~/.claude/` and `~/.agents/`. There is nothing to choose. Check they
+are there:
 
-### Using Cursor or Codex
+:::agent[claude]
+Open Claude Code in any repo and type `/` — you should see `/slashforge-setup`,
+`/slashforge-code`, `/slashforge-investigate` and `/slashforge-review-pr`.
+:::
 
-The same `npx slashforge` sets them up too — there is nothing to choose.
+:::agent[cursor]
+Open Cursor in any repo and type `/` — you should see `/slashforge-setup`,
+`/slashforge-code`, `/slashforge-investigate` and `/slashforge-review-pr`. The commands
+install to `~/.agents/skills/`, which Cursor reads.
+:::
 
-It installs to `~/.agents/skills/`, which ==Cursor and Codex both read==. Type `/`
-in Cursor and you should see `/slashforge-setup`, `/slashforge-code`,
-`/slashforge-investigate` and `/slashforge-review-pr`. In Codex they are invoked with
-`$` — `$slashforge-code`.
+:::agent[codex]
+The commands install to `~/.agents/skills/`, which Codex reads, and are invoked with
+`$` rather than `/`. In any repo, type `$slashforge-code` — and `$slashforge-setup`,
+`$slashforge-investigate`, `$slashforge-review-pr`.
+:::
 
-==On Cursor and Codex the four commands run only when you type them==: the agent never
-starts one on its own because a prompt looked relevant.
+Two things worth knowing before you start:
 
-==Each host still gets its own setup.== Cursor and Codex share the skills, but setup
-scaffolds each host's own layout, so their guides live in separate folders:
-`~/.agents/setup/slashforge/cursor/` and `…/codex/`. The first thing each command does
-is work out which of the two it is running in; if it can't tell, it asks you once.
+- ==Commands have the same name on every agent.== Pick your agent in the header and
+  the docs show the form it takes.
+- ==On Cursor and Codex the four commands run only when you type them== — the agent
+  never starts one on its own because a prompt looked relevant.
 
-Two differences worth knowing before you start:
-
-- ==Commands have the same name on every agent.== Only Codex invokes them with `$`
-  rather than `/`; pick your agent in the header and the docs show the form it takes.
-- ==Setup scaffolds your host's own layout.== On Cursor that is `.cursor/rules/*.mdc`
-  and `.cursor/agents/`; on Codex, nested `AGENTS.md` and `.codex/agents/*.toml`. It
-  never writes `CLAUDE.md` or `.claude/` in Cursor or Codex. Every step below applies
-  to all three hosts.
+==Cursor and Codex share the skills in `~/.agents/skills/`, but setup scaffolds each
+host's own layout==, so their guides live in separate folders
+(`~/.agents/setup/slashforge/cursor/` and `…/codex/`). On Cursor that layout is
+`.cursor/rules/*.mdc` and `.cursor/agents/`; on Codex, nested `AGENTS.md` and
+`.codex/agents/*.toml`. It never writes `CLAUDE.md` or `.claude/` in Cursor or Codex.
+The first thing each command does is work out which host it is running in; if it can't
+tell, it asks you once.
 
 See [the CLI reference](/slashforge/reference/cli/#hosts) for where each host's files land.
 
@@ -45,11 +51,7 @@ See [the CLI reference](/slashforge/reference/cli/#hosts) for where each host's 
 
 Start to finish, for a repo that has never used SlashForge.
 
-**1. Install SlashForge.**
-
-```bash
-npx slashforge
-```
+**1. Install SlashForge** — `npx slashforge`, as above.
 
 **2. Nothing else to install.** ==SlashForge ships every discipline skill the workflow
 uses, so there is no plugin step.== See [Skills](/slashforge/guides/skills/) for
