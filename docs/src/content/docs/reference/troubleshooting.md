@@ -7,6 +7,7 @@ description: The handful of things that actually go wrong, and what to do about 
 
 ==By far the most common one.== You type `/` (`$` in Codex) and see nothing named `slashforge`.
 
+::::agent[claude]
 ### In Claude Code
 
 :::steps
@@ -15,7 +16,9 @@ description: The handful of things that actually go wrong, and what to do about 
 3. **Check the name.** Every version before 5.0 used a different spelling; since 5.0 it is `/slashforge-code`, with a `-`, on every agent. See [Migrating](/slashforge/reference/migrating/).
 4. If `status` shows nothing installed, re-run `npx slashforge` and watch for a permissions error on `~/.claude/`.
 :::
+::::
 
+::::agent[cursor,codex]
 ### In Cursor or Codex
 
 :::steps
@@ -34,6 +37,7 @@ nested `AGENTS.md` and `.codex/agents/*.toml` on Codex. It never writes `.claude
 If setup writes the wrong host's files, it guessed the host wrong: tell it
 "you are in Cursor" (or Codex) and run it again.
 :::
+::::
 
 ## Codex does not list a slashforge skill
 
