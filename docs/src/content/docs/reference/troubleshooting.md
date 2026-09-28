@@ -39,6 +39,7 @@ If setup writes the wrong host's files, it guessed the host wrong: tell it
 :::
 ::::
 
+::::agent[codex]
 ## Codex does not list a slashforge skill
 
 The files are on disk, but `$slashforge-code` is missing from Codex's skill list, or
@@ -56,6 +57,7 @@ with many other skills installed one of them can fall off the list.
 2. **Remove skills you no longer use** from `~/.agents/skills/` and the repo's
    `.agents/skills/` to bring the list back under the cap.
 :::
+::::
 
 ## It installed an old version
 

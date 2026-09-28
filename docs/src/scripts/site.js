@@ -69,6 +69,18 @@ import {
     document.querySelectorAll('[data-target-value]').forEach(function (el) {
       el.textContent = t.charAt(0).toUpperCase() + t.slice(1);
     });
+    /* Keep the on-this-page rail in step with per-agent sections: a heading
+       that lives in an :::agent block hidden for this target must not show as a
+       rail entry pointing at nothing. */
+    document.querySelectorAll('.toc a[href^="#"]').forEach(function (a) {
+      var id = decodeURIComponent(a.getAttribute('href').slice(1));
+      var el = document.getElementById(id);
+      var li = a.closest('li');
+      if (!el || !li) return;
+      var block = el.closest('.agent-only');
+      var shown = !block || block.getAttribute('data-agent').split(' ').indexOf(t) !== -1;
+      li.hidden = !shown;
+    });
     /* The terminal replay animates by writing textContent, so its lines are
        plain text by the time anyone switches — it cannot be updated by walking
        [data-cmd] like everything else. It rebuilds itself on this event. */
@@ -381,6 +393,10 @@ import {
 
     var seen = targets[0];
     targets.forEach(function (t) {
+      /* A heading inside an :::agent block hidden for the current target has no
+         offsetParent; skip it so a collapsed section (top 0) never captures the
+         marker. */
+      if (t.offsetParent === null) return;
       if (t.getBoundingClientRect().top <= line) seen = t;
     });
     links.forEach(function (a) {
@@ -412,6 +428,9 @@ import {
   /* The reading line is derived from the viewport height, so a resize (or a
      phone rotating) has to recompute it even with no scroll. */
   window.addEventListener('resize', mark, { passive: true });
+  /* Switching agent shows/hides sections, which changes which headings the
+     marker can land on — recompute at once rather than waiting for a scroll. */
+  document.addEventListener('sf:target', mark);
 })();
 
 /* ---- help menu on the action bar ----
