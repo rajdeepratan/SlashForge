@@ -1172,6 +1172,13 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
    the part that can go, leaving "CLAUDE" — about as wide as "DARK". */
 @media (max-width: 640px) {
   .agentsw__label { display: none; }
+  /* The header picker goes icon-only on phones — the aria-label names the
+     control and the accent colour already shows which agent is picked, so the
+     value and its gap can drop to reclaim the width that pushed the header
+     past a 390px screen. Scoped to the header: the landing banner's picker
+     (.agentsw--hero) keeps its value. */
+  .hdr__right .agentsw__value { display: none; }
+  .hdr__right .agentsw__btn { padding: 6px 9px; gap: 0; }
 }
 
 /* On the landing page the picker sits in the banner, above the two buttons, and
@@ -1438,12 +1445,18 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
 /* Long unbroken strings — URLs, package names — must not push the page out. */
 .main :is(p, li, td, h1, h2, h3) { overflow-wrap: break-word; }
 
-/* Small phones. The header budget runs out just under 375px: brand + search +
-   menu + theme needs ~337px, and a 360px screen only offers ~328px after
-   gutters. The wordmark is the one part that can go — the mark still reads as
-   the brand and still links home. */
-@media (max-width: 374px) {
+/* The header budget. Since the agent picker joined the header (brand + picker +
+   search + menu + theme), the row no longer fits a phone even with the picker
+   shrunk to an icon: at 390px the wordmark and the full right group together
+   run past the screen. The wordmark is the part that can go — the mark still
+   reads as the brand and still links home — so it drops across the phone range
+   rather than only on the smallest screens. */
+@media (max-width: 430px) {
   .brand span { display: none; }
+}
+
+/* Small phones: tighten the page gutters and footer too. */
+@media (max-width: 374px) {
   .main { padding: 28px 16px 56px; }
   .band { padding-inline: 16px; }
   .foot { --bar-pad: 14px; }

@@ -21,10 +21,12 @@ export const NAV: NavGroup[] = [
     label: 'Start here',
     items: [
       { label: 'Introduction', slug: 'guides/introduction' },
-      { label: 'Plan mode and /init', slug: 'guides/plan-mode-and-init' },
       { label: 'What a run looks like', slug: 'guides/example-run' },
       { label: 'What it does to your machine', slug: 'guides/trust' },
       { label: 'Installation', slug: 'guides/installation' },
+      // A side comparison, so it follows the setup steps rather than sitting
+      // ahead of them for a newcomer.
+      { label: 'Plan mode and /init', slug: 'guides/plan-mode-and-init' },
     ],
   },
   {

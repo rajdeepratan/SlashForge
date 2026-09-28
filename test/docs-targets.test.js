@@ -193,3 +193,20 @@ test('the html element carries a static claude default for no-JS readers', () =>
     require('path').join(__dirname, '..', 'docs/src/layouts/Base.astro'), 'utf8');
   assert.match(base, /<html lang="en" data-target="claude">/);
 });
+
+// A newcomer's reading order in "Start here" is the objection-then-setup path;
+// "Plan mode and /init" is a side comparison and belongs after the setup steps,
+// not ahead of Installation. nav.ts is TypeScript, so this compares the source
+// text rather than importing it — the same approach the CSS assertions use.
+test('Installation comes before Plan mode and /init in the sidebar', () => {
+  const nav = require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'docs/src/nav.ts'), 'utf8');
+  const start = nav.indexOf("label: 'Start here'");
+  const commands = nav.indexOf("label: 'Commands'");
+  const install = nav.indexOf("slug: 'guides/installation'");
+  const planMode = nav.indexOf("slug: 'guides/plan-mode-and-init'");
+  // Both live in the Start here group, and Installation precedes plan mode.
+  assert.ok(install > start && install < commands, 'Installation is in Start here');
+  assert.ok(planMode > start && planMode < commands, 'plan mode is in Start here');
+  assert.ok(install < planMode, 'Installation should precede plan mode');
+});
