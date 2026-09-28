@@ -400,6 +400,12 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
   padding: 4px 8px;
 }
 .note p { margin: 0; font-size: 15.5px; line-height: 1.7; max-width: 62ch; }
+/* The label sits in column 1; every body block belongs in column 2. Without
+   this, a note with more than one paragraph lets grid auto-placement drop the
+   second block back into column 1, which stretches the "auto" label column
+   wide and squeezes the body into a sliver on the right. The grid's own
+   row-gap spaces stacked body blocks. */
+.note > :not(.note__label) { grid-column: 2; }
 
 /* Numbered steps: hairlined cells in one ruled frame. */
 .steps {
@@ -1421,6 +1427,8 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
   }
 
   .note__label { justify-self: start; }
+  /* Single column here, so the body blocks drop back to column 1. */
+  .note > :not(.note__label) { grid-column: 1; }
 
   /* Two cells at ~155px each wrap every label onto three lines. */
   .pager { grid-template-columns: minmax(0, 1fr); }
