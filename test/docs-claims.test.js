@@ -91,6 +91,24 @@ test('no user-facing doc mentions --target, which never shipped', () => {
   assert.match(pkg.description, /Claude Code, Cursor(,)? and Codex/);
 });
 
+test('the plan-mode page states the verified feature matrix', () => {
+  const p = fs.readFileSync(
+    path.join(ROOT, 'docs/src/content/docs/guides/plan-mode-and-init.md'), 'utf8');
+  // The old opening claimed only Claude Code and Cursor have a plan mode, and
+  // split /init as Claude+Codex against a Cursor plan mode. Both are wrong:
+  // all three have a plan mode; /init is Claude Code and Codex, not Cursor.
+  assert.ok(!/Claude Code and Cursor ship a plan mode/i.test(p),
+    'stale plan-mode description still present');
+  assert.ok(!/Claude Code and Cursor both have one/i.test(p),
+    'stale "both have one" plan-mode claim still present');
+  // The corrections must be stated, via the per-agent mechanism.
+  assert.match(p, /:::agent\[/, 'page should use :::agent blocks');
+  assert.match(p, /codex/i, 'Codex must be named in the plan-mode discussion');
+  assert.match(p, /\/plan|Shift\+Tab/, 'how plan mode is entered must be named');
+  assert.match(p, /no built-in `\/init`|has no `\/init`|Cursor[^.]*no[^.]*\/init/i,
+    'the Cursor /init gap must be stated');
+});
+
 test('no user-facing doc names a command in the colon form', () => {
   const files = [];
   (function walk(d) {
