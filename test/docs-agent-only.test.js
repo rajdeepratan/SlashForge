@@ -74,6 +74,24 @@ test('an unknown target is dropped and reported', async () => {
   assert.ok(file.messages.some((m) => /bogus/.test(m)), 'unknown target should be reported');
 });
 
+test('remarkCallouts leaves :::agent alone so agent-only can own it', async () => {
+  // Astro runs remarkCallouts before remarkAgentOnly. remarkCallouts treats any
+  // unknown container directive as a plain note — which, unless it skips
+  // "agent", consumes the [claude,codex] label before this plugin reads it and
+  // ships an empty data-agent. This runs them in the real order.
+  const { remarkAgentOnly } = await load();
+  const { remarkCallouts } = await import('../docs/src/plugins/remark-callouts.mjs');
+  const tree = directive('claude,codex', 'Both.');
+  const file = fakeFile();
+
+  remarkCallouts()(tree, file);
+  remarkAgentOnly()(tree, file);
+
+  const node = tree.children[0];
+  assert.equal(node.data.hProperties.class, 'agent-only');
+  assert.equal(node.data.hProperties['data-agent'], 'claude codex');
+});
+
 test('non-agent container directives are left alone', async () => {
   const { remarkAgentOnly } = await load();
   const tree = {

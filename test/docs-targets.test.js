@@ -170,3 +170,26 @@ test('the example rule file follows the chosen agent', async () => {
   EXAMPLE_PATH_RE.lastIndex = 0;
   assert.ok(!EXAMPLE_PATH_RE.test('see ~/.claude/setup/slashforge/'), 'install paths are not example paths');
 });
+
+// Per-agent content blocks (:::agent) are hidden by default and revealed for
+// the active target. The rule is CSS-only so it works before the switch script
+// runs, and the built HTML defaults to Claude Code so a no-JS reader sees the
+// Claude content.
+test('agent-only blocks are hidden by default and shown per target', () => {
+  const css = require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'docs/src/styles/site.css'), 'utf8');
+  assert.match(css, /\.agent-only\s*\{\s*display:\s*none/);
+  for (const t of ['claude', 'cursor', 'codex']) {
+    assert.match(
+      css,
+      new RegExp(`\\[data-target='${t}'\\][^{]*\\.agent-only\\[data-agent~='${t}'\\]`),
+      `${t} reveal rule`
+    );
+  }
+});
+
+test('the html element carries a static claude default for no-JS readers', () => {
+  const base = require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'docs/src/layouts/Base.astro'), 'utf8');
+  assert.match(base, /<html lang="en" data-target="claude">/);
+});

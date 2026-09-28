@@ -77,6 +77,17 @@
 [data-theme='dark'][data-target='cursor'] { --accent-text: #f0c850; --sel-bg: #332a0a; --mark-bg: #42370f; }
 [data-theme='dark'][data-target='codex']  { --accent-text: #a59cff; --sel-bg: #1e1a45; --mark-bg: #28235a; }
 
+/* Per-agent content blocks, written as `:::agent[claude]` in markdown (see
+   src/plugins/remark-agent-only.mjs). Hidden by default; the block whose
+   data-agent holds the active target is shown. data-target is set on <html>
+   before first paint and defaults to claude, so a reader with JavaScript off
+   sees the Claude Code content rather than nothing. The ~= selector matches a
+   space-separated word, so data-agent="claude codex" shows under both. */
+.agent-only { display: none; }
+[data-target='claude'] .agent-only[data-agent~='claude'],
+[data-target='cursor'] .agent-only[data-agent~='cursor'],
+[data-target='codex']  .agent-only[data-agent~='codex'] { display: block; }
+
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
