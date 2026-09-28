@@ -3,7 +3,7 @@ title: Graphify for graph-aware exploration
 description: Optional AST-level knowledge graph so agents query the call graph and blast radius instead of grepping files.
 ---
 
-[Graphify](https://github.com/safishamsi/graphify) is a local, AST-level
+[Graphify](https://github.com/Graphify-Labs/graphify) is a local, AST-level
 knowledge graph engine. Indexed against your repo, ==agents query the call graph,
 blast radius, and dependency surface directly instead of grepping raw files==.
 
@@ -20,14 +20,20 @@ Swift, Lua, Zig, PowerShell, Elixir, Objective-C, Julia, Verilog, SystemVerilog,
 Vue, Svelte, Dart.
 
 This is a **setup-time offer, not a per-command check**. Once installed,
-==Graphify surfaces graph context automatically== — through its own hook on Claude Code
-and Codex, and an always-applied rule on Cursor.
+==Graphify surfaces graph context automatically==, in each agent's own way: a hook on
+Claude Code, an always-applied rule on Cursor, and an `AGENTS.md` section on Codex.
+(Graphify also registers a hook on Codex, but deliberately leaves it as a no-op, because
+Codex rejects hook-injected context.)
 
 ## Prerequisites
 
 Graphify is a Python CLI. ==You need **Python 3.10+** and one of `uv`, `pipx`, or
 `pip`== — nothing more. Its dependencies (`networkx`, `numpy`, `rapidfuzz`, and a
 tree-sitter grammar per supported language) come down with the package.
+
+==On Codex, also set `multi_agent = true` under `[features]` in `~/.codex/config.toml`== —
+Graphify's parallel extraction needs it. Setup checks for it and tells you if it's
+missing; it never edits your config without asking.
 
 A few features live behind optional extras, which the plain install skips:
 
@@ -48,14 +54,17 @@ are shown the exact commands before anything is authorised:==
 
 ```bash
 uv tool install graphifyy        # or: pipx install graphifyy / pip install graphifyy
-graphify install
+graphify install                 # Claude Code: registers the /graphify skill
+graphify install --platform agents   # Cursor: the skill in ~/.agents/skills, which Cursor reads
+graphify install --platform codex    # Codex: registers the $graphify skill
 graphify .                       # initial indexing — seconds to minutes
 graphify claude install          # Claude Code: CLAUDE.md section + Glob/Grep PreToolUse hook
 graphify cursor install          # Cursor: an always-applied .cursor/rules/graphify.mdc rule
-graphify codex install           # Codex: AGENTS.md section + PreToolUse hook
+graphify codex install           # Codex: AGENTS.md section (plus a hook Graphify leaves as a no-op)
 ```
 
-Only the last line differs, and setup runs just the one for the agent you're in.
+Each agent runs four of these: the first line, its own `graphify install` line, `graphify .`,
+and its own last line. Setup shows you only the ones for the agent you're in.
 
 ==Say `n` and `/slashforge-setup` skips it silently.== Re-run `/slashforge-setup` later and
 the offer fires again.

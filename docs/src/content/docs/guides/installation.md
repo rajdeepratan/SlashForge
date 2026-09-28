@@ -22,6 +22,9 @@ in Cursor and you should see `/slashforge-setup`, `/slashforge-code`,
 `/slashforge-investigate` and `/slashforge-review-pr`. In Codex they are invoked with
 `$` — `$slashforge-code`.
 
+==The four commands run only when you type them==, as in Claude Code: the agent never
+starts one on its own because a prompt looked relevant.
+
 ==Each host still gets its own setup.== Cursor and Codex share the skills, but setup
 scaffolds each host's own layout, so their guides live in separate folders:
 `~/.agents/setup/slashforge/cursor/` and `…/codex/`. The first thing each command does

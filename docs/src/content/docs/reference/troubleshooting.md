@@ -5,7 +5,7 @@ description: The handful of things that actually go wrong, and what to do about 
 
 ## The commands do not appear
 
-==By far the most common one.== You type `/` and see nothing named `slashforge`.
+==By far the most common one.== You type `/` (`$` in Codex) and see nothing named `slashforge`.
 
 ### In Claude Code
 
@@ -22,7 +22,7 @@ description: The handful of things that actually go wrong, and what to do about 
 1. **Check the install reached `~/.agents/`.** Run `npx slashforge status`: it reports Claude Code and Cursor + Codex separately, and says if either is missing. Re-running `npx slashforge` fills the gap.
 2. **Older releases installed Claude Code only.** If you set up before Cursor and Codex support arrived, run `npx slashforge` again.
 3. **In Codex, use `$`.** The skills are invoked as `$slashforge-code` rather than with a slash.
-4. **Restart the editor.** Skills are discovered at session start.
+4. **Restart Cursor, or start a new Codex session.** Skills are discovered at session start.
 5. Confirm the files are on disk: `ls ~/.agents/skills/`. You should see a `slashforge-code` directory containing `SKILL.md`.
 :::
 
@@ -33,6 +33,24 @@ nested `AGENTS.md` and `.codex/agents/*.toml` on Codex. It never writes `.claude
 
 If setup writes the wrong host's files, it guessed the host wrong: tell it
 "you are in Cursor" (or Codex) and run it again.
+:::
+
+## Codex does not list a slashforge skill
+
+The files are on disk, but `$slashforge-code` is missing from Codex's skill list, or
+shows with a cut-down description.
+
+==Codex caps the skill list it starts each session with== at roughly 2% of the model's
+context, or 8,000 characters when it cannot tell. Past that it shortens descriptions
+first, then leaves skills out and shows a warning. SlashForge adds 13 skills, about
+2,900 characters between them, so on a machine with many other skills installed one of
+them can fall off the list.
+
+:::steps
+1. **Type it by name anyway.** `$slashforge-code` still runs when you type it in full —
+   the cap only limits the list Codex shows up front.
+2. **Remove skills you no longer use** from `~/.agents/skills/` and the repo's
+   `.agents/skills/` to bring the list back under the cap.
 :::
 
 ## It installed an old version

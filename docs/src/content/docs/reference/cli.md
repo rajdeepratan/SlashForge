@@ -105,7 +105,7 @@ If you accept the Graphify offer during setup, it wires itself in per host:
 | --- | --- | --- |
 | Claude Code | `graphify claude install` | `CLAUDE.md` section + a PreToolUse hook |
 | Cursor | `graphify cursor install` | `.cursor/rules/graphify.mdc` |
-| Codex | `graphify codex install` | `AGENTS.md` section + a PreToolUse hook |
+| Codex | `graphify codex install` | `AGENTS.md` section, the always-on guidance (its hook is a deliberate no-op) |
 
 Setup always writes its own files first and runs Graphify's step last, so
 Graphify's addition survives and is left alone on future re-runs.

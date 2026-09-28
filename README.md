@@ -185,22 +185,24 @@ They are adapted from [superpowers](https://github.com/obra/superpowers) under t
 
 ## Optional: Graphify for graph-aware exploration
 
-[Graphify](https://github.com/safishamsi/graphify) is a local AST-level knowledge graph engine. Once indexed against your repo, agents can query the call graph, blast radius, and dependency surface directly instead of grepping raw files.
+[Graphify](https://github.com/Graphify-Labs/graphify) is a local AST-level knowledge graph engine. Once indexed against your repo, agents can query the call graph, blast radius, and dependency surface directly instead of grepping raw files.
 
-**When it's offered:** `/slashforge-setup` detects language fit during exploration — if ≥ 70% of non-trivial source files are in Graphify-supported languages (Python, JS/TS, Go, Rust, Java, C/C++, Ruby, C#, Kotlin, Scala, PHP, Swift, Lua, Zig, PowerShell, Elixir, Objective-C, Julia, Verilog, SystemVerilog, Vue, Svelte, Dart), the command offers to install and index. On YAML / shell / config-only repos it skips silently — no prompt. This is a **setup-time offer, not a per-command preflight** — once installed, Graphify surfaces graph context automatically on every command (a PreToolUse hook on Claude Code and Codex, an always-on rule on Cursor).
+**When it's offered:** `/slashforge-setup` detects language fit during exploration — if ≥ 70% of non-trivial source files are in Graphify-supported languages (Python, JS/TS, Go, Rust, Java, C/C++, Ruby, C#, Kotlin, Scala, PHP, Swift, Lua, Zig, PowerShell, Elixir, Objective-C, Julia, Verilog, SystemVerilog, Vue, Svelte, Dart), the command offers to install and index. On YAML / shell / config-only repos it skips silently — no prompt. This is a **setup-time offer, not a per-command preflight** — once installed, Graphify surfaces graph context automatically on every command (a PreToolUse hook on Claude Code, an always-on rule on Cursor, and an `AGENTS.md` section on Codex, where Graphify leaves its hook as a no-op).
 
 **Ask-first, never auto-install.** Even though every install step is a shell command your agent could run itself, the integration shows you the exact commands before asking — you see what's going onto your machine before authorising anything:
 
 ```bash
 uv tool install graphifyy        # or: pipx install graphifyy / pip install graphifyy
-graphify install
+graphify install                 # Claude Code: registers the /graphify skill
+graphify install --platform agents   # Cursor: the skill in ~/.agents/skills, which Cursor reads
+graphify install --platform codex    # Codex: registers the $graphify skill
 graphify .                       # initial indexing — seconds to minutes depending on repo size
 graphify claude install          # Claude Code: appends a CLAUDE.md section + a Glob/Grep PreToolUse hook
 graphify cursor install          # Cursor: writes an always-applied .cursor/rules/graphify.mdc rule
-graphify codex install           # Codex: appends an AGENTS.md section + a PreToolUse hook
+graphify codex install           # Codex: appends an AGENTS.md section (its hook is a deliberate no-op)
 ```
 
-Only the last line differs, and setup runs just the one for the agent you're in.
+Each agent runs four of these: the first line, its own `graphify install` line, `graphify .`, and its own last line. Setup shows you only the ones for the agent you're in. On Codex, Graphify's parallel extraction also needs `multi_agent = true` under `[features]` in `~/.codex/config.toml`; setup checks and tells you, and never edits your config unasked.
 
 Say `n` and `/slashforge-setup` skips it silently. Re-run `/slashforge-setup` later and the offer fires again.
 

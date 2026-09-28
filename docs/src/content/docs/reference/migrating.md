@@ -8,7 +8,7 @@ one is self-contained, and if you are two hops back you can do both at once.
 
 :::note
 ==Your repo's own `.claude/` directory survives every migration on this page.==
-Only the files under `~/.claude/` are replaced. The configuration
+Only the kit's own files under `~/.claude/` (and, from v5, `~/.agents/`) are replaced. The configuration
 `/slashforge-setup` generated is yours — though after v4 to v5 it may still name the
 old commands; step 3 of that section covers it.
 :::
@@ -46,8 +46,8 @@ The nine discipline skills follow the same pattern: `slashforge:plan` becomes
 ### Why
 
 ==The same name on every host.== The `:` only existed because Claude Code turns a
-commands subfolder into a namespace. Neither Cursor nor Codex supports that, so their
-commands were already `slashforge-code`. Claude Code now installs flat
+commands subfolder into a namespace. Neither Cursor nor Codex supports that, so 5.0
+names every command `slashforge-code` on all three. Claude Code installs flat
 `slashforge-*.md` files and matches them.
 
 ## v3 to v4
