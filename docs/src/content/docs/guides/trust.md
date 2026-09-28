@@ -8,14 +8,42 @@ git operations in your repo. That deserves a page, not a footnote.
 
 ## What it writes
 
+Where install and setup put files depends on the agent you run them in. Pick
+yours in the header:
+
+:::agent[claude]
 | Path | When |
 | --- | --- |
-| `~/.claude/setup/slashforge/` (Claude Code), `~/.agents/setup/slashforge/cursor/` and `…/codex/` | On install — the guide files that carry the workflow, plus `slashforge-report-shell.html` (shared document styling), `slashforge-open.sh` (opens a document in your browser), and `slashforge-splice.js` and `slashforge-review-payload.js` (build documents and review payloads; files rather than inline scripts, so a permission rule can allow each by its path) |
-| `~/.claude/commands/` (Claude Code), `~/.agents/skills/` (Cursor and Codex) | On install — the four commands, plus SlashForge's nine discipline skills, each named `slashforge-<name>` (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`) |
+| `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow, plus `slashforge-report-shell.html` (shared document styling), `slashforge-open.sh` (opens a document in your browser), and `slashforge-splice.js` and `slashforge-review-payload.js` (build documents and review payloads; files rather than inline scripts, so a permission rule can allow each by its path) |
+| `~/.claude/commands/` | On install — the four commands, plus SlashForge's nine discipline skills, each named `slashforge-<name>` (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`) |
+| `<repo>/CLAUDE.md` | On `/slashforge-setup`, after you answer its questions |
+| `<repo>/.claude/` | On `/slashforge-setup` — rules, skills, agents, commands, hooks |
+:::
+
+:::agent[cursor]
+| Path | When |
+| --- | --- |
+| `~/.agents/setup/slashforge/cursor/` | On install — the guide files that carry the workflow, plus the shared document shell and helpers (`slashforge-report-shell.html`, `slashforge-open.sh`, `slashforge-splice.js`, `slashforge-review-payload.js`; files rather than inline scripts, so a permission rule can allow each by its path) |
+| `~/.agents/skills/` | On install — the four commands, plus SlashForge's nine discipline skills, each named `slashforge-<name>` (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`). Shared with Codex |
+| `<repo>/AGENTS.md` | On `/slashforge-setup`, after you answer its questions |
+| `<repo>/.cursor/` | On `/slashforge-setup` — rules, skills, agents, commands, hooks |
+:::
+
+:::agent[codex]
+| Path | When |
+| --- | --- |
+| `~/.agents/setup/slashforge/codex/` | On install — the guide files that carry the workflow, plus the shared document shell and helpers (`slashforge-report-shell.html`, `slashforge-open.sh`, `slashforge-splice.js`, `slashforge-review-payload.js`; files rather than inline scripts, so a permission rule can allow each by its path) |
+| `~/.agents/skills/` | On install — the four commands, plus SlashForge's nine discipline skills, each named `slashforge-<name>` (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`). Shared with Cursor |
+| `<repo>/AGENTS.md` | On `/slashforge-setup`, after you answer its questions |
+| `<repo>/.codex/` | On `/slashforge-setup` — rules, skills, agents, commands, hooks |
+:::
+
+And, whichever agent you use, these are the same:
+
+| Path | When |
+| --- | --- |
 | `~/.agents/setup/slashforge/meta.json` | On install — the record of what was installed, which `status`, the update prompt and `uninstall` read |
-| `<repo>/.claude/` and `<repo>/.agents/` | Only with `npx slashforge --project` — the same files as above, vendored into the repo so teammates get them from git |
-| `<repo>/CLAUDE.md` or `<repo>/AGENTS.md` | On `/slashforge-setup`, after you answer its questions — `CLAUDE.md` on Claude Code, `AGENTS.md` on Cursor and Codex |
-| `<repo>/.claude/`, `<repo>/.cursor/` or `<repo>/.codex/` | On `/slashforge-setup` — rules, skills, agents, commands, hooks, in the layout of the agent you ran it in |
+| `<repo>/` your agent's own dir | Only with `npx slashforge --project` — the same files as above, vendored into the repo so teammates get them from git |
 | `<repo>/docs/slashforge/investigations/` | On `/slashforge-investigate` — the findings report |
 | `<repo>/docs/slashforge/specs/` | On `/slashforge-code` full path — the design spec from Phase 1 |
 | `<repo>/docs/slashforge/plans/` | On `/slashforge-code` full path — the implementation plan from Phase 2 |

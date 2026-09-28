@@ -345,7 +345,12 @@ td {
   line-height: 1.6;
   vertical-align: top;
 }
-td:first-child { font-family: var(--mono); font-size: 14px; white-space: nowrap; }
+/* The first cell is usually a path or identifier, set in mono. It used to be
+   nowrap, but a genuinely long path (e.g. ~/.agents/setup/slashforge/codex/)
+   then forced the whole table wider than the text column and squeezed the
+   other columns off-screen. overflow-wrap: anywhere lets such a cell wrap and
+   the column shrink; short identifiers still sit on one line on their own. */
+td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywhere; }
 
 /* Code blocks carry a labelled bar. */
 .code {
