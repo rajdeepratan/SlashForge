@@ -2701,3 +2701,14 @@ test('the Codex commands guide is consistent with its opt-out', () => {
   assert.match(cursor, /`icon`/);
   assert.match(cursor, /`color`/);
 });
+
+test("Cursor and Codex are not told to use Claude Code's Skill tool", () => {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  for (const h of a.hosts) {
+    for (const f of fs.readdirSync(h.guidesDir).filter((n) => n.endsWith('.md'))) {
+      assert.doesNotMatch(fs.readFileSync(path.join(h.guidesDir, f), 'utf8'), /`Skill` tool/, h.host + '/' + f);
+    }
+  }
+});

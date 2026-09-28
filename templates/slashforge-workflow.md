@@ -16,7 +16,12 @@ Ten-phase change-shipping flow used by `/slashforge-code` (full and trivial path
 - `slashforge-workflow-agents.md` — how task types are handled + self-sufficiency rules (loaded by every workflow command)
 <!--/target-->
 
+<!--target:claude-->
 Every phase with a named skill MUST invoke it via the `Skill` tool — do not paraphrase. Every skill the workflow names ships with SlashForge, so all of them are always available. There are no optional dependencies. The flow runs without user intervention **except for four mandatory gates**: plan confirmation (Phase 3), branch decision (Phase 4), PR target + reviewers (Phase 8), and branch cleanup after merge (Phase 10).
+<!--/target-->
+<!--target:agents-->
+Every phase with a named skill MUST load and follow it — do not paraphrase. Every skill the workflow names ships with SlashForge, so all of them are always available. There are no optional dependencies. The flow runs without user intervention **except for four mandatory gates**: plan confirmation (Phase 3), branch decision (Phase 4), PR target + reviewers (Phase 8), and branch cleanup after merge (Phase 10).
+<!--/target-->
 
 ---
 

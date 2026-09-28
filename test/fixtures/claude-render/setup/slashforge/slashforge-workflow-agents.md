@@ -11,7 +11,7 @@ This file is loaded alongside `slashforge-workflow.md` by every workflow command
 
 ## Agent Selection Table
 
-The agent self-selects the correct agent based on the task type. The user will never specify.
+Claude self-selects the correct agent based on the task type. The user will never specify.
 
 | Task type | Agent |
 |---|---|
@@ -40,7 +40,7 @@ The `developer` agent is the last resort — invoke specialist agents first when
 
 ## Self-Sufficiency Rules
 
-- The agent selects agents based on task type — never ask the user which agent to use
+- Claude selects agents based on task type — never ask the user which agent to use
 - If a needed agent is missing, create it silently and notify the user after
 - The change-shipping loop (`/slashforge-code`, `/slashforge-code -quick`) runs without user intervention except for the four mandatory gates: **plan confirmation** (Phase 3), **branch decision** (Phase 4), **PR target + reviewers** (Phase 8), and **branch cleanup** (Phase 10)
 - Every phase with a named skill MUST invoke it via the `Skill` tool before acting — do not paraphrase from memory. All of them ship with SlashForge
