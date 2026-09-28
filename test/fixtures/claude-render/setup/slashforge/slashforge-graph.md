@@ -66,7 +66,7 @@ Use this block for both Branch A and Branch B. Drop the `uv`/Python cost bullet 
 | Half | Setup phase | What it does | Touches `CLAUDE.md` / `settings.json`? |
 |---|---|---|---|
 | **Offer** | Phase 1 (Decide) | Show "Why it matters" + the exact commands, ask y/n. Run nothing. | No |
-| **Provision** | Phase 2 (Provision) | On yes: CLI install (Branch A only) + `graphify .` index. | No |
+| **Provision** | Phase 2 (Provision) | On yes: CLI install (Branch A only) + skill registration (Branches A and B) + `graphify .` index. | No |
 | **Hook-in** | Phase 4 (after kit writes `CLAUDE.md`) | `graphify claude install` (append + hook) + SUMMARY.html. | **Yes — must be last** |
 
 Splitting the offer from the work is what lets the kit batch all consent up front; splitting `graphify claude install` (Hook-in) from `graphify .` (Provision) is what preserves the **kit's `CLAUDE.md` FIRST** ordering below — only the append waits for last, not the whole install.
@@ -102,7 +102,7 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 Common case for users who already have `graphify` installed globally and are setting up a new repo for the first time. **Do not skip — the per-repo index and SUMMARY.html are still missing.**
 
 ### Offer (Decide phase — run nothing)
-1. **Print the "Why it matters" block** above, dropping the `uv`/Python cost bullet (the CLI is already installed). You can prepend one short line: *"`graphify` is already on your `PATH`, so this is index-only — no CLI install needed."*
+1. **Print the "Why it matters" block** above, dropping the `uv`/Python cost bullet (the CLI is already installed). You can prepend one short line: *"`graphify` is already on your `PATH`, so no CLI install is needed — this registers Graphify's skill with this agent and indexes the repo."*
 2. **Show the exact three commands** that will run — the first two run now (Provision), the third runs last (Hook-in), after the kit writes `CLAUDE.md`. The first registers Graphify's skill with this agent, which a CLI installed from another agent has not done:
    ```bash
    graphify install                 # [Provision] registers the /graphify skill with Claude Code

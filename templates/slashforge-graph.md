@@ -98,7 +98,7 @@ Use this block for both Branch A and Branch B. Drop the `uv`/Python cost bullet 
 <!--/target-->
 |---|---|---|---|
 | **Offer** | Phase 1 (Decide) | Show "Why it matters" + the exact commands, ask y/n. Run nothing. | No |
-| **Provision** | Phase 2 (Provision) | On yes: CLI install (Branch A only) + `graphify .` index. | No |
+| **Provision** | Phase 2 (Provision) | On yes: CLI install (Branch A only) + skill registration (Branches A and B) + `graphify .` index. | No |
 <!--target:claude-->
 | **Hook-in** | Phase 4 (after kit writes `CLAUDE.md`) | `graphify claude install` (append + hook) + SUMMARY.html. | **Yes — must be last** |
 <!--/target-->
@@ -199,7 +199,7 @@ Splitting the offer from the work is what lets the kit batch all consent up fron
 Common case for users who already have `graphify` installed globally and are setting up a new repo for the first time. **Do not skip — the per-repo index and SUMMARY.html are still missing.**
 
 ### Offer (Decide phase — run nothing)
-1. **Print the "Why it matters" block** above, dropping the `uv`/Python cost bullet (the CLI is already installed). You can prepend one short line: *"`graphify` is already on your `PATH`, so this is index-only — no CLI install needed."*
+1. **Print the "Why it matters" block** above, dropping the `uv`/Python cost bullet (the CLI is already installed). You can prepend one short line: *"`graphify` is already on your `PATH`, so no CLI install is needed — this registers Graphify's skill with this agent and indexes the repo."*
 <!--target:claude-->
 2. **Show the exact three commands** that will run — the first two run now (Provision), the third runs last (Hook-in), after the kit writes `CLAUDE.md`. The first registers Graphify's skill with this agent, which a CLI installed from another agent has not done:
 <!--/target-->
@@ -387,10 +387,10 @@ Print exactly:
 
 > *"Graph is N days behind the latest source commit (M commits since last index). Re-run `graphify .` to refresh? (y/n) — declining is fine; the graph will still answer questions but may cite relationships that have changed."*
 
-- **On yes:** run `graphify .` in the shell. Same "show command then run" discipline — the user has already seen what runs because the command is in the prompt. After it succeeds, **re-synthesise SUMMARY.html** by re-following `slashforge-graph-summary.md` (no second prompt — same authorisation as the install-time SUMMARY.html write).
 <!--target:codex-->
-  Before re-indexing, check `~/.codex/config.toml` has `multi_agent = true` under `[features]` — Graphify's parallel extraction needs it on Codex. If it is missing, tell the user and offer to add it; do not edit their config unasked.
+- **Before re-indexing on Codex,** check `~/.codex/config.toml` has `multi_agent = true` under `[features]` — Graphify's parallel extraction needs it on Codex. If it is missing, tell the user and offer to add it; do not edit their config unasked.
 <!--/target-->
+- **On yes:** run `graphify .` in the shell. Same "show command then run" discipline — the user has already seen what runs because the command is in the prompt. After it succeeds, **re-synthesise SUMMARY.html** by re-following `slashforge-graph-summary.md` (no second prompt — same authorisation as the install-time SUMMARY.html write).
 - **On no:** proceed with the stale graph. Do not warn again in this command — the user has seen and decided.
 
 ### Cost summary

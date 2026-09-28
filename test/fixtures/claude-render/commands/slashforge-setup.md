@@ -43,7 +43,7 @@ Run in five phases. **Collect every user decision in Phase 1**, then run the res
 3. Ask the user any remaining clarifying questions
 
 *Phase 2 — Provision (run approved installs; touches nothing in `.claude/` or `CLAUDE.md`):*
-4. If Graphify was approved in step 2, run only its **Provision** half from `/HOME/.claude/setup/slashforge/slashforge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before `graphify claude install`** — that step appends to `CLAUDE.md` and must wait for Phase 4.
+4. If Graphify was approved in step 2, run only its **Provision** half from `/HOME/.claude/setup/slashforge/slashforge-graph.md` — the CLI install (Branch A), skill registration (Branches A and B) and `graphify .` indexing. **Stop before `graphify claude install`** — that step appends to `CLAUDE.md` and must wait for Phase 4.
 
 *Phase 3 — Generate kit files:*
 5. Create rule files → `.claude/rules/`
@@ -69,7 +69,7 @@ Same five-phase shape as single-app — all decisions in Phase 1, Graphify offer
 3. Ask the user any remaining clarifying questions (including which apps need setup)
 
 *Phase 2 — Provision:*
-4. If Graphify was approved, run its **Provision** half once at the root — CLI install (if needed) + `graphify .`. Stop before `graphify claude install`.
+4. If Graphify was approved, run its **Provision** half once at the root — CLI install (if needed) + skill registration + `graphify .`. Stop before `graphify claude install`.
 
 *Phase 3 — Generate kit files:*
 5. At root: create shared rules, global agents (`git`, `code-reviewer`), and root `CLAUDE.md`
@@ -99,7 +99,7 @@ Same five-phase shape — decisions first, file writes in the middle, Graphify's
 6. Ask the user any remaining clarifying questions before making changes
 
 *Phase 2 — Provision:*
-7. If Graphify was approved in step 5, run its **Provision** half — CLI install (Branch A) + `graphify .`, or the re-index (Branch C stale). Stop before `graphify claude install`.
+7. If Graphify was approved in step 5, run its **Provision** half — CLI install (Branch A) + skill registration (Branches A and B) + `graphify .`, or the re-index (Branch C stale). Stop before `graphify claude install`.
 
 *Phase 3 — Generate kit files:*
 8. Do not overwrite user-owned files wholesale — edit to fill gaps and preserve what is correct

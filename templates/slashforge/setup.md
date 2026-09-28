@@ -84,15 +84,15 @@ Run in five phases. **Collect every user decision in Phase 1**, then run the res
 
 <!--target:claude-->
 *Phase 2 — Provision (run approved installs; touches nothing in `.claude/` or `CLAUDE.md`):*
-4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/slashforge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before `graphify claude install`** — that step appends to `CLAUDE.md` and must wait for Phase 4.
+4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/slashforge-graph.md` — the CLI install (Branch A), skill registration (Branches A and B) and `graphify .` indexing. **Stop before `graphify claude install`** — that step appends to `CLAUDE.md` and must wait for Phase 4.
 <!--/target-->
 <!--target:cursor-->
 *Phase 2 — Provision (run approved installs; touches nothing in `.cursor/` or `AGENTS.md`):*
-4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/slashforge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before the hook-in command** — that step writes into files this setup manages and must wait for Phase 4.
+4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/slashforge-graph.md` — the CLI install (Branch A), skill registration (Branches A and B) and `graphify .` indexing. **Stop before the hook-in command** — that step writes into files this setup manages and must wait for Phase 4.
 <!--/target-->
 <!--target:codex-->
 *Phase 2 — Provision (run approved installs; touches nothing in `.codex/` or `AGENTS.md`):*
-4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/slashforge-graph.md` — the CLI install (Branch A) and `graphify .` indexing. **Stop before the hook-in command** — that step writes into files this setup manages and must wait for Phase 4.
+4. If Graphify was approved in step 2, run only its **Provision** half from `{{INSTALL_PATH}}/slashforge-graph.md` — the CLI install (Branch A), skill registration (Branches A and B) and `graphify .` indexing. **Stop before the hook-in command** — that step writes into files this setup manages and must wait for Phase 4.
 <!--/target-->
 
 <!--target:claude-->
@@ -154,13 +154,13 @@ Same five-phase shape as single-app — all decisions in Phase 1, Graphify offer
 
 *Phase 2 — Provision:*
 <!--target:claude-->
-4. If Graphify was approved, run its **Provision** half once at the root — CLI install (if needed) + `graphify .`. Stop before `graphify claude install`.
+4. If Graphify was approved, run its **Provision** half once at the root — CLI install (if needed) + skill registration + `graphify .`. Stop before `graphify claude install`.
 <!--/target-->
 <!--target:cursor-->
-4. If Graphify was approved, run its **Provision** half once at the root — CLI install (if needed) + `graphify .`. Stop before the hook-in command.
+4. If Graphify was approved, run its **Provision** half once at the root — CLI install (if needed) + skill registration + `graphify .`. Stop before the hook-in command.
 <!--/target-->
 <!--target:codex-->
-4. If Graphify was approved, run its **Provision** half once at the root — CLI install (if needed) + `graphify .`. Stop before the hook-in command.
+4. If Graphify was approved, run its **Provision** half once at the root — CLI install (if needed) + skill registration + `graphify .`. Stop before the hook-in command.
 <!--/target-->
 
 <!--target:claude-->
@@ -246,13 +246,13 @@ Same five-phase shape — decisions first, file writes in the middle, Graphify's
 
 *Phase 2 — Provision:*
 <!--target:claude-->
-7. If Graphify was approved in step 5, run its **Provision** half — CLI install (Branch A) + `graphify .`, or the re-index (Branch C stale). Stop before `graphify claude install`.
+7. If Graphify was approved in step 5, run its **Provision** half — CLI install (Branch A) + skill registration (Branches A and B) + `graphify .`, or the re-index (Branch C stale). Stop before `graphify claude install`.
 <!--/target-->
 <!--target:cursor-->
-7. If Graphify was approved in step 5, run its **Provision** half — CLI install (Branch A) + `graphify .`, or the re-index (Branch C stale). Stop before the hook-in command.
+7. If Graphify was approved in step 5, run its **Provision** half — CLI install (Branch A) + skill registration (Branches A and B) + `graphify .`, or the re-index (Branch C stale). Stop before the hook-in command.
 <!--/target-->
 <!--target:codex-->
-7. If Graphify was approved in step 5, run its **Provision** half — CLI install (Branch A) + `graphify .`, or the re-index (Branch C stale). Stop before the hook-in command.
+7. If Graphify was approved in step 5, run its **Provision** half — CLI install (Branch A) + skill registration (Branches A and B) + `graphify .`, or the re-index (Branch C stale). Stop before the hook-in command.
 <!--/target-->
 
 *Phase 3 — Generate kit files:*
