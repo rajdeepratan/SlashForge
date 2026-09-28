@@ -1168,8 +1168,10 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
   color: #f3f2f2;
 }
 
-/* Same budget reasoning as the socials row below: at this width the label is
-   the part that can go, leaving "CLAUDE" — about as wide as "DARK". */
+/* Same budget reasoning as the socials row below: at this width the "Agent:"
+   label goes. On the landing banner the picker keeps its value from here; the
+   header picker drops the value too (below), because the header has less room
+   to give. */
 @media (max-width: 640px) {
   .agentsw__label { display: none; }
   /* The header picker goes icon-only on phones — the aria-label names the
