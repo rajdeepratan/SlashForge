@@ -1,5 +1,15 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
+const fs = require('fs');
+const path = require('path');
+
+// remark-agent-only (and remark-callouts, loaded by the interaction test) import
+// unist-util-visit, which lives in docs/node_modules. The root `npm test` job
+// installs no dependencies, so these tests skip there and run in the docs CI job
+// (which does `npm ci` in docs/) and locally once the docs deps are present.
+const opts = fs.existsSync(path.join(__dirname, '..', 'docs', 'node_modules', 'unist-util-visit'))
+  ? {}
+  : { skip: 'docs deps not installed (run in the docs workspace)' };
 
 // The plugin is ESM and this suite is CommonJS, so it is loaded dynamically —
 // the same pattern test/docs-targets.test.js uses for docs/src/targets.mjs.
@@ -26,7 +36,7 @@ const directive = (label, bodyText) => ({
   ],
 });
 
-test('a single-target block becomes an agent-only div with data-agent', async () => {
+test('a single-target block becomes an agent-only div with data-agent', opts, async () => {
   const { remarkAgentOnly } = await load();
   const tree = directive('claude', 'Claude only.');
   remarkAgentOnly()(tree, fakeFile());
@@ -37,7 +47,7 @@ test('a single-target block becomes an agent-only div with data-agent', async ()
   assert.equal(node.data.hProperties['data-agent'], 'claude');
 });
 
-test('the bracket label is consumed, not rendered as body', async () => {
+test('the bracket label is consumed, not rendered as body', opts, async () => {
   const { remarkAgentOnly } = await load();
   const tree = directive('claude', 'Claude only.');
   remarkAgentOnly()(tree, fakeFile());
@@ -48,7 +58,7 @@ test('the bracket label is consumed, not rendered as body', async () => {
   assert.equal(node.children[0].children[0].value, 'Claude only.');
 });
 
-test('a multi-target label space-joins the agents', async () => {
+test('a multi-target label space-joins the agents', opts, async () => {
   const { remarkAgentOnly } = await load();
   const tree = directive('claude,codex', 'Both.');
   remarkAgentOnly()(tree, fakeFile());
@@ -56,7 +66,7 @@ test('a multi-target label space-joins the agents', async () => {
   assert.equal(tree.children[0].data.hProperties['data-agent'], 'claude codex');
 });
 
-test('whitespace around targets is tolerated', async () => {
+test('whitespace around targets is tolerated', opts, async () => {
   const { remarkAgentOnly } = await load();
   const tree = directive('claude, codex', 'Both.');
   remarkAgentOnly()(tree, fakeFile());
@@ -64,7 +74,7 @@ test('whitespace around targets is tolerated', async () => {
   assert.equal(tree.children[0].data.hProperties['data-agent'], 'claude codex');
 });
 
-test('an unknown target is dropped and reported', async () => {
+test('an unknown target is dropped and reported', opts, async () => {
   const { remarkAgentOnly } = await load();
   const tree = directive('bogus', 'Nope.');
   const file = fakeFile();
@@ -74,7 +84,7 @@ test('an unknown target is dropped and reported', async () => {
   assert.ok(file.messages.some((m) => /bogus/.test(m)), 'unknown target should be reported');
 });
 
-test('remarkCallouts leaves :::agent alone so agent-only can own it', async () => {
+test('remarkCallouts leaves :::agent alone so agent-only can own it', opts, async () => {
   // Astro runs remarkCallouts before remarkAgentOnly. remarkCallouts treats any
   // unknown container directive as a plain note — which, unless it skips
   // "agent", consumes the [claude,codex] label before this plugin reads it and
@@ -92,7 +102,7 @@ test('remarkCallouts leaves :::agent alone so agent-only can own it', async () =
   assert.equal(node.data.hProperties['data-agent'], 'claude codex');
 });
 
-test('non-agent container directives are left alone', async () => {
+test('non-agent container directives are left alone', opts, async () => {
   const { remarkAgentOnly } = await load();
   const tree = {
     type: 'root',

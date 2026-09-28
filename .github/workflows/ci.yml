@@ -49,6 +49,13 @@ jobs:
         run: npm ci
         working-directory: docs
 
+      # The per-agent directive plugin imports unist-util-visit, which only the
+      # docs workspace installs — so its unit tests skip in the dependency-free
+      # root `test` job and run here, where the deps are present.
+      - name: Test the per-agent directive plugin
+        working-directory: docs
+        run: node --test ../test/docs-agent-only.test.js
+
       # Also exercises the prebuild step that generates the changelog page from
       # the repo-root CHANGELOG.md.
       - name: Build docs
