@@ -24,8 +24,10 @@ export const STORAGE_KEY = 'sf-target';
 export const SWITCHABLE = [
   'setup',
   'code',
+  'fix',
   'investigate',
   'review-pr',
+  'resume',
   'brainstorm',
   'plan',
   'debug',

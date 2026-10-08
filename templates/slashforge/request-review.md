@@ -68,6 +68,11 @@ exactly the signal worth having.
   ordering, or nullability.
 - **For a bug fix** — the root cause is addressed rather than the symptom, and the regression test
   genuinely fails without the fix.
+- **Security (dual-track, blocking)** — the workflow's Phase 7 runs a dependency scan
+  (`npm audit --json`, parsed through `slashforge-audit.js`; High/Critical blocks) on a
+  dependency-file diff, and a rigid AppSec OWASP pass (hardcoded secrets, injection, unbounded
+  loops / DoS, broken access control) on source diffs. Any blocking security finding halts Phase 7
+  before a PR can be opened — it is never deferred to a follow-up.
 
 ## Acting on what comes back
 

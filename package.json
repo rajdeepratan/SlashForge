@@ -31,7 +31,7 @@
     "developer-tools"
   ],
   "engines": {
-    "node": ">=16"
+    "node": ">=24"
   },
   "repository": {
     "type": "git",

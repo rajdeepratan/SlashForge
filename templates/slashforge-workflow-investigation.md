@@ -52,7 +52,8 @@ This file is loaded by `/slashforge-investigate`.
 
 ## Phase I3 — Report & Hand-Off
 
-Three steps, in order: **write the file**, **open it**, **summarise in chat**. Then hand off.
+Four steps, in order: **write the file**, **write the structured hand-off**, **open the report**,
+**summarise in chat**. Then hand off.
 
 ### The findings report — body fragment only
 
@@ -141,6 +142,49 @@ If the shell or `slashforge-splice.js` is missing (an older install, or a hand-m
 If the shell or `slashforge-splice.js` is missing (an older install, or a hand-modified `.agents/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
 <!--/target-->
 
+### 1b. Write the structured hand-off — `.slashforge/latest_investigation.json`
+
+The HTML report is for a human. `/slashforge-fix` needs the same findings as data it can read
+without parsing prose, so write a second artifact: a machine-readable JSON file at
+`.slashforge/latest_investigation.json`. This is the **investigation contract** — the one interface
+between the read-only investigation and the code-fixing pipeline.
+
+```bash
+mkdir -p .slashforge
+```
+
+Write exactly this schema — every key is required, even when a value is empty (`[]` or `""`):
+
+```json
+{
+  "run_id": "investigation-<YYYY-MM-DD-HHMM>",
+  "reproduction_steps": ["string", "..."],
+  "root_cause": "string",
+  "implicated_files": [
+    { "filepath": "path/to/file.ts", "line_numbers": [42, 118] }
+  ],
+  "suggested_approach": "string"
+}
+```
+
+- **`run_id`** — the same stem as the HTML report filename, so the two artifacts are traceable to
+  one investigation.
+- **`reproduction_steps`** — the ordered steps that trigger the bug, one per array entry. These
+  become the regression test `/slashforge-fix` writes before it patches anything. If the issue was
+  not reproducible, use `[]` and say so in `suggested_approach`.
+- **`root_cause`** — the same conclusion as the report's Root cause section, as plain text.
+- **`implicated_files`** — every file the fix is likely to touch, each with the line numbers that
+  matter (`[]` when the whole file is implicated or no specific line is known). `/slashforge-fix`
+  **locks its context to exactly these files** — a file omitted here is a file the fix will not
+  look at, so list every file the patch and its test will need.
+- **`suggested_approach`** — the report's Suggested next step, as plain text. A proposal, not an
+  approved plan.
+
+Write it with a tool that serialises JSON correctly (so quotes, newlines and backslashes are
+escaped) rather than by hand. `.slashforge/` is machine-local run state and belongs in `.gitignore`
+— a hand-off between commands, not a committed record (the HTML report is that). Each investigation
+overwrites `latest_investigation.json`, which is what `/slashforge-fix` reads with no argument.
+
 ### 2. Open it in the user's browser (best-effort)
 
 Use the shipped helper rather than writing your own platform detection:
@@ -166,11 +210,18 @@ Print **only**:
 
 End with the report's **actual filename** substituted in — never emit a placeholder like `<path>` or `#FileName`:
 
-> *"Investigation complete → `docs/slashforge/investigations/investigation-2026-08-02-1432.html`. Want me to fix this? Run `/slashforge-code investigation-2026-08-02-1432.html` to start the fix."*
+> *"Investigation complete → `docs/slashforge/investigations/investigation-2026-08-02-1432.html`. Want me to fix this? Run `/slashforge-fix` to patch it straight from this investigation (test-first, scoped to the implicated files), or `/slashforge-code investigation-2026-08-02-1432.html` for the full planning flow."*
 
-Two different forms, deliberately:
+Two hand-off routes, deliberately:
 
-- **The pointer** (after the arrow) is the full repo-root-relative path — it tells the user where the file lives and is clickable in most terminals.
-- **The command** takes the **bare filename only.** `/slashforge-code` Step 0b resolves it against `docs/slashforge/investigations/`, so the shorter form is what the user has to type or paste.
+- **`/slashforge-fix`** (recommended for a confirmed bug) reads `.slashforge/latest_investigation.json`
+  — the artifact just written — with no argument. It skips discovery, locks its context to the
+  `implicated_files`, and enforces a regression test before the patch. This is the tight
+  investigate → fix loop.
+- **`/slashforge-code investigation-2026-08-02-1432.html`** takes the **bare filename only** (no `#`
+  or `@` prefix — a bare filename is what its Step 0b resolves against
+  `docs/slashforge/investigations/`) and runs the full feature-planning flow, for when the fix is
+  larger than the bug.
 
-No `#` or `@` prefix on either. A bare filename is what Step 0b resolves.
+The pointer after the arrow is the full repo-root-relative path — it tells the user where the
+report lives and is clickable in most terminals.

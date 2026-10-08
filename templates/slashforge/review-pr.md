@@ -36,6 +36,7 @@ argument.
 Read the following in full — together they are your complete workflow guide:
 
 - {{INSTALL_PATH}}/slashforge-workflow-review-pr.md
+- {{INSTALL_PATH}}/slashforge-workflow-security.md
 - {{INSTALL_PATH}}/slashforge-workflow-agents.md
 
 You MUST follow every phase in order. Do not skip phases. Do not combine phases.
@@ -64,7 +65,8 @@ only writes are to GitHub, and only after the user approves the exact text at th
 <!--target:neutral-->
 - **R3 — Review against *this* repo:** the entry file, the repo's rule files, surrounding conventions, then the Phase 7 checklist from `slashforge-workflow.md`
 <!--/target-->
-- **R4 — Write the review document:** `docs/slashforge/reviews/<YYYY-MM-DD>-pr-<N>.html`, body fragment only, spliced into the shipped shell
+- **R3b — Security audit (dual-track):** `npm audit --json` on a dependency-file diff (High/Critical = blocking) + a rigid AppSec OWASP pass on source diffs. Blocking security findings get their own `SECURITY FINDINGS` header
+- **R4 — Write the review document:** `docs/slashforge/reviews/<YYYY-MM-DD>-pr-<N>.html`, body fragment only, spliced into the shipped shell — blocking security findings rendered in red under a `SECURITY FINDINGS` header
 - **R5 — The gate:** show the exact GitHub text, then ask `approve` · `comment` · `request-changes` · `edit` · `cancel`
 - **R6 — Post it:** one review through the reviews API, prose never touching JSON syntax
 - **R7 — Confirm:** what was posted, where, which event, how many line comments

@@ -33,7 +33,7 @@ report.
 
 - **I1 — Investigation Intake:** parse input, extract expected vs. actual behaviour, ask clarifying questions until the scope is clear
 - **I2 — Investigate (read-only):** reproduce, bisect, trace, read code. Consults the code graph when Graphify is installed. **No edits to application code**
-- **I3 — Report & hand-off:** write the findings report, open it, summarise in chat, hand off to `/slashforge-code`
+- **I3 — Report & hand-off:** write the findings report **and** the structured `.slashforge/latest_investigation.json` hand-off artifact, open the report, summarise in chat, hand off to `/slashforge-fix` (or `/slashforge-code`)
 
 **Skills per phase (use the `Skill` tool, do not paraphrase). It ships with SlashForge:**
 - Phase I2 — `slashforge-debug`
@@ -55,8 +55,14 @@ the shell's CSS, and never write the report under `.codex/`, which is hidden in 
 the shell's CSS, and never write the report under a dot-directory, which is hidden in Finder.
 <!--/target-->
 
+Alongside the HTML report, Phase I3 also writes `.slashforge/latest_investigation.json` — the
+**investigation contract**, a machine-readable summary (`run_id`, `reproduction_steps`,
+`root_cause`, `implicated_files`, `suggested_approach`) that `/slashforge-fix` reads to patch the
+bug test-first without re-running discovery. `.slashforge/` is machine-local run state; gitignore
+it.
+
 **Summarise in chat — never print the HTML.** The file is the report; the chat gets the one-line
 conclusion, the root cause, the path, and the hand-off line. Phase I3 carries the fragment spec,
-the splice command, the open helper and the exact hand-off wording.
+the splice command, the open helper, the JSON contract and the exact hand-off wording.
 
 Follow the workflow file as the source of truth for phase details and success criteria.

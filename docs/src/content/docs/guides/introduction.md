@@ -58,7 +58,7 @@ in its own place — shown here for the agent picked in the header:
 | Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | `.claude/rules/` |
 | Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.claude/skills/` |
 | Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.claude/agents/` |
-| Commands | Repo-specific commands, on top of the four SlashForge installs | `.claude/commands/` |
+| Commands | Repo-specific commands, on top of the six SlashForge installs | `.claude/commands/` |
 | Hooks | Automated behaviours that fire on an event, without being asked | `.claude/settings.json` |
 :::
 
@@ -69,7 +69,7 @@ in its own place — shown here for the agent picked in the header:
 | Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | `.cursor/rules/*.mdc` |
 | Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.cursor/skills/` |
 | Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.cursor/agents/` |
-| Commands | Repo-specific commands, on top of the four SlashForge installs | `.cursor/commands/` |
+| Commands | Repo-specific commands, on top of the six SlashForge installs | `.cursor/commands/` |
 | Hooks | Automated behaviours that fire on an event, without being asked | `.cursor/hooks.json` |
 :::
 
@@ -80,7 +80,7 @@ in its own place — shown here for the agent picked in the header:
 | Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | nested `AGENTS.md` |
 | Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.agents/skills/` |
 | Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.codex/agents/*.toml` |
-| Commands | Repo-specific commands, on top of the four SlashForge installs | none — a skill instead |
+| Commands | Repo-specific commands, on top of the six SlashForge installs | none — a skill instead |
 | Hooks | Automated behaviours that fire on an event, without being asked | `.codex/hooks.json` |
 :::
 
@@ -95,7 +95,7 @@ folder per change under `active/` holding its `requirements.md`, `plan.md` and
 rather than going stale. The same layout on every host — see
 [the spec home](/slashforge/commands/slashforge-setup/#the-spec-home).
 
-## The four commands
+## The six commands
 
 ==Each command triggers one distinct workflow.==
 
@@ -115,12 +115,19 @@ Pass `-quick` for lean mode on small changes — it skips brainstorming, uses a
 two-section plan, and swaps the agent code review for an inline checklist.
 ==Every user gate and the lint/test/build verification stay.==
 
+### `/slashforge-fix`
+
+Patches a bug straight from an investigation. Reads the finding
+`/slashforge-investigate` left behind, ==locks its context to the implicated files, and
+writes a regression test before the patch== — the tight investigate → fix loop, without a
+full feature-planning phase. For a change big enough to need planning, use `/slashforge-code`.
+
 ### `/slashforge-investigate`
 
 Read-only research. Reproduces a bug, finds the root cause, and writes a report
-to `docs/slashforge/investigations/`. ==No branch, no PR, no code changes.== It ends by handing the
-report path to `/slashforge-code`, so the fix starts with the diagnosis already
-loaded instead of you restating the bug.
+to `docs/slashforge/investigations/`. ==No branch, no PR, no code changes.== It ends by
+offering `/slashforge-fix` (or `/slashforge-code`), so the fix starts with the diagnosis
+already loaded instead of you restating the bug.
 
 ### `/slashforge-review-pr`
 
@@ -131,7 +138,14 @@ your review.
 
 ==It never posts without showing you the exact text first==, and never chooses
 between `comment` and `request-changes` for you. Blocking someone's merge is your
-call.
+call. A dual-track security audit runs on the diff; any blocking finding gets its own
+`SECURITY FINDINGS` header.
+
+### `/slashforge-resume`
+
+Resumes an interrupted `/slashforge-code` or `/slashforge-fix` run. The workflow writes a
+checkpoint after every phase; this ==verifies the git HEAD still matches, then re-enters at
+the next phase== instead of starting over.
 
 ## Why the workflow matters
 
@@ -157,8 +171,10 @@ to a workflow this heavy.
 | Full run | 100–250k tokens per feature |
 | Full run, with Graphify indexed | ~75–225k tokens |
 | `-quick` | ~40–70k tokens per change |
+| `/slashforge-fix` | tracks the base workflow for a small, scoped change |
 | `/slashforge-investigate` | ~15–60k tokens per report |
 | `/slashforge-review-pr` | ~15–70k tokens per review |
+| `/slashforge-resume` | cheap — reads one checkpoint and continues |
 
 ==The range is driven by the size of the feature, not by the tooling== — a
 single-module change lands near the bottom, a multi-layer feature near the top.

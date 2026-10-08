@@ -18,8 +18,13 @@ const GUIDE_FILES = [
   'slashforge-workflow.md',
   'slashforge-workflow-investigation.md',
   'slashforge-workflow-review-pr.md',
+  'slashforge-workflow-fix.md',
+  'slashforge-workflow-verify.md',
+  'slashforge-workflow-security.md',
+  'slashforge-workflow-docs.md',
   'slashforge-workflow-agents.md',
   'slashforge-workflow-quick.md',
+  'slashforge-workflow-resume.md',
   'slashforge-rules.md',
   'slashforge-skills.md',
   'slashforge-agents.md',
@@ -40,6 +45,7 @@ const ASSET_FILES = [
   // allow each one by its path; a `node -e` rule would allow any script at all.
   'slashforge-splice.js',
   'slashforge-review-payload.js',
+  'slashforge-audit.js',
 ];
 
 // The kit's own files in a guides dir are named `slashforge-*` since 5.0, and were
@@ -53,6 +59,8 @@ const COMMAND_FILES = [
   path.join('slashforge', 'setup.md'),
   path.join('slashforge', 'code.md'),
   path.join('slashforge', 'investigate.md'),
+  path.join('slashforge', 'fix.md'),
+  path.join('slashforge', 'resume.md'),
   path.join('slashforge', 'review-pr.md'),
 ];
 
@@ -1188,6 +1196,8 @@ async function install({ dryRun, assumeYes, project = false }) {
     console.log('  • /slashforge-code — freeform end-to-end development workflow (full 10-phase, ~100–250k tokens)');
     console.log('  • /slashforge-code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
     console.log('  • /slashforge-investigate [symptom] — read-only research, produces a findings report');
+    console.log('  • /slashforge-fix — patch a bug straight from the latest investigation (test-first, scoped to implicated files)');
+    console.log('  • /slashforge-resume — resume an interrupted /slashforge-code or /slashforge-fix run from its last checkpoint');
     console.log('  • /slashforge-review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
   }
   if (ok.agents) {

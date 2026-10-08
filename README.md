@@ -22,7 +22,7 @@
   <strong><a href="https://www.rajdeepratan.com/slashforge/">📖 Documentation</a></strong>
 </p>
 
-Installs four commands on any machine — `/slashforge-setup` to scaffold a repo, `/slashforge-code` for freeform development (add `-quick` for lean small-change work), `/slashforge-investigate` for read-only research, and `/slashforge-review-pr` to review someone else's PR against your repo's rules.
+Installs six commands on any machine — `/slashforge-setup` to scaffold a repo, `/slashforge-code` for freeform development (add `-quick` for lean small-change work), `/slashforge-investigate` for read-only research, `/slashforge-fix` to patch a bug straight from an investigation, `/slashforge-resume` to pick an interrupted run back up from its last checkpoint, and `/slashforge-review-pr` to review someone else's PR against your repo's rules.
 
 One `npx slashforge` sets it up for **Claude Code**, **Cursor** and **Codex** together.
 The commands have the same name everywhere: `/slashforge-code` in Claude Code and Cursor,
@@ -32,7 +32,7 @@ The commands have the same name everywhere: `/slashforge-code` in Claude Code an
 
 ## What it does
 
-Installs a collection of guide files plus four commands that cover the full lifecycle from repo setup through shipped PRs, code review, and bug investigations. They work the same way in **Claude Code**, **Cursor** and **Codex**; each one reads and writes your agent's own files.
+Installs a collection of guide files plus six commands that cover the full lifecycle from repo setup through shipped PRs, code review, and bug investigations. They work the same way in **Claude Code**, **Cursor** and **Codex**; each one reads and writes your agent's own files.
 
 | | Claude Code | Cursor | Codex |
 | --- | --- | --- | --- |
@@ -47,8 +47,10 @@ Installs a collection of guide files plus four commands that cover the full life
 - **`/slashforge-setup`** · **`$slashforge-setup`** — one-time repo setup. Explores the repo, asks clarifying questions, then creates the entry file, agents, rules, skills, commands, and hooks tailored to the codebase, in your agent's own layout: `CLAUDE.md` and `.claude/` on Claude Code, `AGENTS.md` and `.cursor/` on Cursor, `AGENTS.md` and `.codex/` on Codex. Handles both fresh repos and partial setups. ~50–120k tokens, paid once — it has the largest fixed instruction load of any command (~20k before it reads a line of your code) and writes a dozen or more files.
 - **`/slashforge-code`** · **`$slashforge-code`** — freeform end-to-end development workflow. Ten phases: plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup. ~100–250k tokens per feature without Graphify; ~75–225k with it indexed.
 - **`/slashforge-code -quick`** · **`$slashforge-code -quick`** — lean version of `/slashforge-code` for small changes. Skips brainstorming, uses a minimal plan (Changes + Test strategy only), and replaces the agent-driven code review with an inline self-review checklist. Keeps every user gate (plan, branch, PR, cleanup) and Phase 6 lint/test/build verification. ~40–70k tokens per change. Use for typo fixes, copy changes, config tweaks, renames, single-file refactors.
-- **`/slashforge-investigate [symptom]`** · **`$slashforge-investigate [symptom]`** — read-only research. Reproduces and root-causes a suspected bug, produces a findings report saved to `docs/slashforge/investigations/`, then hands the report path to `/slashforge-code` so the fix starts with the diagnosis already loaded. ~15–60k tokens, set by how far the trail runs — it writes one report, not code.
-- **`/slashforge-review-pr [number]`** · **`$slashforge-review-pr [number]`** — reviews a PR against this repo's entry file, rules and existing conventions (`CLAUDE.md` and `.claude/rules/` on Claude Code, `AGENTS.md` and `.cursor/rules/` on Cursor, `AGENTS.md` and its nested copies on Codex), then posts line-level comments or an approval. Lists the PRs awaiting your review when there is more than one. Never posts without showing you the exact text and asking. ~15–70k tokens per review, set almost entirely by the size of the diff.
+- **`/slashforge-investigate [symptom]`** · **`$slashforge-investigate [symptom]`** — read-only research. Reproduces and root-causes a suspected bug, produces a findings report saved to `docs/slashforge/investigations/` plus a structured `.slashforge/latest_investigation.json` hand-off, then offers `/slashforge-fix` (or `/slashforge-code`) so the fix starts with the diagnosis already loaded. ~15–60k tokens, set by how far the trail runs — it writes one report, not code.
+- **`/slashforge-fix`** · **`$slashforge-fix`** — patches a bug straight from the latest investigation. Reads `.slashforge/latest_investigation.json`, skips discovery, locks its context to the implicated files, and enforces a regression test before the patch (Phase 6 hard-fails if no test was added). The tight investigate → fix loop, without a full feature-planning phase. Cost tracks the base workflow for a small, scoped change.
+- **`/slashforge-resume`** · **`$slashforge-resume`** — resumes an interrupted `/slashforge-code` or `/slashforge-fix` run from its last checkpoint. Reads the latest `.slashforge/run_<id>.ckpt.json`, verifies the git HEAD still matches, and re-enters the workflow at the next phase instead of starting over. Cheap — it reads one checkpoint and continues.
+- **`/slashforge-review-pr [number]`** · **`$slashforge-review-pr [number]`** — reviews a PR against this repo's entry file, rules and existing conventions (`CLAUDE.md` and `.claude/rules/` on Claude Code, `AGENTS.md` and `.cursor/rules/` on Cursor, `AGENTS.md` and its nested copies on Codex), plus a dual-track security audit (`npm audit` on dependency diffs, a rigid AppSec OWASP pass on source diffs) whose blocking findings get their own `SECURITY FINDINGS` header, then posts line-level comments or an approval. Lists the PRs awaiting your review when there is more than one. Never posts without showing you the exact text and asking. ~15–70k tokens per review, set almost entirely by the size of the diff.
 
 ---
 
@@ -63,8 +65,10 @@ Each command is shown as Claude Code and Cursor type it, then as Codex does. The
 | **Full run** | 100–250k tokens per feature |
 | **With Graphify indexed** | 75–225k — the graph replaces exploratory grep, roughly 4–10% off |
 | **`-quick` mode** | 40–70k per change. Skips brainstorming and the agent review; keeps every gate and the lint/test/build verification |
-| **`/slashforge-review-pr`** · **`$slashforge-review-pr`** | 15–70k per review, driven almost entirely by diff size |
 | **`/slashforge-investigate`** · **`$slashforge-investigate`** | 15–60k per report. No code is written, so the cost is reading — how far the trail runs |
+| **`/slashforge-fix`** · **`$slashforge-fix`** | Tracks the base workflow for a small, scoped change — discovery is skipped and context is locked to the investigation's implicated files |
+| **`/slashforge-resume`** · **`$slashforge-resume`** | Cheap — reads one checkpoint and re-enters the interrupted run at the next phase |
+| **`/slashforge-review-pr`** · **`$slashforge-review-pr`** | 15–70k per review, driven almost entirely by diff size |
 | **`/slashforge-setup`** · **`$slashforge-setup`** | 50–120k, **once per repo.** Reads ~20k of its own instructions, then explores and writes your agent's setup |
 | **What you get for it** | Nothing ships that was not planned, gated, verified and reviewed |
 
@@ -136,7 +140,7 @@ Every template is frontmatter-validated before any write — a broken guide (mis
 
 | What | Claude Code | Cursor | Codex |
 |---|---|---|---|
-| Four commands (`setup`, `code`, `investigate`, `review-pr`) | `~/.claude/commands/slashforge-<name>.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` |
+| Six commands (`setup`, `code`, `investigate`, `fix`, `resume`, `review-pr`) | `~/.claude/commands/slashforge-<name>.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` |
 | Nine skills (`plan`, `verify`, …) | `~/.claude/commands/slashforge-<skill>.md` | `~/.agents/skills/slashforge-<skill>/SKILL.md` | `~/.agents/skills/slashforge-<skill>/SKILL.md` |
 | Guide files, the report shell and its helper scripts | `~/.claude/setup/slashforge/` | `~/.agents/setup/slashforge/cursor/` | `~/.agents/setup/slashforge/codex/` |
 
@@ -147,7 +151,7 @@ Cursor and Codex share the same skill folders; only their guides are separate.
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification
 - **Graph** — optional Graphify integration: setup-time install offer, runtime freshness check, and the SUMMARY.html synthesis prompt (two files)
-- **Workflow** — the ten-phase development loop used by `/slashforge-code` and `/slashforge-code -quick` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across five focused files (base phases, `-quick` overrides, investigation flow, PR review flow, agent selection)
+- **Workflow** — the ten-phase development loop used by `/slashforge-code`, `/slashforge-code -quick` and `/slashforge-fix` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across focused files: base phases, `-quick` overrides, `/slashforge-fix` overrides, the Phase 6 verify-retry loop, the Phase 7 security audit, the Phase 8 documentation sweep, resume/checkpointing, the investigation flow, the PR-review flow, and agent selection
 - **Coverage** — the auto-coverage check that spots new domains your setup doesn't cover yet
 - **Rules** — how to create rule files for a repo (including path-scoped rules)
 - **Skills** — how to create skills using Anthropic's `SKILL.md` directory format
@@ -356,7 +360,7 @@ Claude Code and Codex each ship an `/init` that writes one starter file: `CLAUDE
 | Creates | One entry file (`CLAUDE.md` or `AGENTS.md`; Claude Code adds skills/hooks with `CLAUDE_CODE_NEW_INIT=1`) | The whole layout: entry file, rules, skills, agents, commands, hooks (`.claude/`, `.cursor/` or `.codex/`) |
 | Approach | Discovers and suggests — opinion-light | Opinionated — enforces multi-agent layout, 200-line cap, global vs specialist split |
 | Agents | None | Mandatory: `developer`, `code-reviewer`, `git`, plus specialists |
-| Workflow | None | Four commands: `/slashforge-setup` (setup), `/slashforge-code` (full flow, `-quick` for lean), `/slashforge-investigate` (read-only research), `/slashforge-review-pr` (PR review) |
+| Workflow | None | Six commands: `/slashforge-setup` (setup), `/slashforge-code` (full flow, `-quick` for lean), `/slashforge-investigate` (read-only research), `/slashforge-fix` (investigation → patch), `/slashforge-resume` (resume from checkpoint), `/slashforge-review-pr` (PR review) |
 | Monorepo | Single-repo focused | Root + per-app entry file flow |
 | Existing setup | Suggests improvements to the entry file | Full Update flow — reads your existing setup and fills gaps |
 

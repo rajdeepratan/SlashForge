@@ -22,3 +22,8 @@ docs/superpowers/
 # choice rather than a default; specs and plans are deliberately NOT ignored,
 # since they are worth reviewing alongside the code they describe.
 docs/slashforge/investigations/
+
+# Machine-local run state: the investigation contract /slashforge-investigate hands
+# to /slashforge-fix, and the per-run checkpoints /slashforge-resume reads. These are
+# hand-offs between commands on one machine, never a committed record.
+.slashforge/

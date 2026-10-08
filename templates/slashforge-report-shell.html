@@ -43,6 +43,12 @@
   .summary.unreproducible { border-left-color: #9a6700; }
   .summary.intended       { border-left-color: #57606a; }
   .summary.needs-info     { border-left-color: #0969da; }
+  .summary.security       { border-left-color: #cf222e; }
+  /* Blocking security findings render in red under their own header. */
+  h2.security-findings { color: #cf222e; border-bottom-color: #cf222e; }
+  .security-findings-block { border-left: 4px solid #cf222e; background: #fff5f5;
+                             padding: 0.6rem 0.9rem; margin: 1rem 0; }
+  .security-findings-block th { background: #ffebe9; }
   code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
          padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
   pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
@@ -59,6 +65,9 @@
     th { background: #161b22; }
     code, pre { background: #161b22; }
     a { color: #58a6ff; }
+    h2.security-findings { color: #ff7b72; border-bottom-color: #ff7b72; }
+    .security-findings-block { background: #2d0f0f; }
+    .security-findings-block th { background: #3d1515; }
   }
 </style>
 </head>

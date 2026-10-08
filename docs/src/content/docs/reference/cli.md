@@ -8,7 +8,7 @@ its own for getting them on and off your machine.
 
 | Command | What it does |
 | --- | --- |
-| `npx slashforge` | Installs guide files, the four commands and the nine discipline skills for Claude Code, Cursor and Codex |
+| `npx slashforge` | Installs guide files, the six commands and the nine discipline skills for Claude Code, Cursor and Codex |
 | `npx slashforge status` | Reports what is installed, at which version, without changing anything |
 | `npx slashforge uninstall` | Removes the guides and commands it installed |
 
@@ -48,7 +48,7 @@ own layout and those layouts genuinely differ — see
 The first thing each Cursor or Codex command does is work out which of the two it is
 running in and read that host's guides; if it can't tell, it asks you once.
 
-==On Cursor and Codex the four commands run only when you type them.== Both
+==On Cursor and Codex the six commands run only when you type them.== Both
 can otherwise start a skill on their own, so each command skill opts out:
 `disable-model-invocation: true` in its `SKILL.md` for Cursor, and an
 `agents/openai.yaml` beside it for Codex. The nine discipline skills stay available to
@@ -112,7 +112,7 @@ Graphify's addition survives and is left alone on future re-runs.
 
 ## install
 
-The default command. Installs the guide files, the four commands and the nine skills, then
+The default command. Installs the guide files, the six commands and the nine skills, then
 tells you where each one landed.
 
 ```bash
