@@ -8,6 +8,9 @@ _None._
 
 ## Recently archived
 
+- **retry-abort-baseline** — Phase 6 `abort` now rolls back the whole
+  implementation attempt (Finding A). Merged 2026-10-08 (PR #98), released in
+  5.1.1. See `archive/retry-abort-baseline/`.
 - **workflow-resilience** — `/slashforge-fix`, the Phase 6 retry loop, the
   dual-track security audit, the Phase 8 documentation sweep, and
   `/slashforge-resume`. Merged 2026-10-08 (PR #96), released in 5.1.0.
