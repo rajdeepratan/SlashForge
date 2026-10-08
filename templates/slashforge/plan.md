@@ -33,8 +33,9 @@ questions. Everything they need is in the plan or it does not reach them.
 ## Where the plan goes
 
 `docs/slashforge/active/<change-slug>/plan.md` (the HOW) and
-`docs/slashforge/active/<change-slug>/tasks.md` (the checklist), under the same
-`<change-slug>` the brainstorm phase chose. See `{{INSTALL_PATH}}/slashforge-spec-home.md`
+`docs/slashforge/active/<change-slug>/tasks.md` (the checklist), under the
+`<change-slug>` chosen at intake (by `slashforge-brainstorm` on the full path, or
+when the plan is written on the lean/trivial path). See `{{INSTALL_PATH}}/slashforge-spec-home.md`
 for the layout. Do not write plans anywhere else in the repo.
 
 They are **Markdown** — living specs that must diff, grep and review in a pull request. Write

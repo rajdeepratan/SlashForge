@@ -91,7 +91,9 @@ throwaway report:
 | 6 Verify | converges — every success criterion met, every box ticked |
 | 10 Cleanup | moves `active/<change>/` to `archive/<change>/` on merge |
 
-Lean mode writes a lean `plan.md` + `tasks.md` and skips `requirements.md`.
+Lean mode (`-quick`) and auto-classified **trivial** changes write a lean
+`plan.md` + `tasks.md` and skip `requirements.md` — but they still get an
+`active/<change>/` folder that is archived on merge, like every other change.
 
 **Typical cost**
 
