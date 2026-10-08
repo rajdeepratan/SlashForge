@@ -45,8 +45,7 @@ And, whichever agent you use, these are the same:
 | `~/.agents/setup/slashforge/meta.json` | On install — the record of what was installed, which `status`, the update prompt and `uninstall` read |
 | `<repo>/` your agent's own dir | Only with `npx slashforge --project` — the same files as above, vendored into the repo so teammates get them from git |
 | `<repo>/docs/slashforge/investigations/` | On `/slashforge-investigate` — the findings report |
-| `<repo>/docs/slashforge/specs/` | On `/slashforge-code` full path — the design spec from Phase 1 |
-| `<repo>/docs/slashforge/plans/` | On `/slashforge-code` full path — the implementation plan from Phase 2 |
+| `<repo>/docs/slashforge/` | On `/slashforge-setup` and `/slashforge-code` — the Markdown spec home: `constitution.md`, `architecture.md`, `status.md`, and `active/<change>/` (`requirements.md`, `plan.md`, `tasks.md`), moved to `archive/` on merge |
 | `<repo>/docs/slashforge/reviews/` | On `/slashforge-review-pr` — the review document |
 
 ==Nothing is written outside those paths.== Every generated file carries a
@@ -62,8 +61,8 @@ configured in your repo. ==It does not install a test runner, a linter, or a
 formatter of its own.==
 
 One exception worth naming, because it is the only thing that reaches outside
-your repo: whenever a command writes an HTML document — an investigation report,
-a design spec, or an implementation plan — it asks your OS to open it in your
+your repo: whenever a command writes an HTML document — an investigation report
+or a PR review — it asks your OS to open it in your
 default browser. `open` on macOS, `xdg-open` on Linux, `wslview` on WSL, `start`
 on Windows. ==Your agent asks before running that command, unless you have already
 allowed it, so nothing launches without your say-so.==
@@ -95,11 +94,11 @@ The entry file and your agent's folder (`.claude/`, `.cursor/` or `.codex/`) are
 and everyone else on the team, start informed rather than cold.== Generated
 configuration that lives only on one machine buys you nothing on the second run.
 
-Phase 1 and Phase 2 write their spec and plan into `docs/slashforge/specs/` and
-`docs/slashforge/plans/`, as HTML built from the same shell as the investigation
-reports. Those paths are baked into SlashForge's own
-[skills](/slashforge/guides/skills/), so nothing writes design documents anywhere
-else in your repo.
+Phase 1 and Phase 2 write `requirements.md`, `plan.md` and `tasks.md` as Markdown
+into `docs/slashforge/active/<change>/` — living specs that diff and review in a
+pull request. Those paths are baked into SlashForge's own
+[skills](/slashforge/guides/skills/), so nothing writes specs anywhere else in
+your repo.
 
 The one directory worth considering for `.gitignore` is `docs/slashforge/investigations/`, if
 you would rather keep findings reports local. It sits under `docs/` rather
