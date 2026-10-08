@@ -108,6 +108,17 @@ State what you ran and what came back:
 Partial success is reported as partial. If three of four checks pass, say which one did not
 and what it said. A qualified true statement is worth more than a confident false one.
 
+## Converge against the spec
+
+For a change run through `/slashforge-code`, "done" includes the spec, not just a green suite:
+
+- Every success criterion in `docs/slashforge/active/<change>/requirements.md` is checked
+  **individually** — a passing test suite is not the same as the requirements being met.
+- Every step box in `docs/slashforge/active/<change>/tasks.md` is ticked (`- [x]`). An unticked
+  box is unfinished work, not a formatting slip.
+
+Lean mode has no `requirements.md`; converge against the plan's Changes instead.
+
 ## When this applies
 
 Before **any** claim of completion or correctness — including paraphrases and implications.

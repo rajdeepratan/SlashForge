@@ -38,7 +38,7 @@ This is for **your own work before it ships**. For someone else's pull request u
 Hand over:
 
 1. **What you built**, in two or three sentences.
-2. **What it was supposed to do** — the approved plan or task, verbatim.
+2. **What it was supposed to do** — the change's `requirements.md` and the approved plan, verbatim.
 3. **The diff to review** — a base and head commit, or the changed files.
 
 Deliberately withhold your reasoning, the paths you rejected, and the conversation that got here.
@@ -48,7 +48,8 @@ exactly the signal worth having.
 
 ## What the review must cover
 
-- **Matches the plan** — nothing missing, nothing extra. Scope creep is a finding.
+- **Matches `requirements.md` and the plan** — nothing missing, nothing extra. Scope creep is a finding.
+- **Honours `docs/slashforge/constitution.md`** — violates none of the project's non-negotiables.
 - **No duplicate or dead code**, no debug leftovers, no hardcoded secrets.
 - **No unintended breaking changes** to public APIs, exports, or shared interfaces.
 <!--target:claude-->

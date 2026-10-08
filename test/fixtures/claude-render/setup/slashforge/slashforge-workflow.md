@@ -89,7 +89,7 @@ When uncertain, pick `slashforge-tdd` and note the reasoning. `/slashforge-code 
 
 1. Select the appropriate specialist coding agent based on the task type (see Agent Selection Table in `slashforge-workflow-agents.md`). If no suitable agent exists, create it on the fly and notify the user: *"I created a `[name]` agent to handle this — saved to `.claude/agents/[name].md`"*
 2. Invoke the selected Phase 5 skill (or state why no skill applies), then implement.
-3. Implement strictly to the approved plan — if the plan turns out wrong mid-implementation, stop and return to the intake phase.
+3. Implement strictly to the approved plan, working through `docs/slashforge/active/<change>/tasks.md` and flipping each step's `- [ ]` to `- [x]` as it lands — if the plan turns out wrong mid-implementation, stop and return to the intake phase.
 
 ---
 
@@ -104,7 +104,8 @@ When uncertain, pick `slashforge-tdd` and note the reasoning. `/slashforge-code 
 5. Run tests — if any fail, return to Phase 5 with the failure output and loop until all pass
 6. **For bug fixes**: confirm the regression test **failed before the fix and passes after**. If it passed both times, the test doesn't actually cover the bug — fix the test before proceeding.
 7. Run build — fix any failures before proceeding
-8. Do not continue to review until lint, tests, and build all pass with evidence
+8. **Converge against the spec** — confirm every success criterion in `docs/slashforge/active/<change>/requirements.md` is individually met, and every step box in `tasks.md` is ticked. (Lean mode has no `requirements.md`; converge against the plan's Changes instead.)
+9. Do not continue to review until lint, tests, build, and convergence all pass with evidence
 
 ---
 
@@ -114,7 +115,8 @@ When uncertain, pick `slashforge-tdd` and note the reasoning. `/slashforge-code 
 
 1. Invoke `slashforge-request-review`, then hand off to the `code-reviewer` agent against the checklist below
 2. Review must check:
-   - Matches the approved plan — no scope creep, no missing pieces
+   - Matches `requirements.md` and the approved plan — no scope creep, no missing pieces
+   - Honours `docs/slashforge/constitution.md` — violates none of the project's non-negotiables
    - No duplicate code, no dead code, no debug leftovers, no hardcoded secrets
    - Follows `.claude/rules/` and the user's coding style
    - No unintended breaking changes to public APIs, exports, or shared interfaces
