@@ -58,10 +58,10 @@ const isStaleKitFile = (name) => KIT_GUIDE_RE.test(name) || OLD_ASSET_FILES.incl
 const COMMAND_FILES = [
   path.join('slashforge', 'setup.md'),
   path.join('slashforge', 'code.md'),
-  path.join('slashforge', 'fix.md'),
   path.join('slashforge', 'investigate.md'),
-  path.join('slashforge', 'review-pr.md'),
+  path.join('slashforge', 'fix.md'),
   path.join('slashforge', 'resume.md'),
+  path.join('slashforge', 'review-pr.md'),
 ];
 
 // Discipline skills. They install the same way as the commands above, as
@@ -1197,8 +1197,8 @@ async function install({ dryRun, assumeYes, project = false }) {
     console.log('  • /slashforge-code -quick — lean mode for small changes (skips brainstorming + agent review, ~40–70k tokens)');
     console.log('  • /slashforge-investigate [symptom] — read-only research, produces a findings report');
     console.log('  • /slashforge-fix — patch a bug straight from the latest investigation (test-first, scoped to implicated files)');
-    console.log('  • /slashforge-review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
     console.log('  • /slashforge-resume — resume an interrupted /slashforge-code or /slashforge-fix run from its last checkpoint');
+    console.log('  • /slashforge-review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
   }
   if (ok.agents) {
     if (!ok.claude) console.log('\nIn Cursor the commands are /slashforge-setup, /slashforge-code, …');
