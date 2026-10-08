@@ -58,7 +58,7 @@ in its own place — shown here for the agent picked in the header:
 | Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | `.claude/rules/` |
 | Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.claude/skills/` |
 | Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.claude/agents/` |
-| Commands | Repo-specific commands, on top of the four SlashForge installs | `.claude/commands/` |
+| Commands | Repo-specific commands, on top of the six SlashForge installs | `.claude/commands/` |
 | Hooks | Automated behaviours that fire on an event, without being asked | `.claude/settings.json` |
 :::
 
@@ -69,7 +69,7 @@ in its own place — shown here for the agent picked in the header:
 | Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | `.cursor/rules/*.mdc` |
 | Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.cursor/skills/` |
 | Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.cursor/agents/` |
-| Commands | Repo-specific commands, on top of the four SlashForge installs | `.cursor/commands/` |
+| Commands | Repo-specific commands, on top of the six SlashForge installs | `.cursor/commands/` |
 | Hooks | Automated behaviours that fire on an event, without being asked | `.cursor/hooks.json` |
 :::
 
@@ -80,7 +80,7 @@ in its own place — shown here for the agent picked in the header:
 | Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | nested `AGENTS.md` |
 | Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.agents/skills/` |
 | Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.codex/agents/*.toml` |
-| Commands | Repo-specific commands, on top of the four SlashForge installs | none — a skill instead |
+| Commands | Repo-specific commands, on top of the six SlashForge installs | none — a skill instead |
 | Hooks | Automated behaviours that fire on an event, without being asked | `.codex/hooks.json` |
 :::
 
