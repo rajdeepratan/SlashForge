@@ -8,6 +8,10 @@ _None._
 
 ## Recently archived
 
+- **workflow-resilience** — `/slashforge-fix`, the Phase 6 retry loop, the
+  dual-track security audit, the Phase 8 documentation sweep, and
+  `/slashforge-resume`. Merged 2026-10-08 (PR #96), released in 5.1.0.
+  See `archive/workflow-resilience/`.
 - **sdd-lifecycle** — Spec-Driven Development spec home + propose→apply→archive
   lifecycle folded into `/slashforge-code`. Merged 2026-10-08 (PR #93).
   See `archive/sdd-lifecycle/`.
