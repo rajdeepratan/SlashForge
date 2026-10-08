@@ -9,32 +9,33 @@ description: One command to install, then your first run end to end.
 npx slashforge
 ```
 
-==That installs the guide files and the four commands for Claude Code, Cursor and
+==That installs the guide files and the six commands for Claude Code, Cursor and
 Codex== — into `~/.claude/` and `~/.agents/`. There is nothing to choose. Check they
 are there:
 
 :::agent[claude]
 Open Claude Code in any repo and type `/` — you should see `/slashforge-setup`,
-`/slashforge-code`, `/slashforge-investigate` and `/slashforge-review-pr`.
+`/slashforge-code`, `/slashforge-fix`, `/slashforge-investigate`, `/slashforge-review-pr`
+and `/slashforge-resume`.
 :::
 
 :::agent[cursor]
 Open Cursor in any repo and type `/` — you should see `/slashforge-setup`,
-`/slashforge-code`, `/slashforge-investigate` and `/slashforge-review-pr`. The commands
-install to `~/.agents/skills/`, which Cursor reads.
+`/slashforge-code`, `/slashforge-fix`, `/slashforge-investigate`, `/slashforge-review-pr`
+and `/slashforge-resume`. The commands install to `~/.agents/skills/`, which Cursor reads.
 :::
 
 :::agent[codex]
 The commands install to `~/.agents/skills/`, which Codex reads, and are invoked with
 `$` rather than `/`. In any repo, type `$slashforge-code` — and `$slashforge-setup`,
-`$slashforge-investigate`, `$slashforge-review-pr`.
+`$slashforge-fix`, `$slashforge-investigate`, `$slashforge-review-pr`, `$slashforge-resume`.
 :::
 
 Two things worth knowing before you start:
 
 - ==Commands have the same name on every agent.== Pick your agent in the header and
   the docs show the form it takes.
-- ==On Cursor and Codex the four commands run only when you type them== — the agent
+- ==On Cursor and Codex the six commands run only when you type them== — the agent
   never starts one on its own because a prompt looked relevant.
 
 ==Cursor and Codex share the skills in `~/.agents/skills/`, but setup scaffolds each

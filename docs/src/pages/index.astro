@@ -77,6 +77,11 @@ const commands = [
     desc: 'End-to-end development. Ten phases from plan to merged PR, with mandatory stop-and-confirm gates. Add -quick for lean mode on small changes.',
   },
   {
+    name: '/slashforge-fix',
+    href: 'commands/slashforge-fix',
+    desc: 'Patches a bug straight from an investigation. Reads the finding, locks context to the implicated files, and writes a regression test before the patch. No full planning phase.',
+  },
+  {
     name: '/slashforge-investigate',
     href: 'commands/slashforge-investigate',
     desc: 'Read-only research. Reproduces and root-causes a bug, then writes a findings report. Never touches your code.',
@@ -84,14 +89,19 @@ const commands = [
   {
     name: '/slashforge-review-pr',
     href: 'commands/slashforge-review-pr',
-    desc: "Reviews a pull request against your repo's own rules and conventions, then posts line-level comments or approves. Never posts without showing you the exact text.",
+    desc: "Reviews a pull request against your repo's own rules and conventions plus a security audit, then posts line-level comments or approves. Never posts without showing you the exact text.",
+  },
+  {
+    name: '/slashforge-resume',
+    href: 'commands/slashforge-resume',
+    desc: 'Resumes an interrupted run from its last checkpoint. Verifies the git HEAD still matches, then re-enters the workflow at the next phase instead of starting over.',
   },
 ];
 
-// Ordered the way a reader meets the costs, and in the same order as the four
-// commands above: setup, then a run and its two variants, then the other two
-// jobs. It used to descend by cost within each row, which put the one-time
-// prerequisite fourth — a number you pay first reading as an afterthought.
+// Ordered the way a reader meets the costs, roughly following the commands
+// above: setup, then a run and its variants, then the other jobs. It used to
+// descend by cost within each row, which put the one-time prerequisite fourth —
+// a number you pay first reading as an afterthought.
 const costs = [
   {
     label: 'Repo setup',
@@ -129,7 +139,7 @@ const costs = [
 <Base
   agentInHeader={false}
   title="SlashForge — workflow slash commands for AI coding agents"
-  description="Spec-driven workflow slash commands for AI coding agents — /slashforge-setup, /slashforge-code, /slashforge-investigate, /slashforge-review-pr. From intake to a merged PR, for Claude Code, Cursor and Codex."
+  description="Spec-driven workflow slash commands for AI coding agents — /slashforge-setup, /slashforge-code, /slashforge-fix, /slashforge-investigate, /slashforge-review-pr, /slashforge-resume. From intake to a merged PR, for Claude Code, Cursor and Codex."
   rawTitle
 >
   <main>
@@ -263,7 +273,7 @@ const costs = [
     <section class="section">
       <div class="band">
         <div class="section__head">
-          <h2>Four commands</h2>
+          <h2>Six commands</h2>
           <span class="label">Each command triggers one distinct workflow</span>
         </div>
         <div class="cells cells--quad">
@@ -280,7 +290,7 @@ const costs = [
         </div>
         <p class="caveat">
           Names follow the agent picked in the header. Codex invokes them with{' '}
-          <code>$</code> rather than <code>/</code>. All four run on every agent —{' '}
+          <code>$</code> rather than <code>/</code>. All six run on every agent —{' '}
           <code>setup</code> writes each host's own layout, so on Cursor you get{' '}
           <code>.cursor/rules/*.mdc</code> and on Codex nested <code>AGENTS.md</code> plus{' '}
           <code>.codex/agents/*.toml</code>, never <code>.claude/</code>.
