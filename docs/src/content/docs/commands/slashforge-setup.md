@@ -64,6 +64,29 @@ the header. See the CLI reference for
 | Hooks | Automated behaviours | `.codex/hooks.json` |
 :::
 
+## The spec home
+
+Setup also scaffolds the **spec home** — the Markdown source of truth the
+development workflow reads and writes:
+
+```
+docs/slashforge/
+├─ constitution.md      # the project's non-negotiables
+├─ architecture.md      # tech stack, standards, design patterns
+├─ status.md            # what's being built now, and recently shipped
+├─ active/              # in-flight changes, one folder each
+│  └─ <change>/
+│     ├─ requirements.md   # WHAT & WHY
+│     ├─ plan.md           # HOW
+│     └─ tasks.md          # the checklist
+└─ archive/             # completed changes, moved here on merge
+```
+
+The generated rules reference `constitution.md` rather than restate it, so the
+non-negotiables have a single home. See
+[`/slashforge-code`](/slashforge/commands/slashforge-code/) for how the lifecycle
+fills `active/` and moves each change to `archive/` on merge.
+
 ## Safe re-runs
 
 Every generated file carries a `generated_by` marker — YAML frontmatter for
@@ -105,7 +128,7 @@ per-run cost.== You pay it when you adopt SlashForge in a codebase and then not
 again unless you re-run it.
 
 It carries **the largest fixed instruction load of any command: ~20k tokens**,
-before it has read a single line of your code. That is the command plus twelve
+before it has read a single line of your code. That is the command plus thirteen
 guide files, and it is the price of the output being tailored rather than
 templated — the guides are what let it write rules that match your conventions
 instead of generic ones.

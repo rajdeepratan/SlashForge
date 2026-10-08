@@ -204,3 +204,13 @@ should not repeat the root's stack table, but it must name anything that differs
 - Non-obvious and project-specific only — skip what any developer already knows
 - If a rule applies everywhere in any codebase, it doesn't belong here
 - Derive from observed patterns — never invent rules that aren't in the code
+
+---
+
+## Reference the constitution, don't restate it
+
+`docs/slashforge/constitution.md` is the single home for the project's
+non-negotiables (see `slashforge-spec-home.md`). A rule that would repeat one of
+them should point at it instead — "see `docs/slashforge/constitution.md`" — so
+there is one source and the two never drift. Rules still carry the day-to-day
+conventions the constitution does not.

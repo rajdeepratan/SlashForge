@@ -38,7 +38,7 @@ Every phase with a named skill MUST load and follow it — do not paraphrase. Ev
    - When uncertain → **default to full flow**
 3. **Announce the decision** before any token-heavy work: *"Treating this as [trivial | full]. [One-line reason from the checklist.] Say 'full flow' or 'quick' to override."* A user reply of `quick` or `trivial` forces the lean path; `full` or `full flow` forces the full path.
 4. **Trivial path:** skip `slashforge-brainstorm`. Go to Phase 2 with the **Lean plan format** (see Phase 2). Phases 3–10 run as normal — every user gate and Phase 6 verification stay in place.
-5. **Full path:** invoke `slashforge-brainstorm`. It writes the design spec to `docs/slashforge/specs/` as HTML by itself. Cover goal, user-visible behaviour, constraints, out-of-scope items, success criteria. Ask clarifying questions until the request is unambiguous. Do not propose a plan yet.
+5. **Full path:** invoke `slashforge-brainstorm`. It writes `docs/slashforge/active/<change>/requirements.md` as Markdown by itself (see `slashforge-spec-home.md`). Cover goal, user-visible behaviour, constraints, out-of-scope items, success criteria. Ask clarifying questions until the request is unambiguous. Do not propose a plan yet.
 
 ---
 
@@ -47,13 +47,13 @@ Every phase with a named skill MUST load and follow it — do not paraphrase. Ev
 **Skill:** `slashforge-plan`
 
 <!--target:claude-->
-1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes `docs/slashforge/active/<change>/plan.md` and `tasks.md` as Markdown by itself.
 <!--/target-->
 <!--target:cursor-->
-1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **`.cursor/` coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **`.cursor/` coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes `docs/slashforge/active/<change>/plan.md` and `tasks.md` as Markdown by itself.
 <!--/target-->
 <!--target:codex-->
-1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **setup coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **setup coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes `docs/slashforge/active/<change>/plan.md` and `tasks.md` as Markdown by itself.
 <!--/target-->
 2. **Full plan format** (default): cover every section, omitting only those that genuinely do not apply:
    - **Changes** — files/modules to be added, modified, or removed
@@ -122,7 +122,7 @@ When uncertain, pick `slashforge-tdd` and note the reasoning. `/slashforge-code 
 1. Implement the task yourself. There is no agent to select and none to create — do not write agent definition files.
 <!--/target-->
 2. Invoke the selected Phase 5 skill (or state why no skill applies), then implement.
-3. Implement strictly to the approved plan — if the plan turns out wrong mid-implementation, stop and return to the intake phase.
+3. Implement strictly to the approved plan, working through `docs/slashforge/active/<change>/tasks.md` and flipping each step's `- [ ]` to `- [x]` as it lands — if the plan turns out wrong mid-implementation, stop and return to the intake phase.
 
 ---
 
@@ -145,7 +145,8 @@ When uncertain, pick `slashforge-tdd` and note the reasoning. `/slashforge-code 
 5. Run tests — if any fail, return to Phase 5 with the failure output and loop until all pass
 6. **For bug fixes**: confirm the regression test **failed before the fix and passes after**. If it passed both times, the test doesn't actually cover the bug — fix the test before proceeding.
 7. Run build — fix any failures before proceeding
-8. Do not continue to review until lint, tests, and build all pass with evidence
+8. **Converge against the spec** — confirm every success criterion in `docs/slashforge/active/<change>/requirements.md` is individually met, and every step box in `tasks.md` is ticked. (Lean mode has no `requirements.md`; converge against the plan's Changes instead.)
+9. Do not continue to review until lint, tests, build, and convergence all pass with evidence
 
 ---
 
@@ -160,7 +161,8 @@ When uncertain, pick `slashforge-tdd` and note the reasoning. `/slashforge-code 
 1. Invoke `slashforge-request-review`, then review the diff yourself against the checklist below — as a distinct pass after implementation, not while writing the code
 <!--/target-->
 2. Review must check:
-   - Matches the approved plan — no scope creep, no missing pieces
+   - Matches `requirements.md` and the approved plan — no scope creep, no missing pieces
+   - Honours `docs/slashforge/constitution.md` — violates none of the project's non-negotiables
    - No duplicate code, no dead code, no debug leftovers, no hardcoded secrets
    <!--target:claude-->
    - Follows `.claude/rules/` and the user's coding style
@@ -219,6 +221,9 @@ Runs only after the user confirms the PR merged. Cleans up the feature branch lo
 
 1. Ask: **"PR merged. Clean up the feature branch `<branch>`? This deletes it locally and on the remote. (y/n)"** — skip the phase if the user declines
 2. **Verify the PR is actually merged** before deleting anything. Use `gh pr view <branch> --json state,mergedAt` (or the repo's equivalent) and confirm `state == MERGED`. If it isn't merged (draft, closed, or unknown), stop and warn the user — do not delete.
+
+**Archive the change (all hosts).** Once the PR is confirmed MERGED and the base branch is checked out and pulled (step 3): move `docs/slashforge/active/<change-slug>/` to `docs/slashforge/archive/<change-slug>/` (`git mv`) and update `docs/slashforge/status.md` — drop the change from the active list and add it under "recently archived" with the merge date. Commit this on the base branch; if direct pushes to the base are blocked, open a short archive-only PR instead. If no `docs/slashforge/active/<change-slug>/` exists (a trivial or lean change that never created one), skip the archive silently. See `slashforge-spec-home.md` for the layout.
+
 <!--target:claude-->
 3. Invoke the `git` agent to perform the cleanup. Expected steps: fetch latest from the remote; checkout the PR's base branch and pull; delete the local feature branch (prefer `git branch -d`; fall back to `-D` only if the PR was merged via squash/rebase and step 2 confirmed MERGED — explain when falling back); delete the remote feature branch `git push origin --delete <branch>` (treat "remote ref does not exist" as success); prune stale remote-tracking refs (`git remote prune origin`).
 <!--/target-->

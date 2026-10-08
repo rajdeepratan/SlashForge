@@ -627,7 +627,7 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
 .btn--ghost { border: 2px solid var(--rule); padding: 15px 26px; }
 .btn--ghost:hover { background: var(--surface); }
 
-.rail { margin-top: 52px; max-width: 360px; }
+.rail { margin-top: 52px; max-width: 396px; }
 .label { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
 .rail__cmd {
   font-family: var(--mono);

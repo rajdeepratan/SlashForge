@@ -501,8 +501,8 @@ test('upgrading clears a guide file that was dropped', () => {
 // it: any skill that writes an artefact names the path inside its own body.
 test('SlashForge skills that write artefacts name their own destination', () => {
   const expected = {
-    'brainstorm.md': 'docs/slashforge/specs/',
-    'plan.md': 'docs/slashforge/plans/',
+    'brainstorm.md': 'docs/slashforge/active/',
+    'plan.md': 'docs/slashforge/active/',
   };
   for (const [file, dest] of Object.entries(expected)) {
     const skill = SKILL_FILES.find((s) => s.endsWith(file));
@@ -512,42 +512,47 @@ test('SlashForge skills that write artefacts name their own destination', () => 
   }
 });
 
-// Three skills now write HTML through one shell. The shell must not assume which
-// kind of document it is wrapping — it did, with a hardcoded "Investigation — "
-// prefix that would have titled every design spec as an investigation.
-test('the shell is document-agnostic and all three writers use it', () => {
+// The investigation report is the one artefact that still renders through the HTML
+// shell. The shell must not assume which kind of document it is wrapping — it once
+// did, with a hardcoded "Investigation — " prefix. Design specs and plans are now
+// Markdown (requirements.md / plan.md / tasks.md under active/) and use no shell.
+test('the shell is document-agnostic and the investigation report uses it', () => {
   const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge-report-shell.html'), 'utf8');
   assert.ok(
     /<title><!--TITLE--><\/title>/.test(shell),
     'the shell must not prefix the title — the caller supplies the whole thing',
   );
 
-  const writers = {
-    'investigate.md': 'docs/slashforge/investigations',
-    'brainstorm.md': 'docs/slashforge/specs',
-    'plan.md': 'docs/slashforge/plans',
-  };
-  for (const [file, dir] of Object.entries(writers)) {
-    const body = commandInstruction(file);
-    assert.ok(body.includes(`mkdir -p ${dir}`), `${file} must create ${dir}`);
-    assert.ok(body.includes('slashforge-splice.js'), `${file} must splice through the shipped script`);
+  const body = commandInstruction('investigate.md');
+  assert.ok(body.includes('mkdir -p docs/slashforge/investigations'),
+    'investigate.md must create docs/slashforge/investigations');
+  assert.ok(body.includes('slashforge-splice.js'),
+    'investigate.md must splice through the shipped script');
+
+  // The Markdown writers must NOT reach for the HTML splice any more.
+  for (const f of ['brainstorm.md', 'plan.md']) {
+    assert.ok(!commandInstruction(f).includes('slashforge-splice.js'),
+      `${f} is Markdown now and must not use the HTML splice`);
   }
 });
 
-// Opening a document must never be able to fail the run that produced it, and the
-// three writers must share one copy of the platform detection rather than each
+// Opening a document must never be able to fail the run that produced it. The
+// investigation report is the only artefact opened in a browser now (specs and
+// plans are Markdown), so it uses the shared platform-detection helper rather than
 // carrying its own — divergent copies are how the mangled-tag bug happened.
 test('the open helper is shared, guarded, and always exits 0', () => {
   const helper = path.join(TEMPLATES_DIR, 'slashforge-open.sh');
   assert.ok(fs.existsSync(helper), 'slashforge-open.sh must ship');
 
-  for (const f of ['investigate.md', 'brainstorm.md', 'plan.md']) {
-    const body = commandInstruction(f);
-    assert.ok(body.includes('slashforge-open.sh'), `${f} must call the shared helper`);
-    assert.ok(
-      !/case "\$\(uname -s\)"/.test(body),
-      `${f} must not carry its own copy of the platform detection`,
-    );
+  const body = commandInstruction('investigate.md');
+  assert.ok(body.includes('slashforge-open.sh'), 'investigate.md must call the shared helper');
+  assert.ok(
+    !/case "\$\(uname -s\)"/.test(body),
+    'investigate.md must not carry its own copy of the platform detection',
+  );
+  for (const f of ['brainstorm.md', 'plan.md']) {
+    assert.ok(!commandInstruction(f).includes('slashforge-open.sh'),
+      `${f} is Markdown now and must not open a browser`);
   }
 
   const run = (env, arg) => {
@@ -1885,7 +1890,9 @@ test('no template runs an inline node script', () => {
 });
 
 test('every document writer calls the shipped splice script', () => {
-  for (const f of ['investigate.md', 'brainstorm.md', 'plan.md', 'review-pr.md']) {
+  // Only the HTML writers remain: the investigation report and the PR review.
+  // Design specs and plans are Markdown now and use no splice.
+  for (const f of ['investigate.md', 'review-pr.md']) {
     assert.ok(
       commandInstruction(f).includes('node "{{INSTALL_PATH}}/slashforge-splice.js"'),
       `${f} must splice through slashforge-splice.js`,
@@ -2745,4 +2752,25 @@ test('rendering a skill with no closing frontmatter fence throws', () => {
   fs.writeFileSync(path.join(dir, 'slashforge', 'x.md'), '---\nname: x\ndescription: y\n');
   const a = resolveAgents({ homeDir: dir, cwd: dir });
   assert.throws(() => renderSkill(path.join('slashforge', 'x.md'), path.join('slashforge', 'x.md'), a, { templatesDir: dir }), /frontmatter/);
+});
+
+// The SDD spec-home guide is host-neutral: every target reads it, so it must
+// ship to the Claude guides dir and to each vendor host's guide folder.
+test('the spec-home guide ships to every target', () => {
+  const { installAgentsFiles } = require('../bin/install.js');
+  assert.ok(GUIDE_FILES.includes('slashforge-spec-home.md'),
+    'GUIDE_FILES must list the spec-home guide');
+
+  const home = tmp();
+  const claude = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(claude, {});
+  assert.ok(fs.existsSync(path.join(claude.guidesDir, 'slashforge-spec-home.md')),
+    'the Claude install must write the spec-home guide');
+
+  const agents = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(agents, {});
+  for (const h of agents.hosts) {
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-spec-home.md')),
+      `the ${h.host} install must write the spec-home guide`);
+  }
 });

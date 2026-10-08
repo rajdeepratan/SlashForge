@@ -84,6 +84,17 @@ in its own place — shown here for the agent picked in the header:
 | Hooks | Automated behaviours that fire on an event, without being asked | `.codex/hooks.json` |
 :::
 
+## The spec home
+
+Alongside that configuration, SlashForge keeps a Markdown **spec home** in your
+repo at `docs/slashforge/` — the source of truth the workflow reads and writes: a
+`constitution.md` of non-negotiables, an `architecture.md`, a `status.md`, and a
+folder per change under `active/` holding its `requirements.md`, `plan.md` and
+`tasks.md`. ==`/slashforge-code` fills these as it runs and moves each change to
+`archive/` on merge==, so the specs stay current and diff in a pull request
+rather than going stale. The same layout on every host — see
+[the spec home](/slashforge/commands/slashforge-setup/#the-spec-home).
+
 ## The four commands
 
 ==Each command triggers one distinct workflow.==
