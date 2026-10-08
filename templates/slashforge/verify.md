@@ -117,7 +117,8 @@ For a change run through `/slashforge-code`, "done" includes the spec, not just 
 - Every step box in `docs/slashforge/active/<change>/tasks.md` is ticked (`- [x]`). An unticked
   box is unfinished work, not a formatting slip.
 
-Lean mode has no `requirements.md`; converge against the plan's Changes instead.
+The lean and trivial paths have no `requirements.md`; converge against the plan's Changes and
+`tasks.md` instead.
 
 ## When this applies
 
