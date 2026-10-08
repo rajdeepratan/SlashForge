@@ -69,13 +69,18 @@ the header. See the CLI reference for
 Setup also scaffolds the **spec home** — the Markdown source of truth the
 development workflow reads and writes:
 
-| File / dir | Purpose |
-| --- | --- |
-| `docs/slashforge/constitution.md` | The project's non-negotiables |
-| `docs/slashforge/architecture.md` | Tech stack, standards, design patterns |
-| `docs/slashforge/status.md` | What is being built now, and recently shipped |
-| `docs/slashforge/active/` | In-flight changes — one folder each |
-| `docs/slashforge/archive/` | Completed changes |
+```
+docs/slashforge/
+├─ constitution.md      # the project's non-negotiables
+├─ architecture.md      # tech stack, standards, design patterns
+├─ status.md            # what's being built now, and recently shipped
+├─ active/              # in-flight changes, one folder each
+│  └─ <change>/
+│     ├─ requirements.md   # WHAT & WHY
+│     ├─ plan.md           # HOW
+│     └─ tasks.md          # the checklist
+└─ archive/             # completed changes, moved here on merge
+```
 
 The generated rules reference `constitution.md` rather than restate it, so the
 non-negotiables have a single home. See
