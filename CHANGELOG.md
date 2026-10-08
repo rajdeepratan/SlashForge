@@ -6,6 +6,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [5.1.1] - 2026-10-08
+
 ### Fixed
 - **Phase 6 `abort` rolls back the whole implementation attempt.** The retry loop recorded its `baseline_commit` at the start of Phase 6, so `abort` kept Phase 5's work and discarded only the retry patches — and it contradicted the resume checkpoint, which records `baseline_commit` as the pre-Phase-5 commit. The baseline is now recorded once at the start of Phase 5 (the pre-implementation state) and used consistently by the retry loop, the localized-patch diff, and `/slashforge-fix`; `abort` now `git reset --hard`s the whole attempt, and the odd `git stash create` snapshot for uncommitted work is gone.
 
