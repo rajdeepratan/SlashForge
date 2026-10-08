@@ -221,6 +221,9 @@ Runs only after the user confirms the PR merged. Cleans up the feature branch lo
 
 1. Ask: **"PR merged. Clean up the feature branch `<branch>`? This deletes it locally and on the remote. (y/n)"** — skip the phase if the user declines
 2. **Verify the PR is actually merged** before deleting anything. Use `gh pr view <branch> --json state,mergedAt` (or the repo's equivalent) and confirm `state == MERGED`. If it isn't merged (draft, closed, or unknown), stop and warn the user — do not delete.
+
+**Archive the change (all hosts).** Once the PR is confirmed MERGED and the base branch is checked out and pulled (step 3): move `docs/slashforge/active/<change-slug>/` to `docs/slashforge/archive/<change-slug>/` (`git mv`) and update `docs/slashforge/status.md` — drop the change from the active list and add it under "recently archived" with the merge date. Commit this on the base branch; if direct pushes to the base are blocked, open a short archive-only PR instead. If no `docs/slashforge/active/<change-slug>/` exists (a trivial or lean change that never created one), skip the archive silently. See `slashforge-spec-home.md` for the layout.
+
 <!--target:claude-->
 3. Invoke the `git` agent to perform the cleanup. Expected steps: fetch latest from the remote; checkout the PR's base branch and pull; delete the local feature branch (prefer `git branch -d`; fall back to `-D` only if the PR was merged via squash/rebase and step 2 confirmed MERGED — explain when falling back); delete the remote feature branch `git push origin --delete <branch>` (treat "remote ref does not exist" as success); prune stale remote-tracking refs (`git remote prune origin`).
 <!--/target-->
