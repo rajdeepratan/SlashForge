@@ -53,6 +53,13 @@ Run in five phases. **Collect every user decision in Phase 1**, then run the res
 8. Create command files → `.claude/commands/` if needed
 9. Create `CLAUDE.md` in the repo root last
 
+*Phase 3 (all hosts) — spec home:* After the host files above, scaffold the
+SlashForge spec home described in `/HOME/.claude/setup/slashforge/slashforge-spec-home.md`:
+generate `docs/slashforge/constitution.md`, `docs/slashforge/architecture.md`
+and `docs/slashforge/status.md` from the Phase 1 exploration — confirm the
+constitution's non-negotiables with the user before writing them — and create
+empty `docs/slashforge/active/` and `docs/slashforge/archive/` directories.
+
 *Phase 4 — Graphify hook-in (the only Graphify step that appends to `CLAUDE.md` / `settings.json`; must run last):*
 10. If Graphify was provisioned in Phase 2, run its **Hook-in** half from `/HOME/.claude/setup/slashforge/slashforge-graph.md` — `graphify claude install` + SUMMARY.html synthesis. Running it after step 9 keeps the kit's `CLAUDE.md` write before Graphify's append, so Graphify's section survives and is treated as user-owned.
 
@@ -76,6 +83,13 @@ Same five-phase shape as single-app — all decisions in Phase 1, Graphify offer
 5. At root: create shared rules, global agents (`git`, `code-reviewer`), and root `CLAUDE.md`
 6. For each app: create app-specific rules, skills, specialist agents, and per-app `CLAUDE.md`
 7. Create commands at root or per-app level as appropriate
+
+*Phase 3 (all hosts) — spec home:* After the host files above, scaffold the
+spec home once at the repo root per `/HOME/.claude/setup/slashforge/slashforge-spec-home.md`:
+generate `docs/slashforge/constitution.md`, `docs/slashforge/architecture.md`
+and `docs/slashforge/status.md` from the Phase 1 exploration — confirm the
+constitution's non-negotiables with the user first — and create empty
+`docs/slashforge/active/` and `docs/slashforge/archive/` directories.
 
 *Phase 4 — Graphify hook-in:*
 8. If Graphify was provisioned, run its **Hook-in** half once at the root — `graphify claude install` + SUMMARY.html — AFTER all root and per-app `CLAUDE.md` files are written.
@@ -106,6 +120,13 @@ Same five-phase shape — decisions first, file writes in the middle, Graphify's
 8. Do not overwrite user-owned files wholesale — edit to fill gaps and preserve what is correct
 9. Every file you create or refresh gets a fresh marker using the current kit version and timestamp from `meta.json`
 10. Update `CLAUDE.md` Project References table to reflect actual state of `.claude/`
+
+*Phase 3 (all hosts) — spec home:* If `docs/slashforge/` does not yet exist,
+scaffold it per `/HOME/.claude/setup/slashforge/slashforge-spec-home.md` (constitution,
+architecture, status, and empty `active/` and `archive/`). If it exists, refresh
+`architecture.md` and `status.md` from the current exploration, leave a
+user-authored `constitution.md` untouched, and never discard `active/` or
+`archive/` contents.
 
 *Phase 4 — Graphify hook-in:*
 11. If a **first-time** install was provisioned in Phase 2 (Branch A or B), run its **Hook-in** half last — `graphify claude install` + SUMMARY.html — after the `CLAUDE.md` edits in step 10. Branch C re-index needs no hook-in (the section already exists); just re-synthesise SUMMARY.html per the guide.

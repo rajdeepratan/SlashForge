@@ -121,6 +121,13 @@ Run in five phases. **Collect every user decision in Phase 1**, then run the res
 9. Create the root `AGENTS.md` last
 <!--/target-->
 
+*Phase 3 (all hosts) — spec home:* After the host files above, scaffold the
+SlashForge spec home described in `{{INSTALL_PATH}}/slashforge-spec-home.md`:
+generate `docs/slashforge/constitution.md`, `docs/slashforge/architecture.md`
+and `docs/slashforge/status.md` from the Phase 1 exploration — confirm the
+constitution's non-negotiables with the user before writing them — and create
+empty `docs/slashforge/active/` and `docs/slashforge/archive/` directories.
+
 <!--target:claude-->
 *Phase 4 — Graphify hook-in (the only Graphify step that appends to `CLAUDE.md` / `settings.json`; must run last):*
 10. If Graphify was provisioned in Phase 2, run its **Hook-in** half from `{{INSTALL_PATH}}/slashforge-graph.md` — `graphify claude install` + SUMMARY.html synthesis. Running it after step 9 keeps the kit's `CLAUDE.md` write before Graphify's append, so Graphify's section survives and is treated as user-owned.
@@ -182,6 +189,13 @@ Same five-phase shape as single-app — all decisions in Phase 1, Graphify offer
 6. For each app: create a nested `AGENTS.md` carrying that app's rules, plus its skills under `.agents/skills/`. Keep every subagent at the root — Codex resolves `.codex/` from the project root, so per-app subagent directories are not read
 7. Do not create commands — express each as a skill instead
 <!--/target-->
+
+*Phase 3 (all hosts) — spec home:* After the host files above, scaffold the
+spec home once at the repo root per `{{INSTALL_PATH}}/slashforge-spec-home.md`:
+generate `docs/slashforge/constitution.md`, `docs/slashforge/architecture.md`
+and `docs/slashforge/status.md` from the Phase 1 exploration — confirm the
+constitution's non-negotiables with the user first — and create empty
+`docs/slashforge/active/` and `docs/slashforge/archive/` directories.
 
 <!--target:claude-->
 *Phase 4 — Graphify hook-in:*
@@ -268,6 +282,13 @@ Same five-phase shape — decisions first, file writes in the middle, Graphify's
 <!--target:codex-->
 10. Update the root `AGENTS.md` Project References table to reflect the actual nested `AGENTS.md` files, `.codex/agents/` and `.agents/skills/`
 <!--/target-->
+
+*Phase 3 (all hosts) — spec home:* If `docs/slashforge/` does not yet exist,
+scaffold it per `{{INSTALL_PATH}}/slashforge-spec-home.md` (constitution,
+architecture, status, and empty `active/` and `archive/`). If it exists, refresh
+`architecture.md` and `status.md` from the current exploration, leave a
+user-authored `constitution.md` untouched, and never discard `active/` or
+`archive/` contents.
 
 <!--target:claude-->
 *Phase 4 — Graphify hook-in:*
