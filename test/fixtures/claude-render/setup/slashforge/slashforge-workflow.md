@@ -9,9 +9,21 @@ Ten-phase change-shipping flow used by `/slashforge-code` (full and trivial path
 
 - `slashforge-workflow-investigation.md` — Investigation Flow I1–I3 (loaded by `/slashforge-investigate` only — it does not load this file)
 - `slashforge-workflow-review-pr.md` — PR Review Flow R1–R7 (loaded by `/slashforge-review-pr` only; it applies the Phase 7 checklist below as its review standard, but does not load the rest of this file)
+- `slashforge-workflow-fix.md` — Fix Overrides (loaded by `/slashforge-fix` *on top of* this file: it ingests a structured investigation, skips discovery, enforces a regression test, and hard-fails Phase 6 if no test was added)
+- `slashforge-workflow-verify.md` · `slashforge-workflow-security.md` · `slashforge-workflow-docs.md` — read at Phase 6 (localized retry loop), Phase 7 (dual-track security audit; also used by `/slashforge-review-pr`) and Phase 8 (the CHANGELOG/README documentation sweep)
+- `slashforge-workflow-resume.md` — Resume (loaded by `/slashforge-resume`: reads the latest `.slashforge/run_<id>.ckpt.json` checkpoint, verifies git HEAD, and re-enters this flow at the next phase)
 - `slashforge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
 
 Every phase with a named skill MUST invoke it via the `Skill` tool — do not paraphrase. Every skill the workflow names ships with SlashForge, so all of them are always available. There are no optional dependencies. The flow runs without user intervention **except for four mandatory gates**: plan confirmation (Phase 3), branch decision (Phase 4), PR target + reviewers (Phase 8), and branch cleanup after merge (Phase 10).
+
+---
+
+## Checkpointing (every phase)
+
+The run is resumable. At the **end of every successful phase**, atomically write (temp file, then
+`mv`) `.slashforge/run_<id>.ckpt.json` with `current_phase`, `git_branch` and a small
+`context_snapshot` — every path alike. `/slashforge-resume` reads it and re-enters at
+`current_phase + 1`; format in **`slashforge-workflow-resume.md`**. `.slashforge/` — gitignore it.
 
 ---
 
@@ -96,17 +108,16 @@ When uncertain, pick `slashforge-tdd` and note the reasoning. `/slashforge-code 
 
 ## Phase 6 — Verify (Lint, Test, Build)
 
-**Skill:** `slashforge-verify`
+**Skill:** `slashforge-verify`. **Read `slashforge-workflow-verify.md`** — it carries the full phase.
 
-1. Invoke `slashforge-verify` — no success claims without evidence
-2. Verify that lint, test, and build commands are defined in `CLAUDE.md`. If any are missing, ask the user for them before continuing
-3. If new env vars were added, confirm they are in `.env.example` (or equivalent) before running anything
-4. Run lint/format — fix all errors before continuing
-5. Run tests — if any fail, return to Phase 5 with the failure output and loop until all pass
-6. **For bug fixes**: confirm the regression test **failed before the fix and passes after**. If it passed both times, the test doesn't actually cover the bug — fix the test before proceeding.
-7. Run build — fix any failures before proceeding
-8. **Converge against the spec** — confirm every success criterion in `docs/slashforge/active/<change>/requirements.md` is individually met, and every step box in `tasks.md` is ticked. (The lean and trivial paths have no `requirements.md`; converge against the plan's Changes and `tasks.md` instead.)
-9. Do not continue to review until lint, tests, build, and convergence all pass with evidence
+Phase 6 is a **localized micro-state machine**. Record `baseline_commit` (SHA at the start of Phase
+6); set `max_retries = 3`, `current_attempt = 1`. Run lint, tests, build and convergence against the
+spec — all green with evidence → Phase 7. On any failure, do **not** bounce back to replanning: run
+**Localized Patch Generation** (a single-shot fix constrained to the files the failure implicates,
+from the plan + Phase 5 diff + failing output, never altering the plan), re-run, increment
+`current_attempt`. After `max_retries`, hit the **Human Intervention Gate** — print exactly `VERIFY
+FAILED: 3 consecutive test/build failures.` and wait for `proceed` (reset and re-run) or `abort`
+(`git reset --hard <baseline_commit>`, discarding Phase 6's changes, then exit).
 
 ---
 
@@ -127,11 +138,28 @@ When uncertain, pick `slashforge-tdd` and note the reasoning. `/slashforge-code 
 5. If review fails **3 times in a row**, stop looping and escalate: **"The code has failed review 3 times. Outstanding issues: [list]. Please advise."**
 6. Loop until the review passes or the user intervenes
 
+### Security audit (dual-track, blocking)
+
+Before Phase 7 can pass, run the dual-track security audit in **`slashforge-workflow-security.md`** —
+Track A (`npm audit --json` on a dependency-file diff; High/Critical blocks) and Track B (a rigid
+AppSec OWASP pass on source diffs). **Any `category: security`, `severity: blocking` finding halts
+Phase 7 so Phase 8 does not run** — fix it in Phase 5 and re-run the audit; never deferred to a follow-up.
+
 ---
 
-## Phase 8 — Push & PR (Gate)
+## Phase 8 — Documentation, Push & PR (Gate)
 
 **Skill:** none — Phases 8 and 10 below are SlashForge's own branch-completion flow, and are more specific than a generic one.
+
+### Documentation sweep (before pushing, so the docs land in the PR)
+
+Before the push, run the documentation sweep in **`slashforge-workflow-docs.md`**: prepend a
+[Keep a Changelog](https://keepachangelog.com) snippet under `CHANGELOG.md`'s `## [Unreleased]`
+header, apply targeted `README.md` updates for any public-interface change (exported APIs, CLI flags,
+env vars), and commit them as `docs: auto-update changelog and readme for <feature>`. If there is
+nothing to document, skip the commit and say why.
+
+### Push
 
 1. Invoke the `git` agent to push. If push is rejected because the remote diverged, rebase on the latest; if conflict is not auto-resolvable, stop and ask the user.
 2. Ask: **"Which branch should I target for this PR?"** and **"Who should I assign as reviewer(s)?"** — do not guess either (or read from a repo config if one exists).

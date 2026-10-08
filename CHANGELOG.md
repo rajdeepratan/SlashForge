@@ -6,6 +6,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **`/slashforge-fix` — the investigate → code loop.** A new command that patches a bug straight from a `/slashforge-investigate` finding. `/slashforge-investigate` now also writes a structured contract to `.slashforge/latest_investigation.json` (`run_id`, `reproduction_steps`, `root_cause`, `implicated_files`, `suggested_approach`); `/slashforge-fix` reads it, skips discovery, locks its context to the implicated files, enforces a regression test before the patch, and hard-fails Phase 6 if the diff added no test.
+- **`/slashforge-resume` — state resumption.** The change-shipping workflow now writes an atomic checkpoint (`.slashforge/run_<id>.ckpt.json`) at the end of every phase; `/slashforge-resume` reads the latest one, verifies the git HEAD still matches, and re-enters the run at the next phase instead of starting over.
+- **Dual-track security audit (Phase 7 and `/slashforge-review-pr`).** Track A runs `npm audit --json` on dependency-file diffs and blocks on High/Critical advisories (parsed by the new shipped `slashforge-audit.js`); Track B is a rigid AppSec OWASP pass over source diffs. Any blocking security finding halts Phase 7 before a PR is opened; the standalone review renders them in red under a `SECURITY FINDINGS` header.
+- **Automated documentation sweep (Phase 8).** Before pushing, the workflow prepends a Keep a Changelog snippet under `CHANGELOG.md`'s `## [Unreleased]` header, applies targeted `README.md` updates for public-interface changes, and commits them as `docs: auto-update changelog and readme for <feature>`.
+
+### Changed
+- **Phase 6 is a localized retry micro-state machine.** A failed lint/test/build now triggers up to three constrained, single-shot localized patches (scoped to the implicated files, plan read-only) before escalating to a human-intervention gate (`proceed` to re-run, `abort` to `git reset --hard` back to the pre-verify commit) — instead of bouncing straight back to replanning.
+- **Node requirement raised to the current LTS, Node 24.** `package.json` `engines` is now `>=24` and CI runs on Node 24.
+
 ## [5.0.0] - 2026-10-08
 
 ### Breaking

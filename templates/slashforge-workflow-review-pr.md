@@ -14,6 +14,7 @@ Seven-phase read-only flow used by `/slashforge-review-pr`. No branching, no com
 - `slashforge-workflow-agents.md` — how task types are handled + self-sufficiency rules (loaded by every workflow command)
 <!--/target-->
 - `slashforge-workflow.md` — the ten-phase change-shipping flow. Its **Phase 7 checklist** is the review standard applied in Phase R3 (this file does not otherwise load it)
+- `slashforge-workflow-security.md` — the dual-track security audit run in Phase R3 (shared with Phase 7 of the change-shipping flow)
 
 This file is loaded by `/slashforge-review-pr`.
 
@@ -160,6 +161,15 @@ Then check:
 **Severity matters more than volume.** Three findings that would break production beat twenty
 style nits. Sort by severity and say which are blocking.
 
+### Security audit (dual-track)
+
+Run the dual-track security audit in **`slashforge-workflow-security.md`** against the PR diff: Track
+A (`npm audit --json` parsed through `slashforge-audit.js` on a dependency-file diff; High/Critical
+blocks) and Track B (the rigid AppSec OWASP pass on source diffs). Every finding from either track is
+`category: security`, `severity: blocking`. In this read-only command they are reported **separately**
+from the ordinary findings (Phase R4 renders them under their own `SECURITY FINDINGS` header) and
+make `request-changes` the obvious recommendation at the gate — but the user still chooses.
+
 ---
 
 ## Phase R4 — Write the Review Document
@@ -177,6 +187,18 @@ same one investigation reports, specs and plans use. Write **only the body fragm
 
 <h2>What this PR does</h2>
 <p>In your own words, from reading the diff — not a restatement of the description.</p>
+
+<!-- Include this section ONLY when the dual-track audit produced blocking security
+     findings. Omit the whole block when there are none — do not render an empty header.
+     The security classes render it in red in light and dark. -->
+<h2 class="security-findings">SECURITY FINDINGS</h2>
+<div class="security-findings-block">
+  <table>
+    <tr><th>Category</th><th>File</th><th>Finding &amp; remediation</th></tr>
+    <tr><td>Injection</td><td><code>src/db.js:31</code></td><td>...</td></tr>
+    <tr><td>Dependency (High)</td><td><code>package-lock.json</code></td><td><code>lodash</code> &lt; 4.17.21 — prototype pollution; bump to ≥ 4.17.21</td></tr>
+  </table>
+</div>
 
 <h2>Findings</h2>
 <table>
@@ -213,7 +235,10 @@ Delete the scratch fragment afterwards.
 **Nothing is posted to GitHub before this point, and nothing is posted without an explicit yes.**
 
 Summarise in chat: the verdict, the blocking findings, the counts by severity, and the file path.
-Do not print the HTML.
+Do not print the HTML. **If the dual-track audit produced any blocking security findings, list them
+first, under a `SECURITY FINDINGS` heading, before every other finding** — they are the headline of
+the review, and they make `request-changes` the obvious recommendation (which you say, while the
+user still chooses).
 
 Then show the **exact text that will appear on GitHub** — the top-level body and every line
 comment, verbatim, not a paraphrase. It is public and attributed to the user.
