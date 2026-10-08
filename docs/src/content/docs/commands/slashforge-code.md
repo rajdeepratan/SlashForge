@@ -66,16 +66,32 @@ without your answer:==
 
 | # | Phase | What happens |
 | --- | --- | --- |
-| 1 | Intake | Requirements gathering; auto-classifies trivial vs full |
-| 2 | Plan | Structured plan — changes, surface, env vars, breaking changes, risks, tests |
+| 1 | Intake | Requirements gathering → `requirements.md`; auto-classifies trivial vs full |
+| 2 | Plan | `plan.md` + `tasks.md` — changes, surface, env vars, breaking changes, risks, tests |
 | 3 | **Confirm** | You approve the plan |
 | 4 | **Branch** | You choose the branch strategy |
 | 5 | Implement | TDD, systematic debugging, or subagent-driven as appropriate |
-| 6 | Verify | Lint, tests, build — all must pass |
+| 6 | Verify | Lint, tests, build, and convergence against the spec |
 | 7 | Review | `code-reviewer` agent pass |
 | 8 | **Push + PR** | You confirm target and reviewers |
 | 9 | PR feedback | Handles reviewer comments |
-| 10 | **Cleanup** | You approve branch deletion |
+| 10 | **Cleanup** | You approve branch deletion; the change is archived |
+
+## Spec-driven artefacts
+
+Each change keeps a Markdown trail under
+[`docs/slashforge/`](/slashforge/commands/slashforge-setup/#the-spec-home), not a
+throwaway report:
+
+| Phase | Writes |
+| --- | --- |
+| 1 Intake | `active/<change>/requirements.md` — WHAT & WHY |
+| 2 Plan | `active/<change>/plan.md` + `tasks.md` — HOW & the checklist |
+| 5 Implement | ticks each `- [ ]` in `tasks.md` as it lands |
+| 6 Verify | converges — every success criterion met, every box ticked |
+| 10 Cleanup | moves `active/<change>/` to `archive/<change>/` on merge |
+
+Lean mode writes a lean `plan.md` + `tasks.md` and skips `requirements.md`.
 
 **Typical cost**
 
