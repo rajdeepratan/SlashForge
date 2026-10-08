@@ -77,24 +77,24 @@ const commands = [
     desc: 'End-to-end development. Ten phases from plan to merged PR, with mandatory stop-and-confirm gates. Add -quick for lean mode on small changes.',
   },
   {
-    name: '/slashforge-fix',
-    href: 'commands/slashforge-fix',
-    desc: 'Patches a bug straight from an investigation. Reads the finding, locks context to the implicated files, and writes a regression test before the patch. No full planning phase.',
-  },
-  {
     name: '/slashforge-investigate',
     href: 'commands/slashforge-investigate',
     desc: 'Read-only research. Reproduces and root-causes a bug, then writes a findings report. Never touches your code.',
   },
   {
-    name: '/slashforge-review-pr',
-    href: 'commands/slashforge-review-pr',
-    desc: "Reviews a pull request against your repo's own rules and conventions plus a security audit, then posts line-level comments or approves. Never posts without showing you the exact text.",
+    name: '/slashforge-fix',
+    href: 'commands/slashforge-fix',
+    desc: 'Patches a bug straight from an investigation. Reads the finding, locks context to the implicated files, and writes a regression test before the patch. No full planning phase.',
   },
   {
     name: '/slashforge-resume',
     href: 'commands/slashforge-resume',
     desc: 'Resumes an interrupted run from its last checkpoint. Verifies the git HEAD still matches, then re-enters the workflow at the next phase instead of starting over.',
+  },
+  {
+    name: '/slashforge-review-pr',
+    href: 'commands/slashforge-review-pr',
+    desc: "Reviews a pull request against your repo's own rules and conventions plus a security audit, then posts line-level comments or approves. Never posts without showing you the exact text.",
   },
 ];
 
@@ -139,7 +139,7 @@ const costs = [
 <Base
   agentInHeader={false}
   title="SlashForge — workflow slash commands for AI coding agents"
-  description="Spec-driven workflow slash commands for AI coding agents — /slashforge-setup, /slashforge-code, /slashforge-fix, /slashforge-investigate, /slashforge-review-pr, /slashforge-resume. From intake to a merged PR, for Claude Code, Cursor and Codex."
+  description="Spec-driven workflow slash commands for AI coding agents — /slashforge-setup, /slashforge-code, /slashforge-investigate, /slashforge-fix, /slashforge-resume, /slashforge-review-pr. From intake to a merged PR, for Claude Code, Cursor and Codex."
   rawTitle
 >
   <main>
