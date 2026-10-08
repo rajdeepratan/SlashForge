@@ -6,6 +6,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [5.1.0] - 2026-10-08
+
 ### Added
 - **`/slashforge-fix` — the investigate → code loop.** A new command that patches a bug straight from a `/slashforge-investigate` finding. `/slashforge-investigate` now also writes a structured contract to `.slashforge/latest_investigation.json` (`run_id`, `reproduction_steps`, `root_cause`, `implicated_files`, `suggested_approach`); `/slashforge-fix` reads it, skips discovery, locks its context to the implicated files, enforces a regression test before the patch, and hard-fails Phase 6 if the diff added no test.
 - **`/slashforge-resume` — state resumption.** The change-shipping workflow now writes an atomic checkpoint (`.slashforge/run_<id>.ckpt.json`) at the end of every phase; `/slashforge-resume` reads the latest one, verifies the git HEAD still matches, and re-enters the run at the next phase instead of starting over.
