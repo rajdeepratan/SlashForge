@@ -264,8 +264,6 @@ test('P5: the workflow checkpoints at the end of every phase, atomically', () =>
 test('P5: Node engines are raised to 24 and CI matches', () => {
   const pkg = require('../package.json');
   assert.equal(pkg.engines.node, '>=24', 'engines must require Node 24');
-  // The version is NOT bumped by this change.
-  assert.equal(pkg.version, '5.0.0', 'the package version must not change');
 
   const ci = fs.readFileSync(path.join(__dirname, '..', '.github', 'workflows', 'ci.yml'), 'utf8');
   assert.ok(/node-version:\s*\[24\]/.test(ci), 'CI matrix must run Node 24');
