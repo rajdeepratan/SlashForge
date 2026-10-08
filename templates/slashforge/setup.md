@@ -20,6 +20,7 @@ Then read all of the following files in full — together they are your complete
 - {{INSTALL_PATH}}/slashforge-workflow-agents.md
 - {{INSTALL_PATH}}/slashforge-rules.md
 - {{INSTALL_PATH}}/slashforge-skills.md
+- {{INSTALL_PATH}}/slashforge-spec-home.md
 <!--target:claude-->
 - {{INSTALL_PATH}}/slashforge-agents.md
 - {{INSTALL_PATH}}/slashforge-commands.md

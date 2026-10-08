@@ -14,6 +14,7 @@ const GUIDE_FILES = [
   'slashforge-graph.md',
   'slashforge-graph-summary.md',
   'slashforge-coverage.md',
+  'slashforge-spec-home.md',
   'slashforge-workflow.md',
   'slashforge-workflow-investigation.md',
   'slashforge-workflow-review-pr.md',

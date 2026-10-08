@@ -2746,3 +2746,24 @@ test('rendering a skill with no closing frontmatter fence throws', () => {
   const a = resolveAgents({ homeDir: dir, cwd: dir });
   assert.throws(() => renderSkill(path.join('slashforge', 'x.md'), path.join('slashforge', 'x.md'), a, { templatesDir: dir }), /frontmatter/);
 });
+
+// The SDD spec-home guide is host-neutral: every target reads it, so it must
+// ship to the Claude guides dir and to each vendor host's guide folder.
+test('the spec-home guide ships to every target', () => {
+  const { installAgentsFiles } = require('../bin/install.js');
+  assert.ok(GUIDE_FILES.includes('slashforge-spec-home.md'),
+    'GUIDE_FILES must list the spec-home guide');
+
+  const home = tmp();
+  const claude = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(claude, {});
+  assert.ok(fs.existsSync(path.join(claude.guidesDir, 'slashforge-spec-home.md')),
+    'the Claude install must write the spec-home guide');
+
+  const agents = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(agents, {});
+  for (const h of agents.hosts) {
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-spec-home.md')),
+      `the ${h.host} install must write the spec-home guide`);
+  }
+});

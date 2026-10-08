@@ -12,6 +12,7 @@ Then read all of the following files in full — together they are your complete
 - /HOME/.claude/setup/slashforge/slashforge-workflow-agents.md
 - /HOME/.claude/setup/slashforge/slashforge-rules.md
 - /HOME/.claude/setup/slashforge/slashforge-skills.md
+- /HOME/.claude/setup/slashforge/slashforge-spec-home.md
 - /HOME/.claude/setup/slashforge/slashforge-agents.md
 - /HOME/.claude/setup/slashforge/slashforge-commands.md
 - /HOME/.claude/setup/slashforge/slashforge-hooks.md
