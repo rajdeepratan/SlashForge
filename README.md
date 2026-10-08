@@ -22,9 +22,8 @@
   <strong><a href="https://www.rajdeepratan.com/slashforge/">📖 Documentation</a></strong>
 </p>
 
-Installs six commands on any machine — `/slashforge-setup` to scaffold a repo, `/slashforge-code` for freeform development (add `-quick` for lean small-change work), `/slashforge-investigate` for read-only research, `/slashforge-fix` to patch a bug straight from an investigation, `/slashforge-resume` to pick an interrupted run back up from its last checkpoint, and `/slashforge-review-pr` to review someone else's PR against your repo's rules.
+One command (`npx slashforge`) installs six spec-driven workflow commands into **Claude Code**, **Cursor** and **Codex** — setup, code, investigate, fix, resume, review-pr — covering the full lifecycle from repo bootstrap through investigation-driven bug fixes, security-audited PRs, and crash-safe resumable runs.
 
-One `npx slashforge` sets it up for **Claude Code**, **Cursor** and **Codex** together.
 The commands have the same name everywhere: `/slashforge-code` in Claude Code and Cursor,
 `$slashforge-code` in Codex, which invokes every skill with `$`.
 
