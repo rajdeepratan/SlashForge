@@ -16,9 +16,10 @@ escalates to the user only when those are exhausted.
 ## Setup
 
 1. Invoke `slashforge-verify`.
-2. Record `baseline_commit` — the git SHA at the **start of Phase 6**, i.e. the state Phase 5 left
-   behind (`git rev-parse HEAD`, or a `git stash create` snapshot if Phase 5's work is uncommitted).
-   Initialise `max_retries = 3` and `current_attempt = 1`.
+2. Use `baseline_commit` — the git SHA **before Phase 5 began** (the pre-implementation state),
+   captured at the start of Phase 5 and carried here; it is the same `baseline_commit` the checkpoint
+   stores. It is a real commit on the branch, so no `git stash` snapshot is needed. Initialise
+   `max_retries = 3` and `current_attempt = 1`.
 <!--target:claude-->
 3. Verify that lint, test and build commands are defined in `CLAUDE.md`. If any are missing, ask the user for them before continuing.
 <!--/target-->
@@ -60,7 +61,7 @@ A single-shot, tightly constrained fix — **not** a replan and **not** a return
 implementation freedom. Work only from:
 
 - the **Phase 2 plan** (read-only — you may not change it here),
-- the **git diff of Phase 5** (and of any earlier Phase 6 attempts this run),
+- the **git diff since `baseline_commit`** (`git diff <baseline_commit>...HEAD` — Phase 5's work plus any earlier Phase 6 attempts this run),
 - the **stdout/stderr of the command that failed**.
 
 Hold to this constraint exactly:
@@ -84,13 +85,15 @@ Summarise what failed on each attempt, then wait for the user to type one of:
 
 - **`proceed`** — the user has fixed the code by hand. Reset `current_attempt = 1` and re-run the
   verification suite from the top.
-- **`abort`** — roll the branch back to the pre-verify state and exit the run:
+- **`abort`** — roll the branch back to the pre-implementation state and exit the run:
 
   ```bash
   git reset --hard <baseline_commit>
   ```
 
-  This **discards every change since the start of Phase 6** — which is what `abort` means — so say
-  so when offering the choice. After the reset, stop the run and hand back to the user.
+  This **discards the whole implementation attempt — Phase 5's work and every Phase 6 retry**, back
+  to `baseline_commit` — which is what `abort` means — so say so when offering the choice. If the
+  implementation is worth keeping, the user chooses `proceed` (or fixes it by hand) instead. After
+  the reset, stop the run and hand back to the user.
 
 Never infer `proceed` or `abort`; wait for the explicit word.

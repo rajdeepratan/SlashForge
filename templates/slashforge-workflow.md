@@ -134,7 +134,7 @@ When uncertain, pick `slashforge-tdd` and note the reasoning. `/slashforge-code 
 <!--target:agents-->
 1. Implement the task yourself. There is no agent to select and none to create — do not write agent definition files.
 <!--/target-->
-2. Invoke the selected Phase 5 skill (or state why no skill applies), then implement.
+2. Invoke the selected Phase 5 skill (or state why no skill applies). **Before writing any code, record `baseline_commit = git rev-parse HEAD`** — the pre-implementation state Phase 6 rolls back to on `abort` and diffs against; the same `baseline_commit` the checkpoint stores. Then implement.
 3. Implement strictly to the approved plan, working through `docs/slashforge/active/<change>/tasks.md` and flipping each step's `- [ ]` to `- [x]` as it lands — if the plan turns out wrong mid-implementation, stop and return to the intake phase.
 
 ---
@@ -143,14 +143,14 @@ When uncertain, pick `slashforge-tdd` and note the reasoning. `/slashforge-code 
 
 **Skill:** `slashforge-verify`. **Read `slashforge-workflow-verify.md`** — it carries the full phase.
 
-Phase 6 is a **localized micro-state machine**. Record `baseline_commit` (SHA at the start of Phase
-6); set `max_retries = 3`, `current_attempt = 1`. Run lint, tests, build and convergence against the
-spec — all green with evidence → Phase 7. On any failure, do **not** bounce back to replanning: run
+Phase 6 is a **localized micro-state machine**. Use `baseline_commit` (the pre-Phase-5 SHA); set
+`max_retries = 3`, `current_attempt = 1`. Run lint, tests, build and convergence against the spec —
+all green with evidence → Phase 7. On any failure, do **not** bounce back to replanning: run
 **Localized Patch Generation** (a single-shot fix constrained to the files the failure implicates,
-from the plan + Phase 5 diff + failing output, never altering the plan), re-run, increment
-`current_attempt`. After `max_retries`, hit the **Human Intervention Gate** — print exactly `VERIFY
-FAILED: 3 consecutive test/build failures.` and wait for `proceed` (reset and re-run) or `abort`
-(`git reset --hard <baseline_commit>`, discarding Phase 6's changes, then exit).
+from the plan + the diff since `baseline_commit` + failing output, never altering the plan), re-run,
+increment `current_attempt`. After `max_retries`, hit the **Human Intervention Gate** — print exactly
+`VERIFY FAILED: 3 consecutive test/build failures.` and wait for `proceed` or `abort`
+(`git reset --hard <baseline_commit>`, discarding the whole attempt, then exit).
 
 ---
 
