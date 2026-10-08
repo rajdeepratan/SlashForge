@@ -1,5 +1,5 @@
 ---
-name: /slashforge:plan
+name: /slashforge-plan
 description: Turn an approved spec into a step-by-step implementation plan. Use after a design is agreed and before touching code. Produces bite-sized tasks with real code, real commands, and no placeholders.
 ---
 
@@ -42,15 +42,15 @@ specs use. **Write only the body fragment**; a substitution step splices it in.
 mkdir -p docs/slashforge/plans
 plan="docs/slashforge/plans/<YYYY-MM-DD>-<feature-name>.html"
 
-node "{{INSTALL_PATH}}/forge-splice.js" "$fragment" "$plan" "Plan — <feature-name> (<YYYY-MM-DD>)"
+node "{{INSTALL_PATH}}/slashforge-splice.js" "$fragment" "$plan" "Plan — <feature-name> (<YYYY-MM-DD>)"
 ```
 
-`forge-splice.js` escapes the title and splices the body verbatim. Delete the scratch fragment afterwards.
+`slashforge-splice.js` escapes the title and splices the body verbatim. Delete the scratch fragment afterwards.
 
 Then open it, so the user reviews the rendered plan rather than the markup:
 
 ```bash
-sh "{{INSTALL_PATH}}/forge-open.sh" "$plan"
+sh "{{INSTALL_PATH}}/slashforge-open.sh" "$plan"
 ```
 
 Best-effort — the helper stays silent over SSH or on a headless box and can never fail the run.

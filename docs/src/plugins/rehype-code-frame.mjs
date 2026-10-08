@@ -1,4 +1,31 @@
 import { visit } from 'unist-util-visit';
+import { TARGETS, DEFAULT_TARGET } from '../targets.mjs';
+
+const TARGET_LABELS = { claude: 'Claude', cursor: 'Cursor', codex: 'Codex' };
+
+/**
+ * The per-target tab strip, which takes the bar's left slot on a block that
+ * contains switchable command names. Every other block keeps its language
+ * label. rehype-command-names.mjs sets the data-has-cmd flag this reads.
+ */
+function targetTablist() {
+  return {
+    type: 'element',
+    tagName: 'div',
+    properties: { class: 'code__tabs', role: 'tablist', 'aria-label': 'Coding agent' },
+    children: TARGETS.map((t) => ({
+      type: 'element',
+      tagName: 'button',
+      properties: {
+        type: 'button',
+        role: 'tab',
+        'data-target-opt': t,
+        'aria-selected': String(t === DEFAULT_TARGET),
+      },
+      children: [{ type: 'text', value: TARGET_LABELS[t] }],
+    })),
+  };
+}
 
 /**
  * Wraps every code block in the design's labelled frame.
@@ -40,7 +67,9 @@ export function rehypeCodeFrame() {
             tagName: 'div',
             properties: { class: 'code__bar' },
             children: [
-              { type: 'element', tagName: 'span', properties: {}, children: [{ type: 'text', value: String(lang) }] },
+              node.properties?.['data-has-cmd'] !== undefined
+                ? targetTablist()
+                : { type: 'element', tagName: 'span', properties: {}, children: [{ type: 'text', value: String(lang) }] },
               {
                 type: 'element',
                 tagName: 'button',

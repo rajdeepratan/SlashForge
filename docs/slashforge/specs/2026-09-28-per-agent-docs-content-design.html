@@ -1,0 +1,206 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design — Per-agent docs content and layout fixes (2026-09-28)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — Per-agent docs content and layout fixes</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> Give the docs a way to show only the selected agent's content, rewrite the pages that currently compare all three agents side by side, and fix the layout bugs that comparison caused — so each reader sees only their own paths, commands and features, on desktop and phone alike.
+</div>
+
+<h2>Problem</h2>
+<p>
+  Investigation <code>investigation-2026-09-28-1330.html</code> found one root cause under most of eight
+  findings: the docs can only swap three things per agent — command names (<code>data-cmd</code>),
+  code-block tabs, and one example rule file (<code>data-example-path</code>). Everything else is written as a
+  side-by-side comparison of Claude Code, Cursor and Codex. That is why picking Claude Code still shows Cursor
+  and Codex content (#4, ~80 passages across 14 pages), why the per-agent tables are wider than the text column
+  on desktop (#6) and push phones sideways, and why the quick start assumes Claude Code (#7).
+</p>
+<p>
+  Four more issues are independent of that root cause and are fixed directly: the Trust page's
+  <code>td:first-child { white-space: nowrap }</code> on 90-character path cells makes its table overflow into
+  mostly white space (#2); the header's agent picker plus search, menu and theme buttons overflow at 390px so
+  every docs page scrolls sideways on phones (#5); the Installation page repeats itself (#3); and the sidebar
+  places "Plan mode and /init" ahead of the setup steps (#8).
+</p>
+<p>
+  Finding #1 — the "Plan mode and /init" page — is also factually wrong, and the report's own guess about it was
+  wrong too. Verified against vendor docs: <strong>all three agents have a plan mode</strong> (Claude Code and
+  Cursor via Shift+Tab; Codex via <code>/plan</code> or Shift+Tab, added in v0.93.0 behind an experimental
+  <code>collaboration_modes</code> flag). A built-in <code>/init</code> exists on <strong>Claude Code</strong>
+  (writes <code>CLAUDE.md</code>) and <strong>Codex</strong> (writes <code>AGENTS.md</code>) but
+  <strong>not Cursor</strong>, which has no documented built-in <code>/init</code>. The page's current opening
+  ("Claude Code and Cursor ship a plan mode; Claude Code and Codex ship /init") is therefore inaccurate.
+</p>
+
+<h2>Approach</h2>
+<p>
+  <strong>Chosen:</strong> a block-level per-agent content directive, plus splitting the wide per-agent tables into
+  one narrow table per agent, plus the four direct layout fixes, plus a structural build check. This is the shape
+  agreed in brainstorming (blocks + split tables; a structural width proxy; shrink the phone picker).
+</p>
+<p>
+  The directive reuses the machinery already in the repo. <code>remark-directive</code> is already a dependency and
+  already powers <code>:::note</code> and <code>:::steps</code>; the accent colour, command spellings and example
+  paths already switch off a single <code>data-target</code> attribute on <code>&lt;html&gt;</code>. So the new
+  mechanism is one small remark plugin that emits a <code>data-agent</code> block, and a few CSS rules keyed to the
+  <code>data-target</code> that is already set before first paint. No new client behaviour is needed — visibility is
+  pure CSS.
+</p>
+<p>
+  <strong>Alternatives rejected.</strong> (1) A general row-and-column marking mechanism that keeps the multi-agent
+  tables and hides non-selected rows/columns — more markup, more CSS, more JS, and it preserves the very tables that
+  overflow; splitting the tables removes the overflow at the root instead. (2) Real pixel-level width measurement with
+  a headless browser (Playwright) — accurate to the report's wording, but the repo's entire test suite has zero
+  dependencies and every docs check is <code>node:fs</code> + regex over built HTML; adding a browser breaks that
+  convention for marginal gain over a structural proxy that catches the actual regression cause.
+</p>
+
+<h2>Design</h2>
+<p>The work is seven units, each with a clear boundary.</p>
+
+<p><strong>1. The directive — <code>docs/src/plugins/remark-agent-only.mjs</code> (new).</strong>
+  A remark plugin, registered in <code>astro.config.mjs</code> after <code>remarkDirective</code> (which must parse
+  the <code>:::</code> syntax first). It transforms a container directive
+  <code>:::agent[claude]</code> … <code>:::</code> into
+  <code>&lt;div class="agent-only" data-agent="claude"&gt;…&lt;/div&gt;</code>. The label accepts one or more
+  comma-separated targets — <code>:::agent[claude,codex]</code> emits <code>data-agent="claude codex"</code> — because
+  some facts are shared by two agents but not the third (for example, <code>/init</code> is Claude Code and Codex).
+  Target names are validated against <code>TARGETS</code> from <code>src/targets.mjs</code>; an unknown name emits a
+  build <code>file.message</code>, the same way <code>remark-callouts</code> reports an unknown callout.</p>
+
+<p><strong>2. Visibility — <code>docs/src/styles/site.css</code> and <code>docs/src/layouts/Base.astro</code>.</strong>
+  CSS hides every <code>.agent-only</code> block, then shows the one whose <code>data-agent</code> contains the
+  active <code>data-target</code> (three rules, one per target, matching the existing accent-colour block). Because a
+  reader with JavaScript disabled never runs the pre-paint script that sets <code>data-target</code>, the design adds
+  a static <code>data-target="claude"</code> to <code>&lt;html lang="en"&gt;</code> in <code>Base.astro</code>; the
+  inline script in <code>Head.astro</code> overrides it before paint for everyone else. This keeps the built HTML
+  correct on its own — the same no-JS guarantee the existing <code>check-docs-targets</code> check enforces for
+  command spellings.</p>
+
+<p><strong>3. Page rewrites — the affected content under <code>docs/src/content/docs/</code>.</strong>
+  Each page's cross-agent passages become per-agent blocks so a reader sees only their own; cross-agent facts stay in
+  prose only where the comparison is the point (that one install covers all three, the CLI reference's Hosts section,
+  Migrating, the changelog). The wide 5-column per-agent tables (#6) are replaced by one narrow table per agent inside
+  <code>:::agent</code> blocks — which also removes the Trust overflow (#2) and fixes the quick start (#7). Pages, worst
+  first per the report: <code>reference/cli.md</code> (22 mentions, two tables 758/728px), <code>reference/troubleshooting.md</code>
+  (11), <code>guides/installation.md</code> (8, plus the #3 duplication), <code>reference/migrating.md</code> (10 — largely
+  stays cross-agent by design), <code>guides/introduction.md</code> (6, tables 1046/812px), <code>guides/plan-mode-and-init.md</code>
+  (the #1 rewrite, table 805px), <code>commands/slashforge-setup.md</code> (table 812px), and <code>guides/trust.md</code>
+  (the "What it writes" table).</p>
+
+<p><strong>4. The "Plan mode and /init" rewrite (#1).</strong>
+  Reworked to the verified matrix using the new directive: plan mode is described for all three agents; <code>/init</code>
+  is shown for Claude Code and Codex only, with a Cursor block stating it has no built-in <code>/init</code> and pointing
+  to <code>/slashforge-setup</code>. The frontmatter <code>description</code> is corrected. Uses
+  <code>:::agent[claude,codex]</code> for the shared <code>/init</code> facts and single-target blocks for the differences.</p>
+
+<p><strong>5. The Trust first-cell fix (#2).</strong>
+  Splitting the "What it writes" table into per-agent tables makes each first cell a single short path, so the overflow
+  is largely gone. In addition, <code>td:first-child { white-space: nowrap }</code> in <code>site.css</code> is relaxed so a
+  genuinely long path cell may wrap rather than force the column wide — scoped so ordinary short identifier cells still
+  read on one line.</p>
+
+<p><strong>6. The phone header fix (#5) and sidebar order (#8).</strong>
+  A CSS media query at phone widths collapses the header picker to its value only (dropping the "Agent:" label, the way
+  <code>.agentsw__label</code> already drops at 640px and the brand wordmark drops at 374px), so brand + picker-value +
+  search + menu + theme fit within 390px. And in <code>src/nav.ts</code>, "Plan mode and /init" moves to after
+  "Installation" in the "Start here" group; <code>FLAT</code> and the pager follow automatically.</p>
+
+<p><strong>7. The width regression check — <code>.github/scripts/check-docs-width.mjs</code> (new).</strong>
+  A static post-build check in the existing style (<code>node:fs</code> over <code>dist/</code>, no browser). It fails
+  if any content table carries per-agent <em>columns</em> — a header row naming two or more of Claude Code / Cursor /
+  Codex — since that is the exact shape that overflowed, and if a content table exceeds a column-count budget. It is
+  wired into <code>ci.yml</code> alongside the other <code>check-docs-*</code> steps. The precise header-detection rule
+  and column budget are pinned in the plan.</p>
+
+<h2>Testing</h2>
+<p>
+  <strong>Unit (<code>node --test</code>, zero-dep, alongside the existing <code>test/docs-targets.test.js</code>):</strong>
+  the new plugin renders <code>:::agent[claude]</code> to the expected <code>data-agent</code> markup, handles
+  comma-separated multi-target labels, and rejects an unknown target name.
+  <strong>Build check:</strong> <code>check-docs-width.mjs</code> passes on the rewritten <code>dist/</code> and fails on a
+  fixture table that carries agent columns; added to <code>ci.yml</code>.
+  <strong>Regression:</strong> the existing checks (<code>check-docs-targets</code>, <code>-a11y</code>, <code>-links</code>,
+  <code>-facts</code>, and the <code>docs-claims</code> / <code>docs-targets</code> unit tests) still pass, and
+  <code>astro build</code> stays green.
+  <strong>Manual:</strong> <code>astro preview</code> — switching the agent shows and hides the right blocks; with
+  JavaScript disabled the page shows Claude Code content; the header fits at 390px with no sideways scroll; no content
+  table overflows the text column at 1440px.
+</p>
+
+<h2>Out of scope</h2>
+<ul>
+  <li>Real pixel-level width measurement (would add a headless-browser dependency, against the repo's zero-dep convention).</li>
+  <li>A per-row or per-column table-hiding mechanism — tables are split per agent instead.</li>
+  <li>Any change to the existing command-name, code-block-tab, or example-path switching, which already works.</li>
+  <li>The landing page and the redirects, which the investigation confirmed are already correct.</li>
+  <li>New product claims about Cursor/Codex features beyond correcting the verified plan-mode / <code>/init</code> facts.</li>
+</ul>
+
+
+</body>
+</html>

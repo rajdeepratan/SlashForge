@@ -1,5 +1,15 @@
-/* Reference behaviour: theme toggle, search modal, terminal replay.
-   Plain JS, no build step. Port the behaviour, not necessarily the code. */
+/* Reference behaviour: theme toggle, target switcher, search modal, terminal
+   replay. Plain JS, no build step. Port the behaviour, not necessarily the
+   code. */
+
+import {
+  TARGETS,
+  DEFAULT_TARGET,
+  STORAGE_KEY,
+  commandForm,
+  renderReplayLine,
+  examplePathFor,
+} from '../targets.mjs';
 
 (function () {
   var root = document.documentElement;
@@ -24,6 +34,135 @@
       try { localStorage.setItem('sf-theme', next); } catch (e) {}
       syncLabel();
     });
+  });
+
+  /* ---- coding-agent target ---- */
+
+  /* Command names ship in the Claude Code form and are rewritten here, so the
+     page is already correct before this runs and stays correct without it.
+     Both controls — the tab strip in each command block and the header
+     switcher — carry data-target-opt, so one delegated listener drives them
+     all and they cannot fall out of sync. */
+  function readTarget() {
+    try {
+      var v = localStorage.getItem(STORAGE_KEY);
+      return TARGETS.indexOf(v) >= 0 ? v : DEFAULT_TARGET;
+    } catch (e) {
+      return DEFAULT_TARGET;
+    }
+  }
+
+  function applyTarget(t) {
+    root.setAttribute('data-target', t);
+    document.querySelectorAll('[data-cmd]').forEach(function (el) {
+      el.textContent = commandForm(el.getAttribute('data-cmd'), t);
+    });
+    document.querySelectorAll('[data-example-path]').forEach(function (el) {
+      el.textContent = examplePathFor(el.getAttribute('data-example-path'), t);
+    });
+    /* Block tabs are tablist options; the header menu holds radio items. */
+    document.querySelectorAll('[data-target-opt]').forEach(function (b) {
+      var on = String(b.getAttribute('data-target-opt') === t);
+      if (b.getAttribute('role') === 'menuitemradio') b.setAttribute('aria-checked', on);
+      else b.setAttribute('aria-selected', on);
+    });
+    document.querySelectorAll('[data-target-value]').forEach(function (el) {
+      el.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+    });
+    /* Keep the on-this-page rail in step with per-agent sections: a heading
+       that lives in an :::agent block hidden for this target must not show as a
+       rail entry pointing at nothing. */
+    document.querySelectorAll('.toc a[href^="#"]').forEach(function (a) {
+      var id = decodeURIComponent(a.getAttribute('href').slice(1));
+      var el = document.getElementById(id);
+      var li = a.closest('li');
+      if (!el || !li) return;
+      var block = el.closest('.agent-only');
+      var shown = !block || block.getAttribute('data-agent').split(' ').indexOf(t) !== -1;
+      li.hidden = !shown;
+    });
+    /* The terminal replay animates by writing textContent, so its lines are
+       plain text by the time anyone switches — it cannot be updated by walking
+       [data-cmd] like everything else. It rebuilds itself on this event. */
+    document.dispatchEvent(new CustomEvent('sf:target', { detail: t }));
+  }
+
+  function setTarget(t) {
+    applyTarget(t);
+    try { localStorage.setItem(STORAGE_KEY, t); } catch (e) {}
+  }
+
+  applyTarget(readTarget());
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-target-opt]');
+    if (btn) setTarget(btn.getAttribute('data-target-opt'));
+  });
+
+  /* The header menu. A real panel rather than a native select popup, so the
+     open/close behaviour has to be written: outside click, Escape, and closing
+     after a choice. */
+  var trigger = document.querySelector('[data-agent-trigger]');
+  var menu = document.getElementById('agent-menu');
+
+  function openMenu(open) {
+    if (!trigger || !menu) return;
+    trigger.setAttribute('aria-expanded', String(open));
+    menu.hidden = !open;
+  }
+
+  if (trigger && menu) {
+    trigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      openMenu(trigger.getAttribute('aria-expanded') !== 'true');
+    });
+
+    menu.addEventListener('click', function () {
+      openMenu(false);
+      trigger.focus();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!menu.hidden && !menu.contains(e.target) && e.target !== trigger) openMenu(false);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || menu.hidden) return;
+      openMenu(false);
+      trigger.focus();
+    });
+
+    /* Down from the trigger opens the menu and lands on the first item. */
+    trigger.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      openMenu(true);
+      var first = menu.querySelector('[data-target-opt]');
+      if (first) first.focus();
+    });
+  }
+
+  /* Arrow keys. A tablist activates on arrow — that is the automatic-activation
+     pattern and it is what makes the block tabs feel immediate. A menu must not:
+     arrowing through options is browsing, and committing on the way past would
+     rewrite the page under the reader. So the menu moves focus only, and the
+     choice is made by activating the item. */
+  document.addEventListener('keydown', function (e) {
+    var btn = e.target.closest('[data-target-opt]');
+    if (!btn) return;
+
+    var isMenu = btn.getAttribute('role') === 'menuitemradio';
+    var forward = isMenu ? 'ArrowDown' : 'ArrowRight';
+    var back = isMenu ? 'ArrowUp' : 'ArrowLeft';
+
+    var i = TARGETS.indexOf(btn.getAttribute('data-target-opt'));
+    var next = e.key === forward ? i + 1 : e.key === back ? i - 1 : -1;
+    if (next < 0 || next >= TARGETS.length) return;
+
+    e.preventDefault();
+    if (!isMenu) setTarget(TARGETS[next]);
+    var sel = btn.parentNode.querySelector('[data-target-opt="' + TARGETS[next] + '"]');
+    if (sel) sel.focus();
   });
 
   /* ---- search modal ---- */
@@ -79,12 +218,27 @@
     if (!body) return;
 
     var lines = Array.prototype.slice.call(body.children);
-    lines.forEach(function (el) { el.dataset.full = el.textContent; });
-    var total = lines.reduce(function (n, el) { return n + el.dataset.full.length + 1; }, 0);
+    var total = 0;
+
+    /* data-line carries the canonical Claude Code text. The rendered form is
+       derived from it every time, so switching target after the animation has
+       flattened the markup still produces the right line. */
+    function rebuild(target) {
+      lines.forEach(function (el) {
+        var src = el.getAttribute('data-line');
+        el.dataset.full = src === null ? el.textContent : renderReplayLine(src, target);
+      });
+      total = lines.reduce(function (n, el) { return n + el.dataset.full.length + 1; }, 0);
+    }
+
+    rebuild(readTarget());
 
     var timer = 0;
+    var painted = 0;
+    var started = false;
 
     function paint(budget) {
+      painted = budget;
       var left = budget;
       lines.forEach(function (el) {
         var full = el.dataset.full;
@@ -97,6 +251,7 @@
     }
 
     function play() {
+      started = true;
       clearInterval(timer);
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         paint(total);
@@ -110,6 +265,18 @@
         else paint(n);
       }, 26);
     }
+
+    /* Rebuild in place: the reader keeps their position in the animation
+       rather than having it restart under them. */
+    document.addEventListener('sf:target', function (e) {
+      /* Before the replay runs, the lines still hold their server-rendered
+         markup and [data-cmd] has already been updated like everywhere else.
+         Repainting then would blank the terminal, so only the cached text is
+         rebuilt. */
+      var done = painted >= total;
+      rebuild(e.detail);
+      if (started) paint(done ? total : painted);
+    });
 
     if (button) button.addEventListener('click', play);
 
@@ -226,6 +393,10 @@
 
     var seen = targets[0];
     targets.forEach(function (t) {
+      /* A heading inside an :::agent block hidden for the current target has no
+         offsetParent; skip it so a collapsed section (top 0) never captures the
+         marker. */
+      if (t.offsetParent === null) return;
       if (t.getBoundingClientRect().top <= line) seen = t;
     });
     links.forEach(function (a) {
@@ -257,6 +428,9 @@
   /* The reading line is derived from the viewport height, so a resize (or a
      phone rotating) has to recompute it even with no scroll. */
   window.addEventListener('resize', mark, { passive: true });
+  /* Switching agent shows/hides sections, which changes which headings the
+     marker can land on — recompute at once rather than waiting for a scroll. */
+  document.addEventListener('sf:target', mark);
 })();
 
 /* ---- help menu on the action bar ----

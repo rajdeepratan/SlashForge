@@ -1,0 +1,256 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — Cursor and Codex audit fixes (2026-09-27)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Plan — Cursor and Codex audit fixes</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> Implement <code>docs/slashforge/specs/2026-09-27-cursor-codex-audit-fixes-design.html</code>: the commands run only when typed on Cursor and Codex, and the Cursor/Codex guides describe their own host.
+</div>
+
+<h2>Architecture</h2>
+<p>The installer marks the four command skills in each host's own format: a <code>SKILL.md</code> key for Cursor and an <code>agents/openai.yaml</code> for Codex. Template passages that genuinely differ per host are fenced with the existing <code>&lt;!--target:X--&gt;</code> blocks. Prose that doesn't differ is reworded so it reads correctly on all three hosts.</p>
+
+<h2>Tech stack</h2>
+<p>Node ≥16, no dependencies, <code>node --test</code>. Astro docs site with its <code>check-docs-*.mjs</code> scripts.</p>
+
+<h2>Global constraints</h2>
+<ul>
+  <li>Node floor 16; no new dependencies.</li>
+  <li>Claude Code install layout unchanged. Its render changes only by the F4 rewording, which is reviewed in the regenerated snapshot diff.</li>
+  <li>The nine discipline skills keep their current invocation.</li>
+  <li>Branch <code>feat/cursor-codex-targets</code> (PR #58). Never merge.</li>
+  <li>Tests are written first and seen to fail.</li>
+</ul>
+
+<h2>Files</h2>
+<ul>
+  <li><code>bin/install.js</code>: <code>renderSkill</code>, <code>plannedAgentsWrites</code>, <code>installAgentsFiles</code>, <code>SKILL_PREAMBLE</code>, and the install summary (line ~1152).</li>
+  <li><code>templates/slashforge-commands.md</code>: per-host frontmatter, fields and arguments sections.</li>
+  <li><code>templates/slashforge-graph.md</code>, <code>slashforge-workflow-quick.md</code>, <code>slashforge-workflow-investigation.md</code>: hook passages.</li>
+  <li><code>templates/*.md</code>: neutral wording.</li>
+  <li><code>test/install.test.js</code>: new tests.</li>
+  <li><code>test/fixtures/claude-render/</code>: regenerated snapshot.</li>
+  <li><code>docs/src/content/docs/guides/trust.md</code>, <code>CHANGELOG.md</code>.</li>
+</ul>
+
+<h2>Task 1: Commands run only when typed (F1)</h2>
+<p><strong>Interfaces</strong></p>
+<ul>
+  <li>Produces: <code>INVOCATION_POLICY_YAML</code> (string), exported. <code>renderSkill(src, dest, agents, opts)</code> adds <code>disable-model-invocation: true</code> when <code>COMMAND_FILES.includes(dest)</code>. <code>plannedAgentsWrites</code> and <code>installAgentsFiles</code> add <code>&lt;skillDir&gt;/agents/openai.yaml</code> for each command file.</li>
+</ul>
+<ul>
+  <li>☑ <strong>Step 1: Write the failing test</strong>
+<pre><code>test('the four commands run only when typed on Cursor and Codex', () =&gt; {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  for (const c of COMMAND_FILES) {
+    const dir = path.join(a.skillsDir, skillDirName(c, 'slashforge-'));
+    const fm = fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8').split('\n---')[0];
+    assert.match(fm, /^disable-model-invocation: true$/m, c + ': Cursor flag');
+    const yaml = fs.readFileSync(path.join(dir, 'agents', 'openai.yaml'), 'utf8');
+    assert.match(yaml, /allow_implicit_invocation: false/, c + ': Codex policy');
+  }
+  for (const s of SKILL_FILES) {
+    const dir = path.join(a.skillsDir, skillDirName(s, 'slashforge-'));
+    assert.doesNotMatch(fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8'), /disable-model-invocation/, s);
+    assert.ok(!fs.existsSync(path.join(dir, 'agents')), s + ': discipline skills stay invocable');
+  }
+  const planned = plannedAgentsWrites(a).map((w) =&gt; w.dest);
+  assert.equal(planned.filter((d) =&gt; d.endsWith(path.join('agents', 'openai.yaml'))).length, COMMAND_FILES.length);
+  uninstallAgentsFiles(a);
+  assert.ok(!fs.existsSync(a.skillsDir) || !fs.readdirSync(a.skillsDir).some((d) =&gt; d.startsWith('slashforge-')));
+});</code></pre></li>
+  <li>☑ <strong>Step 2: Run it and confirm it FAILS</strong>: <code>node --test --test-name-pattern="run only when typed" test/install.test.js</code>. Expected: fails on "Cursor flag".</li>
+  <li>☑ <strong>Step 3: Implement.</strong> Add near <code>SKILL_PREAMBLE</code>:
+<pre><code>// Codex's switch for "only when typed"; Cursor's is disable-model-invocation in SKILL.md.
+const INVOCATION_POLICY_YAML = 'policy:\n  allow_implicit_invocation: false\n';
+const policyPath = (agents, file) =&gt; path.join(path.dirname(skillFilePath(agents, file)), 'agents', 'openai.yaml');</code></pre>
+    In <code>renderSkill</code>, after <code>toSkillFrontmatter</code>: if <code>COMMAND_FILES.includes(dest)</code>, insert <code>disable-model-invocation: true</code> before the closing fence. In <code>plannedAgentsWrites</code>, push <code>{ kind: 'command', dest: policyPath(agents, c) }</code> for each command file. In <code>installAgentsFiles</code>, <code>write(policyPath(agents, c), INVOCATION_POLICY_YAML)</code> for each command file. Export <code>INVOCATION_POLICY_YAML</code>.</li>
+  <li>☑ <strong>Step 4: Run the test and the full suite; confirm they PASS.</strong> Check that <code>--dry-run</code> prints the yaml paths.</li>
+  <li>☑ <strong>Step 5: Commit</strong> <code>fix(agents): the four commands run only when typed on Cursor and Codex</code>.</li>
+</ul>
+
+<h2>Task 2: Commands guide per host (F2)</h2>
+<ul>
+  <li>☑ <strong>Step 1: Write the failing test</strong>
+<pre><code>test('the commands guide teaches each vendor its own fields', () =&gt; {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  for (const h of a.hosts) {
+    const g = fs.readFileSync(path.join(h.guidesDir, 'slashforge-commands.md'), 'utf8');
+    for (const f of ['allowed-tools', 'argument-hint', 'user-invocable', '$ARGUMENTS']) {
+      assert.ok(!g.includes(f), h.host + ' still teaches Claude Code field ' + f);
+    }
+  }
+  const codex = fs.readFileSync(path.join(a.root, 'codex', 'slashforge-commands.md'), 'utf8');
+  assert.match(codex, /agents\/openai\.yaml/);
+  assert.match(codex, /allow_implicit_invocation: false/);
+  const cursor = fs.readFileSync(path.join(a.root, 'cursor', 'slashforge-commands.md'), 'utf8');
+  assert.match(cursor, /disable-model-invocation: true/);
+});</code></pre></li>
+  <li>☑ <strong>Step 2: Confirm it FAILS</strong> on <code>allowed-tools</code>.</li>
+  <li>☑ <strong>Step 3: Implement.</strong> In <code>templates/slashforge-commands.md</code>, wrap the "Frontmatter for Commands", field table and "Passing Arguments" sections in <code>&lt;!--target:claude--&gt;</code> (text unchanged). Add <code>&lt;!--target:cursor--&gt;</code> and <code>&lt;!--target:codex--&gt;</code> versions:
+    <ul>
+      <li><strong>Cursor:</strong> frontmatter <code>name</code>, <code>description</code>, <code>disable-model-invocation: true</code>, optional <code>paths</code> and <code>metadata</code>, plus the generated_by marker. Arguments: whatever the user types after <code>/name</code> arrives in the message; the command reads it from there.</li>
+      <li><strong>Codex:</strong> the skill frontmatter <code>name</code> and <code>description</code>, plus <code>agents/openai.yaml</code> containing <code>policy:\n  allow_implicit_invocation: false</code> for anything with side effects. Arguments: the text after <code>$name</code>.</li>
+    </ul>
+    Remove the contradiction in the Codex intro: "Do not create command files" stays, and the frontmatter it shows is the skill's.</li>
+  <li>☑ <strong>Step 4: Confirm it PASSES.</strong> Run <code>test/claude-render.test.js</code>; the Claude render must be unchanged at this step.</li>
+  <li>☑ <strong>Step 5: Commit</strong> <code>fix(templates): commands guide teaches Cursor and Codex their own fields</code>.</li>
+</ul>
+
+<h2>Task 3: Graphify hook wording on Cursor (F3)</h2>
+<ul>
+  <li>☑ <strong>Step 1: Write the failing test</strong>
+<pre><code>test('no Cursor guide says Graphify installs a hook', () =&gt; {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const dir = path.join(a.root, 'cursor');
+  for (const f of fs.readdirSync(dir).filter((n) =&gt; n.endsWith('.md'))) {
+    assert.ok(!/PreToolUse/.test(fs.readFileSync(path.join(dir, f), 'utf8')), f);
+  }
+});</code></pre>
+    A Cursor hooks guide passage that names <code>PreToolUse</code> as a Claude/Codex comparison would also trip this. If one exists, the assertion scopes to Graphify sentences instead, with a recorded ruling.</li>
+  <li>☑ <strong>Step 2: Confirm it FAILS</strong> (graph.md, workflow-quick.md, workflow-investigation.md).</li>
+  <li>☑ <strong>Step 3: Implement.</strong> Fence each of the three sentences: <code>&lt;!--target:claude--&gt;</code> and <code>&lt;!--target:codex--&gt;</code> keep "the PreToolUse hook…"; <code>&lt;!--target:cursor--&gt;</code> reads "the always-applied <code>.cursor/rules/graphify.mdc</code> rule Graphify writes puts graph context in front of the agent". Workflow files use the <code>agents</code> block where Cursor and Codex share wording; here they differ, so use <code>cursor</code> and <code>codex</code>.</li>
+  <li>☑ <strong>Step 4: Confirm it PASSES</strong>, and the Claude render is unchanged.</li>
+  <li>☑ <strong>Step 5: Commit</strong> <code>fix(templates): Cursor guides name Graphify's rule, not a hook</code>.</li>
+</ul>
+
+<h2>Task 4: Host-neutral wording (F4)</h2>
+<ul>
+  <li>☑ <strong>Step 1: Write the failing test</strong>
+<pre><code>test('Cursor and Codex guides do not speak as Claude', () =&gt; {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const bad = /Claude Setup|Claude Development Workflow|Claude could|via Bash|\bClaude (runs|can|should|follows|uses|citing|still|self-selects|selects|doesn't)\b|Claude to decide|Claude from/;
+  for (const h of a.hosts) {
+    for (const f of fs.readdirSync(h.guidesDir).filter((n) =&gt; n.endsWith('.md'))) {
+      const m = bad.exec(fs.readFileSync(path.join(h.guidesDir, f), 'utf8'));
+      assert.ok(!m, h.host + '/' + f + ': "' + (m &amp;&amp; m[0]) + '"');
+    }
+  }
+});</code></pre></li>
+  <li>☑ <strong>Step 2: Confirm it FAILS.</strong></li>
+  <li>☑ <strong>Step 3: Implement.</strong> Apply these substitutions across <code>templates/*.md</code>, outside Claude-only files and blocks:
+    <ul>
+      <li>"Claude Setup —" and "Claude Setup Instructions" become "SlashForge —" and "SlashForge Setup Instructions".</li>
+      <li>"Claude Development Workflow" becomes "SlashForge Workflow".</li>
+      <li>"Claude could run via Bash" becomes "the agent could run itself".</li>
+      <li>"via Bash" becomes "in the shell".</li>
+      <li>"Glob/Grep" becomes "file search". Graph lines that name Claude Code's hook inside a <code>claude</code> block stay.</li>
+      <li>"Claude runs / can / should / follows / uses / citing / still / self-selects / selects / to decide / from / doesn't" become "the agent …".</li>
+    </ul>
+    Skip <code>slashforge-memory.md</code> and <code>slashforge-claude-md.md</code>, which are Claude-only, but rename their frontmatter too for consistency.</li>
+  <li>☑ <strong>Step 4: Confirm it PASSES.</strong> Run <code>node scripts/snapshot-claude-render.js</code> and review <code>git diff test/fixtures</code> line by line: every changed line must be one of the substitutions above. Then run the full suite.</li>
+  <li>☑ <strong>Step 5: Commit</strong> <code>fix(templates): guides speak as the agent, not as Claude</code>.</li>
+</ul>
+
+<h2>Task 5: Install summary, host detection, Trust page (F5)</h2>
+<ul>
+  <li>☑ <strong>Step 1: Write the failing tests</strong>
+<pre><code>test('the skill preamble trusts the agent before folders', () =&gt; {
+  assert.match(SKILL_PREAMBLE, /you know which product you are running in/i);
+  assert.match(SKILL_PREAMBLE, /only if you cannot tell/i);
+});
+test('the install summary names all three agents', () =&gt; {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  const out = execFileSync('node', [BIN, '--yes'], { env, encoding: 'utf8' });
+  assert.match(out, /Open Claude Code, Cursor or Codex in any repo/);
+});</code></pre></li>
+  <li>☑ <strong>Step 2: Confirm both FAIL.</strong></li>
+  <li>☑ <strong>Step 3: Implement.</strong>
+    <ul>
+      <li><code>SKILL_PREAMBLE</code>: "You are running in Cursor or in Codex, and you know which product you are running in: use that. In every path below, replace &lt;host&gt; with cursor or codex to match. Commands are written /slashforge-name; in Codex invoke them as $slashforge-name. Only if you cannot tell: a .codex/ folder in the repo suggests Codex and a .cursor/ folder Cursor; if neither or both, ask the user once and use that answer for the rest of the session."</li>
+      <li>The install summary line becomes <code>Open Claude Code, Cursor or Codex in any repo:</code>.</li>
+      <li><code>trust.md</code>: add a row for <code>~/.agents/setup/slashforge/meta.json</code> (the install record for status and uninstall). Add a row for <code>--project</code>: the same files under the repo's <code>./.claude/</code> and <code>./.agents/</code>.</li>
+    </ul></li>
+  <li>☑ <strong>Step 4: Confirm they PASS</strong>, plus the full suite.</li>
+  <li>☑ <strong>Step 5: Commit</strong> <code>fix: name Codex in the install summary, trust the agent's own host, list every path</code>.</li>
+</ul>
+
+<h2>Task 6: Changelog and docs</h2>
+<ul>
+  <li>☑ In CHANGELOG Unreleased, add under Added: "On Cursor and Codex the four commands run only when you type them (<code>disable-model-invocation</code> in Cursor, <code>agents/openai.yaml</code> in Codex); the discipline skills stay available to the workflow." Add under Fixed: the commands guide, Graphify on Cursor, and neutral wording.</li>
+  <li>☑ In the CLI reference Hosts section, add one sentence saying the same.</li>
+  <li>☑ Build the docs (clear <code>node_modules/.astro</code> first) and run all four checks. Commit <code>docs: note that commands run only when typed on Cursor and Codex</code>.</li>
+</ul>
+
+<h2>Self-review</h2>
+<ul>
+  <li><strong>Coverage:</strong> F1 is Task 1, F2 Task 2, F3 Task 3, F4 Task 4, F5 Task 5, and the docs are Task 6.</li>
+  <li><strong>Consistency:</strong> <code>INVOCATION_POLICY_YAML</code> and <code>policyPath</code> are defined in Task 1 and used only there.</li>
+  <li><strong>Order matters:</strong> Tasks 2 and 3 keep the Claude render identical, and Task 4 is the only step that changes the snapshot.</li>
+</ul>
+
+
+</body>
+</html>

@@ -16,20 +16,24 @@ interface Props {
   /** Passed through to the page's structured data. */
   section?: string;
   updated?: string;
+  /** Show the agent picker in the header. The landing page puts it in its banner. */
+  agentInHeader?: boolean;
 }
 
-const { title, description, rawTitle, section, updated } = Astro.props;
+const { title, description, rawTitle, section, updated, agentInHeader = true } = Astro.props;
 
 const repo = 'https://github.com/rajdeepratan/SlashForge';
 ---
 
 <!doctype html>
-<html lang="en">
+{/* data-target defaults to claude here so the built HTML is correct for a
+    reader with JavaScript off; Head.astro's pre-paint script overrides it. */}
+<html lang="en" data-target="claude">
   <head>
     <Head {title} {description} {rawTitle} {section} {updated} />
   </head>
   <body>
-    <Header>
+    <Header showAgent={agentInHeader}>
       <slot name="menu-toggle" slot="menu-toggle" />
     </Header>
 

@@ -1,0 +1,259 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design — One install for Claude Code, Cursor and Codex (2026-09-25)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — One install for Claude Code, Cursor and Codex</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> <code>npx slashforge</code>, with no <code>--target</code>, sets SlashForge up for Claude Code, Cursor and Codex in one go. Each host works without the user choosing anything, and nothing one host needs can overwrite what another needs.
+</div>
+
+<h2>Problem</h2>
+<p>PR #58 adds Cursor and Codex through a <code>--target</code> flag. That has two faults:</p>
+<ul>
+  <li><strong>It makes the user choose.</strong> The user has to pick a host at install time, even though they may use several.</li>
+  <li><strong>Cursor and Codex overwrite each other.</strong> Both targets install to the same <code>~/.agents/</code> folders but render different content. Installing one silently replaced the other until the guard in <code>b9d8462</code> made the switch refuse.</li>
+</ul>
+<p>The owner's requirement: one install, and it just works in whichever host the user opens.</p>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>Question</th><th>Decision</th></tr>
+  <tr><td>Install mechanism</td><td><code>npx slashforge</code> (and <code>--project</code>) as today; no <code>postinstall</code> script.</td></tr>
+  <tr><td>Which hosts</td><td>Always all three, whether or not a host is installed on the machine.</td></tr>
+  <tr><td>Serving Cursor and Codex from shared <code>~/.agents/</code></td><td>Approach A: one host-neutral skill set plus per-host guide folders, chosen at runtime.</td></tr>
+</table>
+
+<h2>Constraints from the hosts</h2>
+<ul>
+  <li><strong>Codex</strong> reads user-level skills only from <code>~/.agents/skills</code>; its other locations are an admin folder (<code>/etc/codex/skills</code>) and its built-in skills. Duplicate skill names are all listed in its selector (Codex skills docs).</li>
+  <li><strong>Cursor</strong> reads <code>~/.agents/skills</code> and <code>~/.cursor/skills</code>, plus <code>~/.claude/skills</code> and <code>~/.codex/skills</code> for backward compatibility (Cursor skills docs).</li>
+  <li><strong>Consequence:</strong> anything Codex can see, Cursor also sees. A separate copy per host would show every command twice in Cursor, so one skill set has to serve both.</li>
+  <li><strong>Claude Code</strong> commands live in <code>~/.claude/commands/</code>, which neither Cursor nor Codex reads, so they stay independent.</li>
+</ul>
+
+<h2>Install layout</h2>
+<table>
+  <tr><th>For</th><th>Path</th><th>Contents</th></tr>
+  <tr><td>Claude Code</td><td><code>~/.claude/commands/slashforge/</code>, <code>~/.claude/setup/slashforge/</code></td><td>Unchanged by this redesign: <code>/slashforge:*</code> commands and skills, guides, assets, <code>meta.json</code>.</td></tr>
+  <tr><td>Cursor + Codex</td><td><code>~/.agents/skills/slashforge-*/SKILL.md</code></td><td>One host-neutral skill set, all 13 entry points and skills, <code>setup</code> included.</td></tr>
+  <tr><td>Cursor</td><td><code>~/.agents/setup/slashforge/cursor/</code></td><td>Guides rendered for Cursor, plus its own copy of the four assets.</td></tr>
+  <tr><td>Codex</td><td><code>~/.agents/setup/slashforge/codex/</code></td><td>Guides rendered for Codex, plus its own copy of the four assets.</td></tr>
+  <tr><td>Both</td><td><code>~/.agents/setup/slashforge/meta.json</code></td><td>Version, install time, mode, and the host folders written.</td></tr>
+</table>
+<p><code>--project</code> writes the same tree under <code>./.claude/</code> and <code>./.agents/</code>, with repo-relative paths as today.</p>
+<p>The four assets are <code>forge-report-shell.html</code>, <code>forge-open.sh</code>, <code>forge-splice.js</code> and <code>forge-review-payload.js</code>. Copying them into each host folder keeps every guide's paths inside its own folder.</p>
+
+<h2>Rendering</h2>
+<ul>
+  <li><strong>Claude render:</strong> blocks <code>[claude]</code>, into <code>~/.claude/</code>. The output must be byte-identical to the branch's Claude render before this redesign (commit <code>4d68b2d</code>). #58's earlier, deliberate edits to Claude's text already differ from 4.5.0 and stay.</li>
+  <li><strong>Guide renders:</strong> blocks <code>[agents, cursor]</code> into <code>cursor/</code>, and <code>[agents, codex]</code> into <code>codex/</code>. <code>{{INSTALL_PATH}}</code> is the concrete host folder.</li>
+  <li><strong>Skill render:</strong> blocks <code>[agents]</code> only, rendered once.
+    <ul>
+      <li><code>{{INSTALL_PATH}}</code> becomes <code>&lt;root&gt;/&lt;host&gt;</code>, with <code>&lt;host&gt;</code> left in literally.</li>
+      <li>Command references are rewritten to the Cursor form, <code>/slashforge-name</code>.</li>
+      <li>The frontmatter <code>name</code> becomes <code>slashforge-name</code>.</li>
+      <li>A skill template may not contain <code>cursor</code>, <code>codex</code> or <code>neutral</code> blocks. The validator rejects them.</li>
+    </ul>
+  </li>
+  <li><strong>setup.md:</strong> its 30 host-specific passages move into a new per-host guide, <code>forge-setup-flow.md</code>, and <code>setup.md</code> becomes a dispatcher that reads it. That's the shape <code>code.md</code> already has with <code>forge-workflow.md</code>. Claude's <code>setup.md</code> keeps its content inline and renders byte-identical. <code>forge-setup-flow.md</code> is installed only in the <code>cursor/</code> and <code>codex/</code> folders, never for Claude.</li>
+  <li><strong>investigate.md, review-pr.md, request-review.md:</strong> each has two host passages. These move into their workflow guides, or become neutral wording where the difference is only a name.</li>
+  <li><strong>The <code>agents</code> target is removed.</strong> The <code>neutral</code> block name goes with it: its content is dropped, or promoted into the skill render where it is truly host-neutral.</li>
+</ul>
+
+<h2>Skill preamble</h2>
+<p>Every rendered skill begins, right after its frontmatter, with:</p>
+<pre>You are running in Cursor or in Codex. In every path below, replace &lt;host&gt; with
+cursor or codex to match. Commands are written /slashforge-name; in Codex invoke
+them as $slashforge-name. If you cannot tell which host you are in: a .codex/
+folder in the repo means Codex and a .cursor/ folder means Cursor; if neither
+or both, ask the user once and use that answer for the rest of the session.</pre>
+<p><strong>Why this is acceptable:</strong> the model's only runtime judgement is naming its own host, which each host states in its system prompt. Everything host-specific is still rendered deterministically at install time.</p>
+
+<h2>CLI</h2>
+<ul>
+  <li><strong><code>npx slashforge</code></strong> installs both locations. <code>--project</code>, <code>--dry-run</code> and <code>--yes</code> behave as today.</li>
+  <li><strong><code>--target</code> and <code>--target=…</code></strong> exit 1 with: <em>"--target is no longer needed: one install sets up Claude Code, Cursor and Codex."</em></li>
+  <li><strong>Removed:</strong> the vendor-switch guard (<code>otherTargetInstalled</code>), <code>TARGET_ALIASES</code> and the target-specific closing messages.</li>
+  <li><strong>Closing message</strong> lists both locations and the three invocation forms: <code>/slashforge:code</code>, <code>/slashforge-code</code> and <code>$slashforge-code</code>.</li>
+  <li><strong><code>status</code></strong> reports both locations: version, guide counts per host folder, and commands. A location that's missing or older is called out, with a suggestion to re-run <code>npx slashforge</code>.</li>
+  <li><strong><code>uninstall</code></strong> removes both locations, with the same safety as #88: only kit files, only <code>slashforge-*</code> folders in the shared skills directory, and <code>--yes</code> required without a terminal.</li>
+  <li><strong>Shadowing notes:</strong> the global-install warning stays for Claude Code. For <code>--project</code> with a global install also present, a note says Cursor and Codex may list both copies.</li>
+</ul>
+
+<h2>Failure handling</h2>
+<ul>
+  <li><strong>All or nothing on templates:</strong> every template is validated for all three renders before any file is written, so a broken package installs nothing.</li>
+  <li><strong>Write failures:</strong> the two locations are installed one after the other. If one fails, the error names it, the other is left as written, and the exit code is non-zero. Re-running is safe because installs are repeatable.</li>
+  <li><strong>Dry run:</strong> <code>--dry-run</code> lists both locations from <code>plannedWrites</code>, the same list the install uses.</li>
+</ul>
+
+<h2>Upgrades</h2>
+<p>No user has a Cursor or Codex install, because #58 never shipped. A 4.5.0 install is only <code>~/.claude/</code>. Upgrading refreshes it with #58's already-reviewed text changes and adds <code>~/.agents/</code> alongside. No migration is needed.</p>
+
+<h2>Testing</h2>
+<ul>
+  <li><strong>Dry run and install:</strong> <code>plannedWrites</code> and <code>installFiles</code> list the same files in both directions, globally and with <code>--project</code>. A CLI test checks the dry run against the files on disk.</li>
+  <li><strong>Claude render:</strong> byte-identical to fixtures captured from the branch before any change (commit <code>4d68b2d</code>).</li>
+  <li><strong>Skill render:</strong>
+    <ul>
+      <li>no <code>cursor</code> or <code>codex</code> block survives</li>
+      <li>the preamble is present</li>
+      <li>every <code>&lt;root&gt;/&lt;host&gt;/…</code> path exists on disk for both <code>cursor</code> and <code>codex</code></li>
+      <li>no <code>/slashforge:</code> colon form remains</li>
+    </ul>
+  </li>
+  <li><strong>Per-host guides</strong> keep the existing checks: Cursor's hooks schema, Codex TOML subagents, <code>.mdc</code> rules, and so on.</li>
+  <li><strong>CLI:</strong>
+    <ul>
+      <li><code>--target</code> is rejected</li>
+      <li><code>status</code> and <code>uninstall</code> cover both locations</li>
+      <li>user files survive uninstall in both</li>
+      <li>the no-TTY uninstall refusal and flag-free CI updates still work</li>
+    </ul>
+  </li>
+  <li><strong>Docs:</strong> the build and the links, targets, a11y and facts checks pass. The docs-targets check keeps the command-form switcher.</li>
+</ul>
+
+<h2>Manual verification before merge</h2>
+<p>This needs the real apps, so the owner runs it:</p>
+<ol>
+  <li>On a clean machine or a fresh <code>HOME</code>, run <code>npx slashforge</code> from the branch build.</li>
+  <li><strong>Claude Code:</strong> <code>/slashforge:code</code> is listed and reads <code>~/.claude/setup/slashforge/</code>.</li>
+  <li><strong>Cursor:</strong> each command appears once as <code>/slashforge-code</code>. Running it reads guides from <code>…/cursor/</code>.</li>
+  <li><strong>Codex:</strong> <code>$slashforge-code</code> is available. Running it reads guides from <code>…/codex/</code>. This retires the "not yet verified" note.</li>
+  <li><strong>Setup in each vendor host:</strong> <code>setup</code> in a scratch repo writes Cursor's <code>.mdc</code> rules and <code>hooks.json</code> in Cursor, and Codex's nested <code>AGENTS.md</code> and TOML subagents in Codex.</li>
+</ol>
+
+<h2>Documentation</h2>
+<ul>
+  <li><strong>README, installation guide, CLI reference:</strong> remove every <code>--target</code> mention and describe one command for three hosts.</li>
+  <li><strong>Docs site:</strong> the command-form switcher stays; it's about how commands are typed, not how the kit is installed.</li>
+  <li><strong>CHANGELOG:</strong> an Unreleased entry for Cursor and Codex support.</li>
+  <li><strong>package.json:</strong> the description names all three hosts.</li>
+</ul>
+
+<h2>Scope</h2>
+<ul>
+  <li><strong>Where the work goes:</strong> it continues on <code>feat/cursor-codex-targets</code> (PR #58), which is not merged until the owner says so.</li>
+  <li><strong>Reused from #58:</strong> the per-host template sections, the hooks-guide fix and the docs command-form switcher.</li>
+  <li><strong>Out of scope,</strong> tracked separately: inline or CRLF marker validation, the <code>toSkillFrontmatter</code> trailing-space check, the root KT/QA notes, and unrelated committed specs and plans.</li>
+</ul>
+
+<h2>Risks</h2>
+<ul>
+  <li><strong>The model misidentifies its host.</strong> Mitigated by the repo-marker fallback and the ask-once rule. The manual checks in both apps confirm the common case.</li>
+  <li><strong>Longer skills.</strong> The preamble adds about 60 words to every skill, and every skill pays that cost once per invocation.</li>
+  <li><strong>Duplicate listings in a project that's also installed globally.</strong> Codex lists both copies. The <code>--project</code> note tells the user, and recommends one install mode per team as the README already does for Claude Code.</li>
+</ul>
+
+
+<h2>Addendum (2026-09-25): the same command names on every host — 5.0.0</h2>
+<div class="summary">
+  <strong>Change:</strong> Claude Code's commands go from <code>/slashforge:name</code> to <code>/slashforge-name</code>, matching Cursor. Codex keeps <code>$slashforge-name</code>, because <code>$</code> is how Codex invokes every skill. This ships in the same release as the one-install change, as 5.0.0, so users migrate once.
+</div>
+
+<h2>Claude Code layout</h2>
+<ul>
+  <li><strong>Commands become flat files:</strong> <code>~/.claude/commands/slashforge-&lt;name&gt;.md</code>, all 13. The <code>commands/slashforge/</code> subfolder goes away, and with it the <code>:</code>.</li>
+  <li><strong>Why not skills:</strong> skills in <code>~/.claude/skills/</code> are ruled out, because Cursor also reads that folder and would list every command twice.</li>
+  <li><strong>Guides stay put</strong> in <code>~/.claude/setup/slashforge/</code>.</li>
+  <li><strong><code>--project</code></strong> uses <code>./.claude/commands/</code> in the same way.</li>
+</ul>
+
+<h2>One command form in the templates</h2>
+<ul>
+  <li><strong>The templates are written in the form users type:</strong> every <code>/slashforge:name</code> becomes <code>/slashforge-name</code>. Only that string is replaced, followed by a command name.</li>
+  <li><strong>Claude and the shared skills</strong> render the text as written.</li>
+  <li><strong>The Codex guide render</strong> swaps the leading <code>/</code> for <code>$</code>.</li>
+  <li><strong>Frontmatter:</strong> <code>name:</code> becomes <code>/slashforge-name</code>, which Claude Code ignores.</li>
+</ul>
+
+<h2>Upgrading from 4.x</h2>
+<ul>
+  <li><strong>Old files are removed by exact name:</strong> a 5.0 install deletes the 13 files the kit put in <code>commands/slashforge/</code>, removes the folder if it is empty, and says what it removed.</li>
+  <li><strong>User files are kept,</strong> and so is the folder, if it holds any.</li>
+  <li><strong>Why remove them at all:</strong> without this, users would see <code>/slashforge:code</code> next to <code>/slashforge-code</code>, and the old one would still be running outdated instructions.</li>
+  <li><strong><code>status</code> and <code>uninstall</code></strong> recognise the 4.x layout.</li>
+</ul>
+
+<h2>Docs and site</h2>
+<ul>
+  <li><strong>The command switcher:</strong> Claude Code and Cursor show <code>/slashforge-name</code>, Codex shows <code>$slashforge-name</code>.</li>
+  <li><strong>Pages and README:</strong> every page and the README use the new names.</li>
+  <li><strong>Migration guide:</strong> a new "4.x to 5.0" section.</li>
+  <li><strong>CHANGELOG:</strong> a <strong>Breaking</strong> entry.</li>
+  <li><strong>Version:</strong> 5.0.0, bumped in a separate release PR after #58, following the 4.5.0 process.</li>
+</ul>
+
+<h2>Testing</h2>
+<ul>
+  <li><strong>The Claude fixtures</strong> are regenerated on purpose for the new names and layout. The guard stays.</li>
+  <li><strong>Upgrading:</strong> a 4.x install is replaced by the flat files, and a user command left in <code>commands/slashforge/</code> survives.</li>
+  <li><strong>Command forms:</strong> no rendered file keeps the <code>/slashforge:</code> form. Codex guides use <code>$</code>; Claude files, Cursor guides and skills use <code>/</code>.</li>
+  <li><strong>Docs:</strong> the switcher tests are updated for the two forms.</li>
+</ul>
+</body>
+</html>

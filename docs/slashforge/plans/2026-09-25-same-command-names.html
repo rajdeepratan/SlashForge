@@ -1,0 +1,473 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — The same command names on every host (2026-09-25)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Plan — The same command names on every host (5.0.0)</h1>
+<div class="summary">
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:executing-plans (the owner chose native execution) to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax.</p>
+</div>
+<p><strong>Goal:</strong> Claude Code's commands become <code>/slashforge-name</code>, matching Cursor. Codex keeps <code>$slashforge-name</code>.</p>
+<p><strong>Architecture:</strong>
+- <strong>The templates are rewritten once</strong> into the form users type (<code>/slashforge-name</code>, and <code>slashforge-name</code> for bare skill names).
+- <strong>Claude installs flat command files</strong> (<code>commands/slashforge-&lt;name&gt;.md</code>) instead of the <code>commands/slashforge/</code> folder, and an upgrade removes the 4.x files by exact name.
+- <strong>Only the Codex render changes the text,</strong> swapping a leading <code>/</code> for <code>$</code>.
+- <strong>The docs switcher</strong> follows the same rule.</p>
+<p><strong>Tech Stack:</strong> Node.js with no dependencies (CI runs Node 16 to 22), the <code>node --test</code> runner, and Astro for the docs site.</p>
+<p><strong>Spec:</strong> <code>docs/slashforge/specs/2026-09-25-single-install-all-hosts-design.html</code>, in the section "Addendum (2026-09-25): the same command names on every host — 5.0.0".</p>
+<h2>Global Constraints</h2>
+<ul>
+<li><strong>Branch:</strong> work on <code>feat/cursor-codex-targets</code> (PR #58). <strong>Never merge it.</strong> No version bump here: 5.0.0 comes in a separate release PR.</li>
+<li><strong>Claude command files</strong> are <code>~/.claude/commands/slashforge-&lt;name&gt;.md</code> (13 files). Not skills.</li>
+<li><strong>Only <code>/slashforge:</code> and bare <code>slashforge:</code> before a command name are renamed.</strong> Never <code>commands/slashforge/</code>, <code>setup/slashforge/</code> or <code>docs/slashforge/</code>: those are paths, not command names.</li>
+<li><strong>The Codex swap</strong> only touches <code>/slashforge-</code> that is <em>not</em> inside a path (not preceded by a word character, <code>.</code>, <code>/</code>, <code>~</code> or <code>-</code>).</li>
+<li><strong>Upgrades:</strong> they remove only the 13 kit files in <code>commands/slashforge/</code>, plus the folder if it's empty. User files stay.</li>
+<li><strong>Commits</strong> end with <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code>.</li>
+</ul>
+<h2>Review Focus</h2>
+<ol>
+<li><strong>A path must never be treated as a command.</strong> <code>~/.agents/skills/slashforge-code/</code> inside a Codex guide stays a path and doesn't become <code>skills$slashforge-code</code>. The test is in Task 1.</li>
+<li><strong>Upgrading a 4.x install that has a user command in <code>commands/slashforge/</code>.</strong> The kit's 13 files go, and the user's file and folder stay. The test is in Task 2.</li>
+<li><strong>Both the old and new layouts are present,</strong> for example after an interrupted upgrade. <code>uninstall</code> removes both, and <code>status</code> lists the new commands only. The test is in Task 2.</li>
+<li><strong>A skill name in running text is renamed with the rest.</strong> "Invoke <code>slashforge:plan</code>" becomes <code>slashforge-plan</code> on every host, which today is a missing skill on Cursor and Codex. The test is in Task 1.</li>
+<li><strong>The docs switcher never rewrites a path.</strong> On the Codex tab, <code>~/.agents/skills/slashforge-code/SKILL.md</code> stays as it is. The test is in Task 3.</li>
+</ol>
+<hr />
+<h3>Task 1: One command form in every template and render</h3>
+<p><strong>Files:</strong>
+- Modify: every file under <code>templates/</code> (a scripted rename), and <code>bin/install.js</code> (<code>toSkillCommandRefs</code>, <code>commandName</code>, and the user-facing strings)
+- Test: <code>test/install.test.js</code></p>
+<p><strong>Interfaces:</strong>
+- Produces: <code>toHostCommandRefs(content, host)</code> returns a string. It replaces <code>toSkillCommandRefs</code>: <code>/</code>→<code>$</code> for <code>codex</code>, and identity otherwise. Also <code>commandName(file)</code> returns <code>'/slashforge-' + basename</code>.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing tests</strong> (append to <code>test/install.test.js</code>):</li>
+</ul>
+<pre><code class="language-js">// --- 5.0: the same command names on every host ---
+const { toHostCommandRefs } = require('../bin/install.js');
+
+test('no installed file names a command in the colon form', () =&gt; {
+  const home = tmp();
+  installFiles(resolveTarget({ homeDir: home, cwd: home }), {});
+  installAgentsFiles(resolveAgents({ homeDir: home, cwd: home }), {});
+  const hits = [];
+  (function walk(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (/\.md$/.test(e.name) &amp;&amp; /(^|[^\w./~-])\/?slashforge:[a-z]/.test(fs.readFileSync(p, 'utf8'))) hits.push(p);
+    }
+  })(home);
+  assert.deepEqual(hits, [], `colon form left in:\n  ${hits.join('\n  ')}`);
+});
+
+// Review Focus 4: a bare skill name is the name the host actually has.
+test('skill names in running text match the installed skill names', () =&gt; {
+  const home = tmp();
+  const a = resolveAgents({ homeDir: home, cwd: home });
+  installAgentsFiles(a, {});
+  const body = fs.readFileSync(path.join(a.skillsDir, 'slashforge-code', 'SKILL.md'), 'utf8');
+  assert.match(body, /`slashforge-plan`/);
+  assert.ok(fs.existsSync(path.join(a.skillsDir, 'slashforge-plan')));
+});
+
+// Review Focus 1: the Codex swap leaves paths alone.
+test('toHostCommandRefs swaps the sigil for Codex and never touches a path', () =&gt; {
+  const src = 'Run /slashforge-code, then read ~/.agents/skills/slashforge-code/SKILL.md or .claude/commands/slashforge-plan.md.';
+  assert.equal(toHostCommandRefs(src, 'cursor'), src);
+  assert.equal(toHostCommandRefs(src, 'claude'), src);
+  assert.equal(toHostCommandRefs(src, 'codex'),
+    'Run $slashforge-code, then read ~/.agents/skills/slashforge-code/SKILL.md or .claude/commands/slashforge-plan.md.');
+});
+
+test('commandName is the hyphenated form', () =&gt; {
+  assert.equal(commandName(path.join('slashforge', 'code.md')), '/slashforge-code');
+});
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run them to see them fail</strong></li>
+</ul>
+<p>Run: <code>node --test --test-name-pattern="colon form|skill names in running text|toHostCommandRefs|commandName is the hyphenated"</code>
+Expected: FAIL, with <code>toHostCommandRefs is not a function</code> and colon forms listed.</p>
+<ul>
+<li>[ ] <strong>Step 3: Rename the templates</strong></li>
+</ul>
+<pre><code class="language-bash">node -e '
+const fs = require(&quot;fs&quot;), path = require(&quot;path&quot;);
+// Command names only: never a path segment (preceded by a word char, . / ~ or -).
+const RE = /(?&lt;![\w.~-])(\/?)slashforge:([a-z][a-z-]*)/g;
+let files = 0, hits = 0;
+(function walk(d) {
+  for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+    const p = path.join(d, e.name);
+    if (e.isDirectory()) { walk(p); continue; }
+    const s = fs.readFileSync(p, &quot;utf8&quot;);
+    const t = s.replace(RE, (m, slash, name) =&gt; { hits++; return `${slash}slashforge-${name}`; });
+    if (t !== s) { fs.writeFileSync(p, t); files++; }
+  }
+})(&quot;templates&quot;);
+console.log(files, &quot;files,&quot;, hits, &quot;renames&quot;);'
+grep -rn &quot;slashforge:&quot; templates | grep -v &quot;commands/slashforge\|setup/slashforge\|docs/slashforge&quot; | head
+</code></pre>
+<p>Expected: about 212 renames across about 30 files, and the <code>grep</code> prints nothing.</p>
+<ul>
+<li>[ ] <strong>Step 4: Replace <code>toSkillCommandRefs</code> and <code>commandName</code></strong></li>
+</ul>
+<p>In <code>bin/install.js</code>, replace <code>toSkillCommandRefs</code> and its comment with:</p>
+<pre><code class="language-js">// Templates name commands in the form Claude Code and Cursor use, /slashforge-name.
+// Codex invokes skills with `$`, so its render swaps the sigil, but never inside a
+// path: `.agents/skills/slashforge-code/` is a directory, not a command.
+function toHostCommandRefs(content, host) {
+  if (TARGET_SIGILS[host] !== '$') return content;
+  return content.replace(/(?&lt;![\w./~-])\/slashforge-(?=[a-z])/g, () =&gt; '$slashforge-');
+}
+</code></pre>
+<p>Then:
+- <strong>Call sites:</strong> in <code>renderHostGuide</code>, replace <code>toSkillCommandRefs(out, 'slashforge-', host.host)</code> with <code>toHostCommandRefs(out, host.host)</code>. In <code>renderSkill</code>, delete the <code>toSkillCommandRefs</code> line, since skills keep <code>/</code>.
+- <strong><code>commandName</code>:</strong> replace it and its comment with:</p>
+<pre><code class="language-js">// 'slashforge/code.md' -&gt; '/slashforge-code'. The same name on every host.
+function commandName(file) {
+  return '/slashforge-' + path.basename(file, '.md');
+}
+</code></pre>
+<ul>
+<li><strong>Exports:</strong> change <code>toSkillCommandRefs</code> to <code>toHostCommandRefs</code> in <code>module.exports</code>.</li>
+<li>
+<p><strong>User-facing strings:</strong> in the <code>install</code> summary and <code>reportLegacyLeftovers</code>, change every <code>/slashforge:</code> string to <code>/slashforge-</code>, and delete the line <code>In Cursor the same commands are …</code>. The Claude list now shows the Cursor form too, so keep only <code>In Codex they are $slashforge-setup, $slashforge-code, …</code>.</p>
+</li>
+<li>
+<p>[ ] <strong>Step 5: Run everything</strong></p>
+</li>
+</ul>
+<p>Run: <code>node --test 2&gt;&amp;1 | grep -E "^✖|^ℹ (pass|fail)"</code>
+Expected:
+- The 4 new tests pass.
+- <code>the Claude install is byte-identical to the pinned render</code> fails (intended: the Claude text changed), and so do tests asserting the old colon form.
+- For each failing test, update the expected string from <code>/slashforge:x</code> to <code>/slashforge-x</code>. There are 18 in <code>test/install.test.js</code>. The exception is <code>installed codex guides never name the slash form of a command</code>, whose regex becomes <code>/(?&lt;![\w./~-])\/slashforge-[a-z]/</code>.
+- Then regenerate the fixture on purpose with <code>node scripts/snapshot-claude-render.js</code>, and check its diff is only <code>:</code>→<code>-</code> renames: <code>git diff --stat test/fixtures</code>.</p>
+<p>Run: <code>node --test 2&gt;&amp;1 | grep -E "^ℹ (pass|fail)"</code>
+Expected: <code>ℹ fail 0</code>.</p>
+<ul>
+<li>[ ] <strong>Step 6: Commit</strong></li>
+</ul>
+<pre><code class="language-bash">git add -A templates bin test
+git commit -m &quot;feat!: /slashforge-name everywhere in the templates and renders
+
+Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;
+</code></pre>
+<hr />
+<h3>Task 2: Flat Claude command files, and removing the 4.x files on upgrade</h3>
+<p><strong>Files:</strong>
+- Modify: <code>bin/install.js</code> (<code>commandPath</code>, <code>installFiles</code>, <code>uninstallFiles</code>, <code>uninstall</code>, <code>install</code>, the constants)
+- Test: <code>test/install.test.js</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>commandName</code> from Task 1.
+- Produces:
+  - <code>commandPath(target, file)</code> returns <code>&lt;commandsDir&gt;/slashforge-&lt;basename&gt;</code>
+  - <code>V4_COMMAND_FILES</code>, the 13 <code>slashforge/&lt;name&gt;.md</code> relative paths
+  - <code>removeV4Commands(target)</code> returns <code>string[]</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing tests</strong></li>
+</ul>
+<pre><code class="language-js">test('Claude commands install as flat slashforge-&lt;name&gt;.md files', () =&gt; {
+  const home = tmp();
+  const t = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(t, {});
+  for (const c of [...COMMAND_FILES, ...SKILL_FILES]) {
+    assert.ok(fs.existsSync(path.join(t.commandsDir, 'slashforge-' + path.basename(c))), c);
+  }
+  assert.ok(!fs.existsSync(path.join(t.commandsDir, 'slashforge')), 'no namespace folder');
+});
+
+// Review Focus 2: upgrading a 4.x install keeps the user's own command.
+test('upgrading from 4.x removes the old commands and keeps user files', () =&gt; {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  const ns = path.join(home, '.claude', 'commands', 'slashforge');
+  fs.mkdirSync(ns, { recursive: true });
+  for (const c of [...COMMAND_FILES, ...SKILL_FILES]) fs.writeFileSync(path.join(ns, path.basename(c)), 'old');
+  fs.writeFileSync(path.join(ns, 'mine.md'), 'mine');
+  const out = execFileSync('node', [BIN, '--yes'], { env, encoding: 'utf8' });
+  assert.deepEqual(fs.readdirSync(ns), ['mine.md']);
+  assert.match(out, /4\.x commands/);
+  // And with no user file, the folder goes too.
+  fs.rmSync(path.join(ns, 'mine.md'));
+  for (const c of COMMAND_FILES) fs.writeFileSync(path.join(ns, path.basename(c)), 'old');
+  execFileSync('node', [BIN, '--yes'], { env });
+  assert.ok(!fs.existsSync(ns));
+});
+
+// Review Focus 3: both layouts present.
+test('uninstall removes both the flat files and 4.x leftovers; status lists the new names', () =&gt; {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  execFileSync('node', [BIN, '--yes'], { env });
+  const ns = path.join(home, '.claude', 'commands', 'slashforge');
+  fs.mkdirSync(ns, { recursive: true });
+  fs.writeFileSync(path.join(ns, 'code.md'), 'old');
+  const status = execFileSync('node', [BIN, 'status'], { env, encoding: 'utf8' });
+  assert.match(status, /• \/slashforge-code/);
+  assert.doesNotMatch(status, /\/slashforge:code/);
+  execFileSync('node', [BIN, 'uninstall', '--yes'], { env });
+  assert.ok(!fs.existsSync(ns));
+  assert.ok(!fs.existsSync(path.join(home, '.claude', 'commands', 'slashforge-code.md')));
+});
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run them to see them fail</strong></li>
+</ul>
+<p>Run: <code>node --test --test-name-pattern="flat slashforge|upgrading from 4.x|both the flat files"</code>
+Expected: FAIL. The files are still in <code>commands/slashforge/</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Implement</strong></li>
+</ul>
+<p>In <code>bin/install.js</code>:</p>
+<pre><code class="language-js">// 4.x installed Claude commands in a namespace folder, which is what produced the
+// /slashforge:name form. 5.0 installs flat files; an upgrade removes these by name.
+const V4_COMMAND_FILES = [...COMMAND_FILES, ...SKILL_FILES];
+
+// Where a command template lands: flat, so Claude Code lists it as /slashforge-name.
+function commandPath(target, file) {
+  return path.join(target.commandsDir, 'slashforge-' + path.basename(file));
+}
+
+// The kit's own 4.x command files, by exact name, then the folder once it is empty.
+// Leaving them would show /slashforge:code beside /slashforge-code, running old text.
+function removeV4Commands(target) {
+  const removed = [];
+  for (const c of V4_COMMAND_FILES) {
+    const p = path.join(target.commandsDir, c);
+    if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
+  }
+  const ns = path.join(target.commandsDir, COMMAND_NAMESPACE);
+  if (fs.existsSync(ns) &amp;&amp; fs.readdirSync(ns).length === 0) { fs.rmdirSync(ns); removed.push(ns); }
+  return removed;
+}
+</code></pre>
+<ul>
+<li><strong><code>installFiles</code>:</strong> the command destination becomes <code>const dest = commandPath(target, c);</code>, replacing the namespace comment with <code>// Flat files: Claude Code lists commands/slashforge-code.md as /slashforge-code.</code> Then call <code>removeV4Commands(target)</code> just before writing <code>meta.json</code>, and return its result on the written list's <code>.removedV4</code> property:</li>
+</ul>
+<pre><code class="language-js">  const removedV4 = removeV4Commands(target);
+  // ...existing meta write...
+  written.removedV4 = removedV4;
+  return written;
+</code></pre>
+<ul>
+<li><strong><code>install</code>:</strong> after a successful Claude install, print this if <code>result.removedV4.length</code>:
+  <code>\n✓ Removed the 4.x commands (/slashforge:*) — they are /slashforge-* now: ${n} files</code>. Capture the Claude result: <code>['claude', 'Claude Code', () =&gt; { claudeResult = installFiles(claude, {}); }]</code>.</li>
+<li><strong><code>uninstallFiles</code>:</strong> the first loop becomes:</li>
+</ul>
+<pre><code class="language-js">  for (const c of [...commandFiles, ...skillFiles]) {
+    const p = commandPath(target, c);
+    if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
+  }
+  for (const c of [...V4_COMMAND_FILES, ...LEGACY_COMMAND_FILES]) {
+    const p = path.join(target.commandsDir, c);
+    if (fs.existsSync(p)) { fs.rmSync(p); removed.push(p); }
+  }
+</code></pre>
+<ul>
+<li><strong><code>uninstall</code>'s "installed" check:</strong> add <code>V4_COMMAND_FILES.some((c) =&gt; fs.existsSync(path.join(claude.commandsDir, c))) ||</code>.</li>
+<li><strong>The <code>install</code> summary:</strong> the Claude line becomes <code>✓ Claude Code:     ${claude.commandsDir}/slashforge-*.md  (guides: …)</code>.</li>
+<li>
+<p><strong>Exports:</strong> add <code>V4_COMMAND_FILES</code> and <code>removeV4Commands</code> to <code>module.exports</code>.</p>
+</li>
+<li>
+<p>[ ] <strong>Step 4: Fix path expectations in the existing tests, then run everything</strong></p>
+</li>
+</ul>
+<p>Replace every <code>path.join(…, 'commands', 'slashforge', 'code.md')</code> and <code>path.join(target.commandsDir, c)</code>-style expectation in <code>test/install.test.js</code>, <code>test/upgrade.test.js</code> and <code>test/atomicity.test.js</code> with <code>commandPath(target, c)</code>, or with the <code>'commands', 'slashforge-code.md'</code> path. Keep tests that deliberately build a 4.x layout as they are. Regenerate the fixture on purpose with <code>node scripts/snapshot-claude-render.js</code>, and check that <code>git diff --stat test/fixtures</code> shows only moves from <code>commands/slashforge/x.md</code> to <code>commands/slashforge-x.md</code>.</p>
+<p>Run: <code>node --test 2&gt;&amp;1 | grep -E "^✖|^ℹ (pass|fail)"</code>
+Expected: <code>ℹ fail 0</code>.</p>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code class="language-bash">git add -A bin test
+git commit -m &quot;feat!: flat Claude command files; upgrades remove the 4.x commands
+
+Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;
+</code></pre>
+<hr />
+<h3>Task 3: Docs, switcher, migration guide, changelog</h3>
+<p><strong>Files:</strong>
+- Modify:
+  - <code>docs/src/targets.mjs</code>, <code>docs/src/plugins/rehype-command-names.mjs</code> (a comment), <code>docs/src/nav.ts</code>, <code>docs/src/pages/index.astro</code>
+  - <code>.github/scripts/check-docs-targets.mjs</code>
+  - every <code>docs/src/content/docs/**/*.md</code> and <code>README.md</code> (a scripted rename)
+  - <code>docs/src/content/docs/reference/migrating.md</code>, <code>CHANGELOG.md</code>
+- Test: <code>test/docs-targets.test.js</code>, <code>test/docs-claims.test.js</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing tests</strong> (append to <code>test/docs-targets.test.js</code>):</li>
+</ul>
+<pre><code class="language-js">test('commandForm: Claude Code and Cursor share /slashforge-, Codex uses $', async () =&gt; {
+  const { commandForm } = await load();
+  assert.equal(commandForm('code', 'claude'), '/slashforge-code');
+  assert.equal(commandForm('code', 'cursor'), '/slashforge-code');
+  assert.equal(commandForm('code', 'codex'), '$slashforge-code');
+});
+
+// Review Focus 5: a path is never a command.
+test('COMMAND_RE finds commands and never a path segment', async () =&gt; {
+  const { COMMAND_RE } = await load();
+  const s = 'Run /slashforge-code or read ~/.agents/skills/slashforge-code/SKILL.md';
+  COMMAND_RE.lastIndex = 0;
+  const hits = [...s.matchAll(COMMAND_RE)].map((m) =&gt; m.index);
+  assert.deepEqual(hits, [4]);
+});
+</code></pre>
+<p>Append to <code>test/docs-claims.test.js</code>:</p>
+<pre><code class="language-js">test('no user-facing doc names a command in the colon form', () =&gt; {
+  const files = [];
+  (function walk(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p); else if (/\.(md|mdx|astro|ts)$/.test(e.name)) files.push(p);
+    }
+  })(path.join(ROOT, 'docs/src'));
+  files.push(path.join(ROOT, 'README.md'));
+  const RE = /(?&lt;![\w.~-])\/?slashforge:[a-z]/;
+  const hits = files.filter((f) =&gt; !f.endsWith('changelog.md') &amp;&amp; !f.endsWith('migrating.md')
+    &amp;&amp; RE.test(fs.readFileSync(f, 'utf8')));
+  assert.deepEqual(hits.map((f) =&gt; path.relative(ROOT, f)), []);
+});
+</code></pre>
+<p><code>changelog.md</code> and <code>migrating.md</code> are exempt: they describe the old names on purpose.</p>
+<ul>
+<li>[ ] <strong>Step 2: Run them to see them fail</strong></li>
+</ul>
+<p>Run: <code>node --test test/docs-targets.test.js test/docs-claims.test.js 2&gt;&amp;1 | grep -E "^✖|^ℹ (pass|fail)"</code>
+Expected: FAIL.</p>
+<ul>
+<li>[ ] <strong>Step 3: Switcher and validator</strong></li>
+</ul>
+<p>In <code>docs/src/targets.mjs</code>:</p>
+<pre><code class="language-js">export function commandForm(name, target) {
+  return target === 'codex' ? `$slashforge-${name}` : `/slashforge-${name}`;
+}
+</code></pre>
+<ul>
+<li><code>COMMAND_RE</code>: <code>new RegExp(\</code>(?&lt;![\w./~-])/slashforge-(${alternation})\b`, 'g')`</li>
+<li><code>WHOLE_LABEL_RE</code>: <code>new RegExp(\</code>^/slashforge-(${alternation})$`)`</li>
+<li>In <code>.github/scripts/check-docs-targets.mjs</code>, change <code>'/slashforge:' + m[1]</code> to <code>'/slashforge-' + m[1]</code>.</li>
+<li>
+<p>In the rehype plugin's header comment, change the example to <code>/slashforge-code</code>.</p>
+</li>
+<li>
+<p>[ ] <strong>Step 4: Rename in the docs and README</strong></p>
+</li>
+</ul>
+<p>Run the Task 1 Step 3 script with the roots changed to <code>docs/src</code> and <code>README.md</code>. Skip <code>docs/src/content/docs/changelog.md</code> (it's generated) and <code>docs/src/content/docs/reference/migrating.md</code>, and only touch <code>.md</code>, <code>.mdx</code>, <code>.astro</code> and <code>.ts</code> files. Then check with:</p>
+<p><code>grep -rn "slashforge:" docs/src README.md | grep -v "changelog.md\|migrating.md\|/slashforge/\|setup/slashforge\|commands/slashforge"</code></p>
+<p>Expected: nothing is printed.</p>
+<ul>
+<li>
+<p>[ ] <strong>Step 5: The migration guide and changelog</strong></p>
+</li>
+<li>
+<p><strong><code>reference/migrating.md</code>:</strong> add a new top section, <code>## 4.x to 5.0</code>. It says:</p>
+</li>
+<li>commands are <code>/slashforge-name</code> in Claude Code and Cursor, and <code>$slashforge-name</code> in Codex</li>
+<li><code>npx slashforge</code> removes the old <code>/slashforge:*</code> files by itself, and keeps any command of your own in <code>commands/slashforge/</code></li>
+<li>scripts or docs of your own that type <code>/slashforge:code</code> need the new name</li>
+<li>there's no <code>--target</code> any more</li>
+<li><strong>The README install table:</strong> the Claude command rows become <code>~/.claude/commands/slashforge-*.md</code>.</li>
+<li><strong><code>CHANGELOG.md</code></strong>, under <code>## [Unreleased]</code>, add first:</li>
+</ul>
+<pre><code class="language-markdown">### Breaking
+- **Commands are `/slashforge-name` on every host.** Claude Code's `/slashforge:code` is now `/slashforge-code`, the same as Cursor; Codex keeps `$slashforge-code`. Claude Code's commands install as flat `~/.claude/commands/slashforge-*.md` files, and `npx slashforge` removes the 4.x `commands/slashforge/` files by name (your own files there are kept). See the migration guide.
+- **`--target` is gone.** One `npx slashforge` installs for Claude Code, Cursor and Codex; passing `--target` exits with a message saying so.
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 6: Run the tests and the docs checks</strong></li>
+</ul>
+<p>Run: <code>node --test 2&gt;&amp;1 | grep -E "^✖|^ℹ (pass|fail)"</code>, then <code>cd docs &amp;&amp; rm -rf node_modules/.astro &amp;&amp; npm run build &amp;&amp; for c in links targets a11y facts; do node ../.github/scripts/check-docs-$c.mjs || exit 1; done</code>
+Expected: <code>ℹ fail 0</code>, the build exits 0, and all four checks pass. Update any remaining <code>test/docs-targets.test.js</code> expectation that uses <code>/slashforge:x</code> to <code>/slashforge-x</code>.</p>
+<ul>
+<li>[ ] <strong>Step 7: Commit</strong></li>
+</ul>
+<pre><code class="language-bash">git add -A docs README.md CHANGELOG.md .github/scripts test
+git commit -m &quot;docs!: /slashforge-name everywhere, with a 4.x to 5.0 migration
+
+Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;
+</code></pre>
+<hr />
+<h3>Task 4: Verify, review, push</h3>
+<ul>
+<li>[ ] <strong>Step 1: Full suite:</strong> run <code>node --test 2&gt;&amp;1 | grep -E "^ℹ (pass|fail)"</code>. Expected: <code>ℹ fail 0</code>.</li>
+<li>[ ] <strong>Step 2: Upgrade from the real 4.5.0 package in a throwaway HOME:</strong></li>
+</ul>
+<pre><code class="language-bash">H=$(mktemp -d); export HOME=$H USERPROFILE=$H SLASHFORGE_NO_UPDATE_CHECK=1
+npx -y slashforge@4.5.0 &lt;/dev/null &gt;/dev/null            # a genuine 4.x install
+ls $H/.claude/commands/slashforge | wc -l                 # expect 13
+node bin/install.js &lt;/dev/null | grep -i &quot;4.x&quot;            # expect the removal line
+ls $H/.claude/commands                                    # expect slashforge-*.md only
+node bin/install.js status | grep &quot;slashforge-code&quot;
+</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Whole-branch review:</strong> one fresh reviewer on the most capable model covers both plans' work (<code>331fd0e..HEAD</code>). Fix Critical and Important findings test-first in one pass.</li>
+<li>[ ] <strong>Step 4:</strong> Rebuild and serve the docs on port 4330 for the owner.</li>
+<li>[ ] <strong>Step 5:</strong> Push <code>feat/cursor-codex-targets</code>, wait for <code>gh pr checks 58</code>, and <strong>don't merge</strong>. Hand over the manual checklist, which now includes <code>/slashforge-code</code> appearing in Claude Code once, with no <code>/slashforge:code</code>.</li>
+</ul>
+
+</body>
+</html>

@@ -1,12 +1,17 @@
 ---
-title: /slashforge:investigate
+title: /slashforge-investigate
 description: Read-only research — reproduce and root-cause a bug, then produce a findings report.
 ---
 
 ```
-/slashforge:investigate
-/slashforge:investigate [symptom]
+/slashforge-investigate
+/slashforge-investigate [symptom]
 ```
+
+:::note
+==Using Cursor or Codex? Pick your agent in the header== and every command on this page
+changes with it. See [Hosts](/slashforge/reference/cli/#hosts) for what else differs.
+:::
 
 Read-only research. ==Reproduces a suspected bug, finds the root cause, and writes
 a findings report.==
@@ -24,7 +29,7 @@ without worrying about what it might do to your working tree.
 - You need the reasoning written down for someone else
 
 ==If you already know the cause and want it fixed, use
-[`/slashforge:code`](/slashforge/commands/slashforge-code/) instead== — its Phase 5 runs
+[`/slashforge-code`](/slashforge/commands/slashforge-code/) instead== — its Phase 5 runs
 systematic debugging as part of shipping the fix.
 
 ## What it produces
@@ -40,7 +45,7 @@ A findings report saved to `docs/slashforge/investigations/`, covering:
 ==The report is a document, not a patch. Deciding what to do with it is yours.==
 
 It is a self-contained HTML file — no external CSS, no JavaScript, no network —
-written to `docs/slashforge/investigations/investigation-<timestamp>.html`. It sits under `docs/` rather than inside `.claude/` because dot-directories are
+written to `docs/slashforge/investigations/investigation-<timestamp>.html`. It sits under `docs/` rather than inside your agent's folder (`.claude/`, `.cursor/`, `.codex/`) because dot-directories are
 hidden in Finder and most file explorers; these reports are meant to be
 double-clicked by a human, not just read by an agent.
 
@@ -58,9 +63,9 @@ never the raw HTML.== The file is the report; the transcript gets the gist.
 ## How the styling works
 
 The report's shell — doctype, `<head>`, and the whole `<style>` block — ships
-with SlashForge as `forge-report-shell.html` and is installed alongside the guide
+with SlashForge as `slashforge-report-shell.html` and is installed alongside the guide
 files. Each investigation writes only its **body fragment**, which
-`forge-splice.js`, installed next to the shell, splices in. It is a file rather than
+`slashforge-splice.js`, installed next to the shell, splices in. It is a file rather than
 an inline `node -e` script, so a permission rule can allow exactly that path.
 
 ==This is why every report looks identical==, and why restyling all of them is one
@@ -77,15 +82,15 @@ The run ends with the report's path, ready to paste:
 
 ```
 Investigation complete → docs/slashforge/investigations/investigation-2026-08-02-1432.html
-Want me to fix this? Run /slashforge:code investigation-2026-08-02-1432.html
+Want me to fix this? Run /slashforge-code investigation-2026-08-02-1432.html
 ```
 
 The two lines use different forms on purpose. The pointer after the arrow is the
 full path — where the file lives, clickable in most terminals. The command takes
-the **bare filename**, which `/slashforge:code` resolves against
+the **bare filename**, which `/slashforge-code` resolves against
 `docs/slashforge/investigations/`, so there is less to type or paste.
 
-That handover is the point. ==`/slashforge:code` reads the report as its
+That handover is the point. ==`/slashforge-code` reads the report as its
 requirements document, so the root cause survives into a fresh session instead of
 being retyped from memory== — see
 [its Argument section](/slashforge/commands/slashforge-code/#argument).
@@ -113,7 +118,7 @@ layers means reading all three. Reproduction adds command output on top, and a
 failing build or test suite can be verbose.
 
 ==It is the cheapest command that produces a durable artefact==, which is the
-argument for reaching for it before `/slashforge:code` on anything you do not
+argument for reaching for it before `/slashforge-code` on anything you do not
 yet understand. Diagnosing at investigate prices and handing the report forward
 costs less than diagnosing midway through a full run.
 
@@ -123,8 +128,8 @@ The argument is optional and freeform — a symptom, an error message, a failing
 test name, or a description:
 
 ```
-/slashforge:investigate the auth middleware drops the session on refresh
-/slashforge:investigate TypeError: cannot read property 'id' of undefined
+/slashforge-investigate the auth middleware drops the session on refresh
+/slashforge-investigate TypeError: cannot read property 'id' of undefined
 ```
 
 Without one, it asks what you are seeing.
