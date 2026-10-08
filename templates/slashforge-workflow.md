@@ -38,7 +38,7 @@ Every phase with a named skill MUST load and follow it — do not paraphrase. Ev
    - When uncertain → **default to full flow**
 3. **Announce the decision** before any token-heavy work: *"Treating this as [trivial | full]. [One-line reason from the checklist.] Say 'full flow' or 'quick' to override."* A user reply of `quick` or `trivial` forces the lean path; `full` or `full flow` forces the full path.
 4. **Trivial path:** skip `slashforge-brainstorm`. Go to Phase 2 with the **Lean plan format** (see Phase 2). Phases 3–10 run as normal — every user gate and Phase 6 verification stay in place.
-5. **Full path:** invoke `slashforge-brainstorm`. It writes the design spec to `docs/slashforge/specs/` as HTML by itself. Cover goal, user-visible behaviour, constraints, out-of-scope items, success criteria. Ask clarifying questions until the request is unambiguous. Do not propose a plan yet.
+5. **Full path:** invoke `slashforge-brainstorm`. It writes `docs/slashforge/active/<change>/requirements.md` as Markdown by itself (see `slashforge-spec-home.md`). Cover goal, user-visible behaviour, constraints, out-of-scope items, success criteria. Ask clarifying questions until the request is unambiguous. Do not propose a plan yet.
 
 ---
 
@@ -47,13 +47,13 @@ Every phase with a named skill MUST load and follow it — do not paraphrase. Ev
 **Skill:** `slashforge-plan`
 
 <!--target:claude-->
-1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **`.claude/` coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes `docs/slashforge/active/<change>/plan.md` and `tasks.md` as Markdown by itself.
 <!--/target-->
 <!--target:cursor-->
-1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **`.cursor/` coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **`.cursor/` coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes `docs/slashforge/active/<change>/plan.md` and `tasks.md` as Markdown by itself.
 <!--/target-->
 <!--target:codex-->
-1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **setup coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes to `docs/slashforge/plans/` as HTML by itself.
+1. **Pre-plan checks** — run two checks before drafting the plan: (a) **graph freshness** if `graphify-out/graph.json` is present (`slashforge-graph.md` Runtime section); (b) **setup coverage** for new-domain detection (`slashforge-coverage.md`). Both auto-skipped on `/slashforge-code -quick` and `/slashforge-code` trivial. Then invoke `slashforge-plan` to produce a structured plan. It writes `docs/slashforge/active/<change>/plan.md` and `tasks.md` as Markdown by itself.
 <!--/target-->
 2. **Full plan format** (default): cover every section, omitting only those that genuinely do not apply:
    - **Changes** — files/modules to be added, modified, or removed

@@ -32,42 +32,19 @@ questions. Everything they need is in the plan or it does not reach them.
 
 ## Where the plan goes
 
-`docs/slashforge/plans/YYYY-MM-DD-<feature-name>.html`, unless the user has said otherwise. Do
-not write plans anywhere else in the repo.
+`docs/slashforge/active/<change-slug>/plan.md` (the HOW) and
+`docs/slashforge/active/<change-slug>/tasks.md` (the checklist), under the same
+`<change-slug>` the brainstorm phase chose. See `{{INSTALL_PATH}}/slashforge-spec-home.md`
+for the layout. Do not write plans anywhere else in the repo.
 
-It is HTML, built from the shared document shell — the same one investigation reports and design
-specs use. **Write only the body fragment**; a substitution step splices it in.
+They are **Markdown** — living specs that must diff, grep and review in a pull request. Write
+them with a plain file write; there is no splice or shell step (those stay with the
+investigation report).
 
-```bash
-mkdir -p docs/slashforge/plans
-plan="docs/slashforge/plans/<YYYY-MM-DD>-<feature-name>.html"
+### Tracking progress
 
-node "{{INSTALL_PATH}}/slashforge-splice.js" "$fragment" "$plan" "Plan — <feature-name> (<YYYY-MM-DD>)"
-```
-
-`slashforge-splice.js` escapes the title and splices the body verbatim. Delete the scratch fragment afterwards.
-
-Then open it, so the user reviews the rendered plan rather than the markup:
-
-```bash
-sh "{{INSTALL_PATH}}/slashforge-open.sh" "$plan"
-```
-
-Best-effort — the helper stays silent over SSH or on a headless box and can never fail the run.
-If it could not open, say so and give the path.
-
-### Tracking progress in HTML
-
-Steps are checkboxes. In HTML that is a literal `☐` at the start of the list item, swapped to `☑`
-when the step is done:
-
-```html
-<li>☐ <strong>Step 1: Write the failing test</strong></li>
-```
-
-Edit the character in place as you go — the plan is a live document, not a record written once.
-Do not use `<input type="checkbox">`: the shell carries no JavaScript, so its state would not
-survive a reload and would not be readable by whoever picks the plan up next.
+`tasks.md` steps are Markdown checkboxes: `- [ ]` for a pending step, flipped to `- [x]` in
+place as it completes. The plan is a live document, not a record written once.
 
 ## Before writing tasks: map the files
 
@@ -79,77 +56,55 @@ decomposition gets decided, so decide it deliberately:
 - Follow the codebase's existing structure. If a file you are touching has grown unwieldy,
   including a split is reasonable — unrelated restructuring is not.
 
-## Required header
+## plan.md shape
 
-```html
-<h1>Plan — [Feature]</h1>
+```markdown
+# <Feature> — Plan
 
-<div class="summary">
-  <strong>Goal:</strong> [one sentence]
-</div>
+## Approach
+2–3 sentences on the shape of the change.
 
-<h2>Architecture</h2>
-<p>[2–3 sentences on the approach]</p>
+## Tech stack
+Key technologies — only where they are not obvious from the repo.
 
-<h2>Tech stack</h2>
-<p>[key technologies]</p>
+## Global constraints
+- Project-wide requirements — version floors, dependency limits, platform rules,
+  one line each, values copied exactly from requirements.md. Every task inherits these.
 
-<h2>Global constraints</h2>
-<ul>
-  <li>[Project-wide requirements — version floors, dependency limits, platform
-      rules — one line each, values copied exactly from the spec. Every task
-      inherits these.]</li>
-</ul>
+## Files
+- Create / Modify / Remove — exact paths and the responsibility of each.
+
+## Risks & edge cases
+- ...
+
+## Test strategy
+What will be tested and how it is proven.
 ```
 
-## Task shape
+## tasks.md shape
 
 A task is the smallest unit that carries its own test cycle and deserves a reviewer's yes or no.
 Fold setup, configuration and documentation into the task whose deliverable needs them. Split
 only where a reviewer could sensibly accept one task and reject the next. Every task ends with
-something independently testable.
+something independently testable. Each **step** is one action, two to five minutes.
 
-Each **step** inside a task is one action, two to five minutes:
+```markdown
+# <Feature> — Tasks
 
-```html
-<h2>Task N: [Name]</h2>
+## Task 1: <name>
+Files: create `exact/path.js`, modify `exact/existing.js:123-145`, test `test/path.test.js`
+Consumes: what earlier tasks provide — exact signatures
+Produces: what later tasks rely on — exact names and types
 
-<p><strong>Files</strong></p>
-<ul>
-  <li>Create: <code>exact/path/to/file.js</code></li>
-  <li>Modify: <code>exact/path/to/existing.js:123-145</code></li>
-  <li>Test: <code>test/exact/path.test.js</code></li>
-</ul>
-
-<p><strong>Interfaces</strong></p>
-<ul>
-  <li>Consumes: [what earlier tasks provide — exact signatures]</li>
-  <li>Produces: [what later tasks rely on — exact names and types]</li>
-</ul>
-
-<ul>
-  <li>☐ <strong>Step 1: Write the failing test</strong>
-<pre><code>test('specific behaviour', () =&gt; {
-  assert.equal(fn(input), expected);
-});</code></pre></li>
-
-  <li>☐ <strong>Step 2: Run it and confirm it FAILS</strong><br>
-      Run: <code>npm test</code> — expected: fail with "fn is not defined"</li>
-
-  <li>☐ <strong>Step 3: Write the minimal implementation</strong>
-<pre><code>function fn(input) { return expected; }</code></pre></li>
-
-  <li>☐ <strong>Step 4: Run it and confirm it PASSES</strong></li>
-
-  <li>☐ <strong>Step 5: Commit</strong></li>
-</ul>
+- [ ] Step 1: write the failing test (show the test code)
+- [ ] Step 2: run it, confirm it FAILS — show the command and the expected message
+- [ ] Step 3: write the minimal implementation (show it)
+- [ ] Step 4: run it, confirm it PASSES
+- [ ] Step 5: commit
 ```
 
-Code inside `<pre><code>` must have `<`, `>` and `&` escaped, or the snippet will be parsed as
-markup and vanish from the rendered page.
-
-The **Interfaces** block matters: a task's implementer sees only their own task, so this is how
-they learn the names and types their neighbours use.
+The **Consumes / Produces** lines matter: a task's implementer sees only their own task, so this
+is how they learn the names and types their neighbours use.
 
 ## No placeholders
 
@@ -177,5 +132,5 @@ Fix inline and move on.
 
 ## Hand-off
 
-Say where the plan is saved and confirm the execution approach before starting: task-by-task
-with review between, or straight through with checkpoints. It is already open in their browser.
+Say where `plan.md` and `tasks.md` are saved and confirm the execution approach before starting:
+task-by-task with review between, or straight through with checkpoints.

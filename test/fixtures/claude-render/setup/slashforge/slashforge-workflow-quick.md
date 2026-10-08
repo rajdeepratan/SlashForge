@@ -46,7 +46,7 @@ brainstorming and go straight to a short plan.)"**
 | Phase | Standard behaviour | Lean override |
 |---|---|---|
 | **1 Intake** | `slashforge-brainstorm` | **SKIP** — go straight to Phase 2 with the user's description as-is |
-| **2 Plan** | Full template: Changes, Affected surface, Env vars, Breaking changes, Risks, Test strategy | **LEAN** — include only **Changes** and **Test strategy**. If a section genuinely applies (e.g. a new env var was added), include it; otherwise omit it. Do not write "N/A" — a missing section *is* the N/A. |
+| **2 Plan** | Full template: Changes, Affected surface, Env vars, Breaking changes, Risks, Test strategy | **LEAN** — writes a lean `plan.md` + `tasks.md` into `docs/slashforge/active/<change>/` (no `requirements.md` — Phase 1 is skipped). Include only **Changes** and **Test strategy**. If a section genuinely applies (e.g. a new env var was added), include it; otherwise omit it. Do not write "N/A" — a missing section *is* the N/A. |
 | **3 Confirm plan** | User gate | **KEEP** |
 | **4 Branch decision** | User gate | **KEEP** |
 | **5 Implement** | TDD + systematic-debugging + subagent-driven as applicable | **ONE SKILL ONLY** — `slashforge-tdd` if the change is testable, else straight implement. Do not invoke `slashforge-debug` (lean mode is not a bug flow). Do not invoke `slashforge-parallel` (tasks are single-threaded by assumption) |

@@ -1,0 +1,197 @@
+<!doctype html>
+<!--
+  SlashForge document shell.
+
+  Installed verbatim alongside the guide files and used for every HTML artefact
+  SlashForge writes: investigation reports, design specs, and implementation
+  plans. The caller writes ONLY the body fragment and splices it in here, so the
+  CSS is never regenerated per document — that keeps them visually identical and
+  keeps the boilerplate out of the model's output.
+
+  Two comment markers below are substituted, and they are NOT treated alike:
+
+    TITLE   (in the head) is the FULL title, prefix included — e.g.
+            "Investigation — <symptom> (<date>)" or "Design — <topic>". It MUST be
+            HTML-escaped first — & then < then >. It is plain text from a
+            user-supplied symptom; unescaped, a "</title>" in it ends the
+            element early and the remainder leaks in as markup, and entity-
+            shaped text like "&amp;" is decoded into something else.
+    CONTENT (in the body) takes the fragment verbatim. It is real HTML and
+            must NOT be escaped.
+
+  Substitute both with function-form replacement so $-sequences in the fragment
+  are not interpreted as replacement patterns.
+
+  Keep this file self-contained: no scripting, no external stylesheets, no CDN
+  links, no remote fonts or images. It must render identically when opened from
+  disk with no network. A test asserts this.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design — SlashForge SDD Lifecycle (2026-10-08)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 880px; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; border-bottom: 1px solid #d0d7de; padding-bottom: 0.25rem; }
+  .summary { padding: 0.6rem 0.9rem; border-left: 4px solid #1a7f37; background: #f6f8fa;
+             margin: 1rem 0; font-weight: 500; }
+  .summary.unreproducible { border-left-color: #9a6700; }
+  .summary.intended       { border-left-color: #57606a; }
+  .summary.needs-info     { border-left-color: #0969da; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f6f8fa;
+         padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+  pre code { background: transparent; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; }
+  th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    h2 { border-bottom-color: #30363d; }
+    .summary { background: #161b22; }
+    th, td { border-color: #30363d; }
+    th { background: #161b22; }
+    code, pre { background: #161b22; }
+    a { color: #58a6ff; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — SlashForge SDD Lifecycle</h1>
+
+<div class="summary">
+  <strong>Goal:</strong> Turn SlashForge from a plan-driven flow into a spec-driven one — give every repo a persistent Markdown spec home (constitution, architecture, status) and a propose &rarr; apply &rarr; archive change lifecycle folded into the existing four commands, with no new commands and cross-agent parity (Claude Code, Cursor, Codex) preserved automatically.
+</div>
+
+<h2>Problem</h2>
+<p>SlashForge is <strong>plan-driven, not spec-driven</strong>. Its design spec
+(<code>docs/slashforge/specs/&lt;date&gt;-&lt;topic&gt;-design.html</code>) and plan
+(<code>docs/slashforge/plans/&lt;date&gt;-&lt;feature&gt;.html</code>) are one-shot, dated HTML
+documents scoped to a single change. Once the change ships they are never revisited, never
+reconciled, and never act as an authoritative description of how the system is meant to behave.
+Nothing in the flow answers "what is this project, what are its non-negotiables, and what is in
+flight right now" without reading code and git history.</p>
+<p>The references the user cited make specs the durable centre of the work:
+<strong>spec-kit</strong> uses a constitution plus a specify &rarr; plan &rarr; tasks &rarr;
+implement &rarr; converge cycle; <strong>openspec</strong> keeps specs as the source of truth
+through a propose &rarr; apply &rarr; archive lifecycle. SlashForge has the <em>phases</em> of
+this (brainstorm, plan, verify, review) but none of the <em>persistence</em>: no constitution,
+no living project docs, no change folder that survives the change, no convergence against a spec,
+and no archive step.</p>
+
+<h2>Approach</h2>
+<p><strong>Chosen:</strong> introduce a persistent, Markdown spec home under
+<code>docs/slashforge/</code> and fold a propose &rarr; apply &rarr; archive lifecycle into the
+existing <code>/slashforge-code</code> phases. No new commands: the brainstorm phase proposes a
+change, implementation applies it, and post-merge cleanup archives it. Because the whole surface
+is files the agent already reads and writes, parity across Claude Code, Cursor and Codex is
+automatic.</p>
+<p><strong>Alternatives rejected:</strong></p>
+<ul>
+  <li><strong>Dedicated spec commands</strong> (<code>/slashforge-propose</code>,
+      <code>/slashforge-apply</code>, <code>/slashforge-archive</code>), mirroring the references.
+      Most discoverable, but breaks SlashForge's "four commands, same name everywhere" identity
+      and triples the install/render surface across three agents. Rejected.</li>
+  <li><strong>Reconciled capability specs</strong> (openspec's model: one current spec per
+      capability, updated on archive). Truer to SDD, but the user chose the simpler
+      feature-folder archive where a completed change moves to <code>archive/</code> unchanged.
+      Rejected by decision.</li>
+  <li><strong>Keep HTML for specs/plans.</strong> Living source-of-truth docs must diff cleanly,
+      grep, and review in PRs; HTML via the shared shell does none of these. Rejected for the
+      persistent docs (investigation reports stay HTML — they are read-only artefacts, not living
+      specs).</li>
+</ul>
+
+<h2>Design — spec home layout</h2>
+<p>All paths are Markdown under the existing <code>docs/slashforge/</code> namespace, so they
+coexist with the user's own <code>docs/</code> and never collide.</p>
+<pre><code>docs/slashforge/
+├─ constitution.md     # non-negotiables (human-authored; .claude/rules/ reference it)
+├─ architecture.md     # tech stack, standards, design patterns
+├─ status.md           # what is active now + recently archived
+├─ active/             # changes currently being built
+│  └─ &lt;change-slug&gt;/
+│     ├─ requirements.md   # WHAT & WHY (product scope)
+│     ├─ plan.md           # HOW (files changed, schemas, approach)
+│     └─ tasks.md          # sequential checklist, - [ ] / - [x]
+└─ archive/            # completed changes, moved here unchanged on merge
+   └─ &lt;change-slug&gt;/</code></pre>
+<p><strong>Constitution vs. existing rules.</strong> SlashForge setup already generates
+<code>.claude/rules/</code> and <code>CLAUDE.md</code>. <code>constitution.md</code> becomes the
+single human-authored home for non-negotiables; the generated rules <em>reference</em> it rather
+than restate it, so there is one source and no drift.</p>
+
+<h2>Design — phase mapping in /slashforge-code</h2>
+<p>The lifecycle is not bolted on; it <em>is</em> the existing phases, re-pointed at the new
+files. The four mandatory user gates are unchanged.</p>
+<table>
+  <tr><th>Phase</th><th>Today</th><th>Becomes</th></tr>
+  <tr><td>1 — Intake / brainstorm</td><td>design <code>.html</code> in <code>specs/</code></td><td>writes <code>active/&lt;change&gt;/requirements.md</code> (propose)</td></tr>
+  <tr><td>2 — Plan</td><td>plan <code>.html</code> in <code>plans/</code></td><td>writes <code>active/&lt;change&gt;/plan.md</code> + <code>tasks.md</code></td></tr>
+  <tr><td>5 — Implement</td><td>implement to plan</td><td>work through <code>tasks.md</code>, flipping <code>- [ ]</code> to <code>- [x]</code> (apply)</td></tr>
+  <tr><td>6 — Verify</td><td>lint / test / build</td><td>same, <strong>plus converge:</strong> verify implementation against <code>requirements.md</code>; every task box must be checked</td></tr>
+  <tr><td>7 — Review</td><td>matches the plan</td><td>matches <code>requirements.md</code> <strong>and</strong> <code>constitution.md</code></td></tr>
+  <tr><td>10 — Post-merge cleanup</td><td>branch cleanup</td><td>same, <strong>plus archive:</strong> move <code>active/&lt;change&gt;/</code> &rarr; <code>archive/&lt;change&gt;/</code> and update <code>status.md</code></td></tr>
+</table>
+<p>The change slug is a short kebab name chosen at intake (e.g. <code>sdd-lifecycle</code>). If a
+slug already exists in <code>active/</code> or <code>archive/</code>, the intake phase appends a
+numeric suffix rather than overwrite.</p>
+
+<h2>Design — setup scaffolding</h2>
+<p><code>/slashforge-setup</code> scaffolds the tree and generates the three top-level docs from
+its existing codebase exploration: <code>architecture.md</code> (detected stack, test/build
+commands, conventions), a starter <code>constitution.md</code> (confirmed with the user), and an
+initial <code>status.md</code>. <code>active/</code> and <code>archive/</code> start empty. This
+works for existing repos — nothing requires a greenfield start, and no code specs are
+back-filled.</p>
+
+<h2>Design — format and quick mode</h2>
+<p><code>tasks.md</code> uses GitHub-style Markdown checkboxes (<code>- [ ]</code> &rarr;
+<code>- [x]</code>), replacing the HTML <code>&#9744;</code>/<code>&#9745;</code> mechanism; the
+<code>slashforge-splice.js</code> shell is no longer used for specs or plans (it stays for
+investigation reports). <code>/slashforge-code -quick</code> writes a lean <code>plan.md</code>
+and <code>tasks.md</code> and skips <code>requirements.md</code>, matching today's lean behaviour.
+<code>/slashforge-investigate</code> is unchanged.</p>
+
+<h2>Design — files touched</h2>
+<p>Source of truth is <code>templates/</code> (installed copies in
+<code>~/.claude/setup/slashforge/</code> are generated). Expected edits:
+<code>templates/slashforge/brainstorm.md</code>, <code>plan.md</code>, <code>setup.md</code>,
+<code>verify.md</code>, <code>request-review.md</code>; <code>templates/slashforge-workflow.md</code>,
+<code>slashforge-workflow-quick.md</code>, and the setup-generators that emit
+<code>constitution.md</code>/<code>architecture.md</code>/<code>status.md</code>; the
+<code>claude-render</code> and other render fixtures/tests that assert HTML specs/plans; the docs
+site under <code>docs/src/content/</code>; and <code>CHANGELOG.md</code>. No <code>package.json</code>
+<code>version</code> bump (per the user's standing "no new version" instruction).</p>
+
+<h2>Testing</h2>
+<p>Unit/fixture: update the render tests that currently assert design/plan HTML so they assert the
+new Markdown artefacts (or drop the HTML path for these two types). Add a fixture asserting setup
+scaffolds the <code>docs/slashforge/</code> tree with the three top-level files. Add a test that
+the archive step moves a change folder from <code>active/</code> to <code>archive/</code> and
+updates <code>status.md</code>. Cross-agent: confirm the Claude/Cursor/Codex renders of the
+edited guide files all describe the identical lifecycle (existing parity tests extended).
+End-to-end (manual, per <code>slashforge-verify</code>): run <code>/slashforge-code</code> on a
+throwaway change and confirm the folder is created at intake, filled through plan, checked off in
+implement, and archived post-merge. Whole suite green via <code>npm test</code> before any PR.</p>
+
+<h2>Out of scope</h2>
+<ul>
+  <li>Reconciled per-capability specs / an <code>openspec validate</code>-style linter (the
+      "full parity" option the user declined).</li>
+  <li>New standalone commands of any kind.</li>
+  <li>Back-filling specs for existing code beyond the generated <code>architecture.md</code>.</li>
+  <li>Converting investigation reports away from HTML.</li>
+  <li>Any <code>package.json</code> version bump or release.</li>
+</ul>
+
+
+</body>
+</html>

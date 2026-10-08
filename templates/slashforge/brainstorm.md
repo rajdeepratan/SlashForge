@@ -40,66 +40,40 @@ sentences for a genuinely small change — but it gets presented, and the user s
 **"This is too simple to need a design"** is the rationalisation to watch for. Simple work is
 where unexamined assumptions cost the most, because nobody thinks to check them.
 
-## Where the spec goes
+## Where the requirements go
 
-`docs/slashforge/specs/YYYY-MM-DD-<topic>-design.html`, unless the user has said otherwise. Do
-not write design documents anywhere else in the repo.
+`docs/slashforge/active/<change-slug>/requirements.md`, unless the user has said otherwise. Pick
+a short kebab `<change-slug>` at intake (e.g. `oauth-login`); if `docs/slashforge/active/` or
+`docs/slashforge/archive/` already holds that slug, append `-2`, `-3`, … rather than overwrite.
+See `{{INSTALL_PATH}}/slashforge-spec-home.md` for the whole spec-home layout and lifecycle.
 
-It is HTML, built from the shared document shell — the same one the investigation reports use, so
-every SlashForge artefact looks alike and the CSS is never regenerated. **Write only the body
-fragment**; a substitution step splices it in.
+It is **Markdown**, not an HTML report — a living spec that must diff, grep and review in a pull
+request. Write it with a plain file write; there is no splice or shell step (those stay with the
+investigation report). The approach and the alternatives you weighed belong in `plan.md` (HOW),
+written next; `requirements.md` captures WHAT and WHY.
 
-### The fragment
+### The shape
 
-Use only these elements. The shell styles `h1`, `h2`, `code`, `pre`, `ul`/`ol`, `table`, and
-`.summary`. Do not add inline `style=` attributes or new classes — the shell has no rules for them.
+Keep these headings exactly, so the plan and verify phases find the same sections.
 
-```html
-<h1>Design — <topic></h1>
+```markdown
+# <Change> — Requirements
 
-<div class="summary">
-  <strong>Goal:</strong> <one sentence on what this achieves>
-</div>
+## Goal
+One sentence: what this change achieves.
 
-<h2>Problem</h2>
-<p>What is wrong or missing today, and why it matters.</p>
+## Problem
+What is wrong or missing today, and why it matters.
 
-<h2>Approach</h2>
-<p>The chosen shape, and the 2-3 alternatives with why they lost.</p>
+## Behaviour
+What the user can do once this ships.
 
-<h2>Design</h2>
-<p>The pieces, their boundaries, and how they interact. Wrap code references like
-   <code>path/to/file.ts:42</code> in <code>&lt;code&gt;</code> tags.</p>
+## Constraints & out of scope
+- ...
 
-<h2>Testing</h2>
-<p>What will be tested and how it is proven.</p>
-
-<h2>Out of scope</h2>
-<ul>
-  <li>...</li>
-</ul>
+## Success criteria
+- A checkable statement proving the change is done.
 ```
-
-### Writing it
-
-```bash
-mkdir -p docs/slashforge/specs
-spec="docs/slashforge/specs/<YYYY-MM-DD>-<topic>-design.html"
-
-node "{{INSTALL_PATH}}/slashforge-splice.js" "$fragment" "$spec" "Design — <topic> (<YYYY-MM-DD>)"
-```
-
-`slashforge-splice.js` escapes the title and splices the body verbatim, the same script the
-investigation report uses. Delete the scratch fragment afterwards.
-
-Then open it, so the user reads the rendered document rather than the markup:
-
-```bash
-sh "{{INSTALL_PATH}}/slashforge-open.sh" "$spec"
-```
-
-Best-effort — the helper stays silent over SSH or on a headless box and can never fail the run.
-If it could not open, say so and give the path.
 
 ## Steps
 
@@ -126,7 +100,7 @@ when it is straightforward, a few hundred words when it is genuinely nuanced. Co
 of the change, the pieces involved, how they interact, what happens when things fail, and how
 it gets tested. Check after each section that it still looks right.
 
-**6. Write the spec** (see above), **then self-review it** with fresh eyes:
+**6. Write `requirements.md`** (see above), **then self-review it** with fresh eyes:
 
 - **Placeholders** — any TBD, TODO, or vague requirement? Fill them in.
 - **Consistency** — do any two sections contradict each other?
