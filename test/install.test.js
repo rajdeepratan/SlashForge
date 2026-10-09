@@ -1340,6 +1340,12 @@ test('the resume command surfaces the PR-feedback case', () => {
   assert.match(cmd, /pr_number/, 'resume command must detect the pr_number feedback case');
 });
 
+test('the review-feedback skill carries the gh ingestion recipe', () => {
+  const skill = renderAll('claude')[path.join('slashforge', 'review-feedback.md')];
+  assert.match(skill, /Ingesting from GitHub/, 'review-feedback must document GitHub ingestion');
+  assert.match(skill, /gh pr view/, 'review-feedback must show the gh fetch command');
+});
+
 // --- Task 7: subagent guide split ---
 
 test('codex gets the TOML subagent guide, the others get the markdown one', () => {

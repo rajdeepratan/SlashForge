@@ -62,8 +62,8 @@ Files: modify `templates/slashforge/review-feedback.md`
 Consumes: nothing new.
 Produces: a self-contained `gh` fetch recipe the Phase 9 loop and resume both rely on.
 
-- [ ] Step 1: add a `## Ingesting from GitHub` section before `## Sorting the feedback`: fetch request-changes reviews with `gh pr view <N> --json reviews,reviewDecision,comments` and inline review comments with `gh api repos/{owner}/{repo}/pulls/<N>/comments`; dedupe against already-resolved threads; then map each item onto the existing Must / Should / Discuss buckets. Keep the skill ≤ 500 lines.
-- [ ] Step 2: run `node --test test/install.test.js` — frontmatter/line-limit tests PASS (skill ≤ 500).
+- [x] Step 1: added `## Ingesting from GitHub` before `## Sorting the feedback` — `gh pr view <N> --json reviewDecision,reviews,comments,headRefName,baseRefName` + `gh api repos/{owner}/{repo}/pulls/<N>/comments`; gh-missing stop; skip resolved/already-addressed; map to Must/Should/Discuss (a blocking review doesn't auto-Must every comment).
+- [x] Step 2: full `install.test.js` PASS (197 tests); skill is 108 lines (≤ 500).
 - [ ] Step 3: commit `feat(sdd): document gh request-changes ingestion in review-feedback skill`.
 
 ## Task 5: Regenerate the pinned render + full suite
