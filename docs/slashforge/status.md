@@ -8,6 +8,9 @@ _None._
 
 ## Recently archived
 
+- **light-gears** — `/slashforge-test` and `/slashforge-refactor`, two
+  lightweight standalone commands, bringing the shipped set to eight. Merged
+  2026-10-09 (PR #101), released in 5.2.0. See `archive/light-gears/`.
 - **retry-abort-baseline** — Phase 6 `abort` now rolls back the whole
   implementation attempt (Finding A). Merged 2026-10-08 (PR #98), released in
   5.1.1. See `archive/retry-abort-baseline/`.

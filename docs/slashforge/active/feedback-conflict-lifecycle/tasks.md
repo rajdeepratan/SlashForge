@@ -32,7 +32,7 @@ ladder: `git fetch origin`, report `git rev-list --left-right --count <base>...H
   - Clean merge → commit the merge and continue. Conflict → run `git diff --name-only --diff-filter=U`, **stop**, hand the user the conflicted-file list; never auto-pick a side (`-X ours`/`-X theirs` are banned).
 - [x] Step 4: add `'slashforge-workflow-conflicts.md'` to `GUIDE_FILES` in `bin/install.js` (after `slashforge-workflow-resume.md`); no `omit` entry so claude/cursor/codex all get it.
 - [x] Step 5: run `node --test test/install.test.js` — new test + all 193 structural tests PASS.
-- [ ] Step 6: commit `feat(sdd): add upstream-integration/conflict ladder guide`.
+- [x] Step 6: commit `feat(sdd): add upstream-integration/conflict ladder guide`.
 
 ## Task 2: Wire workflow.md Phases 8/9/10 to the new guide (net-neutral)
 Files: modify `templates/slashforge-workflow.md`
@@ -44,7 +44,7 @@ Produces: Phase 8/10 pointers to the conflicts guide; Phase 9 intro naming the r
 - [x] Step 3: Phase 9 intro — reworded the single line to name the `/slashforge-resume` re-entry and the `gh` fetch on `CHANGES_REQUESTED` (pointer to `slashforge-workflow-resume.md`). One line.
 - [x] Step 4: Phase 10 step 5 — reworded "base branch pull conflicts" to route through `slashforge-workflow-conflicts.md`. One line.
 - [x] Step 5: source stayed 263 lines (net-neutral); the suite's `renderAll`-based 200-line golden-rule test passes for the claude render of `slashforge-workflow.md`, and the new reference test confirms the pointer resolves. (Fixture regen deferred to Task 5.)
-- [ ] Step 6: commit `feat(sdd): point Phase 8/10 at the conflict ladder, note Phase 9 resume re-entry`.
+- [x] Step 6: commit `feat(sdd): point Phase 8/10 at the conflict ladder, note Phase 9 resume re-entry`.
 
 ## Task 3: Resume feedback re-entry
 Files: modify `templates/slashforge-workflow-resume.md`, modify `templates/slashforge/resume.md`
@@ -55,7 +55,7 @@ Produces: checkpoint fields `pr_number`/`pr_url`; a documented re-entry path int
 - [x] Step 2: added the `## Feedback re-entry` section — `gh pr view <pr_number> --json reviewDecision,reviews,comments,headRefName,baseRefName`; `gh` missing → stop; `CHANGES_REQUESTED`/unresolved → run `slashforge-workflow-conflicts.md` if base moved, then re-enter Phase 9; no changes → resume normally.
 - [x] Step 3: added Step 1.5 to `slashforge/resume.md` — detect `current_phase >= 8` + `pr_number`, surface "PR #N has requested changes", re-enter Phase 9.
 - [x] Step 4: full `install.test.js` PASS (196 tests); resume guide 124 lines, command 62 — both ≤ 200.
-- [ ] Step 5: commit `feat(sdd): resume re-enters Phase 9 to ingest PR request-changes`.
+- [x] Step 5: commit `feat(sdd): resume re-enters Phase 9 to ingest PR request-changes`.
 
 ## Task 4: gh ingestion recipe in the review-feedback skill
 Files: modify `templates/slashforge/review-feedback.md`
@@ -64,7 +64,7 @@ Produces: a self-contained `gh` fetch recipe the Phase 9 loop and resume both re
 
 - [x] Step 1: added `## Ingesting from GitHub` before `## Sorting the feedback` — `gh pr view <N> --json reviewDecision,reviews,comments,headRefName,baseRefName` + `gh api repos/{owner}/{repo}/pulls/<N>/comments`; gh-missing stop; skip resolved/already-addressed; map to Must/Should/Discuss (a blocking review doesn't auto-Must every comment).
 - [x] Step 2: full `install.test.js` PASS (197 tests); skill is 108 lines (≤ 500).
-- [ ] Step 3: commit `feat(sdd): document gh request-changes ingestion in review-feedback skill`.
+- [x] Step 3: commit `feat(sdd): document gh request-changes ingestion in review-feedback skill`.
 
 ## Task 5: Regenerate the pinned render + full suite
 Files: regenerate `test/fixtures/claude-render/**`, final run of `test/install.test.js`
@@ -75,4 +75,4 @@ Produces: a green `npm test`.
 - [x] Step 2: diff shows ONLY the new `slashforge-workflow-conflicts.md` fixture, the resume guide (+29/-1), resume command (+5) and review-feedback (+20) additions, and the four net-neutral `slashforge-workflow.md` rewrites. Nothing else.
 - [x] Step 3: rendered `slashforge-workflow.md` is 199 lines (≤ 200).
 - [x] Step 4: full `npm test` ALL green — 283 pass, 0 fail (includes the pinned render).
-- [ ] Step 5: commit `test(sdd): regenerate pinned Claude render for the feedback/conflict lifecycle`.
+- [x] Step 5: commit `test(sdd): regenerate pinned Claude render for the feedback/conflict lifecycle`.
