@@ -204,10 +204,6 @@ test('/slashforge-code Step 0b resolves active/<slug>/investigation.md, not the 
   }
 });
 
-// A guide may point at a sibling by absolute path — slashforge-workflow-review-pr.md
-// names slashforge-report-shell.html that way. If guides were copied rather than
-// rendered, the installed guide would carry a literal {{INSTALL_PATH}} and the
-// agent would splice against a path that does not exist.
 test('guide files are rendered, leaving no unsubstituted placeholders', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
@@ -218,27 +214,15 @@ test('guide files are rendered, leaving no unsubstituted placeholders', () => {
   }
 });
 
-test('the report shell carries both substitution markers and stays self-contained', () => {
-  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge-report-shell.html'), 'utf8');
-  assert.ok(shell.includes('<!--TITLE-->'), 'shell missing TITLE marker');
-  assert.ok(shell.includes('<!--CONTENT-->'), 'shell missing CONTENT marker');
-  // The offline guarantee: no scripts, no remote anything.
-  assert.ok(!/<script/i.test(shell), 'shell must not contain <script>');
-  assert.ok(!/https?:\/\//i.test(shell), 'shell must not reference a remote URL');
-  assert.ok(!/<link[^>]+stylesheet/i.test(shell), 'shell must not link an external stylesheet');
-});
-
-test('splicing a fragment into the shell survives $-sequences', () => {
-  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge-report-shell.html'), 'utf8');
-  // A fragment containing regex substitution patterns must land verbatim — this
-  // is why the command uses function-form replace rather than a string.
-  const body = "<p>cost: $& and $' and $` and $1</p>";
-  const out = shell
-    .replace('<!--TITLE-->', () => 'symptom (2026-08-02)')
-    .replace('<!--CONTENT-->', () => body);
-  assert.ok(out.includes(body), '$-sequences in the fragment were corrupted');
-  assert.ok(out.includes('<title>symptom (2026-08-02)</title>'), 'shell must not hardcode a title prefix');
-  assert.ok(!out.includes('<!--CONTENT-->'), 'CONTENT marker not consumed');
+test('no rendered guide references the retired HTML report assets', () => {
+  const retired = ['slashforge-report-shell.html', 'slashforge-splice.js', 'slashforge-open.sh'];
+  for (const name of ['claude', 'agents', 'cursor', 'codex']) {
+    for (const [file, body] of Object.entries(renderAll(name))) {
+      for (const asset of retired) {
+        assert.ok(!body.includes(asset), `${name}/${file} still references retired asset ${asset}`);
+      }
+    }
+  }
 });
 
 test('assertTemplatesExist refuses an install when an asset is missing', () => {
@@ -595,75 +579,6 @@ test('docs/superpowers is only ever named next to the path replacing it', () => 
     [],
     `docs/superpowers named without its replacement:\n  ${offenders.join('\n  ')}`,
   );
-});
-
-// slashforge-splice.js is what actually builds every document, so the tests run the
-// shipped file rather than a copy of it, from a folder laid out like an install
-// (the script finds the shell next to itself).
-function spliceScript() {
-  const dir = tmp();
-  for (const f of ['slashforge-splice.js', 'slashforge-report-shell.html']) {
-    fs.copyFileSync(path.join(TEMPLATES_DIR, f), path.join(dir, f));
-  }
-  return path.join(dir, 'slashforge-splice.js');
-}
-
-// The title is plain text from a user-supplied symptom. Substituted raw it can
-// break out of <title> entirely (`</title>` ends the element and the remainder
-// leaks in as markup), and entity-shaped text like `&amp;` or `&#65;` is decoded
-// so the title shows something the symptom never said.
-test('the documented splice escapes the title', () => {
-  const script = spliceScript();
-  const dir = tmp();
-  const frag = path.join(dir, 'frag.html');
-  const out = path.join(dir, 'out.html');
-  fs.writeFileSync(frag, '<h1>body</h1>');
-
-  const cases = [
-    'x </title><meta http-equiv=refresh> y',
-    'literal &amp; in symptom',
-    'escape &lt;div&gt; shows wrong',
-    'numeric &#65; ref',
-  ];
-
-  for (const title of cases) {
-    execFileSync('node', [script, frag, out, title]);
-    const html = fs.readFileSync(out, 'utf8');
-    const inTitle = html.match(/<title>([\s\S]*?)<\/title>/);
-
-    assert.ok(inTitle, `title element destroyed by: ${title}`);
-    assert.ok(
-      !/<meta/i.test(inTitle[1]),
-      `title broke out, leaking markup: ${title}`,
-    );
-    // Round-trip: unescaping what landed must return the original symptom.
-    const decoded = inTitle[1]
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&amp;/g, '&');
-    assert.ok(
-      decoded.endsWith(title),
-      `title not round-trippable.\n  want ends with: ${title}\n  got: ${decoded}`,
-    );
-  }
-});
-
-test('the documented splice leaves the body fragment as raw HTML', () => {
-  const script = spliceScript();
-  const dir = tmp();
-  const frag = path.join(dir, 'frag.html');
-  const out = path.join(dir, 'out.html');
-  // The body is HTML and must NOT be escaped — only the title is plain text.
-  // Also guards the $-sequence behaviour that function-form replace protects.
-  const body = '<h1>heading</h1><p>cost: $& and $` and $1</p>';
-  fs.writeFileSync(frag, body);
-
-  execFileSync('node', [script, frag, out, 'plain title']);
-
-  const html = fs.readFileSync(out, 'utf8');
-  assert.ok(html.includes(body), 'body fragment must be spliced verbatim as HTML');
-  assert.ok(!html.includes('<!--CONTENT-->'), 'CONTENT marker not consumed');
-  assert.ok(!html.includes('<!--TITLE-->'), 'TITLE marker not consumed');
 });
 
 // A namespace rename done as a bare find-replace rewrites HTML closing tags:
@@ -1885,38 +1800,6 @@ test('setup verify step fails on oversized files for cursor and codex', () => {
   fs.mkdirSync(path.join(repo, 'pkg'));
   fs.writeFileSync(path.join(repo, 'pkg', 'AGENTS.md'), lines(250));
   assert.notEqual(runIn(repo, codex).status, 0, 'a 250-line nested AGENTS.md must fail');
-});
-
-// The old assertion ("exits 0 on a missing file") could not fail: the helper
-// exits 0 on every path. And on a desktop it really opened something. Stub the
-// openers on PATH instead, so the test proves which one ran, with what, and that
-// a failing opener still leaves the run alone.
-test('the open helper hands the path to the platform opener and survives its failure', () => {
-  if (process.platform === 'win32') return; // Git Bash's `start` is a shell builtin wrapper; covered by review.
-  const helper = path.join(TEMPLATES_DIR, 'slashforge-open.sh');
-  const bin = tmp();
-  const log = path.join(bin, 'calls.log');
-  for (const opener of ['open', 'xdg-open', 'wslview']) {
-    const stub = path.join(bin, opener);
-    fs.writeFileSync(stub, `#!/bin/sh\necho "${opener} $*" >> "${log}"\nexit "\${STUB_EXIT:-0}"\n`);
-    fs.chmodSync(stub, 0o755);
-  }
-  const run = (extra) => require('child_process').spawnSync('sh', [helper, '/tmp/report.html'], {
-    env: { PATH: `${bin}:/usr/bin:/bin`, DISPLAY: ':0', ...extra },
-    encoding: 'utf8',
-  });
-
-  assert.equal(run({}).status, 0);
-  const calls = fs.readFileSync(log, 'utf8');
-  assert.match(calls, /^(open|xdg-open|wslview) \/tmp\/report\.html$/m, `no opener was given the path: ${calls}`);
-
-  fs.writeFileSync(log, '');
-  assert.equal(run({ STUB_EXIT: '1' }).status, 0, 'a failing opener must not fail the run');
-  assert.notEqual(fs.readFileSync(log, 'utf8'), '', 'the opener should still have been tried');
-
-  fs.writeFileSync(log, '');
-  assert.equal(run({ SSH_CONNECTION: '1.2.3.4 22 5.6.7.8 22' }).status, 0);
-  assert.equal(fs.readFileSync(log, 'utf8'), '', 'a remote session must not try to open anything');
 });
 
 // Every document the kit writes went through an inline `node -e '<script>'`. A

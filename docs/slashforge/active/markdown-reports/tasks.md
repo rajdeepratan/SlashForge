@@ -47,10 +47,10 @@ Produces: Step 0b resolves `active/<slug>/investigation.md` + bare slug.
 Files: remove the three template assets; modify `test/install.test.js`, `test/spec-features.test.js`
 Consumes: Tasks 2-4 (no guide references the assets any more).
 
-- [ ] Step 1: add a guard test — for every host, no rendered template contains `slashforge-splice.js`, `slashforge-report-shell.html`, or `slashforge-open.sh`. Run → FAILS (files still present + maybe stray refs).
-- [ ] Step 2: remove the stale HTML-splice tests (splice path resolution, "investigate.md must splice", open.sh calls, `spliceScript()` + its two tests, "every document writer calls the shipped splice script"); drop the `report-shell.html` read in `spec-features.test.js`.
-- [ ] Step 3: `git rm templates/slashforge-report-shell.html templates/slashforge-splice.js templates/slashforge-open.sh`.
-- [ ] Step 4: `node --test test/install.test.js test/spec-features.test.js` → PASS (guard green; `assertTemplatesExist` no longer lists the assets).
+- [x] Step 1: added the guard test — for all four hosts, no rendered guide references `slashforge-splice.js`/`slashforge-report-shell.html`/`slashforge-open.sh`.
+- [x] Step 2: removed the stale tests across Tasks 2-5 (splice path loop, shell-marker + $-sequence tests, `spliceScript()` + its two tests, the two open-helper tests, "every document writer splices" → trimmed to the review-payload check); dropped the shell read in `spec-features.test.js`; updated stale comments in `install.js`, `review-payload.js`, `audit.js`.
+- [x] Step 3: `git rm` the three asset templates.
+- [x] Step 4: `node --test install + spec-features + upgrade` → 223 PASS; grep confirms zero lingering references (bar the `REMOVED_ASSET_FILES` declaration).
 - [ ] Step 5: commit `feat(sdd): delete the retired HTML report assets and their tests`.
 
 ## Task 6: Docs site

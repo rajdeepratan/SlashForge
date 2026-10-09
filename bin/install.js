@@ -454,7 +454,7 @@ function installFiles(target, {
   const written = [];
   const omit = target.omit || [];
   // Guides are rendered like commands: a guide may name a sibling by absolute
-  // path (slashforge-workflow-review-pr.md points at slashforge-report-shell.html), and a
+  // path (e.g. a flow invoking slashforge-review-payload.js), and a
   // copied-not-rendered guide would ship the literal {{INSTALL_PATH}}.
   for (const f of guideFiles) {
     // A target may not receive every guide. The entry-file and subagent guides are
@@ -472,8 +472,8 @@ function installFiles(target, {
     fs.writeFileSync(dest, rendered);
     written.push(dest);
   }
-  // Assets are installed verbatim — slashforge-open.sh is executed as-is and the
-  // report shell's own markers are not mustache placeholders.
+  // Assets are installed verbatim — the shipped scripts (review-payload.js,
+  // audit.js) are executed as-is, never rendered.
   for (const f of assetFiles) {
     const dest = path.join(target.guidesDir, f);
     fs.copyFileSync(path.join(templatesDir, f), dest);
