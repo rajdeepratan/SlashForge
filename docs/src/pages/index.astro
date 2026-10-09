@@ -143,6 +143,16 @@ const costs = [
     value: '15–70k',
     note: 'Almost entirely the diff. Three files is about 2k of it; fourteen is about 42k.',
   },
+  {
+    label: 'Covering a file (test)',
+    value: '15–50k',
+    note: 'Discovers your framework, writes and runs spec-based tests for the targeted files, then reports. No branch, no PR.',
+  },
+  {
+    label: 'Refactoring',
+    value: '40–120k',
+    note: 'Zero functional change, gated by the suite passing with identical results before and after.',
+  },
 ];
 ---
 

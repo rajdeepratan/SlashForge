@@ -2509,8 +2509,8 @@ test('status reports a v3 install by its forge commands', () => {
 // --- Audit fixes (docs/slashforge/specs/2026-09-27-cursor-codex-audit-fixes-design.html) ---
 
 // Cursor and Codex let the agent start a skill on its own when a prompt looks
-// relevant. The four commands must run only when the user types them.
-test('the four commands run only when typed on Cursor and Codex', () => {
+// relevant. These commands must run only when the user types them.
+test('the commands run only when typed on Cursor and Codex', () => {
   const home = tmp();
   const a = resolveAgents({ homeDir: home, cwd: home });
   installAgentsFiles(a, {});
@@ -2593,6 +2593,19 @@ test('the install summary names all three agents', () => {
   const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
   const out = execFileSync('node', [BIN, '--yes'], { env, encoding: 'utf8' });
   assert.match(out, /Open Claude Code, Cursor or Codex in any repo/);
+});
+
+test('the install summary lists every shipped command', () => {
+  const home = tmp();
+  const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
+  const out = execFileSync('node', [BIN, '--yes'], { env, encoding: 'utf8' });
+  const start = out.indexOf('Open Claude Code, Cursor or Codex in any repo');
+  assert.ok(start !== -1, 'closing message block must be present');
+  const summary = out.slice(start);
+  for (const c of COMMAND_FILES) {
+    const name = commandName(c); // e.g. /slashforge-test
+    assert.ok(summary.includes(name), `closing message must list ${name}`);
+  }
 });
 
 // Graphify registers its skill per platform, and on Codex its hook is a no-op:

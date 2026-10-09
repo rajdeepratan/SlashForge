@@ -545,7 +545,7 @@ const SKILL_PREAMBLE = [
 ].join('\n');
 
 // Cursor and Codex let the agent start a skill on its own when a prompt looks
-// relevant. The four commands must run only when the user types them: Cursor
+// relevant. These commands must run only when the user types them: Cursor
 // reads disable-model-invocation from SKILL.md, Codex reads this file beside it.
 // The discipline skills stay invocable, because the workflow calls them by name.
 const INVOCATION_POLICY_YAML = 'policy:\n  allow_implicit_invocation: false\n';
@@ -1206,6 +1206,8 @@ async function install({ dryRun, assumeYes, project = false }) {
     console.log('  • /slashforge-fix — patch a bug straight from the latest investigation (test-first, scoped to implicated files)');
     console.log('  • /slashforge-resume — resume an interrupted /slashforge-code or /slashforge-fix run from its last checkpoint');
     console.log('  • /slashforge-review-pr [number] — review a PR against this repo\'s rules, then comment or approve');
+    console.log('  • /slashforge-test [file|glob] — generate spec-based test coverage for existing files (no branch, no PR)');
+    console.log('  • /slashforge-refactor [file|glob] — zero-functional-change refactor, gated by the suite passing before and after');
   }
   if (ok.agents) {
     if (!ok.claude) console.log('\nIn Cursor the commands are /slashforge-setup, /slashforge-code, …');
