@@ -6,6 +6,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [5.3.1] - 2026-10-09
+
 ### Fixed
 - **Command enumerations that still stopped at six/four ([#106](https://github.com/rajdeepratan/SlashForge/issues/106)).** The post-install closing message listed only seven of the eight commands (omitting `/slashforge-test` and `/slashforge-refactor`), a source comment and a test name still said "four commands", and the landing page's "What it costs" showed six tiles. The closing message now names every command — guarded by a regression test asserting it lists every `COMMAND_FILES` entry — the comments are count-agnostic so they will not drift on the next addition, and the landing page gains test and refactor cost tiles.
 
