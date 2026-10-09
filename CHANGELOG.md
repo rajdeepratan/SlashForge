@@ -6,6 +6,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **Merge/conflict ladder (Phase 8 & Phase 10).** A new workflow guide gives the change-shipping flow a single, gated way to integrate a base branch that has advanced under an already-pushed PR branch: fetch, report how far ahead/behind, then **merge `origin/<base>` (not rebase)** so the PR updates with a plain non-force push. A clean merge continues on its own; a conflict stops with the list of conflicted files and never auto-picks a side. Used on a Phase 8 push rejection, on the Phase 10 base pull, and before a resume feedback re-entry.
+
+### Changed
+- **PR request-changes can be ingested by `/slashforge-resume`.** Reviewer feedback usually arrives after the run has ended, so the Phase 8 checkpoint now records the PR number and `/slashforge-resume` uses it: it fetches the PR's review state with `gh`, and on `CHANGES_REQUESTED` (or unresolved threads) re-enters Phase 9 to work the comments — running the conflict ladder first if the base moved. If `gh` is unavailable it stops rather than guessing. The `slashforge-review-feedback` discipline now carries the concrete `gh` fetch-and-classify recipe.
+
 ## [5.2.1] - 2026-10-09
 
 ### Fixed

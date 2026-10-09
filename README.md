@@ -154,7 +154,7 @@ Cursor and Codex share the same skill folders; only their guides are separate.
 The guide files cover:
 - **Instructions** — golden rules, creation order, file structure, verification
 - **Graph** — optional Graphify integration: setup-time install offer, runtime freshness check, and the SUMMARY.html synthesis prompt (two files)
-- **Workflow** — the ten-phase development loop used by `/slashforge-code`, `/slashforge-code -quick` and `/slashforge-fix` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across focused files: base phases, `-quick` overrides, `/slashforge-fix` overrides, the Phase 6 verify-retry loop, the Phase 7 security audit, the Phase 8 documentation sweep, resume/checkpointing, the investigation flow, the PR-review flow, and agent selection
+- **Workflow** — the ten-phase development loop used by `/slashforge-code`, `/slashforge-code -quick` and `/slashforge-fix` (plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup), split across focused files: base phases, `-quick` overrides, `/slashforge-fix` overrides, the Phase 6 verify-retry loop, the Phase 7 security audit, the Phase 8 documentation sweep, the Phase 8/10 merge/conflict ladder, resume/checkpointing (with PR request-changes re-entry), the investigation flow, the PR-review flow, and agent selection
 - **Coverage** — the auto-coverage check that spots new domains your setup doesn't cover yet
 - **Rules** — how to create rule files for a repo (including path-scoped rules)
 - **Skills** — how to create skills using Anthropic's `SKILL.md` directory format
