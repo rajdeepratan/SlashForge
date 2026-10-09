@@ -55,8 +55,8 @@ Consumes: Tasks 2-4 (no guide references the assets any more).
 
 ## Task 6: Docs site
 Files: modify `docs/src/content/docs/commands/slashforge-investigate.md`, `slashforge-review-pr.md`
-- [ ] Step 1: update both pages — Markdown reports at `active/<slug>/investigation.md` and `reviews/<date>-pr-<N>.md`; remove HTML/shell/browser mentions.
-- [ ] Step 2: from `docs/`: `npm run build` + the five `check-docs-*` scripts → all PASS.
+- [x] Step 1: updated `slashforge-investigate.md` (Markdown report at `active/<issue-slug>/investigation.md`; removed the HTML "How the styling works" section + browser-open prose; new hand-off), `slashforge-review-pr.md` (`reviews/pr-<N>-<title-slug>.md`), and `guides/trust.md` (installed-files list no longer names the three deleted assets).
+- [x] Step 2: `npm run build` + all five `check-docs-*` scripts → PASS; no stray refs outside the generated changelog.
 - [ ] Step 3: commit `docs(site): describe the Markdown investigation and review reports`.
 
 ## Task 7: Regenerate render + full suite

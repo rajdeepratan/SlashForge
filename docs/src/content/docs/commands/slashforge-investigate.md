@@ -34,7 +34,7 @@ systematic debugging as part of shipping the fix.
 
 ## What it produces
 
-A findings report saved to `docs/slashforge/investigations/`, covering:
+A findings report saved under `docs/slashforge/active/<issue-slug>/`, covering:
 
 - the symptom, and how it was reproduced
 - the root cause, with the evidence supporting it
@@ -44,51 +44,28 @@ A findings report saved to `docs/slashforge/investigations/`, covering:
 
 ==The report is a document, not a patch. Deciding what to do with it is yours.==
 
-It is a self-contained HTML file — no external CSS, no JavaScript, no network —
-written to `docs/slashforge/investigations/investigation-<timestamp>.html`. It sits under `docs/` rather than inside your agent's folder (`.claude/`, `.cursor/`, `.codex/`) because dot-directories are
-hidden in Finder and most file explorers; these reports are meant to be
-double-clicked by a human, not just read by an agent.
+It is a **Markdown** file — `docs/slashforge/active/<issue-slug>/investigation.md`, where
+`<issue-slug>` is a short kebab name for the issue (never a timestamp). It lands in the same
+`active/<issue-slug>/` folder a later `/slashforge-code` or `/slashforge-fix` on the issue reuses,
+so one issue's investigation, plan and tasks live together — the spec-driven layout, in one place
+and reviewable in a diff.
 
-==`docs/slashforge/investigations/` is the one directory worth considering for `.gitignore`== if you
-would rather keep findings local. SlashForge will not edit `.gitignore` for you.
-
-When the report is written it is **opened in your default browser** — `open` on
-macOS, `xdg-open` on Linux, `wslview` on WSL, `start` on Windows. Over SSH or on
-a headless machine that step is skipped silently and you just get the path. It is
-best-effort throughout: failing to open a browser never fails the investigation.
-
-==Chat gets a short plain-text summary — the conclusion, the root cause, the path —
-never the raw HTML.== The file is the report; the transcript gets the gist.
-
-## How the styling works
-
-The report's shell — doctype, `<head>`, and the whole `<style>` block — ships
-with SlashForge as `slashforge-report-shell.html` and is installed alongside the guide
-files. Each investigation writes only its **body fragment**, which
-`slashforge-splice.js`, installed next to the shell, splices in. It is a file rather than
-an inline `node -e` script, so a permission rule can allow exactly that path.
-
-==This is why every report looks identical==, and why restyling all of them is one
-edit to the shell rather than a hope that the next run copies a new skeleton
-faithfully. It also keeps ~800 tokens of boilerplate out of each run's output.
-
-The finished file is still fully self-contained: the CSS is inlined into every
-report, so it opens from disk, offline, years later, with no dependency on the
-shell still existing.
+==Chat gets a short plain-text summary — the conclusion, the root cause, the path — never the full
+report.== The file is the report; the transcript gets the gist.
 
 ## Handing off to the fix
 
 The run ends with the report's path, ready to paste:
 
 ```
-Investigation complete → docs/slashforge/investigations/investigation-2026-08-02-1432.html
-Want me to fix this? Run /slashforge-code investigation-2026-08-02-1432.html
+Investigation complete → docs/slashforge/active/fix-command-lists-stop-at-six/investigation.md
+Want me to fix this? Run /slashforge-fix, or /slashforge-code fix-command-lists-stop-at-six
 ```
 
-The two lines use different forms on purpose. The pointer after the arrow is the
-full path — where the file lives, clickable in most terminals. The command takes
-the **bare filename**, which `/slashforge-code` resolves against
-`docs/slashforge/investigations/`, so there is less to type or paste.
+The two routes use different forms on purpose. The pointer after the arrow is the
+full path — where the file lives, clickable in most terminals. `/slashforge-code`
+takes the **bare issue slug**, which it resolves to
+`docs/slashforge/active/<issue-slug>/investigation.md`, so there is less to type or paste.
 
 That handover is the point. ==`/slashforge-code` reads the report as its
 requirements document, so the root cause survives into a fresh session instead of
