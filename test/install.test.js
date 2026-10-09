@@ -1300,6 +1300,20 @@ test('the oversize list contains only files that are actually oversize', () => {
   }
 });
 
+test('the conflicts ladder guide ships, is registered, and renders within the cap', () => {
+  assert.ok(
+    GUIDE_FILES.includes('slashforge-workflow-conflicts.md'),
+    'slashforge-workflow-conflicts.md must be registered in GUIDE_FILES',
+  );
+  const claude = renderAll('claude');
+  const key = Object.keys(claude).find(
+    (k) => path.basename(k) === 'slashforge-workflow-conflicts.md',
+  );
+  assert.ok(key, 'slashforge-workflow-conflicts.md must render for the claude host');
+  const lines = claude[key].split('\n').length;
+  assert.ok(lines <= 200, `conflicts guide renders at ${lines} lines, over the 200-line cap`);
+});
+
 // --- Task 7: subagent guide split ---
 
 test('codex gets the TOML subagent guide, the others get the markdown one', () => {
