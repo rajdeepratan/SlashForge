@@ -4,7 +4,7 @@
 
 The source repo for **SlashForge** — a zero-dependency Node CLI that installs
 spec-driven workflow slash commands (`setup`, `code`, `investigate`, `fix`,
-`resume`, `review-pr`) into Claude Code, Cursor, and Codex. The product is the
+`resume`, `review-pr`, `test`, `refactor`) into Claude Code, Cursor, and Codex. The product is the
 `templates/` it ships; `bin/install.js` renders and installs them per host.
 
 ## Agent orchestration
@@ -14,9 +14,11 @@ spec-driven workflow slash commands (`setup`, `code`, `investigate`, `fix`,
 | "investigate", "does this bug exist?", "reproduce this", "root-cause" | `/slashforge-investigate` |
 | "build", "add a feature", "change X", "fix Y" | `/slashforge-code` |
 | "small change", "tiny fix", "one-liner" | `/slashforge-code -quick` |
+| "add test coverage for an existing file", "cover this file", "write tests for X" | `/slashforge-test` |
+| "refactor safely", "clean up without changing behaviour", "restructure X" | `/slashforge-refactor` |
 | "cut a release", "publish", "bump the version" | `/cut-release` |
 | "installer", "templates", "target blocks" (mid-task) | `cli-developer` agent |
-| "write tests", "add coverage" (mid-task) | `test-writer` agent |
+| "write tests for the change being built" (mid-task) | `test-writer` agent |
 | "docs site", "Astro page" (mid-task) | `docs-developer` agent (see `docs/CLAUDE.md`) |
 | "review", "check the code" (mid-task) | `code-reviewer` agent |
 | "push", "create a PR", "branch" (mid-task) | `git` agent |

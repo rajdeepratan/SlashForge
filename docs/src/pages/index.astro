@@ -96,6 +96,16 @@ const commands = [
     href: 'commands/slashforge-review-pr',
     desc: "Reviews a pull request against your repo's own rules and conventions plus a security audit, then posts line-level comments or approves. Never posts without showing you the exact text.",
   },
+  {
+    name: '/slashforge-test',
+    href: 'commands/slashforge-test',
+    desc: 'Generates spec-based test coverage for existing files. A light, standalone flow: discovers your framework, writes tests, runs them, and reports — surfacing bugs without touching production code. No branch, no PR.',
+  },
+  {
+    name: '/slashforge-refactor',
+    href: 'commands/slashforge-refactor',
+    desc: 'Refactors with a zero-functional-change guarantee, gated by your test suite passing with identical results before and after. Auto-builds a test net first when coverage is thin.',
+  },
 ];
 
 // Ordered the way a reader meets the costs, roughly following the commands
@@ -139,7 +149,7 @@ const costs = [
 <Base
   agentInHeader={false}
   title="SlashForge — workflow slash commands for AI coding agents"
-  description="Spec-driven workflow slash commands for AI coding agents — /slashforge-setup, /slashforge-code, /slashforge-investigate, /slashforge-fix, /slashforge-resume, /slashforge-review-pr. From intake to a merged PR, for Claude Code, Cursor and Codex."
+  description="Spec-driven workflow slash commands for AI coding agents — /slashforge-setup, /slashforge-code, /slashforge-investigate, /slashforge-fix, /slashforge-resume, /slashforge-review-pr, /slashforge-test, /slashforge-refactor. From intake to a merged PR, for Claude Code, Cursor and Codex."
   rawTitle
 >
   <main>
@@ -273,7 +283,7 @@ const costs = [
     <section class="section">
       <div class="band">
         <div class="section__head">
-          <h2>Six commands</h2>
+          <h2>Eight commands</h2>
           <span class="label">Each command triggers one distinct workflow</span>
         </div>
         <div class="cells cells--quad">
@@ -290,7 +300,7 @@ const costs = [
         </div>
         <p class="caveat">
           Names follow the agent picked in the header. Codex invokes them with{' '}
-          <code>$</code> rather than <code>/</code>. All six run on every agent —{' '}
+          <code>$</code> rather than <code>/</code>. All eight run on every agent —{' '}
           <code>setup</code> writes each host's own layout, so on Cursor you get{' '}
           <code>.cursor/rules/*.mdc</code> and on Codex nested <code>AGENTS.md</code> plus{' '}
           <code>.codex/agents/*.toml</code>, never <code>.claude/</code>.

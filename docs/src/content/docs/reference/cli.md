@@ -8,7 +8,7 @@ its own for getting them on and off your machine.
 
 | Command | What it does |
 | --- | --- |
-| `npx slashforge` | Installs guide files, the six commands and the nine discipline skills for Claude Code, Cursor and Codex |
+| `npx slashforge` | Installs guide files, the eight commands and the nine discipline skills for Claude Code, Cursor and Codex |
 | `npx slashforge status` | Reports what is installed, at which version, without changing anything |
 | `npx slashforge uninstall` | Removes the guides and commands it installed |
 
@@ -48,7 +48,7 @@ own layout and those layouts genuinely differ — see
 The first thing each Cursor or Codex command does is work out which of the two it is
 running in and read that host's guides; if it can't tell, it asks you once.
 
-==On Cursor and Codex the six commands run only when you type them.== Both
+==On Cursor and Codex the eight commands run only when you type them.== Both
 can otherwise start a skill on their own, so each command skill opts out:
 `disable-model-invocation: true` in its `SKILL.md` for Cursor, and an
 `agents/openai.yaml` beside it for Codex. The nine discipline skills stay available to
@@ -112,7 +112,7 @@ Graphify's addition survives and is left alone on future re-runs.
 
 ## install
 
-The default command. Installs the guide files, the six commands and the nine skills, then
+The default command. Installs the guide files, the eight commands and the nine skills, then
 tells you where each one landed.
 
 ```bash
@@ -168,26 +168,34 @@ npx slashforge status
 ```
 
 slashforge status
-  Package version (current): v5.0.0
+  Package version (current): v5.1.1
 
   Claude Code (~/.claude)
-    Installed version:  v5.0.0
-    Guide files:        16 (~/.claude/setup/slashforge)
-    Installed commands: 4
+    Installed version:  v5.1.1
+    Guide files:        24 (~/.claude/setup/slashforge)
+    Installed commands: 8
       • /slashforge-code
+      • /slashforge-fix
       • /slashforge-investigate
+      • /slashforge-refactor
+      • /slashforge-resume
       • /slashforge-review-pr
       • /slashforge-setup
+      • /slashforge-test
 
   Cursor + Codex (~/.agents)
-    Installed version:  v5.0.0
-    Guide files (cursor): 16 (~/.agents/setup/slashforge/cursor)
-    Guide files (codex): 16 (~/.agents/setup/slashforge/codex)
-    Installed commands: 4
+    Installed version:  v5.1.1
+    Guide files (cursor): 24 (~/.agents/setup/slashforge/cursor)
+    Guide files (codex): 24 (~/.agents/setup/slashforge/codex)
+    Installed commands: 8
       • /slashforge-code (Cursor), $slashforge-code (Codex)
+      • /slashforge-fix (Cursor), $slashforge-fix (Codex)
       • /slashforge-investigate (Cursor), $slashforge-investigate (Codex)
+      • /slashforge-refactor (Cursor), $slashforge-refactor (Codex)
+      • /slashforge-resume (Cursor), $slashforge-resume (Codex)
       • /slashforge-review-pr (Cursor), $slashforge-review-pr (Codex)
       • /slashforge-setup (Cursor), $slashforge-setup (Codex)
+      • /slashforge-test (Cursor), $slashforge-test (Codex)
 ```
 
 With `--project`, it also warns when SlashForge is installed globally as well. Claude

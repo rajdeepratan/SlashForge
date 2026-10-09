@@ -6,6 +6,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **`/slashforge-test` — spec-based test coverage.** A new light, standalone command that raises test coverage for existing files without the full ten-phase workflow. It discovers the repo's test framework (from `CLAUDE.md`/`AGENTS.md`, falling back to the manifest and existing tests), derives each target's intended behaviour, writes spec-based tests, runs them, and reports. A failing test surfaces a bug — it never modifies production code, and writes the full `.slashforge/latest_investigation.json` contract so `/slashforge-fix` can consume it. No branch, no PR.
+- **`/slashforge-refactor` — zero-functional-change refactoring.** A new command that inherits the base workflow but enforces a zero-functional-change rule, gated by the existing test suite passing with identical results before and after. It refuses on a red baseline, auto-runs the `/slashforge-test` flow to build a net when coverage over the target is absent, keeps test files untouched during implementation, and overrides Phase 7 (reviewer rejects any functional/API change) and Phase 8 (skips the user-facing changelog entry).
+
 ## [5.1.1] - 2026-10-08
 
 ### Fixed

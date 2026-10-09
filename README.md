@@ -22,7 +22,7 @@
   <strong><a href="https://www.rajdeepratan.com/slashforge/">📖 Documentation</a></strong>
 </p>
 
-One command (`npx slashforge`) installs six spec-driven workflow commands into **Claude Code**, **Cursor** and **Codex** — setup, code, investigate, fix, resume, review-pr — covering the full lifecycle from repo bootstrap through investigation-driven bug fixes, security-audited PRs, and crash-safe resumable runs.
+One command (`npx slashforge`) installs eight spec-driven workflow commands into **Claude Code**, **Cursor** and **Codex** — setup, code, investigate, fix, resume, review-pr, test, refactor — covering the full lifecycle from repo bootstrap through investigation-driven bug fixes, security-audited PRs, spec-based test coverage, zero-functional-change refactors, and crash-safe resumable runs.
 
 The commands have the same name everywhere: `/slashforge-code` in Claude Code and Cursor,
 `$slashforge-code` in Codex, which invokes every skill with `$`.
@@ -31,7 +31,7 @@ The commands have the same name everywhere: `/slashforge-code` in Claude Code an
 
 ## What it does
 
-Installs a collection of guide files plus six commands that cover the full lifecycle from repo setup through shipped PRs, code review, and bug investigations. They work the same way in **Claude Code**, **Cursor** and **Codex**; each one reads and writes your agent's own files.
+Installs a collection of guide files plus eight commands that cover the full lifecycle from repo setup through shipped PRs, code review, test coverage, refactors, and bug investigations. They work the same way in **Claude Code**, **Cursor** and **Codex**; each one reads and writes your agent's own files.
 
 | | Claude Code | Cursor | Codex |
 | --- | --- | --- | --- |
@@ -139,7 +139,7 @@ Every template is frontmatter-validated before any write — a broken guide (mis
 
 | What | Claude Code | Cursor | Codex |
 |---|---|---|---|
-| Six commands (`setup`, `code`, `investigate`, `fix`, `resume`, `review-pr`) | `~/.claude/commands/slashforge-<name>.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` |
+| Eight commands (`setup`, `code`, `investigate`, `fix`, `resume`, `review-pr`, `test`, `refactor`) | `~/.claude/commands/slashforge-<name>.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` |
 | Nine skills (`plan`, `verify`, …) | `~/.claude/commands/slashforge-<skill>.md` | `~/.agents/skills/slashforge-<skill>/SKILL.md` | `~/.agents/skills/slashforge-<skill>/SKILL.md` |
 | Guide files, the report shell and its helper scripts | `~/.claude/setup/slashforge/` | `~/.agents/setup/slashforge/cursor/` | `~/.agents/setup/slashforge/codex/` |
 
@@ -359,7 +359,7 @@ Claude Code and Codex each ship an `/init` that writes one starter file: `CLAUDE
 | Creates | One entry file (`CLAUDE.md` or `AGENTS.md`; Claude Code adds skills/hooks with `CLAUDE_CODE_NEW_INIT=1`) | The whole layout: entry file, rules, skills, agents, commands, hooks (`.claude/`, `.cursor/` or `.codex/`) |
 | Approach | Discovers and suggests — opinion-light | Opinionated — enforces multi-agent layout, 200-line cap, global vs specialist split |
 | Agents | None | Mandatory: `developer`, `code-reviewer`, `git`, plus specialists |
-| Workflow | None | Six commands: `/slashforge-setup` (setup), `/slashforge-code` (full flow, `-quick` for lean), `/slashforge-investigate` (read-only research), `/slashforge-fix` (investigation → patch), `/slashforge-resume` (resume from checkpoint), `/slashforge-review-pr` (PR review) |
+| Workflow | None | Eight commands: `/slashforge-setup` (setup), `/slashforge-code` (full flow, `-quick` for lean), `/slashforge-investigate` (read-only research), `/slashforge-fix` (investigation → patch), `/slashforge-resume` (resume from checkpoint), `/slashforge-review-pr` (PR review), `/slashforge-test` (spec-based test coverage), `/slashforge-refactor` (zero-functional-change refactor) |
 | Monorepo | Single-repo focused | Root + per-app entry file flow |
 | Existing setup | Suggests improvements to the entry file | Full Update flow — reads your existing setup and fills gaps |
 

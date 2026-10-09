@@ -58,7 +58,7 @@ in its own place — shown here for the agent picked in the header:
 | Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | `.claude/rules/` |
 | Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.claude/skills/` |
 | Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.claude/agents/` |
-| Commands | Repo-specific commands, on top of the six SlashForge installs | `.claude/commands/` |
+| Commands | Repo-specific commands, on top of the eight SlashForge installs | `.claude/commands/` |
 | Hooks | Automated behaviours that fire on an event, without being asked | `.claude/settings.json` |
 :::
 
@@ -69,7 +69,7 @@ in its own place — shown here for the agent picked in the header:
 | Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | `.cursor/rules/*.mdc` |
 | Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.cursor/skills/` |
 | Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.cursor/agents/` |
-| Commands | Repo-specific commands, on top of the six SlashForge installs | `.cursor/commands/` |
+| Commands | Repo-specific commands, on top of the eight SlashForge installs | `.cursor/commands/` |
 | Hooks | Automated behaviours that fire on an event, without being asked | `.cursor/hooks.json` |
 :::
 
@@ -80,7 +80,7 @@ in its own place — shown here for the agent picked in the header:
 | Rules | Conventions the agent must follow. Short, imperative, scoped to the files they govern | nested `AGENTS.md` |
 | Skills | Repo-specific procedures — how to add a migration, how to ship a component | `.agents/skills/` |
 | Agents | Specialist sub-agents invoked for one job, such as code review or git operations | `.codex/agents/*.toml` |
-| Commands | Repo-specific commands, on top of the six SlashForge installs | none — a skill instead |
+| Commands | Repo-specific commands, on top of the eight SlashForge installs | none — a skill instead |
 | Hooks | Automated behaviours that fire on an event, without being asked | `.codex/hooks.json` |
 :::
 
@@ -95,7 +95,7 @@ folder per change under `active/` holding its `requirements.md`, `plan.md` and
 rather than going stale. The same layout on every host — see
 [the spec home](/slashforge/commands/slashforge-setup/#the-spec-home).
 
-## The six commands
+## The eight commands
 
 ==Each command triggers one distinct workflow.==
 
@@ -147,6 +147,19 @@ Resumes an interrupted `/slashforge-code` or `/slashforge-fix` run. The workflow
 checkpoint after every phase; this ==verifies the git HEAD still matches, then re-enters at
 the next phase== instead of starting over.
 
+### `/slashforge-test`
+
+Generates spec-based test coverage for existing files — a light, standalone flow with no
+full feature machinery. ==Discovers your test framework, writes tests, runs them, and
+reports==; a failing test surfaces a bug as a finding without touching production code. No
+branch, no PR.
+
+### `/slashforge-refactor`
+
+Refactors with a ==zero-functional-change guarantee, gated by your test suite passing with
+identical results before and after==. Refuses on a red baseline and auto-builds a test net
+with `/slashforge-test` when coverage is thin.
+
 ## Why the workflow matters
 
 ==The gates are the point.== An agent that plans, gets confirmation, then implements
@@ -175,6 +188,8 @@ to a workflow this heavy.
 | `/slashforge-investigate` | ~15–60k tokens per report |
 | `/slashforge-review-pr` | ~15–70k tokens per review |
 | `/slashforge-resume` | cheap — reads one checkpoint and continues |
+| `/slashforge-test` | light — discovers the framework, writes and runs tests for the targeted files, then reports |
+| `/slashforge-refactor` | tracks the base workflow, gated by the test suite passing before and after |
 
 ==The range is driven by the size of the feature, not by the tooling== — a
 single-module change lands near the bottom, a multi-layer feature near the top.

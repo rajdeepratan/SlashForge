@@ -40,7 +40,7 @@ A single CommonJS file, no build step. Responsibilities:
 | Group | Files | Role |
 |---|---|---|
 | Guides | `slashforge-*.md` (`GUIDE_FILES`) | Reference docs agents read at runtime |
-| Commands | `slashforge/{setup,code,investigate,fix,resume,review-pr}.md` (`COMMAND_FILES`) | User-typed entry points; drive `meta.json` + `status` |
+| Commands | `slashforge/{setup,code,investigate,fix,resume,review-pr,test,refactor}.md` (`COMMAND_FILES`) | User-typed entry points; drive `meta.json` + `status` |
 | Disciplines | `slashforge/{brainstorm,plan,debug,tdd,verify,request-review,review-feedback,worktree,parallel}.md` (`SKILL_FILES`) | Workflow disciplines invoked on the user's behalf |
 | Agents | `agents/*.md` | Agent dispatch templates |
 | Assets | `slashforge-*.{html,sh,js}` (`ASSET_FILES`) | Copied verbatim, no frontmatter |
