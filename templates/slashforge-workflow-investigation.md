@@ -26,6 +26,7 @@ This file is loaded by `/slashforge-investigate`.
    - Nothing → ask: **"What's the symptom you want me to investigate?"**
 2. Extract: expected vs. actual behavior, reproduction conditions (environment, inputs, frequency), recent changes that might be related
 3. Ask clarifying questions until the investigation scope is clear
+4. **Pick the `<issue-slug>`** — a short kebab name for the issue (from the issue reference, or a summary of the symptom — **never a timestamp**). It names the `docs/slashforge/active/<issue-slug>/` folder the report is written into, and the folder a later `/slashforge-code` or `/slashforge-fix` on this issue reuses. If `active/<issue-slug>/` or `archive/<issue-slug>/` already exists, append `-2`, `-3`, … See `slashforge-spec-home.md`.
 
 ---
 
@@ -52,100 +53,52 @@ This file is loaded by `/slashforge-investigate`.
 
 ## Phase I3 — Report & Hand-Off
 
-Four steps, in order: **write the file**, **write the structured hand-off**, **open the report**,
-**summarise in chat**. Then hand off.
+Three steps, in order: **write the report**, **write the structured hand-off**, **summarise in
+chat**. Then hand off.
 
-### The findings report — body fragment only
+### The findings report — Markdown
 
-The report's shell — doctype, `<head>`, the entire `<style>` block — ships with SlashForge at
-`{{INSTALL_PATH}}/slashforge-report-shell.html`. **Do not regenerate it.** You write only the body
-fragment; a substitution step splices the two together.
+Write a Markdown report with these five sections to
+`docs/slashforge/active/<issue-slug>/investigation.md` (the `<issue-slug>` chosen at I1). This is the
+same `active/<issue-slug>/` folder a later `/slashforge-code` or `/slashforge-fix` reuses, so one
+issue's investigation, plan and tasks live together.
 
-This is deliberate: the CSS is identical in every report, so regenerating it per run wastes
-output tokens and lets reports drift apart visually.
+```markdown
+# Investigation — <short-symptom>
 
-Write **only** these five sections — no `<html>`, no `<head>`, no `<style>`, no `<body>` tags:
+**Summary:** <one-line conclusion — confirmed / not reproducible / intended behaviour / needs more info>
 
-```html
-<h1>Investigation — <short-symptom></h1>
+## Reproduction
+Exact steps as an ordered list, or a paragraph explaining "unable to reproduce" and what was tried.
 
-<div class="summary">
-  <!-- Pick one class: default green (confirmed), .unreproducible, .intended, .needs-info -->
-  <strong>Summary:</strong> <one-line conclusion — confirmed / not reproducible / intended behaviour / needs more info>
-</div>
+## Root cause
+What is actually happening, or the best hypothesis if not fully nailed down. Reference code as
+inline `code` spans, e.g. `path/to/file.ts:42`.
 
-<h2>Reproduction</h2>
-<!-- Exact steps as an ordered list, or a paragraph explaining "unable to reproduce" + what was tried -->
-<ol>
-  <li>...</li>
-</ol>
+## Affected scope
+- **Versions:** ...
+- **Environments:** ...
+- **Users:** ...
 
-<h2>Root cause</h2>
-<p>What's actually happening, or best hypothesis if not fully nailed down. Wrap code references
-   like <code>path/to/file.ts:42</code> in <code>&lt;code&gt;</code> tags.</p>
-
-<h2>Affected scope</h2>
-<ul>
-  <li><strong>Versions:</strong> ...</li>
-  <li><strong>Environments:</strong> ...</li>
-  <li><strong>Users:</strong> ...</li>
-</ul>
-
-<h2>Suggested next step</h2>
-<p>Fix approach, deferral rationale, or further investigation needed.</p>
+## Suggested next step
+Fix approach, deferral rationale, or further investigation needed.
 ```
 
-The shell provides styling for `h1`, `h2`, `.summary` (plus its four state modifiers), `code`,
-`pre`, `ul`/`ol`, and `table`. Use those elements and the report renders correctly in light and
-dark. Do not add inline `style=` attributes and do not introduce new classes — the shell will not
-have styles for them.
-
-**Self-contained only.** No `<script>`, no external stylesheets, no CDN links, no remote fonts or
-images. The finished file must render identically opened from disk with no network.
-
-### 1. Write
-
-Write your body fragment to a scratch file, then splice it into the shipped shell. Create
-`docs/slashforge/investigations/` if it doesn't exist, parents included (`mkdir -p` handles this).
-<!--target:claude-->
-Not inside `.claude/`, because a dot-directory is hidden in Finder and these reports are meant to
-<!--/target-->
-<!--target:cursor-->
-Not inside `.cursor/`, because a dot-directory is hidden in Finder and these reports are meant to
-<!--/target-->
-<!--target:codex-->
-Not inside `.codex/`, because a dot-directory is hidden in Finder and these reports are meant to
-<!--/target-->
-be opened by a human without a code editor.
+### 1. Write the report
 
 ```bash
-mkdir -p docs/slashforge/investigations
-report="docs/slashforge/investigations/investigation-<YYYY-MM-DD-HHMM>.html"
-
-node "{{INSTALL_PATH}}/slashforge-splice.js" "$fragment" "$report" "Investigation — <short-symptom> (<YYYY-MM-DD>)"
+mkdir -p docs/slashforge/active/<issue-slug>
+# then write the Markdown above to:
+#   docs/slashforge/active/<issue-slug>/investigation.md
 ```
 
-`slashforge-splice.js` ships next to the shell and does the substitution the same way every time:
-
-- It uses **function-form** replacement (`() => body`), so `$&` or `$'` inside your fragment can't be read as substitution patterns and corrupt the report.
-- **It escapes the title but not the body.** The title is plain text taken from the symptom. Unescaped, a symptom containing `</title>` would end the element early, and entity-shaped text like `&amp;` would be decoded into something the symptom never said. The body is real HTML and goes in verbatim.
-- It is a file rather than an inline `node -e` script so that a permission rule can allow exactly this path, not arbitrary node code.
-- Delete the scratch fragment afterwards. It is not part of the deliverable.
-
-<!--target:claude-->
-If the shell or `slashforge-splice.js` is missing (an older install, or a hand-modified `.claude/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
-<!--/target-->
-<!--target:cursor-->
-If the shell or `slashforge-splice.js` is missing (an older install, or a hand-modified `.agents/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
-<!--/target-->
-<!--target:codex-->
-If the shell or `slashforge-splice.js` is missing (an older install, or a hand-modified `.agents/`), fall back to emitting a complete standalone HTML document yourself using the same element vocabulary, and tell the user the shell was not found.
-<!--/target-->
+Write the file with your editor/Write tool — plain Markdown, no shell or splice step and no HTML.
+Keep code references as inline `code` spans so they read well in a diff and in a Markdown viewer.
 
 ### 1b. Write the structured hand-off — `.slashforge/latest_investigation.json`
 
-The HTML report is for a human. `/slashforge-fix` needs the same findings as data it can read
-without parsing prose, so write a second artifact: a machine-readable JSON file at
+The report is for a human. `/slashforge-fix` needs the same findings as data it can read without
+parsing prose, so write a second artifact: a machine-readable JSON file at
 `.slashforge/latest_investigation.json`. This is the **investigation contract** — the one interface
 between the read-only investigation and the code-fixing pipeline.
 
@@ -157,7 +110,7 @@ Write exactly this schema — every key is required, even when a value is empty 
 
 ```json
 {
-  "run_id": "investigation-<YYYY-MM-DD-HHMM>",
+  "run_id": "<issue-slug>",
   "reproduction_steps": ["string", "..."],
   "root_cause": "string",
   "implicated_files": [
@@ -167,8 +120,8 @@ Write exactly this schema — every key is required, even when a value is empty 
 }
 ```
 
-- **`run_id`** — the same stem as the HTML report filename, so the two artifacts are traceable to
-  one investigation.
+- **`run_id`** — the `<issue-slug>`, matching the report's `active/<issue-slug>/` folder, so the two
+  artifacts are traceable to one investigation.
 - **`reproduction_steps`** — the ordered steps that trigger the bug, one per array entry. These
   become the regression test `/slashforge-fix` writes before it patches anything. If the issue was
   not reproducible, use `[]` and say so in `suggested_approach`.
@@ -182,20 +135,11 @@ Write exactly this schema — every key is required, even when a value is empty 
 
 Write it with a tool that serialises JSON correctly (so quotes, newlines and backslashes are
 escaped) rather than by hand. `.slashforge/` is machine-local run state and belongs in `.gitignore`
-— a hand-off between commands, not a committed record (the HTML report is that). Each investigation
-overwrites `latest_investigation.json`, which is what `/slashforge-fix` reads with no argument.
+— a hand-off between commands, not a committed record (the `investigation.md` report is that). Each
+investigation overwrites `latest_investigation.json`, which is what `/slashforge-fix` reads with no
+argument.
 
-### 2. Open it in the user's browser (best-effort)
-
-Use the shipped helper rather than writing your own platform detection:
-
-```bash
-sh "{{INSTALL_PATH}}/slashforge-open.sh" "$report"
-```
-
-The script handles the platform differences and the cases where opening makes no sense — a remote session (`$SSH_CONNECTION`), or a headless Linux box with no `$DISPLAY`/`$WAYLAND_DISPLAY`. It always exits 0, so it can never fail the run. In those cases the report is still written; it just is not opened, and you say so in step 3.
-
-### 3. Summarise in chat — never print the HTML
+### 2. Summarise in chat — never paste the full report
 
 Print **only**:
 
@@ -204,13 +148,13 @@ Print **only**:
 - the file path
 - the hand-off line (below)
 
-**Do not print the HTML document, and do not restate the full report in chat.** The file is the report; the chat gets a summary. If the browser could not be opened, add: *"Couldn't open a browser here — open `<path>` to read it."*
+**Do not restate the full report in chat.** The file is the report; the chat gets a summary.
 
-### 4. Hand off
+### 3. Hand off
 
-End with the report's **actual filename** substituted in — never emit a placeholder like `<path>` or `#FileName`:
+End with the report's **actual path** substituted in — never emit a placeholder like `<issue-slug>`:
 
-> *"Investigation complete → `docs/slashforge/investigations/investigation-2026-08-02-1432.html`. Want me to fix this? Run `/slashforge-fix` to patch it straight from this investigation (test-first, scoped to the implicated files), or `/slashforge-code investigation-2026-08-02-1432.html` for the full planning flow."*
+> *"Investigation complete → `docs/slashforge/active/fix-command-lists-stop-at-six/investigation.md`. Want me to fix this? Run `/slashforge-fix` to patch it straight from this investigation (test-first, scoped to the implicated files), or `/slashforge-code fix-command-lists-stop-at-six` for the full planning flow."*
 
 Two hand-off routes, deliberately:
 
@@ -218,10 +162,9 @@ Two hand-off routes, deliberately:
   — the artifact just written — with no argument. It skips discovery, locks its context to the
   `implicated_files`, and enforces a regression test before the patch. This is the tight
   investigate → fix loop.
-- **`/slashforge-code investigation-2026-08-02-1432.html`** takes the **bare filename only** (no `#`
-  or `@` prefix — a bare filename is what its Step 0b resolves against
-  `docs/slashforge/investigations/`) and runs the full feature-planning flow, for when the fix is
-  larger than the bug.
+- **`/slashforge-code <issue-slug>`** takes the **bare issue slug** (no `#` or `@` prefix — its
+  Step 0b resolves it to `docs/slashforge/active/<issue-slug>/investigation.md`) and runs the full
+  feature-planning flow, for when the fix is larger than the bug.
 
 The pointer after the arrow is the full repo-root-relative path — it tells the user where the
 report lives and is clickable in most terminals.

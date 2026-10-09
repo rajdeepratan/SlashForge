@@ -104,9 +104,9 @@ is yours.
 
 ## What it writes
 
-A review document at `docs/slashforge/reviews/<date>-pr-<N>.html`, built from the same shell as
-investigation reports, specs and plans, and opened in your browser. ==It stays as your local record
-whether or not anything is posted.==
+A **Markdown** review document at `docs/slashforge/reviews/pr-<N>-<title-slug>.md` — named by the PR
+number and a kebab slug of its title, no date. ==It stays as your local record whether or not
+anything is posted.==
 
 On GitHub, line comments and the summary go up as **one review** through the reviews API, so the
 PR gets a single notification rather than a stream of them.

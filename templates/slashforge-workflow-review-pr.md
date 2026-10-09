@@ -174,59 +174,40 @@ make `request-changes` the obvious recommendation at the gate — but the user s
 
 ## Phase R4 — Write the Review Document
 
-`docs/slashforge/reviews/<YYYY-MM-DD>-pr-<N>.html`, built from the shared document shell — the
-same one investigation reports, specs and plans use. Write **only the body fragment**.
+Write a Markdown review to `docs/slashforge/reviews/pr-<N>-<title-slug>.md`, where `<title-slug>` is
+a short kebab slug of the PR title (**no date** — the PR number and title name the file). Create the
+folder if needed (`mkdir -p docs/slashforge/reviews`) and write it with your editor/Write tool — plain
+Markdown, no shell, splice or browser-open step.
 
-```html
-<h1>Review — PR #<N>: <title></h1>
+```markdown
+# Review — PR #<N>: <title>
 
-<div class="summary">
-  <!-- .needs-info if blocking findings exist, default green if approving -->
-  <strong>Verdict:</strong> <approve / changes requested, in one line>
-</div>
+**Verdict:** <approve / changes requested, in one line>
 
-<h2>What this PR does</h2>
-<p>In your own words, from reading the diff — not a restatement of the description.</p>
+## What this PR does
+In your own words, from reading the diff — not a restatement of the description.
 
-<!-- Include this section ONLY when the dual-track audit produced blocking security
-     findings. Omit the whole block when there are none — do not render an empty header.
-     The security classes render it in red in light and dark. -->
-<h2 class="security-findings">SECURITY FINDINGS</h2>
-<div class="security-findings-block">
-  <table>
-    <tr><th>Category</th><th>File</th><th>Finding &amp; remediation</th></tr>
-    <tr><td>Injection</td><td><code>src/db.js:31</code></td><td>...</td></tr>
-    <tr><td>Dependency (High)</td><td><code>package-lock.json</code></td><td><code>lodash</code> &lt; 4.17.21 — prototype pollution; bump to ≥ 4.17.21</td></tr>
-  </table>
-</div>
+<!-- Include the SECURITY FINDINGS section ONLY when the dual-track audit produced blocking
+     findings. Omit the whole section when there are none — never render an empty header. -->
+## SECURITY FINDINGS
+| Category | File | Finding & remediation |
+| --- | --- | --- |
+| Injection | `src/db.js:31` | ... |
+| Dependency (High) | `package-lock.json` | `lodash` < 4.17.21 — prototype pollution; bump to ≥ 4.17.21 |
 
-<h2>Findings</h2>
-<table>
-  <tr><th>Severity</th><th>File</th><th>Finding</th></tr>
-  <tr><td>Blocking</td><td><code>src/x.js:42</code></td><td>...</td></tr>
-  <tr><td>Should fix</td><td><code>src/y.js:88</code></td><td>...</td></tr>
-  <tr><td>Nit</td><td><code>src/z.js:12</code></td><td>...</td></tr>
-</table>
+## Findings
+| Severity | File | Finding |
+| --- | --- | --- |
+| Blocking | `src/x.js:42` | ... |
+| Should fix | `src/y.js:88` | ... |
+| Nit | `src/z.js:12` | ... |
 
-<h2>Checks</h2>
-<ul>
-  <li><strong>CI:</strong> ...</li>
-  <li><strong>Tests cover the change:</strong> ...</li>
-  <li><strong>Repo conventions:</strong> ...</li>
-  <li><strong>Coverage of this review:</strong> which files were read, and any not reviewed</li>
-</ul>
+## Checks
+- **CI:** ...
+- **Tests cover the change:** ...
+- **Repo conventions:** ...
+- **Coverage of this review:** which files were read, and any not reviewed
 ```
-
-```bash
-mkdir -p docs/slashforge/reviews
-review="docs/slashforge/reviews/<YYYY-MM-DD>-pr-<N>.html"
-
-node "{{INSTALL_PATH}}/slashforge-splice.js" "$fragment" "$review" "Review — PR #<N> (<YYYY-MM-DD>)"
-
-sh "{{INSTALL_PATH}}/slashforge-open.sh" "$review"
-```
-
-Delete the scratch fragment afterwards.
 
 ---
 

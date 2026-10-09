@@ -20,7 +20,7 @@ The flow is driven by a structured artifact `/slashforge-investigate` writes to
 
 ```json
 {
-  "run_id": "investigation-<YYYY-MM-DD-HHMM>",
+  "run_id": "<issue-slug>",
   "reproduction_steps": ["string", "..."],
   "root_cause": "string",
   "implicated_files": [
@@ -64,9 +64,9 @@ discovery do not run.
   and why, rather than silently widening scope. The user can approve the wider scope or re-run
   `/slashforge-investigate`.
 
-Pick the `<change-slug>` here (Phase 1 normally does): reuse the investigation's `run_id` stem, e.g.
-`fix-<short-symptom>`. It names the `docs/slashforge/active/<change-slug>/` folder Phase 2 writes
-into and Phase 10 archives.
+Reuse the investigation's `run_id` — the issue slug — as the `<change-slug>` here (Phase 1 normally
+picks one): the investigation already created `docs/slashforge/active/<issue-slug>/investigation.md`,
+so Phase 2 writes `plan.md`/`tasks.md` into that **same** folder and Phase 10 archives it whole.
 
 ---
 

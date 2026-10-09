@@ -20,6 +20,8 @@ const {
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
   ASSET_FILES,
+  REMOVED_ASSET_FILES,
+  isStaleKitFile,
   SKILL_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
@@ -146,10 +148,62 @@ test('asset files install verbatim alongside the guides', () => {
   }
 });
 
-// A guide may point at a sibling by absolute path — slashforge-workflow-review-pr.md
-// names slashforge-report-shell.html that way. If guides were copied rather than
-// rendered, the installed guide would carry a literal {{INSTALL_PATH}} and the
-// agent would splice against a path that does not exist.
+test('the HTML-shell assets are retired and swept as stale on upgrade', () => {
+  for (const a of ['slashforge-report-shell.html', 'slashforge-splice.js', 'slashforge-open.sh']) {
+    assert.ok(!ASSET_FILES.includes(a), `${a} must no longer ship in ASSET_FILES`);
+    assert.ok(isStaleKitFile(a), `${a} must be treated as stale so an upgrade removes it`);
+  }
+  assert.deepEqual(
+    ASSET_FILES,
+    ['slashforge-review-payload.js', 'slashforge-audit.js'],
+    'only the GitHub-payload and audit assets remain',
+  );
+  assert.ok(REMOVED_ASSET_FILES.includes('slashforge-splice.js'), 'REMOVED_ASSET_FILES lists the shell assets');
+});
+
+test('/slashforge-investigate writes a Markdown report under active/<slug>/', () => {
+  for (const name of ['claude', 'agents']) {
+    const pairs = [
+      ['slashforge-workflow-investigation.md', renderAll(name)['slashforge-workflow-investigation.md']],
+      ['investigate.md', renderAll(name)[path.join('slashforge', 'investigate.md')]],
+    ];
+    for (const [f, body] of pairs) {
+      assert.ok(body.includes('active/'), `${f} (${name}) must write under active/`);
+      assert.ok(body.includes('investigation.md'), `${f} (${name}) must name the report investigation.md`);
+      assert.ok(!body.includes('.html'), `${f} (${name}) must not emit an HTML report`);
+      assert.ok(!body.includes('slashforge-splice.js'), `${f} (${name}) must not splice HTML`);
+      assert.ok(!body.includes('slashforge-open.sh'), `${f} (${name}) must not call the open helper`);
+    }
+  }
+});
+
+test('/slashforge-review-pr writes a Markdown report named by PR, no date, no splice', () => {
+  for (const name of ['claude', 'agents']) {
+    const body = renderAll(name)['slashforge-workflow-review-pr.md'];
+    assert.ok(body.includes('reviews/pr-'), `review-pr (${name}) must write reviews/pr-<N>-...`);
+    assert.ok(body.includes('.md'), `review-pr (${name}) must write a .md report`);
+    assert.ok(
+      !/<YYYY-MM-DD>-pr-/.test(body),
+      `review-pr (${name}) must drop the date-prefixed <YYYY-MM-DD>-pr-<N> form`,
+    );
+    assert.ok(!body.includes('slashforge-splice.js'), `review-pr (${name}) must not splice HTML`);
+    assert.ok(!body.includes('slashforge-open.sh'), `review-pr (${name}) must not open a browser`);
+  }
+});
+
+test('/slashforge-code Step 0b resolves active/<slug>/investigation.md, not the old HTML path', () => {
+  for (const name of ['claude', 'agents']) {
+    const body = renderAll(name)[path.join('slashforge', 'code.md')];
+    assert.ok(body.includes('investigation.md'), `code.md (${name}) must resolve investigation.md`);
+    assert.ok(body.includes('active/'), `code.md (${name}) must reference the active/<slug>/ folder`);
+    assert.ok(
+      !body.includes('investigations/investigation-'),
+      `code.md (${name}) must drop the old investigations/investigation-<date> path`,
+    );
+    assert.ok(!/investigation-\d{4}-\d{2}-\d{2}/.test(body), `code.md (${name}) must drop the dated filename`);
+  }
+});
+
 test('guide files are rendered, leaving no unsubstituted placeholders', () => {
   const home = tmp();
   const target = resolveTarget({ homeDir: home, cwd: home });
@@ -158,37 +212,17 @@ test('guide files are rendered, leaving no unsubstituted placeholders', () => {
     const body = fs.readFileSync(path.join(target.guidesDir, g), 'utf8');
     assert.ok(!/\{\{[A-Z_]+\}\}/.test(body), `guide ${g} shipped an unrendered placeholder`);
   }
-  // Both flows splice through the shipped script, and both name it by absolute path.
-  for (const flow of ['slashforge-workflow-review-pr.md', 'slashforge-workflow-investigation.md']) {
-    const body = fs.readFileSync(path.join(target.guidesDir, flow), 'utf8');
-    assert.ok(
-      body.includes(`${target.installPath}/slashforge-splice.js`),
-      `${flow} must resolve the splice script to a real installed path`,
-    );
+});
+
+test('no rendered guide references the retired HTML report assets', () => {
+  const retired = ['slashforge-report-shell.html', 'slashforge-splice.js', 'slashforge-open.sh'];
+  for (const name of ['claude', 'agents', 'cursor', 'codex']) {
+    for (const [file, body] of Object.entries(renderAll(name))) {
+      for (const asset of retired) {
+        assert.ok(!body.includes(asset), `${name}/${file} still references retired asset ${asset}`);
+      }
+    }
   }
-});
-
-test('the report shell carries both substitution markers and stays self-contained', () => {
-  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge-report-shell.html'), 'utf8');
-  assert.ok(shell.includes('<!--TITLE-->'), 'shell missing TITLE marker');
-  assert.ok(shell.includes('<!--CONTENT-->'), 'shell missing CONTENT marker');
-  // The offline guarantee: no scripts, no remote anything.
-  assert.ok(!/<script/i.test(shell), 'shell must not contain <script>');
-  assert.ok(!/https?:\/\//i.test(shell), 'shell must not reference a remote URL');
-  assert.ok(!/<link[^>]+stylesheet/i.test(shell), 'shell must not link an external stylesheet');
-});
-
-test('splicing a fragment into the shell survives $-sequences', () => {
-  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge-report-shell.html'), 'utf8');
-  // A fragment containing regex substitution patterns must land verbatim — this
-  // is why the command uses function-form replace rather than a string.
-  const body = "<p>cost: $& and $' and $` and $1</p>";
-  const out = shell
-    .replace('<!--TITLE-->', () => 'symptom (2026-08-02)')
-    .replace('<!--CONTENT-->', () => body);
-  assert.ok(out.includes(body), '$-sequences in the fragment were corrupted');
-  assert.ok(out.includes('<title>symptom (2026-08-02)</title>'), 'shell must not hardcode a title prefix');
-  assert.ok(!out.includes('<!--CONTENT-->'), 'CONTENT marker not consumed');
 });
 
 test('assertTemplatesExist refuses an install when an asset is missing', () => {
@@ -516,60 +550,6 @@ test('SlashForge skills that write artefacts name their own destination', () => 
 // shell. The shell must not assume which kind of document it is wrapping — it once
 // did, with a hardcoded "Investigation — " prefix. Design specs and plans are now
 // Markdown (requirements.md / plan.md / tasks.md under active/) and use no shell.
-test('the shell is document-agnostic and the investigation report uses it', () => {
-  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge-report-shell.html'), 'utf8');
-  assert.ok(
-    /<title><!--TITLE--><\/title>/.test(shell),
-    'the shell must not prefix the title — the caller supplies the whole thing',
-  );
-
-  const body = commandInstruction('investigate.md');
-  assert.ok(body.includes('mkdir -p docs/slashforge/investigations'),
-    'investigate.md must create docs/slashforge/investigations');
-  assert.ok(body.includes('slashforge-splice.js'),
-    'investigate.md must splice through the shipped script');
-
-  // The Markdown writers must NOT reach for the HTML splice any more.
-  for (const f of ['brainstorm.md', 'plan.md']) {
-    assert.ok(!commandInstruction(f).includes('slashforge-splice.js'),
-      `${f} is Markdown now and must not use the HTML splice`);
-  }
-});
-
-// Opening a document must never be able to fail the run that produced it. The
-// investigation report is the only artefact opened in a browser now (specs and
-// plans are Markdown), so it uses the shared platform-detection helper rather than
-// carrying its own — divergent copies are how the mangled-tag bug happened.
-test('the open helper is shared, guarded, and always exits 0', () => {
-  const helper = path.join(TEMPLATES_DIR, 'slashforge-open.sh');
-  assert.ok(fs.existsSync(helper), 'slashforge-open.sh must ship');
-
-  const body = commandInstruction('investigate.md');
-  assert.ok(body.includes('slashforge-open.sh'), 'investigate.md must call the shared helper');
-  assert.ok(
-    !/case "\$\(uname -s\)"/.test(body),
-    'investigate.md must not carry its own copy of the platform detection',
-  );
-  for (const f of ['brainstorm.md', 'plan.md']) {
-    assert.ok(!commandInstruction(f).includes('slashforge-open.sh'),
-      `${f} is Markdown now and must not open a browser`);
-  }
-
-  const run = (env, arg) => {
-    const r = require('child_process').spawnSync('sh', [helper, arg], {
-      env: { ...process.env, ...env },
-      encoding: 'utf8',
-    });
-    return r.status;
-  };
-  // Remote session: must bail out cleanly rather than opening anything.
-  assert.equal(run({ SSH_CONNECTION: '1.2.3.4 22 5.6.7.8 22' }, '/tmp/nope.html'), 0);
-  // No argument at all.
-  assert.equal(run({ SSH_CONNECTION: '1' }, ''), 0);
-  // A path that does not exist, on a machine that may well have a browser.
-  assert.equal(run({}, '/tmp/definitely-does-not-exist-slashforge.html'), 0);
-});
-
 test('every SlashForge skill carries its MIT attribution', () => {
   const missing = SKILL_FILES.filter((s) => {
     const body = fs.readFileSync(path.join(TEMPLATES_DIR, s), 'utf8');
@@ -599,75 +579,6 @@ test('docs/superpowers is only ever named next to the path replacing it', () => 
     [],
     `docs/superpowers named without its replacement:\n  ${offenders.join('\n  ')}`,
   );
-});
-
-// slashforge-splice.js is what actually builds every document, so the tests run the
-// shipped file rather than a copy of it, from a folder laid out like an install
-// (the script finds the shell next to itself).
-function spliceScript() {
-  const dir = tmp();
-  for (const f of ['slashforge-splice.js', 'slashforge-report-shell.html']) {
-    fs.copyFileSync(path.join(TEMPLATES_DIR, f), path.join(dir, f));
-  }
-  return path.join(dir, 'slashforge-splice.js');
-}
-
-// The title is plain text from a user-supplied symptom. Substituted raw it can
-// break out of <title> entirely (`</title>` ends the element and the remainder
-// leaks in as markup), and entity-shaped text like `&amp;` or `&#65;` is decoded
-// so the title shows something the symptom never said.
-test('the documented splice escapes the title', () => {
-  const script = spliceScript();
-  const dir = tmp();
-  const frag = path.join(dir, 'frag.html');
-  const out = path.join(dir, 'out.html');
-  fs.writeFileSync(frag, '<h1>body</h1>');
-
-  const cases = [
-    'x </title><meta http-equiv=refresh> y',
-    'literal &amp; in symptom',
-    'escape &lt;div&gt; shows wrong',
-    'numeric &#65; ref',
-  ];
-
-  for (const title of cases) {
-    execFileSync('node', [script, frag, out, title]);
-    const html = fs.readFileSync(out, 'utf8');
-    const inTitle = html.match(/<title>([\s\S]*?)<\/title>/);
-
-    assert.ok(inTitle, `title element destroyed by: ${title}`);
-    assert.ok(
-      !/<meta/i.test(inTitle[1]),
-      `title broke out, leaking markup: ${title}`,
-    );
-    // Round-trip: unescaping what landed must return the original symptom.
-    const decoded = inTitle[1]
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&amp;/g, '&');
-    assert.ok(
-      decoded.endsWith(title),
-      `title not round-trippable.\n  want ends with: ${title}\n  got: ${decoded}`,
-    );
-  }
-});
-
-test('the documented splice leaves the body fragment as raw HTML', () => {
-  const script = spliceScript();
-  const dir = tmp();
-  const frag = path.join(dir, 'frag.html');
-  const out = path.join(dir, 'out.html');
-  // The body is HTML and must NOT be escaped — only the title is plain text.
-  // Also guards the $-sequence behaviour that function-form replace protects.
-  const body = '<h1>heading</h1><p>cost: $& and $` and $1</p>';
-  fs.writeFileSync(frag, body);
-
-  execFileSync('node', [script, frag, out, 'plain title']);
-
-  const html = fs.readFileSync(out, 'utf8');
-  assert.ok(html.includes(body), 'body fragment must be spliced verbatim as HTML');
-  assert.ok(!html.includes('<!--CONTENT-->'), 'CONTENT marker not consumed');
-  assert.ok(!html.includes('<!--TITLE-->'), 'TITLE marker not consumed');
 });
 
 // A namespace rename done as a bare find-replace rewrites HTML closing tags:
@@ -1891,38 +1802,6 @@ test('setup verify step fails on oversized files for cursor and codex', () => {
   assert.notEqual(runIn(repo, codex).status, 0, 'a 250-line nested AGENTS.md must fail');
 });
 
-// The old assertion ("exits 0 on a missing file") could not fail: the helper
-// exits 0 on every path. And on a desktop it really opened something. Stub the
-// openers on PATH instead, so the test proves which one ran, with what, and that
-// a failing opener still leaves the run alone.
-test('the open helper hands the path to the platform opener and survives its failure', () => {
-  if (process.platform === 'win32') return; // Git Bash's `start` is a shell builtin wrapper; covered by review.
-  const helper = path.join(TEMPLATES_DIR, 'slashforge-open.sh');
-  const bin = tmp();
-  const log = path.join(bin, 'calls.log');
-  for (const opener of ['open', 'xdg-open', 'wslview']) {
-    const stub = path.join(bin, opener);
-    fs.writeFileSync(stub, `#!/bin/sh\necho "${opener} $*" >> "${log}"\nexit "\${STUB_EXIT:-0}"\n`);
-    fs.chmodSync(stub, 0o755);
-  }
-  const run = (extra) => require('child_process').spawnSync('sh', [helper, '/tmp/report.html'], {
-    env: { PATH: `${bin}:/usr/bin:/bin`, DISPLAY: ':0', ...extra },
-    encoding: 'utf8',
-  });
-
-  assert.equal(run({}).status, 0);
-  const calls = fs.readFileSync(log, 'utf8');
-  assert.match(calls, /^(open|xdg-open|wslview) \/tmp\/report\.html$/m, `no opener was given the path: ${calls}`);
-
-  fs.writeFileSync(log, '');
-  assert.equal(run({ STUB_EXIT: '1' }).status, 0, 'a failing opener must not fail the run');
-  assert.notEqual(fs.readFileSync(log, 'utf8'), '', 'the opener should still have been tried');
-
-  fs.writeFileSync(log, '');
-  assert.equal(run({ SSH_CONNECTION: '1.2.3.4 22 5.6.7.8 22' }).status, 0);
-  assert.equal(fs.readFileSync(log, 'utf8'), '', 'a remote session must not try to open anything');
-});
-
 // Every document the kit writes went through an inline `node -e '<script>'`. A
 // permission rule matches Bash by prefix, so allowing it meant allowing any node
 // script at all. Shipped as files, each can be allowed by its own path.
@@ -1935,15 +1814,7 @@ test('no template runs an inline node script', () => {
   assert.deepEqual(offenders, [], `inline node -e still in:\n  ${offenders.join('\n  ')}`);
 });
 
-test('every document writer calls the shipped splice script', () => {
-  // Only the HTML writers remain: the investigation report and the PR review.
-  // Design specs and plans are Markdown now and use no splice.
-  for (const f of ['investigate.md', 'review-pr.md']) {
-    assert.ok(
-      commandInstruction(f).includes('node "{{INSTALL_PATH}}/slashforge-splice.js"'),
-      `${f} must splice through slashforge-splice.js`,
-    );
-  }
+test('review-pr assembles its GitHub payload through the shipped script', () => {
   assert.ok(
     commandInstruction('review-pr.md').includes('node "{{INSTALL_PATH}}/slashforge-review-payload.js"'),
     'review-pr must assemble its payload through slashforge-review-payload.js',
@@ -2101,7 +1972,7 @@ test('installAgentsFiles writes per-host guides, neutral skills and one meta', (
   for (const h of a.hosts) {
     assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-workflow.md')), `${h.host} guides`);
     assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-setup-flow.md')), `${h.host} setup flow`);
-    assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-splice.js')), `${h.host} assets`);
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-audit.js')), `${h.host} assets`);
     // The guides read meta.json from their own folder (slashforge-instructions.md says so).
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(h.guidesDir, 'meta.json'), 'utf8')).hosts, ['cursor', 'codex']);
   }
@@ -2551,7 +2422,7 @@ test('every installed kit file is named slashforge-*, none forge-*', () => {
   const bad = allFiles(home).map((p) => path.basename(p)).filter((n) => /^forge-/.test(n));
   assert.deepEqual([...new Set(bad)], [], 'forge-* files installed');
   const guides = fs.readdirSync(path.join(home, '.claude', 'setup', 'slashforge'));
-  assert.ok(guides.includes('slashforge-workflow.md') && guides.includes('slashforge-splice.js'));
+  assert.ok(guides.includes('slashforge-workflow.md') && guides.includes('slashforge-audit.js'));
 });
 
 test('no installed file names a forge-* kit file', () => {

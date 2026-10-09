@@ -146,10 +146,6 @@ test('P3: Phase 7 wires in the security gate and the standalone review renders S
   const review = instruction('review-pr.md');
   assert.ok(review.includes('SECURITY FINDINGS'), 'review-pr renders a SECURITY FINDINGS header');
   assert.ok(review.includes('slashforge-workflow-security.md'), 'review-pr runs the shared audit');
-
-  // The red styling the header relies on must exist in the shell.
-  const shell = read('slashforge-report-shell.html');
-  assert.ok(/\.security-findings/.test(shell), 'the shell must style the security findings block');
 });
 
 test('P3: slashforge-audit.js is a shipped asset', () => {

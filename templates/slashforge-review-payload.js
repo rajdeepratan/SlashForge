@@ -1,7 +1,7 @@
 // SlashForge — assemble the GitHub review payload for /slashforge-review-pr.
 //
-// Installed verbatim next to the guides, for the same reason as slashforge-splice.js:
-// a file can be allowed by its path, an inline `node -e` script cannot.
+// Installed verbatim next to the guides so it can be allowed by its path — an
+// inline `node -e` script cannot be, a path rule would have to allow any node code.
 //
 // Usage:  node <path-to-this>/slashforge-review-payload.js <dir> <EVENT> <out>
 //

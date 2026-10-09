@@ -42,11 +42,8 @@ const GUIDE_FILES = [
 // Non-markdown files installed verbatim next to the guides. They carry no
 // frontmatter, so they are copied but never frontmatter-validated.
 const ASSET_FILES = [
-  'slashforge-report-shell.html',
-  'slashforge-open.sh',
   // Shipped as files rather than inline `node -e` scripts so a permission rule can
   // allow each one by its path; a `node -e` rule would allow any script at all.
-  'slashforge-splice.js',
   'slashforge-review-payload.js',
   'slashforge-audit.js',
 ];
@@ -56,7 +53,12 @@ const ASSET_FILES = [
 // still clears a 4.x install; anything else in the dir is the user's.
 const KIT_GUIDE_RE = /^(?:slashforge|forge)-[a-z0-9-]*\.md$/;
 const OLD_ASSET_FILES = ['forge-report-shell.html', 'forge-open.sh', 'forge-splice.js', 'forge-review-payload.js'];
-const isStaleKitFile = (name) => KIT_GUIDE_RE.test(name) || OLD_ASSET_FILES.includes(name);
+// Assets the kit shipped under the slashforge-* name but has since dropped (the HTML
+// report shell and its splice/open helpers, retired when reports moved to Markdown).
+// Listed so an upgrade or uninstall clears them from a prior install.
+const REMOVED_ASSET_FILES = ['slashforge-report-shell.html', 'slashforge-splice.js', 'slashforge-open.sh'];
+const isStaleKitFile = (name) =>
+  KIT_GUIDE_RE.test(name) || OLD_ASSET_FILES.includes(name) || REMOVED_ASSET_FILES.includes(name);
 
 const COMMAND_FILES = [
   path.join('slashforge', 'setup.md'),
@@ -452,7 +454,7 @@ function installFiles(target, {
   const written = [];
   const omit = target.omit || [];
   // Guides are rendered like commands: a guide may name a sibling by absolute
-  // path (slashforge-workflow-review-pr.md points at slashforge-report-shell.html), and a
+  // path (e.g. a flow invoking slashforge-review-payload.js), and a
   // copied-not-rendered guide would ship the literal {{INSTALL_PATH}}.
   for (const f of guideFiles) {
     // A target may not receive every guide. The entry-file and subagent guides are
@@ -470,8 +472,8 @@ function installFiles(target, {
     fs.writeFileSync(dest, rendered);
     written.push(dest);
   }
-  // Assets are installed verbatim — slashforge-open.sh is executed as-is and the
-  // report shell's own markers are not mustache placeholders.
+  // Assets are installed verbatim — the shipped scripts (review-payload.js,
+  // audit.js) are executed as-is, never rendered.
   for (const f of assetFiles) {
     const dest = path.join(target.guidesDir, f);
     fs.copyFileSync(path.join(templatesDir, f), dest);
@@ -1379,6 +1381,8 @@ module.exports = {
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
   ASSET_FILES,
+  REMOVED_ASSET_FILES,
+  isStaleKitFile,
   SKILL_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,

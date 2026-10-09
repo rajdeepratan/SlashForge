@@ -1,7 +1,7 @@
 // SlashForge — deterministic dependency-audit parser for Phase 7 Track A.
 //
-// Installed verbatim next to the guides, for the same reason as slashforge-splice.js
-// and slashforge-review-payload.js: a file can be allowed by its path, an inline
+// Installed verbatim next to the guides, for the same reason as
+// slashforge-review-payload.js: a file can be allowed by its path, an inline
 // `node -e` script cannot.
 //
 // Usage:  node <path-to-this>/slashforge-audit.js <npm-audit-json>

@@ -14,7 +14,7 @@ yours in the header:
 :::agent[claude]
 | Path | When |
 | --- | --- |
-| `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow, plus `slashforge-report-shell.html` (shared document styling), `slashforge-open.sh` (opens a document in your browser), and `slashforge-splice.js`, `slashforge-review-payload.js` and `slashforge-audit.js` (build documents, review payloads and the dependency-audit parse; files rather than inline scripts, so a permission rule can allow each by its path) |
+| `~/.claude/setup/slashforge/` | On install — the guide files that carry the workflow, plus `slashforge-review-payload.js` and `slashforge-audit.js` (the GitHub review payload and the dependency-audit parse; files rather than inline scripts, so a permission rule can allow each by its path) |
 | `~/.claude/commands/` | On install — the eight commands, plus SlashForge's nine discipline skills, each named `slashforge-<name>` (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`) |
 | `<repo>/CLAUDE.md` | On `/slashforge-setup`, after you answer its questions |
 | `<repo>/.claude/` | On `/slashforge-setup` — rules, skills, agents, commands, hooks |
@@ -23,7 +23,7 @@ yours in the header:
 :::agent[cursor]
 | Path | When |
 | --- | --- |
-| `~/.agents/setup/slashforge/cursor/` | On install — the guide files that carry the workflow, plus the shared document shell and helpers (`slashforge-report-shell.html`, `slashforge-open.sh`, `slashforge-splice.js`, `slashforge-review-payload.js`, `slashforge-audit.js`; files rather than inline scripts, so a permission rule can allow each by its path) |
+| `~/.agents/setup/slashforge/cursor/` | On install — the guide files that carry the workflow, plus the shipped helper scripts (`slashforge-review-payload.js`, `slashforge-audit.js`; files rather than inline scripts, so a permission rule can allow each by its path) |
 | `~/.agents/skills/` | On install — the eight commands, plus SlashForge's nine discipline skills, each named `slashforge-<name>` (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`). Shared with Codex |
 | `<repo>/AGENTS.md` | On `/slashforge-setup`, after you answer its questions |
 | `<repo>/.cursor/` | On `/slashforge-setup` — rules, skills, agents, commands, hooks |
@@ -32,7 +32,7 @@ yours in the header:
 :::agent[codex]
 | Path | When |
 | --- | --- |
-| `~/.agents/setup/slashforge/codex/` | On install — the guide files that carry the workflow, plus the shared document shell and helpers (`slashforge-report-shell.html`, `slashforge-open.sh`, `slashforge-splice.js`, `slashforge-review-payload.js`, `slashforge-audit.js`; files rather than inline scripts, so a permission rule can allow each by its path) |
+| `~/.agents/setup/slashforge/codex/` | On install — the guide files that carry the workflow, plus the shipped helper scripts (`slashforge-review-payload.js`, `slashforge-audit.js`; files rather than inline scripts, so a permission rule can allow each by its path) |
 | `~/.agents/skills/` | On install — the eight commands, plus SlashForge's nine discipline skills, each named `slashforge-<name>` (`brainstorm`, `plan`, `worktree`, `debug`, `parallel`, `tdd`, `verify`, `request-review`, `review-feedback`). Shared with Cursor |
 | `<repo>/AGENTS.md` | On `/slashforge-setup`, after you answer its questions |
 | `<repo>/.codex/` | On `/slashforge-setup` — rules, skills, agents, commands, hooks |

@@ -46,7 +46,7 @@ Installs a collection of guide files plus eight commands that cover the full lif
 - **`/slashforge-setup`** · **`$slashforge-setup`** — one-time repo setup. Explores the repo, asks clarifying questions, then creates the entry file, agents, rules, skills, commands, and hooks tailored to the codebase, in your agent's own layout: `CLAUDE.md` and `.claude/` on Claude Code, `AGENTS.md` and `.cursor/` on Cursor, `AGENTS.md` and `.codex/` on Codex. Handles both fresh repos and partial setups. ~50–120k tokens, paid once — it has the largest fixed instruction load of any command (~20k before it reads a line of your code) and writes a dozen or more files.
 - **`/slashforge-code`** · **`$slashforge-code`** — freeform end-to-end development workflow. Ten phases: plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup. ~100–250k tokens per feature without Graphify; ~75–225k with it indexed.
 - **`/slashforge-code -quick`** · **`$slashforge-code -quick`** — lean version of `/slashforge-code` for small changes. Skips brainstorming, uses a minimal plan (Changes + Test strategy only), and replaces the agent-driven code review with an inline self-review checklist. Keeps every user gate (plan, branch, PR, cleanup) and Phase 6 lint/test/build verification. ~40–70k tokens per change. Use for typo fixes, copy changes, config tweaks, renames, single-file refactors.
-- **`/slashforge-investigate [symptom]`** · **`$slashforge-investigate [symptom]`** — read-only research. Reproduces and root-causes a suspected bug, produces a findings report saved to `docs/slashforge/investigations/` plus a structured `.slashforge/latest_investigation.json` hand-off, then offers `/slashforge-fix` (or `/slashforge-code`) so the fix starts with the diagnosis already loaded. ~15–60k tokens, set by how far the trail runs — it writes one report, not code.
+- **`/slashforge-investigate [symptom]`** · **`$slashforge-investigate [symptom]`** — read-only research. Reproduces and root-causes a suspected bug, produces a Markdown findings report saved to `docs/slashforge/active/<issue-slug>/investigation.md` plus a structured `.slashforge/latest_investigation.json` hand-off, then offers `/slashforge-fix` (or `/slashforge-code`) so the fix starts with the diagnosis already loaded. ~15–60k tokens, set by how far the trail runs — it writes one report, not code.
 - **`/slashforge-fix`** · **`$slashforge-fix`** — patches a bug straight from the latest investigation. Reads `.slashforge/latest_investigation.json`, skips discovery, locks its context to the implicated files, and enforces a regression test before the patch (Phase 6 hard-fails if no test was added). The tight investigate → fix loop, without a full feature-planning phase. Cost tracks the base workflow for a small, scoped change.
 - **`/slashforge-resume`** · **`$slashforge-resume`** — resumes an interrupted `/slashforge-code` or `/slashforge-fix` run from its last checkpoint. Reads the latest `.slashforge/run_<id>.ckpt.json`, verifies the git HEAD still matches, and re-enters the workflow at the next phase instead of starting over. Cheap — it reads one checkpoint and continues.
 - **`/slashforge-review-pr [number]`** · **`$slashforge-review-pr [number]`** — reviews a PR against this repo's entry file, rules and existing conventions (`CLAUDE.md` and `.claude/rules/` on Claude Code, `AGENTS.md` and `.cursor/rules/` on Cursor, `AGENTS.md` and its nested copies on Codex), plus a dual-track security audit (`npm audit` on dependency diffs, a rigid AppSec OWASP pass on source diffs) whose blocking findings get their own `SECURITY FINDINGS` header, then posts line-level comments or an approval. Lists the PRs awaiting your review when there is more than one. Never posts without showing you the exact text and asking. ~15–70k tokens per review, set almost entirely by the size of the diff.
@@ -145,7 +145,7 @@ Every template is frontmatter-validated before any write — a broken guide (mis
 |---|---|---|---|
 | Eight commands (`setup`, `code`, `investigate`, `fix`, `resume`, `review-pr`, `test`, `refactor`) | `~/.claude/commands/slashforge-<name>.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` | `~/.agents/skills/slashforge-<name>/SKILL.md` |
 | Nine skills (`plan`, `verify`, …) | `~/.claude/commands/slashforge-<skill>.md` | `~/.agents/skills/slashforge-<skill>/SKILL.md` | `~/.agents/skills/slashforge-<skill>/SKILL.md` |
-| Guide files, the report shell and its helper scripts | `~/.claude/setup/slashforge/` | `~/.agents/setup/slashforge/cursor/` | `~/.agents/setup/slashforge/codex/` |
+| Guide files and the helper scripts | `~/.claude/setup/slashforge/` | `~/.agents/setup/slashforge/cursor/` | `~/.agents/setup/slashforge/codex/` |
 
 Cursor and Codex share the same skill folders; only their guides are separate.
 
@@ -310,20 +310,20 @@ Don't use for: bug fixes where the root cause isn't already understood (use `/sl
 ```
 /slashforge-investigate "users see 500 when uploading >10MB files"
 ```
-Read-only research. No branches, no PRs, no code changes. Produces a findings report (summary, reproduction, root cause, affected scope, suggested next step) written as a self-contained HTML file to `docs/slashforge/investigations/investigation-<timestamp>.html` — outside your agent's dot-directory, so it is visible in Finder rather than buried.
+Read-only research. No branches, no PRs, no code changes. Produces a Markdown findings report (summary, reproduction, root cause, affected scope, suggested next step) written to `docs/slashforge/active/<issue-slug>/investigation.md` — an issue slug chosen at intake, not a timestamp, in the same `active/<issue-slug>/` folder a later `/slashforge-code` or `/slashforge-fix` on the issue reuses, so one issue's investigation, plan and tasks live together.
 
-The report is then **opened in your default browser** (`open` / `xdg-open` / `wslview` / `start`, skipped silently over SSH or on a headless box), and chat gets a short plain-text summary rather than the raw HTML. Styling comes from `slashforge-report-shell.html`, installed with the guides — each run writes only its body fragment, so every report looks identical and the CSS is never regenerated. The finished file still inlines everything and opens offline.
+Chat gets a short plain-text summary — the conclusion, the root cause, the path — rather than the full report. The file is the record, reviewable in a diff like any other spec artifact.
 
-It ends by handing the report path to the fix command:
+It ends by handing the report off to the fix command:
 
 ```
-Investigation complete → docs/slashforge/investigations/investigation-2026-08-02-1432.html
-Want me to fix this? Run /slashforge-code investigation-2026-08-02-1432.html
+Investigation complete → docs/slashforge/active/fix-command-lists-stop-at-six/investigation.md
+Want me to fix this? Run /slashforge-fix, or /slashforge-code fix-command-lists-stop-at-six
 ```
 
-In Codex the hand-off reads `$slashforge-code investigation-2026-08-02-1432.html`.
+In Codex the hand-off reads `$slashforge-fix` / `$slashforge-code fix-command-lists-stop-at-six`.
 
-The command takes the bare filename — `/slashforge-code` resolves it against `docs/slashforge/investigations/`. Pass it and the fix command reads the report instead of asking you to restate the bug, so the root cause survives into a fresh session. Every gate still applies; the report's suggested fix is a proposal, not an approved plan.
+`/slashforge-code` takes the bare issue slug and resolves it to `docs/slashforge/active/<issue-slug>/investigation.md`. Pass it and the fix command reads the report instead of asking you to restate the bug, so the root cause survives into a fresh session. Every gate still applies; the report's suggested fix is a proposal, not an approved plan.
 
 ---
 
@@ -348,7 +348,7 @@ Post this review?  approve · comment · request-changes · edit · cancel
 
 `request-changes` blocks a merge and `comment` does not, so the command never picks between them. It recommends — blocking findings make the suggestion obvious — but blocking someone's PR is your decision.
 
-Line comments and the summary go up as a **single review**, so the PR gets one notification rather than a stream. A line comment can only anchor inside the diff; one outside makes GitHub reject the whole review with a 422, so the command moves those findings into the summary body, tells you which moved, and retries. The review is saved to `docs/slashforge/reviews/<date>-pr-<N>.html` either way.
+Line comments and the summary go up as a **single review**, so the PR gets one notification rather than a stream. A line comment can only anchor inside the diff; one outside makes GitHub reject the whole review with a 422, so the command moves those findings into the summary body, tells you which moved, and retries. The review is saved to `docs/slashforge/reviews/pr-<N>-<title-slug>.md` either way.
 
 Requires `gh` installed and authenticated — checked up front, so it stops with instructions rather than failing halfway.
 

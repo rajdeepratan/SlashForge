@@ -19,15 +19,15 @@ trivial work without the ceremony.
 
 After stripping any `-quick` flag, check whether what remains points at a file. Resolve in this order:
 
-1. **Resolves to an existing file as given** (e.g. `docs/spec.md`, `docs/slashforge/investigations/investigation-2026-08-02-1432.html`) → read it in full and treat it as the requirements source.
-2. **Bare filename that exists under `docs/slashforge/investigations/`** (e.g. `investigation-2026-08-02-1432.html`) → read that file. **This is the expected form** — it is exactly what the `/slashforge-investigate` hand-off prints, so treat it as a normal path, not a fallback.
+1. **Resolves to an existing file as given** (e.g. `docs/spec.md`, `docs/slashforge/active/fix-command-lists-stop-at-six/investigation.md`) → read it in full and treat it as the requirements source.
+2. **Bare issue slug with an investigation** (e.g. `fix-command-lists-stop-at-six`) where `docs/slashforge/active/<issue-slug>/investigation.md` exists → read that file. **This is the expected form** — it is exactly what the `/slashforge-investigate` hand-off prints (`/slashforge-code <issue-slug>`), so treat it as a normal path, not a fallback.
 3. **Neither** → treat the argument as a free-form description. Normal intake.
 
 Strip a leading `@` or `#` before resolving — users paste those out of habit; neither is part of the path.
 
 When a file resolved, **do not ask the entry question below.** The document already answers it. Announce what you loaded and go to Phase 1 with it:
 
-> *"Read `docs/slashforge/investigations/investigation-2026-08-02-1432.html`. Root cause: [one line from the report]. Suggested fix: [one line]. Fix it as suggested, or something different?"*
+> *"Read `docs/slashforge/active/fix-command-lists-stop-at-six/investigation.md`. Root cause: [one line from the report]. Suggested fix: [one line]. Fix it as suggested, or something different?"*
 
 The report's "Suggested next step" is a **proposal, not an approved plan.** Phase 1 still runs, Phase 2 still produces a plan, and the Phase 3 gate still waits for you. A hand-off from `/slashforge-investigate` skips the retyping, not the confirmation.
 
