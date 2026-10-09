@@ -60,7 +60,7 @@ Files: modify `docs/src/content/docs/commands/slashforge-investigate.md`, `slash
 - [ ] Step 3: commit `docs(site): describe the Markdown investigation and review reports`.
 
 ## Task 7: Regenerate render + full suite
-- [ ] Step 1: `node scripts/snapshot-claude-render.js`.
-- [ ] Step 2: `git diff test/fixtures/claude-render` shows the reworked investigate/review-pr/code/fix guides and the three deleted asset fixtures — nothing unexpected.
-- [ ] Step 3: full `npm test` → ALL green.
+- [x] Step 1: ran `node scripts/snapshot-claude-render.js`.
+- [x] Step 2: diff shows only the reworked `slashforge-code.md`, `slashforge-investigate.md`, `slashforge-workflow-fix.md`, `slashforge-workflow-investigation.md`, `slashforge-workflow-review-pr.md`. (The snapshot captures guides/commands only, not asset files, so the retirement needs no fixture deletion.)
+- [x] Step 3: full `npm test` → 281 pass, 0 fail.
 - [ ] Step 4: commit `test(sdd): regenerate pinned Claude render for Markdown reports`.
