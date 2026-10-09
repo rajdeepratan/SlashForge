@@ -51,10 +51,10 @@ Files: modify `templates/slashforge-workflow-resume.md`, modify `templates/slash
 Consumes: `slashforge-workflow-conflicts.md` (Task 1); the reworded Phase 9 (Task 2).
 Produces: checkpoint fields `pr_number`/`pr_url`; a documented re-entry path into Phase 9.
 
-- [ ] Step 1: in `slashforge-workflow-resume.md` checkpoint JSON example, add `"pr_number": 128` and `"pr_url": "..."` inside `context_snapshot`; add a bullet to the `context_snapshot` description noting they are written at the end of Phase 8.
-- [ ] Step 2: add a `## Feedback re-entry` section: when `current_phase >= 8` and `pr_number` is set, before re-entering, fetch review state with `gh pr view <pr_number> --json reviewDecision,reviews,comments,headRefName,baseRefName`. If `gh` is absent/unauthenticated → stop and tell the user. If `reviewDecision == CHANGES_REQUESTED` or there are unresolved threads → run `slashforge-workflow-conflicts.md` if the base has moved, then re-enter at **Phase 9**. If no changes requested → report that and resume normally (`current_phase + 1`).
-- [ ] Step 3: in `slashforge/resume.md` Step 1, add a step: after HEAD verification, if the checkpoint is a `/slashforge-code` run at `current_phase >= 8` with `pr_number`, detect the feedback case and surface it (e.g. "PR #N has requested changes — ingesting feedback per `slashforge-workflow-resume.md`") before re-entering Phase 9.
-- [ ] Step 4: run `node --test test/install.test.js` — confirm frontmatter/target-block/line-limit tests still PASS and both files are ≤ 200 rendered.
+- [x] Step 1: added `pr_number`/`pr_url` to the checkpoint JSON example and a note to the `context_snapshot` description (written once the PR is created at Phase 8).
+- [x] Step 2: added the `## Feedback re-entry` section — `gh pr view <pr_number> --json reviewDecision,reviews,comments,headRefName,baseRefName`; `gh` missing → stop; `CHANGES_REQUESTED`/unresolved → run `slashforge-workflow-conflicts.md` if base moved, then re-enter Phase 9; no changes → resume normally.
+- [x] Step 3: added Step 1.5 to `slashforge/resume.md` — detect `current_phase >= 8` + `pr_number`, surface "PR #N has requested changes", re-enter Phase 9.
+- [x] Step 4: full `install.test.js` PASS (196 tests); resume guide 124 lines, command 62 — both ≤ 200.
 - [ ] Step 5: commit `feat(sdd): resume re-enters Phase 9 to ingest PR request-changes`.
 
 ## Task 4: gh ingestion recipe in the review-feedback skill

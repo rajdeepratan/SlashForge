@@ -1324,6 +1324,22 @@ test('workflow.md points Phase 8/10 at the conflicts ladder and stays within the
   assert.ok(lines <= 200, `slashforge-workflow.md renders at ${lines} lines, over the 200-line cap`);
 });
 
+test('the resume guide documents PR-feedback re-entry', () => {
+  const guide = renderAll('claude')['slashforge-workflow-resume.md'];
+  assert.match(guide, /Feedback re-entry/, 'resume guide must have a Feedback re-entry section');
+  assert.match(guide, /pr_number/, 'resume guide must document the pr_number checkpoint field');
+  assert.match(guide, /reviewDecision/, 'resume guide must show the gh review-state fetch');
+  assert.ok(
+    guide.includes('slashforge-workflow-conflicts.md'),
+    'feedback re-entry must route an advanced base through the conflicts ladder',
+  );
+});
+
+test('the resume command surfaces the PR-feedback case', () => {
+  const cmd = renderAll('claude')[path.join('slashforge', 'resume.md')];
+  assert.match(cmd, /pr_number/, 'resume command must detect the pr_number feedback case');
+});
+
 // --- Task 7: subagent guide split ---
 
 test('codex gets the TOML subagent guide, the others get the markdown one', () => {
