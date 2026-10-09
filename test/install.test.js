@@ -1314,6 +1314,16 @@ test('the conflicts ladder guide ships, is registered, and renders within the ca
   assert.ok(lines <= 200, `conflicts guide renders at ${lines} lines, over the 200-line cap`);
 });
 
+test('workflow.md points Phase 8/10 at the conflicts ladder and stays within the cap', () => {
+  const body = renderAll('claude')['slashforge-workflow.md'];
+  assert.ok(
+    body.includes('slashforge-workflow-conflicts.md'),
+    'slashforge-workflow.md must reference slashforge-workflow-conflicts.md',
+  );
+  const lines = body.split('\n').length;
+  assert.ok(lines <= 200, `slashforge-workflow.md renders at ${lines} lines, over the 200-line cap`);
+});
+
 // --- Task 7: subagent guide split ---
 
 test('codex gets the TOML subagent guide, the others get the markdown one', () => {

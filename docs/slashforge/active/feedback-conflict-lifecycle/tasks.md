@@ -39,11 +39,11 @@ Files: modify `templates/slashforge-workflow.md`
 Consumes: `slashforge-workflow-conflicts.md` (Task 1).
 Produces: Phase 8/10 pointers to the conflicts guide; Phase 9 intro naming the resume re-entry.
 
-- [ ] Step 1: companion-files bullet (~L13, the "read at Phase 6/7/8" line): append the conflicts guide to the **same** bullet — e.g. end it with "`slashforge-workflow-conflicts.md` (read at Phase 8 push / Phase 10 pull / feedback re-entry)". No new bullet.
-- [ ] Step 2: Phase 8 Push step 1 — in BOTH the `<!--target:claude-->` (L211) and `<!--target:agents-->` (L214) blocks, replace the "rebase on the latest; if conflict is not auto-resolvable, stop and ask" clause with: push; on remote-diverged rejection, follow `slashforge-workflow-conflicts.md`. Keep each to one line.
-- [ ] Step 3: Phase 9 intro (L228) — reword the single line to: reached live when a reviewer comments, or re-entered later by `/slashforge-resume`, which fetches the PR's review state (see `slashforge-workflow-resume.md`). Still one line.
-- [ ] Step 4: Phase 10 step 5 (L263) — reword "base branch pull conflicts" to say such conflicts follow `slashforge-workflow-conflicts.md`. Still one line.
-- [ ] Step 5: run `node scripts/snapshot-claude-render.js` then `wc -l` the rendered `slashforge-workflow.md` under `test/fixtures/claude-render/` — confirm it is ≤ 200 (expect 199). If > 200, trim wording and re-run. (Do not commit the regenerated fixture here — Task 5 owns it; just verify the count, then `git checkout test/fixtures/claude-render` to revert the preview.)
+- [x] Step 1: companion-files bullet (L13): appended `slashforge-workflow-conflicts.md` to the **same** bullet with Phase 8-push / Phase 10-pull notes. No new bullet.
+- [x] Step 2: Phase 8 Push step 1 — in BOTH the `<!--target:claude-->` and `<!--target:agents-->` blocks, replaced the rebase clause with: on remote-diverged rejection, follow `slashforge-workflow-conflicts.md` (merge not rebase). One line each.
+- [x] Step 3: Phase 9 intro — reworded the single line to name the `/slashforge-resume` re-entry and the `gh` fetch on `CHANGES_REQUESTED` (pointer to `slashforge-workflow-resume.md`). One line.
+- [x] Step 4: Phase 10 step 5 — reworded "base branch pull conflicts" to route through `slashforge-workflow-conflicts.md`. One line.
+- [x] Step 5: source stayed 263 lines (net-neutral); the suite's `renderAll`-based 200-line golden-rule test passes for the claude render of `slashforge-workflow.md`, and the new reference test confirms the pointer resolves. (Fixture regen deferred to Task 5.)
 - [ ] Step 6: commit `feat(sdd): point Phase 8/10 at the conflict ladder, note Phase 9 resume re-entry`.
 
 ## Task 3: Resume feedback re-entry
