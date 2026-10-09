@@ -28,9 +28,9 @@ Consumes: nothing. Produces: investigate writes `active/<issue-slug>/investigati
 Files: modify `templates/slashforge-workflow-review-pr.md`, `test/install.test.js`
 Produces: review-pr writes `reviews/pr-<N>-<title-slug>.md` (no date).
 
-- [ ] Step 1: add a test — rendered `slashforge-workflow-review-pr.md` writes a `reviews/pr-` `.md` path (no `<YYYY-MM-DD>` date form) and references neither `slashforge-splice.js` nor `slashforge-open.sh`. Run → FAILS.
-- [ ] Step 2: rewrite Phase R4 — Markdown report at `docs/slashforge/reviews/pr-<N>-<title-slug>.md` (PR number + kebab title slug, no date); derive the title slug from the PR title; sections as Markdown; `SECURITY FINDINGS` a conditional `##` + table; remove the splice/open bash block and the "shared document shell" sentence.
-- [ ] Step 3: `node --test test/install.test.js` → PASS; confirm the review-pr guide's worst-host render did not grow past its current oversize allowance (it is on `OVERSIZE_GUIDES`); shrink if needed.
+- [x] Step 1: added the test — review-pr writes `reviews/pr-` `.md`, no `<YYYY-MM-DD>-pr-` form, no splice/open. Run → FAILED.
+- [x] Step 2: rewrote Phase R4 — Markdown at `docs/slashforge/reviews/pr-<N>-<title-slug>.md` (PR # + title slug, no date); sections as Markdown; `SECURITY FINDINGS` a conditional `##` + table; removed the splice/open bash block and the "shared document shell" sentence.
+- [x] Step 3: `node --test test/install.test.js` → 198 PASS; review-pr guide stays within its `OVERSIZE_GUIDES` allowance (oversize tests green); grep confirms zero splice/open/report-shell/date refs.
 - [ ] Step 4: commit `feat(sdd): /slashforge-review-pr writes a Markdown review report`.
 
 ## Task 4: /slashforge-code hand-off + fix contract
