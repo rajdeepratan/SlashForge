@@ -71,10 +71,8 @@ Files: regenerate `test/fixtures/claude-render/**`, final run of `test/install.t
 Consumes: all template edits (Tasks 1–4).
 Produces: a green `npm test`.
 
-- [ ] Step 1: run `node scripts/snapshot-claude-render.js`.
-- [ ] Step 2: `git diff test/fixtures/claude-render` — confirm the diff shows ONLY the new
-  `slashforge-workflow-conflicts.md`, the resume/resume-command/review-feedback additions, and the
-  four net-neutral `slashforge-workflow.md` rewrites. Nothing else.
-- [ ] Step 3: `wc -l test/fixtures/claude-render/setup/slashforge/slashforge-workflow.md` — assert ≤ 200.
-- [ ] Step 4: run full `npm test` — confirm ALL green (target blocks, frontmatter, line limits, pinned render).
+- [x] Step 1: ran `node scripts/snapshot-claude-render.js`.
+- [x] Step 2: diff shows ONLY the new `slashforge-workflow-conflicts.md` fixture, the resume guide (+29/-1), resume command (+5) and review-feedback (+20) additions, and the four net-neutral `slashforge-workflow.md` rewrites. Nothing else.
+- [x] Step 3: rendered `slashforge-workflow.md` is 199 lines (≤ 200).
+- [x] Step 4: full `npm test` ALL green — 283 pass, 0 fail (includes the pinned render).
 - [ ] Step 5: commit `test(sdd): regenerate pinned Claude render for the feedback/conflict lifecycle`.

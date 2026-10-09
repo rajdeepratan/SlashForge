@@ -48,6 +48,11 @@ starting state.
 4. **Re-enter the originating workflow at `current_phase + 1`** — load `slashforge-workflow.md` (and
    `slashforge-workflow-fix.md` when `command` is `/slashforge-fix`) and continue the phase loop as
    if it had never stopped. Every downstream gate still applies.
+5. **PR feedback case.** If this is a `/slashforge-code` run at `current_phase >= 8` carrying a
+   `pr_number`, fetch the PR's review state before re-entering. On `CHANGES_REQUESTED`, surface it
+   (*"PR #<n> has requested changes — ingesting feedback"*) and re-enter at **Phase 9** rather than
+   `current_phase + 1`. The full procedure — the `gh` fetch and the conflict-ladder check — is in
+   `slashforge-workflow-resume.md` (Feedback re-entry).
 
 **Mandatory gates** are never skipped by resuming. If the run stopped before a gate, the gate still
 runs when you reach it; if it stopped after a gate the user already answered, the answer is in the

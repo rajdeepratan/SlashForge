@@ -10,7 +10,7 @@ Ten-phase change-shipping flow used by `/slashforge-code` (full and trivial path
 - `slashforge-workflow-investigation.md` — Investigation Flow I1–I3 (loaded by `/slashforge-investigate` only — it does not load this file)
 - `slashforge-workflow-review-pr.md` — PR Review Flow R1–R7 (loaded by `/slashforge-review-pr` only; it applies the Phase 7 checklist below as its review standard, but does not load the rest of this file)
 - `slashforge-workflow-fix.md` — Fix Overrides (loaded by `/slashforge-fix` *on top of* this file: it ingests a structured investigation, skips discovery, enforces a regression test, and hard-fails Phase 6 if no test was added)
-- `slashforge-workflow-verify.md` · `slashforge-workflow-security.md` · `slashforge-workflow-docs.md` — read at Phase 6 (localized retry loop), Phase 7 (dual-track security audit; also used by `/slashforge-review-pr`) and Phase 8 (the CHANGELOG/README documentation sweep)
+- `slashforge-workflow-verify.md` · `slashforge-workflow-security.md` · `slashforge-workflow-docs.md` · `slashforge-workflow-conflicts.md` — read at Phase 6 (localized retry loop), Phase 7 (dual-track security audit; also used by `/slashforge-review-pr`), Phase 8 (the CHANGELOG/README documentation sweep, and the merge/conflict ladder on a push rejection) and Phase 10 (the same ladder when pulling an advanced base)
 - `slashforge-workflow-resume.md` — Resume (loaded by `/slashforge-resume`: reads the latest `.slashforge/run_<id>.ckpt.json` checkpoint, verifies git HEAD, and re-enters this flow at the next phase)
 - `slashforge-workflow-agents.md` — Agent Selection Table + multiple-agents rule + self-sufficiency rules (loaded by every workflow command)
 
@@ -161,7 +161,7 @@ nothing to document, skip the commit and say why.
 
 ### Push
 
-1. Invoke the `git` agent to push. If push is rejected because the remote diverged, rebase on the latest; if conflict is not auto-resolvable, stop and ask the user.
+1. Invoke the `git` agent to push. If push is rejected because the remote diverged, follow the merge/conflict ladder in **`slashforge-workflow-conflicts.md`** (merge `origin/<base>`, not rebase; a conflict stops with the file list).
 2. Ask: **"Which branch should I target for this PR?"** and **"Who should I assign as reviewer(s)?"** — do not guess either (or read from a repo config if one exists).
 3. Create the PR with this structure:
    - **Title:** short imperative <70 chars
@@ -174,7 +174,7 @@ nothing to document, skip the commit and say why.
 
 **Skill:** `slashforge-review-feedback`
 
-If a human reviewer leaves comments on the PR:
+Reached live when a reviewer comments during the run, or re-entered later by `/slashforge-resume` — which fetches the PR's review state with `gh` and lands here on `CHANGES_REQUESTED` (see **`slashforge-workflow-resume.md`**, Feedback re-entry). Either way:
 
 1. Invoke `slashforge-review-feedback` — apply technical rigour, not performative agreement
 2. Read all comments in full before making any changes
@@ -196,4 +196,4 @@ Runs only after the user confirms the PR merged. Cleans up the feature branch lo
 
 3. Invoke the `git` agent to perform the cleanup. Expected steps: fetch latest from the remote; checkout the PR's base branch and pull; delete the local feature branch (prefer `git branch -d`; fall back to `-D` only if the PR was merged via squash/rebase and step 2 confirmed MERGED — explain when falling back); delete the remote feature branch `git push origin --delete <branch>` (treat "remote ref does not exist" as success); prune stale remote-tracking refs (`git remote prune origin`).
 4. **Never delete** `main`, `master`, `production`, `develop`, `staging`, or any branch the repo's `.claude/rules/git.md` marks as protected. If the PR branch name matches a protected pattern, stop and warn.
-5. Confirm cleanup complete: **"Cleaned up branch `<branch>`. You are now on `<base>`."** If anything fails mid-cleanup (push rejected, local delete fails, base branch pull conflicts), stop at the failure and hand back to the user with the exact error. Do not continue on the assumption something worked.
+5. Confirm cleanup complete: **"Cleaned up branch `<branch>`. You are now on `<base>`."** If anything fails mid-cleanup (push rejected, local delete fails, or base-branch pull conflicts — for which the merge/conflict ladder is **`slashforge-workflow-conflicts.md`**), stop at the failure and hand back to the user with the exact error. Do not continue on the assumption something worked.

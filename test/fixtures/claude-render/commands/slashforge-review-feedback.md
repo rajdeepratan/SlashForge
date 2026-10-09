@@ -69,6 +69,26 @@ plainly: *"I can't confirm this without X — should I investigate, or proceed a
 Feedback from the person you are working with is trusted and usually implemented directly —
 but ask when the scope is unclear, and still skip the performative agreement.
 
+## Ingesting from GitHub
+
+When the feedback comes from a PR rather than the person in the room — the `/slashforge-resume`
+re-entry, or any time you are handed a PR number — fetch it rather than guessing:
+
+```bash
+# Review verdict + review bodies + top-level PR comments, and the branch names
+gh pr view <N> --json reviewDecision,reviews,comments,headRefName,baseRefName
+# Inline (line-level) review comments on the diff
+gh api repos/{owner}/{repo}/pulls/<N>/comments
+```
+
+- No `gh`, or `gh auth status` fails → stop and say so. Do not fabricate the review state.
+- Read every `reviews[].body` whose `state` is `CHANGES_REQUESTED` or `COMMENTED`, plus the inline
+  comments. Skip threads already marked resolved and anything addressed in an earlier iteration —
+  re-implementing a resolved point is noise.
+- Map each surviving item onto the Must / Should / Discuss buckets below. A blocking review
+  (`CHANGES_REQUESTED`) does not by itself make every comment in it a *Must* — judge each on its
+  merits, exactly as for in-room feedback.
+
 ## Sorting the feedback
 
 Group items before starting:
