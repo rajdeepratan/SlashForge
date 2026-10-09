@@ -4,15 +4,23 @@ The current state of the spec home. See `slashforge-spec-home.md` for the layout
 
 ## Active
 
-_None._
+- **fix-command-lists-stop-at-six** — fix the remaining hand-maintained command
+  enumerations that still stop at six/eight (install closing message, the
+  `install.js` "four commands" comment, the landing-page cost tiles). Addresses
+  issue #106. Investigation done (`active/fix-command-lists-stop-at-six/`); not
+  yet implemented.
 
 ## Recently archived
 
+- **markdown-reports** — `/slashforge-investigate` and `/slashforge-review-pr`
+  now write Markdown reports named the spec-driven way
+  (`active/<issue-slug>/investigation.md`, `reviews/pr-<N>-<title-slug>.md`); the
+  HTML report-shell/splice/open assets are retired. Merged 2026-10-09 (PR #108),
+  released in 5.3.0. See `archive/markdown-reports/`.
 - **feedback-conflict-lifecycle** — the Phase 8/10 merge-not-rebase conflict
   ladder (`slashforge-workflow-conflicts.md`) and resume-driven ingestion of PR
   request-changes (Phase 9, via `/slashforge-resume` + `gh`). Merged 2026-10-09
-  (PR #107); not released (no version bump). See
-  `archive/feedback-conflict-lifecycle/`.
+  (PR #107), released in 5.3.0. See `archive/feedback-conflict-lifecycle/`.
 - **light-gears** — `/slashforge-test` and `/slashforge-refactor`, two
   lightweight standalone commands, bringing the shipped set to eight. Merged
   2026-10-09 (PR #101), released in 5.2.0. See `archive/light-gears/`.
