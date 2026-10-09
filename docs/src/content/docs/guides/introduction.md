@@ -188,6 +188,8 @@ to a workflow this heavy.
 | `/slashforge-investigate` | ~15–60k tokens per report |
 | `/slashforge-review-pr` | ~15–70k tokens per review |
 | `/slashforge-resume` | cheap — reads one checkpoint and continues |
+| `/slashforge-test` | light — discovers the framework, writes and runs tests for the targeted files, then reports |
+| `/slashforge-refactor` | tracks the base workflow, gated by the test suite passing before and after |
 
 ==The range is driven by the size of the feature, not by the tooling== — a
 single-module change lands near the bottom, a multi-layer feature near the top.

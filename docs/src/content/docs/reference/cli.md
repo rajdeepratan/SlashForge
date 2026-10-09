@@ -168,26 +168,34 @@ npx slashforge status
 ```
 
 slashforge status
-  Package version (current): v5.0.0
+  Package version (current): v5.1.1
 
   Claude Code (~/.claude)
-    Installed version:  v5.0.0
-    Guide files:        16 (~/.claude/setup/slashforge)
-    Installed commands: 4
+    Installed version:  v5.1.1
+    Guide files:        24 (~/.claude/setup/slashforge)
+    Installed commands: 8
       • /slashforge-code
+      • /slashforge-fix
       • /slashforge-investigate
+      • /slashforge-refactor
+      • /slashforge-resume
       • /slashforge-review-pr
       • /slashforge-setup
+      • /slashforge-test
 
   Cursor + Codex (~/.agents)
-    Installed version:  v5.0.0
-    Guide files (cursor): 16 (~/.agents/setup/slashforge/cursor)
-    Guide files (codex): 16 (~/.agents/setup/slashforge/codex)
-    Installed commands: 4
+    Installed version:  v5.1.1
+    Guide files (cursor): 24 (~/.agents/setup/slashforge/cursor)
+    Guide files (codex): 24 (~/.agents/setup/slashforge/codex)
+    Installed commands: 8
       • /slashforge-code (Cursor), $slashforge-code (Codex)
+      • /slashforge-fix (Cursor), $slashforge-fix (Codex)
       • /slashforge-investigate (Cursor), $slashforge-investigate (Codex)
+      • /slashforge-refactor (Cursor), $slashforge-refactor (Codex)
+      • /slashforge-resume (Cursor), $slashforge-resume (Codex)
       • /slashforge-review-pr (Cursor), $slashforge-review-pr (Codex)
       • /slashforge-setup (Cursor), $slashforge-setup (Codex)
+      • /slashforge-test (Cursor), $slashforge-test (Codex)
 ```
 
 With `--project`, it also warns when SlashForge is installed globally as well. Claude
