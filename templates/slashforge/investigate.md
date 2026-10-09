@@ -31,38 +31,30 @@ report.
 
 ## Phases
 
-- **I1 — Investigation Intake:** parse input, extract expected vs. actual behaviour, ask clarifying questions until the scope is clear
+- **I1 — Investigation Intake:** parse input, extract expected vs. actual behaviour, ask clarifying questions until the scope is clear, and pick the kebab `<issue-slug>` for the `active/<issue-slug>/` folder
 - **I2 — Investigate (read-only):** reproduce, bisect, trace, read code. Consults the code graph when Graphify is installed. **No edits to application code**
-- **I3 — Report & hand-off:** write the findings report **and** the structured `.slashforge/latest_investigation.json` hand-off artifact, open the report, summarise in chat, hand off to `/slashforge-fix` (or `/slashforge-code`)
+- **I3 — Report & hand-off:** write the findings report **and** the structured `.slashforge/latest_investigation.json` hand-off artifact, summarise in chat, hand off to `/slashforge-fix` (or `/slashforge-code`)
 
 **Skills per phase (use the `Skill` tool, do not paraphrase). It ships with SlashForge:**
 - Phase I2 — `slashforge-debug`
 
 ## The deliverable
 
-A findings report at `docs/slashforge/investigations/investigation-<YYYY-MM-DD-HHMM>.html` — five
-sections, written as a body fragment and spliced into the shipped report shell. Never regenerate
-<!--target:claude-->
-the shell's CSS, and never write the report under `.claude/`, which is hidden in Finder.
-<!--/target-->
-<!--target:cursor-->
-the shell's CSS, and never write the report under `.cursor/`, which is hidden in Finder.
-<!--/target-->
-<!--target:codex-->
-the shell's CSS, and never write the report under `.codex/`, which is hidden in Finder.
-<!--/target-->
-<!--target:neutral-->
-the shell's CSS, and never write the report under a dot-directory, which is hidden in Finder.
-<!--/target-->
+A findings report at `docs/slashforge/active/<issue-slug>/investigation.md` — five sections,
+written as Markdown. The `<issue-slug>` is a short kebab name for the issue (from the issue
+reference, or a summary of the symptom — **never a timestamp**), chosen at Phase I1; it names the
+`active/<issue-slug>/` folder a later `/slashforge-code` or `/slashforge-fix` reuses. If
+`active/<issue-slug>/` or `archive/<issue-slug>/` already exists, append `-2`, `-3`, … See
+`slashforge-spec-home.md`.
 
-Alongside the HTML report, Phase I3 also writes `.slashforge/latest_investigation.json` — the
-**investigation contract**, a machine-readable summary (`run_id`, `reproduction_steps`,
-`root_cause`, `implicated_files`, `suggested_approach`) that `/slashforge-fix` reads to patch the
-bug test-first without re-running discovery. `.slashforge/` is machine-local run state; gitignore
-it.
+Alongside the report, Phase I3 also writes `.slashforge/latest_investigation.json` — the
+**investigation contract**, a machine-readable summary (`run_id` = the issue slug,
+`reproduction_steps`, `root_cause`, `implicated_files`, `suggested_approach`) that `/slashforge-fix`
+reads to patch the bug test-first without re-running discovery. `.slashforge/` is machine-local run
+state; gitignore it.
 
-**Summarise in chat — never print the HTML.** The file is the report; the chat gets the one-line
-conclusion, the root cause, the path, and the hand-off line. Phase I3 carries the fragment spec,
-the splice command, the open helper, the JSON contract and the exact hand-off wording.
+**Summarise in chat — never paste the full report.** The file is the report; the chat gets the
+one-line conclusion, the root cause, the path, and the hand-off line. Phase I3 carries the section
+spec, the JSON contract and the exact hand-off wording.
 
 Follow the workflow file as the source of truth for phase details and success criteria.

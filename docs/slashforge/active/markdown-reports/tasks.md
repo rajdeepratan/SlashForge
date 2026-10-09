@@ -18,10 +18,10 @@ Produces: `ASSET_FILES` = `['slashforge-review-payload.js','slashforge-audit.js'
 Files: modify `templates/slashforge/investigate.md`, `templates/slashforge-workflow-investigation.md`, `test/install.test.js`
 Consumes: nothing. Produces: investigate writes `active/<issue-slug>/investigation.md`.
 
-- [ ] Step 1: add a test — rendered `investigate.md` + `slashforge-workflow-investigation.md` include `active/` and `investigation.md`, and include neither `slashforge-splice.js` nor `slashforge-open.sh`. Run → FAILS.
-- [ ] Step 2: rewrite `investigate.md` deliverable section → `docs/slashforge/active/<issue-slug>/investigation.md`; add an I1 note to derive a kebab issue slug (fall back to a short symptom slug, never a timestamp); drop shell/splice/open + dot-dir wording; keep the JSON-contract paragraph (`run_id` = slug).
-- [ ] Step 3: rewrite Phase I3 in `slashforge-workflow-investigation.md` — write the five Markdown sections directly to the report path with `mkdir -p docs/slashforge/active/<slug>`; delete the shell/splice/open/HTML-fallback subsections and step 2 (open-in-browser); keep step 1b (contract) with `run_id` = slug; update the hand-off wording to `active/<slug>/investigation.md` and `/slashforge-code <slug>`.
-- [ ] Step 4: `node --test test/install.test.js` → new test PASS; line limits still hold.
+- [x] Step 1: added the test — both `investigate.md` and `slashforge-workflow-investigation.md` write `active/<slug>/investigation.md` and reference no `.html`/splice/open. Run → FAILED.
+- [x] Step 2: rewrote `investigate.md` deliverable → `active/<issue-slug>/investigation.md`; added I1 slug-derivation (kebab issue name, never a timestamp); dropped shell/splice/open + dot-dir target blocks; JSON contract kept with `run_id` = slug.
+- [x] Step 3: rewrote Phase I3 — five Markdown sections written directly with `mkdir -p docs/slashforge/active/<slug>`; removed the body-fragment/shell/splice/open-helper/HTML-fallback subsections; kept step 1b (contract, `run_id` = slug); hand-off now points at `active/<slug>/investigation.md` and `/slashforge-code <issue-slug>`.
+- [x] Step 4: `node --test test/install.test.js` → 197 PASS (also removed/trimmed 4 stale HTML-splice/shell/open tests investigate obsoleted); line limits hold.
 - [ ] Step 5: commit `feat(sdd): /slashforge-investigate writes active/<slug>/investigation.md`.
 
 ## Task 3: Review-pr flow → Markdown report

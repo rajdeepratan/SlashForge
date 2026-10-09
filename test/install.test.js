@@ -161,6 +161,22 @@ test('the HTML-shell assets are retired and swept as stale on upgrade', () => {
   assert.ok(REMOVED_ASSET_FILES.includes('slashforge-splice.js'), 'REMOVED_ASSET_FILES lists the shell assets');
 });
 
+test('/slashforge-investigate writes a Markdown report under active/<slug>/', () => {
+  for (const name of ['claude', 'agents']) {
+    const pairs = [
+      ['slashforge-workflow-investigation.md', renderAll(name)['slashforge-workflow-investigation.md']],
+      ['investigate.md', renderAll(name)[path.join('slashforge', 'investigate.md')]],
+    ];
+    for (const [f, body] of pairs) {
+      assert.ok(body.includes('active/'), `${f} (${name}) must write under active/`);
+      assert.ok(body.includes('investigation.md'), `${f} (${name}) must name the report investigation.md`);
+      assert.ok(!body.includes('.html'), `${f} (${name}) must not emit an HTML report`);
+      assert.ok(!body.includes('slashforge-splice.js'), `${f} (${name}) must not splice HTML`);
+      assert.ok(!body.includes('slashforge-open.sh'), `${f} (${name}) must not call the open helper`);
+    }
+  }
+});
+
 // A guide may point at a sibling by absolute path — slashforge-workflow-review-pr.md
 // names slashforge-report-shell.html that way. If guides were copied rather than
 // rendered, the installed guide would carry a literal {{INSTALL_PATH}} and the
@@ -172,14 +188,6 @@ test('guide files are rendered, leaving no unsubstituted placeholders', () => {
   for (const g of guidesFor(target)) {
     const body = fs.readFileSync(path.join(target.guidesDir, g), 'utf8');
     assert.ok(!/\{\{[A-Z_]+\}\}/.test(body), `guide ${g} shipped an unrendered placeholder`);
-  }
-  // Both flows splice through the shipped script, and both name it by absolute path.
-  for (const flow of ['slashforge-workflow-review-pr.md', 'slashforge-workflow-investigation.md']) {
-    const body = fs.readFileSync(path.join(target.guidesDir, flow), 'utf8');
-    assert.ok(
-      body.includes(`${target.installPath}/slashforge-splice.js`),
-      `${flow} must resolve the splice script to a real installed path`,
-    );
   }
 });
 
@@ -531,60 +539,6 @@ test('SlashForge skills that write artefacts name their own destination', () => 
 // shell. The shell must not assume which kind of document it is wrapping — it once
 // did, with a hardcoded "Investigation — " prefix. Design specs and plans are now
 // Markdown (requirements.md / plan.md / tasks.md under active/) and use no shell.
-test('the shell is document-agnostic and the investigation report uses it', () => {
-  const shell = fs.readFileSync(path.join(TEMPLATES_DIR, 'slashforge-report-shell.html'), 'utf8');
-  assert.ok(
-    /<title><!--TITLE--><\/title>/.test(shell),
-    'the shell must not prefix the title — the caller supplies the whole thing',
-  );
-
-  const body = commandInstruction('investigate.md');
-  assert.ok(body.includes('mkdir -p docs/slashforge/investigations'),
-    'investigate.md must create docs/slashforge/investigations');
-  assert.ok(body.includes('slashforge-splice.js'),
-    'investigate.md must splice through the shipped script');
-
-  // The Markdown writers must NOT reach for the HTML splice any more.
-  for (const f of ['brainstorm.md', 'plan.md']) {
-    assert.ok(!commandInstruction(f).includes('slashforge-splice.js'),
-      `${f} is Markdown now and must not use the HTML splice`);
-  }
-});
-
-// Opening a document must never be able to fail the run that produced it. The
-// investigation report is the only artefact opened in a browser now (specs and
-// plans are Markdown), so it uses the shared platform-detection helper rather than
-// carrying its own — divergent copies are how the mangled-tag bug happened.
-test('the open helper is shared, guarded, and always exits 0', () => {
-  const helper = path.join(TEMPLATES_DIR, 'slashforge-open.sh');
-  assert.ok(fs.existsSync(helper), 'slashforge-open.sh must ship');
-
-  const body = commandInstruction('investigate.md');
-  assert.ok(body.includes('slashforge-open.sh'), 'investigate.md must call the shared helper');
-  assert.ok(
-    !/case "\$\(uname -s\)"/.test(body),
-    'investigate.md must not carry its own copy of the platform detection',
-  );
-  for (const f of ['brainstorm.md', 'plan.md']) {
-    assert.ok(!commandInstruction(f).includes('slashforge-open.sh'),
-      `${f} is Markdown now and must not open a browser`);
-  }
-
-  const run = (env, arg) => {
-    const r = require('child_process').spawnSync('sh', [helper, arg], {
-      env: { ...process.env, ...env },
-      encoding: 'utf8',
-    });
-    return r.status;
-  };
-  // Remote session: must bail out cleanly rather than opening anything.
-  assert.equal(run({ SSH_CONNECTION: '1.2.3.4 22 5.6.7.8 22' }, '/tmp/nope.html'), 0);
-  // No argument at all.
-  assert.equal(run({ SSH_CONNECTION: '1' }, ''), 0);
-  // A path that does not exist, on a machine that may well have a browser.
-  assert.equal(run({}, '/tmp/definitely-does-not-exist-slashforge.html'), 0);
-});
-
 test('every SlashForge skill carries its MIT attribution', () => {
   const missing = SKILL_FILES.filter((s) => {
     const body = fs.readFileSync(path.join(TEMPLATES_DIR, s), 'utf8');
@@ -1950,15 +1904,7 @@ test('no template runs an inline node script', () => {
   assert.deepEqual(offenders, [], `inline node -e still in:\n  ${offenders.join('\n  ')}`);
 });
 
-test('every document writer calls the shipped splice script', () => {
-  // Only the HTML writers remain: the investigation report and the PR review.
-  // Design specs and plans are Markdown now and use no splice.
-  for (const f of ['investigate.md', 'review-pr.md']) {
-    assert.ok(
-      commandInstruction(f).includes('node "{{INSTALL_PATH}}/slashforge-splice.js"'),
-      `${f} must splice through slashforge-splice.js`,
-    );
-  }
+test('review-pr assembles its GitHub payload through the shipped script', () => {
   assert.ok(
     commandInstruction('review-pr.md').includes('node "{{INSTALL_PATH}}/slashforge-review-payload.js"'),
     'review-pr must assemble its payload through slashforge-review-payload.js',
