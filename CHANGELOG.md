@@ -6,6 +6,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [5.2.1] - 2026-10-09
+
+### Fixed
+- **README:** the per-command list and the token-cost table still stopped at the original six commands, omitting `/slashforge-test` and `/slashforge-refactor` (shipped in 5.2.0). Both sections now document all eight.
+
 ## [5.2.0] - 2026-10-09
 
 ### Added
