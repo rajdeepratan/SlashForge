@@ -58,7 +58,7 @@ Files: modify `docs/src/pages/index.astro` (`costs` array L115-146)
 Consumes: nothing
 Produces: cost tiles covering `/slashforge-test` and `/slashforge-refactor` (plus fix/resume if the gate approves)
 
-- [ ] Step 10: append to the `costs` array (values/labels subject to the gate's decision):
+- [x] Step 10: append to the `costs` array (values/labels subject to the gate's decision):
   ```js
   {
     label: 'Covering a file (test)',
@@ -71,6 +71,6 @@ Produces: cost tiles covering `/slashforge-test` and `/slashforge-refactor` (plu
     note: 'Zero functional change, gated by the suite passing with identical results before and after.',
   },
   ```
-- [ ] Step 11: from `docs/`, run `npm run build`, then the five `check-docs-*.mjs` scripts — all pass.
-- [ ] Step 12: do NOT commit a macOS-only `docs/package-lock.json` (CI `npm ci` needs Linux optionals) — only `index.astro` should be staged from the docs workspace.
-- [ ] Step 13: commit `docs(site): add /slashforge-test and /slashforge-refactor cost tiles`.
+- [x] Step 11: from `docs/`, run `npm run build`, then the five `check-docs-*.mjs` scripts — all pass.
+- [x] Step 12: do NOT commit a macOS-only `docs/package-lock.json` (CI `npm ci` needs Linux optionals) — only `index.astro` should be staged from the docs workspace.
+- [x] Step 13: commit `docs(site): add /slashforge-test and /slashforge-refactor cost tiles`.
