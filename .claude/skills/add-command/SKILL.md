@@ -11,7 +11,7 @@ The kit ships two kinds of invocable template, both living in
 `templates/slashforge/<name>.md` and both installed as `slashforge-<name>` on
 every host:
 
-- **Commands** (`COMMAND_FILES`) — the entry points a user types: `setup`, `code`, `investigate`, `fix`, `resume`, `review-pr`. These drive `meta.json`'s `commands` list and the `status` output.
+- **Commands** (`COMMAND_FILES`) — the entry points a user types: `setup`, `code`, `investigate`, `fix`, `resume`, `review-pr`, `test`, `refactor`. These drive `meta.json`'s `commands` list and the `status` output.
 - **Discipline skills** (`SKILL_FILES`) — disciplines the workflow invokes on the user's behalf: `brainstorm`, `plan`, `debug`, `tdd`, `verify`, `request-review`, `review-feedback`, `worktree`, `parallel`. Kept out of `COMMAND_FILES` on purpose so `status` reports only what users actually type.
 
 ## Before starting

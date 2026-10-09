@@ -4,7 +4,7 @@
 
 The source repo for **SlashForge** — a zero-dependency Node CLI that installs
 spec-driven workflow slash commands (`setup`, `code`, `investigate`, `fix`,
-`resume`, `review-pr`) into Claude Code, Cursor, and Codex. The product is the
+`resume`, `review-pr`, `test`, `refactor`) into Claude Code, Cursor, and Codex. The product is the
 `templates/` it ships; `bin/install.js` renders and installs them per host.
 
 ## Agent orchestration
