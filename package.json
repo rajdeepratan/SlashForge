@@ -1,6 +1,6 @@
 {
   "name": "slashforge",
-  "version": "5.2.1",
+  "version": "5.3.0",
   "description": "Eight spec-driven workflow commands for AI coding agents — setup, code, investigate, fix, resume, review-pr, test, refactor. One install for Claude Code, Cursor and Codex.",
   "homepage": "https://www.rajdeepratan.com/slashforge",
   "scripts": {
