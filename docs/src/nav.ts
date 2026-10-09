@@ -38,6 +38,8 @@ export const NAV: NavGroup[] = [
       { label: '/slashforge-fix', slug: 'commands/slashforge-fix' },
       { label: '/slashforge-resume', slug: 'commands/slashforge-resume' },
       { label: '/slashforge-review-pr', slug: 'commands/slashforge-review-pr' },
+      { label: '/slashforge-test', slug: 'commands/slashforge-test' },
+      { label: '/slashforge-refactor', slug: 'commands/slashforge-refactor' },
     ],
   },
   {

@@ -9,7 +9,7 @@ description: One command to install, then your first run end to end.
 npx slashforge
 ```
 
-==That installs the guide files and the six commands for Claude Code, Cursor and
+==That installs the guide files and the eight commands for Claude Code, Cursor and
 Codex== — into `~/.claude/` and `~/.agents/`. There is nothing to choose. Check they
 are there:
 
@@ -35,7 +35,7 @@ Two things worth knowing before you start:
 
 - ==Commands have the same name on every agent.== Pick your agent in the header and
   the docs show the form it takes.
-- ==On Cursor and Codex the six commands run only when you type them== — the agent
+- ==On Cursor and Codex the eight commands run only when you type them== — the agent
   never starts one on its own because a prompt looked relevant.
 
 ==Cursor and Codex share the skills in `~/.agents/skills/`, but setup scaffolds each
