@@ -45,6 +45,15 @@ records:
 4. ==Re-enters the workflow at `current_phase + 1`== and runs the phase loop as if it had never
    stopped.
 
+## Ingesting PR feedback
+
+Reviewer feedback usually lands after the run has ended. Because the Phase 8 checkpoint records
+the PR number, resuming a run whose PR exists makes `/slashforge-resume` fetch the PR's review
+state with `gh` first. On `CHANGES_REQUESTED` (or unresolved threads) it ==re-enters Phase 9 to
+work the comments== rather than `current_phase + 1` — running the merge/conflict ladder first if
+the base branch moved underneath. If `gh` is missing or unauthenticated it stops rather than
+guessing, and a PR with nothing requested resumes normally.
+
 ## Gates are never skipped
 
 A mandatory gate the run had not yet reached ==still runs when resume gets there.== A gate you
