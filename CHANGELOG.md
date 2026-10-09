@@ -11,6 +11,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 - **PR request-changes can be ingested by `/slashforge-resume`.** Reviewer feedback usually arrives after the run has ended, so the Phase 8 checkpoint now records the PR number and `/slashforge-resume` uses it: it fetches the PR's review state with `gh`, and on `CHANGES_REQUESTED` (or unresolved threads) re-enters Phase 9 to work the comments — running the conflict ladder first if the base moved. If `gh` is unavailable it stops rather than guessing. The `slashforge-review-feedback` discipline now carries the concrete `gh` fetch-and-classify recipe.
+- **Investigation and PR-review reports are Markdown, named the spec-driven way.** `/slashforge-investigate` now writes `docs/slashforge/active/<issue-slug>/investigation.md` — an issue slug rather than a timestamp, in the same `active/<issue-slug>/` folder a later `/slashforge-code` or `/slashforge-fix` reuses — and `/slashforge-review-pr` writes `docs/slashforge/reviews/pr-<N>-<title-slug>.md`. Both are plain Markdown: the HTML report shell and its `slashforge-splice.js` / `slashforge-open.sh` helpers are retired (an upgrade removes them from a prior install), reports are no longer opened in a browser, and `/slashforge-code <issue-slug>` resolves the investigation from the `active/<issue-slug>/` folder.
 
 ## [5.2.1] - 2026-10-09
 
