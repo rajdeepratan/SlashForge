@@ -20,6 +20,8 @@ const {
   GUIDE_FILES,
   REMOVED_GUIDE_FILES,
   ASSET_FILES,
+  REMOVED_ASSET_FILES,
+  isStaleKitFile,
   SKILL_FILES,
   COMMAND_FILES,
   LEGACY_COMMAND_FILES,
@@ -144,6 +146,19 @@ test('asset files install verbatim alongside the guides', () => {
       `asset ${a} was not copied verbatim`,
     );
   }
+});
+
+test('the HTML-shell assets are retired and swept as stale on upgrade', () => {
+  for (const a of ['slashforge-report-shell.html', 'slashforge-splice.js', 'slashforge-open.sh']) {
+    assert.ok(!ASSET_FILES.includes(a), `${a} must no longer ship in ASSET_FILES`);
+    assert.ok(isStaleKitFile(a), `${a} must be treated as stale so an upgrade removes it`);
+  }
+  assert.deepEqual(
+    ASSET_FILES,
+    ['slashforge-review-payload.js', 'slashforge-audit.js'],
+    'only the GitHub-payload and audit assets remain',
+  );
+  assert.ok(REMOVED_ASSET_FILES.includes('slashforge-splice.js'), 'REMOVED_ASSET_FILES lists the shell assets');
 });
 
 // A guide may point at a sibling by absolute path — slashforge-workflow-review-pr.md
@@ -2101,7 +2116,7 @@ test('installAgentsFiles writes per-host guides, neutral skills and one meta', (
   for (const h of a.hosts) {
     assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-workflow.md')), `${h.host} guides`);
     assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-setup-flow.md')), `${h.host} setup flow`);
-    assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-splice.js')), `${h.host} assets`);
+    assert.ok(fs.existsSync(path.join(h.guidesDir, 'slashforge-audit.js')), `${h.host} assets`);
     // The guides read meta.json from their own folder (slashforge-instructions.md says so).
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(h.guidesDir, 'meta.json'), 'utf8')).hosts, ['cursor', 'codex']);
   }
@@ -2551,7 +2566,7 @@ test('every installed kit file is named slashforge-*, none forge-*', () => {
   const bad = allFiles(home).map((p) => path.basename(p)).filter((n) => /^forge-/.test(n));
   assert.deepEqual([...new Set(bad)], [], 'forge-* files installed');
   const guides = fs.readdirSync(path.join(home, '.claude', 'setup', 'slashforge'));
-  assert.ok(guides.includes('slashforge-workflow.md') && guides.includes('slashforge-splice.js'));
+  assert.ok(guides.includes('slashforge-workflow.md') && guides.includes('slashforge-audit.js'));
 });
 
 test('no installed file names a forge-* kit file', () => {

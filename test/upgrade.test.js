@@ -163,15 +163,25 @@ test('upgrading a cursor install removes guides it no longer receives', () => {
     'a guide this target does receive must survive');
 });
 
-// The sweep deletes files on real machines, so prove what it cannot touch.
-test('the stale sweep never removes meta.json or the assets', () => {
+// The sweep deletes files on real machines, so prove what it cannot touch —
+// and that it DOES remove a prior install's retired HTML-shell assets.
+test('the stale sweep keeps meta.json and the kept assets, removes the retired ones', () => {
   const home = tmp();
   const target = resolveTarget({ target: 'cursor', homeDir: home, cwd: home });
   target.omit = ['slashforge-memory.md'];
+  // Simulate a prior install that still carries the retired HTML-shell assets.
+  installFiles(target, {});
+  for (const stale of ['slashforge-open.sh', 'slashforge-report-shell.html', 'slashforge-splice.js']) {
+    fs.writeFileSync(path.join(target.guidesDir, stale), 'old\n');
+  }
+  // Re-install (an upgrade): the sweep must clear them.
   installFiles(target, {});
   assert.ok(fs.existsSync(target.metaFile), 'meta.json must survive');
-  for (const asset of ['slashforge-open.sh', 'slashforge-report-shell.html']) {
-    assert.ok(fs.existsSync(path.join(target.guidesDir, asset)), `${asset} must survive`);
+  for (const kept of ['slashforge-review-payload.js', 'slashforge-audit.js']) {
+    assert.ok(fs.existsSync(path.join(target.guidesDir, kept)), `${kept} must survive`);
+  }
+  for (const stale of ['slashforge-open.sh', 'slashforge-report-shell.html', 'slashforge-splice.js']) {
+    assert.ok(!fs.existsSync(path.join(target.guidesDir, stale)), `${stale} must be swept on upgrade`);
   }
 });
 
