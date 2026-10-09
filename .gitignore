@@ -6,6 +6,9 @@ npm-debug.log*
 coverage/
 packages/
 
+# machine-local SlashForge run state (checkpoints, baselines)
+.slashforge/
+
 # docs site build artifacts
 docs/dist/
 docs/.astro/
