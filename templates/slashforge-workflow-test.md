@@ -97,7 +97,10 @@ artifact `/slashforge-fix` needs so the user can act on it immediately.
      "run_id": "test-<YYYY-MM-DD-HHMM>",
      "reproduction_steps": ["run <the failing test command>", "observe <expected> vs <actual>"],
      "root_cause": "Spec test surfaced a mismatch; root cause not yet analysed. Expected <X>, got <Y>.",
-     "implicated_files": [{ "filepath": "path/to/target", "line_numbers": [] }],
+     "implicated_files": [
+       { "filepath": "path/to/target", "line_numbers": [] },
+       { "filepath": "path/to/the/new/test-file", "line_numbers": [] }
+     ],
      "suggested_approach": "Make <target> meet the asserted behaviour, or correct the spec if the assertion is wrong."
    }
    ```
