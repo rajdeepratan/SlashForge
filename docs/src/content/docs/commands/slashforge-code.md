@@ -73,8 +73,8 @@ without your answer:==
 | 5 | Implement | TDD, systematic debugging, or subagent-driven as appropriate |
 | 6 | Verify | Lint, tests, build, and convergence against the spec |
 | 7 | Review | `code-reviewer` agent pass |
-| 8 | **Push + PR** | You confirm target and reviewers |
-| 9 | PR feedback | Handles reviewer comments |
+| 8 | **Push + PR** | You confirm target and reviewers; a diverged base is integrated with a merge (not rebase), stopping on conflict |
+| 9 | PR feedback | Handles reviewer comments — re-enterable later via `/slashforge-resume`, which ingests PR request-changes |
 | 10 | **Cleanup** | You approve branch deletion; the change is archived |
 
 ## Spec-driven artefacts

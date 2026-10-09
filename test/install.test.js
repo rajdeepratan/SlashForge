@@ -1300,6 +1300,52 @@ test('the oversize list contains only files that are actually oversize', () => {
   }
 });
 
+test('the conflicts ladder guide ships, is registered, and renders within the cap', () => {
+  assert.ok(
+    GUIDE_FILES.includes('slashforge-workflow-conflicts.md'),
+    'slashforge-workflow-conflicts.md must be registered in GUIDE_FILES',
+  );
+  const claude = renderAll('claude');
+  const key = Object.keys(claude).find(
+    (k) => path.basename(k) === 'slashforge-workflow-conflicts.md',
+  );
+  assert.ok(key, 'slashforge-workflow-conflicts.md must render for the claude host');
+  const lines = claude[key].split('\n').length;
+  assert.ok(lines <= 200, `conflicts guide renders at ${lines} lines, over the 200-line cap`);
+});
+
+test('workflow.md points Phase 8/10 at the conflicts ladder and stays within the cap', () => {
+  const body = renderAll('claude')['slashforge-workflow.md'];
+  assert.ok(
+    body.includes('slashforge-workflow-conflicts.md'),
+    'slashforge-workflow.md must reference slashforge-workflow-conflicts.md',
+  );
+  const lines = body.split('\n').length;
+  assert.ok(lines <= 200, `slashforge-workflow.md renders at ${lines} lines, over the 200-line cap`);
+});
+
+test('the resume guide documents PR-feedback re-entry', () => {
+  const guide = renderAll('claude')['slashforge-workflow-resume.md'];
+  assert.match(guide, /Feedback re-entry/, 'resume guide must have a Feedback re-entry section');
+  assert.match(guide, /pr_number/, 'resume guide must document the pr_number checkpoint field');
+  assert.match(guide, /reviewDecision/, 'resume guide must show the gh review-state fetch');
+  assert.ok(
+    guide.includes('slashforge-workflow-conflicts.md'),
+    'feedback re-entry must route an advanced base through the conflicts ladder',
+  );
+});
+
+test('the resume command surfaces the PR-feedback case', () => {
+  const cmd = renderAll('claude')[path.join('slashforge', 'resume.md')];
+  assert.match(cmd, /pr_number/, 'resume command must detect the pr_number feedback case');
+});
+
+test('the review-feedback skill carries the gh ingestion recipe', () => {
+  const skill = renderAll('claude')[path.join('slashforge', 'review-feedback.md')];
+  assert.match(skill, /Ingesting from GitHub/, 'review-feedback must document GitHub ingestion');
+  assert.match(skill, /gh pr view/, 'review-feedback must show the gh fetch command');
+});
+
 // --- Task 7: subagent guide split ---
 
 test('codex gets the TOML subagent guide, the others get the markdown one', () => {

@@ -25,6 +25,7 @@ const GUIDE_FILES = [
   'slashforge-workflow-agents.md',
   'slashforge-workflow-quick.md',
   'slashforge-workflow-resume.md',
+  'slashforge-workflow-conflicts.md',
   'slashforge-workflow-test.md',
   'slashforge-workflow-refactor.md',
   'slashforge-rules.md',

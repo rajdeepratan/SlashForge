@@ -31,6 +31,8 @@ belongs in `.gitignore`.
     "summary": "What has happened so far, in a few sentences.",
     "plan_path": "docs/slashforge/active/oauth-login/plan.md",
     "tasks_path": "docs/slashforge/active/oauth-login/tasks.md",
+    "pr_number": 128,
+    "pr_url": "https://github.com/<owner>/<repo>/pull/128",
     "gates_answered": { "plan_confirmed": true, "branch_decision": "new: feat/oauth-login from main" },
     "notes": "Any phase-specific state the next phase needs."
   },
@@ -44,7 +46,8 @@ belongs in `.gitignore`.
   verification compares the live HEAD against these.
 - **`context_snapshot`** — everything the next phase needs that is not already on disk: the plan and
   tasks paths, which gates the user already answered (so they are not re-asked), and a short prose
-  summary. It is a snapshot, not a transcript — keep it small.
+  summary. It is a snapshot, not a transcript — keep it small. The Phase 8 checkpoint additionally
+  records `pr_number`/`pr_url` once the PR is created, which the feedback re-entry below reads.
 
 ## Writing a checkpoint (the workflow's job, atomically)
 
@@ -89,6 +92,30 @@ invalid JSON; use a tool that serialises it.
    `gates_answered`; a gate the run never reached still runs normally.
 5. **Keep checkpointing.** The resumed run writes checkpoints at the end of each subsequent phase,
    same as a fresh run, so it can be resumed again if interrupted twice.
+
+## Feedback re-entry (PR request-changes)
+
+Reviewer feedback arrives asynchronously — usually in a fresh session after the Phase 8 checkpoint
+was written. That checkpoint has `current_phase: 8` and carries `pr_number`/`pr_url`, so a normal
+resume would already re-enter at Phase 9. Before doing so, establish the PR's actual review state:
+
+```bash
+gh pr view <pr_number> --json reviewDecision,reviews,comments,headRefName,baseRefName
+```
+
+- **`gh` missing or unauthenticated** → stop and ask the user to install/authenticate it
+  (`gh auth status`). Never guess the review state.
+- **`reviewDecision == CHANGES_REQUESTED`, or unresolved review threads exist** → there is feedback
+  to ingest. First check divergence: if `origin/<baseRefName>` has advanced under the branch, run
+  the merge/conflict ladder in `slashforge-workflow-conflicts.md` before touching the feedback.
+  Then re-enter **Phase 9** (not `current_phase + 1`) — it reuses `slashforge-review-feedback` to
+  classify the comments Must / Should / Discuss and to gate the Discuss items. The concrete `gh`
+  fetch-and-map recipe lives in that skill.
+- **No changes requested** (`APPROVED`, or only resolved threads) → report it and resume normally
+  at `current_phase + 1`. Do not invent work from a PR that has none.
+
+A Phase 8 checkpoint with no `pr_number` (the run stopped before the PR was created) resumes
+normally — there is no PR to read.
 
 ## What resume never does
 
