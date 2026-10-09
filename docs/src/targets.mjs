@@ -28,6 +28,7 @@ export const SWITCHABLE = [
   'investigate',
   'review-pr',
   'resume',
+  'test',
   'brainstorm',
   'plan',
   'debug',

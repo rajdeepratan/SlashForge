@@ -34,6 +34,8 @@ const COMMAND_WORKFLOWS = {
   'investigate.md': ['slashforge-workflow-investigation.md'],
   'review-pr.md': ['slashforge-workflow-review-pr.md', 'slashforge-workflow-security.md'],
   'resume.md': ['slashforge-workflow-resume.md', 'slashforge-workflow.md'],
+  'test.md': ['slashforge-workflow-test.md'],
+  'refactor.md': ['slashforge-workflow.md', 'slashforge-workflow-refactor.md', 'slashforge-workflow-test.md'],
 };
 
 function instruction(cmd) {
@@ -268,6 +270,35 @@ test('P5: Node engines are raised to 24 and CI matches', () => {
   const ci = fs.readFileSync(path.join(__dirname, '..', '.github', 'workflows', 'ci.yml'), 'utf8');
   assert.ok(/node-version:\s*\[24\]/.test(ci), 'CI matrix must run Node 24');
   assert.ok(!/node-version:\s*\[16/.test(ci), 'the Node 16 floor must be gone from the matrix');
+});
+
+// ---------------------------------------------------------------------------
+// Light Gears — /slashforge-test and /slashforge-refactor
+// ---------------------------------------------------------------------------
+
+test('Light Gears: /slashforge-test ships as a command and installs', () => {
+  assert.ok(
+    COMMAND_FILES.some((c) => c.endsWith(`${path.sep}test.md`)),
+    'test.md must be a shipped command',
+  );
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  const dest = commandPath(target, path.join('slashforge', 'test.md'));
+  assert.ok(fs.existsSync(dest), 'test command must install');
+  const body = fs.readFileSync(dest, 'utf8');
+  assert.match(body, /^name: \/slashforge-test$/m, 'test.md frontmatter names the command');
+  assert.ok(!body.includes('{{INSTALL_PATH}}'), 'test.md must be rendered');
+});
+
+test('Light Gears: /slashforge-test discovers framework, never edits prod, writes full contract on red', () => {
+  const instr = instruction('test.md');
+  assert.match(instr, /CLAUDE\.md|AGENTS\.md/, 'framework discovery reads CLAUDE.md/AGENTS.md');
+  assert.match(instr, /never modifies production code/i, 'never edits production code');
+  assert.match(instr, /latest_investigation\.json/, 'writes the investigation contract on red');
+  for (const key of ['run_id', 'reproduction_steps', 'root_cause', 'implicated_files', 'suggested_approach']) {
+    assert.match(instr, new RegExp(key), `contract names ${key}`);
+  }
 });
 
 // ---------------------------------------------------------------------------
