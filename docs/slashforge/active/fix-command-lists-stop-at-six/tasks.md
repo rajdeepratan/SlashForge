@@ -12,7 +12,7 @@ also fix the stale comment L2594 + test name L2596)
 Consumes: exported `COMMAND_FILES` and `commandName` from `bin/install.js` (already imported by this test file)
 Produces: a failing test proving the closing message omits `/slashforge-test` and `/slashforge-refactor`
 
-- [ ] Step 1: add this test after the existing `'the install summary names all three agents'` test:
+- [x] Step 1: add this test after the existing `'the install summary names all three agents'` test:
   ```js
   test('the install summary lists every shipped command', () => {
     const home = tmp();
@@ -27,31 +27,31 @@ Produces: a failing test proving the closing message omits `/slashforge-test` an
     }
   });
   ```
-- [ ] Step 2: run `node --test test/install.test.js` — confirm the NEW test FAILS with
+- [x] Step 2: run `node --test test/install.test.js` — confirm the NEW test FAILS with
   `closing message must list /slashforge-test` (refactor likewise). The rest of the file stays green.
-- [ ] Step 3: in the same file, fix the stale wording (no behaviour change): change the comment at
+- [x] Step 3: in the same file, fix the stale wording (no behaviour change): change the comment at
   L2594 from "The four commands must run only when the user types them." to "These commands must run
   only when the user types them." and rename the test at L2596 from
   `'the four commands run only when typed on Cursor and Codex'` to
   `'the commands run only when typed on Cursor and Codex'`.
-- [ ] Step 4: `git add -A` is **not** run yet — Task 2 commits together after green.
+- [x] Step 4: `git add -A` is **not** run yet — Task 2 commits together after green.
 
 ## Task 2: patch install.js — closing message + stale comment
 Files: modify `bin/install.js` (closing message L1199-1205; comment L545)
 Consumes: Task 1's failing test
 Produces: closing message naming all eight commands; count-agnostic comment; Task 1 test green
 
-- [ ] Step 5: in the closing-message block (after the `/slashforge-review-pr` bullet at L1205), add:
+- [x] Step 5: in the closing-message block (after the `/slashforge-review-pr` bullet at L1205), add:
   ```js
   console.log('  • /slashforge-test [file|glob] — generate spec-based test coverage for existing files (no branch, no PR)');
   console.log('  • /slashforge-refactor [file|glob] — zero-functional-change refactor, gated by the suite passing before and after');
   ```
-- [ ] Step 6: change the comment at L545 from
+- [x] Step 6: change the comment at L545 from
   `// relevant. The four commands must run only when the user types them: Cursor` to
   `// relevant. These commands must run only when the user types them: Cursor`.
-- [ ] Step 7: run `node --test test/install.test.js` — confirm the Task 1 test now PASSES and the whole file is green.
-- [ ] Step 8: run `npm test` (full suite) — all green, including the pinned-render test (unchanged, since no template output changed).
-- [ ] Step 9: commit `fix(install): list all eight commands in the closing message; drop stale "four" wording`.
+- [x] Step 7: run `node --test test/install.test.js` — confirm the Task 1 test now PASSES and the whole file is green.
+- [x] Step 8: run `npm test` (full suite) — all green, including the pinned-render test (unchanged, since no template output changed).
+- [x] Step 9: commit `fix(install): list all eight commands in the closing message; drop stale "four" wording`.
 
 ## Task 3: homepage cost tiles — add test + refactor
 Files: modify `docs/src/pages/index.astro` (`costs` array L115-146)
