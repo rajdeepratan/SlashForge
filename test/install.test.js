@@ -1674,7 +1674,7 @@ test('meta.json and status report the host invocation form', () => {
   const a = resolveAgents({ homeDir: home, cwd: home });
   installAgentsFiles(a, {});
   const meta = JSON.parse(fs.readFileSync(a.metaFile, 'utf8'));
-  assert.deepEqual(meta.commands, ['/slashforge-setup', '/slashforge-code', '/slashforge-investigate', '/slashforge-fix', '/slashforge-resume', '/slashforge-review-pr', '/slashforge-test']);
+  assert.deepEqual(meta.commands, ['/slashforge-setup', '/slashforge-code', '/slashforge-investigate', '/slashforge-fix', '/slashforge-resume', '/slashforge-review-pr', '/slashforge-test', '/slashforge-refactor']);
   const env = { ...process.env, HOME: home, USERPROFILE: home, SLASHFORGE_NO_UPDATE_CHECK: '1' };
   const out = execFileSync('node', [BIN, 'status'], { env, encoding: 'utf8' });
   assert.match(out, /\$slashforge-code/, 'status shows the Codex form');

@@ -26,6 +26,7 @@ const GUIDE_FILES = [
   'slashforge-workflow-quick.md',
   'slashforge-workflow-resume.md',
   'slashforge-workflow-test.md',
+  'slashforge-workflow-refactor.md',
   'slashforge-rules.md',
   'slashforge-skills.md',
   'slashforge-agents.md',
@@ -64,6 +65,7 @@ const COMMAND_FILES = [
   path.join('slashforge', 'resume.md'),
   path.join('slashforge', 'review-pr.md'),
   path.join('slashforge', 'test.md'),
+  path.join('slashforge', 'refactor.md'),
 ];
 
 // Discipline skills. They install the same way as the commands above, as

@@ -301,6 +301,29 @@ test('Light Gears: /slashforge-test discovers framework, never edits prod, write
   }
 });
 
+test('Light Gears: /slashforge-refactor ships as a command and installs', () => {
+  assert.ok(
+    COMMAND_FILES.some((c) => c.endsWith(`${path.sep}refactor.md`)),
+    'refactor.md must be a shipped command',
+  );
+  const home = tmp();
+  const target = resolveTarget({ homeDir: home, cwd: home });
+  installFiles(target, {});
+  const dest = commandPath(target, path.join('slashforge', 'refactor.md'));
+  assert.ok(fs.existsSync(dest), 'refactor command must install');
+  const body = fs.readFileSync(dest, 'utf8');
+  assert.match(body, /^name: \/slashforge-refactor$/m, 'refactor.md frontmatter names the command');
+  assert.ok(!body.includes('{{INSTALL_PATH}}'), 'refactor.md must be rendered');
+});
+
+test('Light Gears: /slashforge-refactor enforces zero-functional-change and the baseline gate', () => {
+  const instr = instruction('refactor.md');
+  assert.match(instr, /zero-functional-change/i, 'states the zero-functional-change rule');
+  assert.match(instr, /baseline/i, 'establishes a before baseline');
+  assert.match(instr, /\/slashforge-test|slashforge-workflow-test\.md/, 'auto-runs the test flow when coverage is absent');
+  assert.match(instr, /identical|same results/i, 'requires identical before/after results');
+});
+
 // ---------------------------------------------------------------------------
 // Cross-cutting — the new guides are registered so they install and validate
 // ---------------------------------------------------------------------------
@@ -312,6 +335,8 @@ test('every new workflow companion is registered in GUIDE_FILES', () => {
     'slashforge-workflow-security.md',
     'slashforge-workflow-docs.md',
     'slashforge-workflow-resume.md',
+    'slashforge-workflow-test.md',
+    'slashforge-workflow-refactor.md',
   ]) {
     assert.ok(GUIDE_FILES.includes(g), `${g} must be in GUIDE_FILES`);
     assert.ok(fs.existsSync(path.join(TEMPLATES_DIR, g)), `${g} template must exist`);
