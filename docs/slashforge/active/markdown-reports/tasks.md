@@ -37,10 +37,10 @@ Produces: review-pr writes `reviews/pr-<N>-<title-slug>.md` (no date).
 Files: modify `templates/slashforge/code.md`, `templates/slashforge-workflow-fix.md`, `test/install.test.js`
 Produces: Step 0b resolves `active/<slug>/investigation.md` + bare slug.
 
-- [ ] Step 1: add a test — rendered `code.md` references `active/` + `investigation.md` and no longer references `investigations/investigation-` or `.html`. Run → FAILS.
-- [ ] Step 2: rewrite `code.md` Step 0b resolution list + confirmation line for `active/<slug>/investigation.md` and a bare `<issue-slug>` (an `active/<slug>/` holding `investigation.md`).
-- [ ] Step 3: update `slashforge-workflow-fix.md` — contract `run_id` example = issue slug; Phase-1 slug reuse points at `active/<slug>/`.
-- [ ] Step 4: `node --test test/install.test.js` → PASS.
+- [x] Step 1: added the test — `code.md` references `active/` + `investigation.md` and no longer `investigations/investigation-` or a dated filename. Run → FAILED.
+- [x] Step 2: rewrote `code.md` Step 0b — item 1 example + item 2 (bare `<issue-slug>` resolving to `active/<slug>/investigation.md`) + the confirmation line.
+- [x] Step 3: `slashforge-workflow-fix.md` — contract `run_id` = `<issue-slug>`; Phase-1 slug reuse now says the investigation already created `active/<issue-slug>/` and plan/tasks go into that same folder.
+- [x] Step 4: `node --test test/install.test.js` → 199 PASS.
 - [ ] Step 5: commit `feat(sdd): code/fix hand-off resolves active/<slug>/investigation.md`.
 
 ## Task 5: Delete the asset files + the "no references" guard

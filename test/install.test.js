@@ -191,6 +191,19 @@ test('/slashforge-review-pr writes a Markdown report named by PR, no date, no sp
   }
 });
 
+test('/slashforge-code Step 0b resolves active/<slug>/investigation.md, not the old HTML path', () => {
+  for (const name of ['claude', 'agents']) {
+    const body = renderAll(name)[path.join('slashforge', 'code.md')];
+    assert.ok(body.includes('investigation.md'), `code.md (${name}) must resolve investigation.md`);
+    assert.ok(body.includes('active/'), `code.md (${name}) must reference the active/<slug>/ folder`);
+    assert.ok(
+      !body.includes('investigations/investigation-'),
+      `code.md (${name}) must drop the old investigations/investigation-<date> path`,
+    );
+    assert.ok(!/investigation-\d{4}-\d{2}-\d{2}/.test(body), `code.md (${name}) must drop the dated filename`);
+  }
+});
+
 // A guide may point at a sibling by absolute path — slashforge-workflow-review-pr.md
 // names slashforge-report-shell.html that way. If guides were copied rather than
 // rendered, the installed guide would carry a literal {{INSTALL_PATH}} and the
