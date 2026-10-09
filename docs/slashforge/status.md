@@ -4,14 +4,15 @@ The current state of the spec home. See `slashforge-spec-home.md` for the layout
 
 ## Active
 
-- **fix-command-lists-stop-at-six** — fix the remaining hand-maintained command
-  enumerations that still stop at six/eight (install closing message, the
-  `install.js` "four commands" comment, the landing-page cost tiles). Addresses
-  issue #106. Investigation done (`active/fix-command-lists-stop-at-six/`); not
-  yet implemented.
+_None._
 
 ## Recently archived
 
+- **fix-command-lists-stop-at-six** — fixed the hand-maintained command
+  enumerations that still stopped at six/four (install closing message, the
+  `install.js` "four commands" comment, the landing-page cost tiles), guarded by
+  a regression test. Closes issue #106. Merged 2026-10-09 (PR #111), released in
+  5.3.1. See `archive/fix-command-lists-stop-at-six/`.
 - **markdown-reports** — `/slashforge-investigate` and `/slashforge-review-pr`
   now write Markdown reports named the spec-driven way
   (`active/<issue-slug>/investigation.md`, `reviews/pr-<N>-<title-slug>.md`); the
