@@ -38,7 +38,12 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
+      # Full history: the docs build stamps each page with its last-commit date
+      # (src/lastModified.ts). A shallow clone has none, so every page would
+      # show the build date.
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
