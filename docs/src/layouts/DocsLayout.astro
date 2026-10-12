@@ -84,6 +84,21 @@ const toc = headings.filter((h) => h.depth === 2);
       {description && <p class="lede">{description}</p>}
       <hr class="rule" />
 
+      {
+        toc.length > 0 && (
+          <details class="toc-mobile">
+            <summary>On this page</summary>
+            <ul>
+              {toc.map((h) => (
+                <li>
+                  <a href={`#${h.slug}`}>{h.text}</a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )
+      }
+
       <slot />
 
       <div class="pager">
