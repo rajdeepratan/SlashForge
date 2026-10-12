@@ -52,7 +52,7 @@ const toc = headings.filter((h) => h.depth === 2);
   </button>
 
   <div class="shell">
-    <aside class="sidebar" data-sidebar>
+    <aside class="sidebar" data-sidebar aria-label="Documentation">
       {
         NAV.map((group) => (
           <div class="sb-group">
@@ -78,7 +78,7 @@ const toc = headings.filter((h) => h.depth === 2);
       }
     </aside>
 
-    <main class="main">
+    <main class="main" id="main-content">
       {kicker && <div class="kicker">{kicker}</div>}
       <h1>{titleCmd ? <span data-cmd={titleCmd}>{title}</span> : title}</h1>
       {description && <p class="lede">{description}</p>}
@@ -127,7 +127,7 @@ const toc = headings.filter((h) => h.depth === 2);
       </div>
     </main>
 
-    <aside class="toc">
+    <aside class="toc" aria-label="On this page">
       {
         toc.length > 0 && (
           <>

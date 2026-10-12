@@ -160,11 +160,20 @@ a { color: inherit; text-decoration: none; }
 .socials {
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding-left: 14px;
+  gap: 6px;
+  padding-left: 10px;
   border-left: 2px solid var(--hairline);
 }
-.socials a { color: var(--muted); display: flex; }
+/* A >=24px square so the 17-19px glyphs clear the WCAG 2.2 target-size
+   minimum; the reduced gap above keeps the glyphs about as spaced as before. */
+.socials a {
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  min-height: 26px;
+}
 .socials a:hover { color: var(--text); }
 
 /* The theme control is a bordered text button, not a select. */
@@ -181,6 +190,24 @@ a { color: inherit; text-decoration: none; }
   cursor: pointer;
 }
 .theme-btn:hover { background: var(--ember); border-color: var(--ember); color: #f3f2f2; }
+
+/* Skip link: off-screen until focused, then a solid control at the top-left so
+   a keyboard user can jump the header and land on the content. --ember-hover
+   is the darker shade, so white text on it clears the contrast minimum. */
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -56px;
+  z-index: 1000;
+  padding: 10px 16px;
+  background: var(--ember-hover);
+  color: #f3f2f2;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.15s;
+}
+.skip-link:focus { top: 8px; }
 
 /* ---------- Docs shell ---------- */
 
