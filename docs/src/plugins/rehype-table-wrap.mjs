@@ -1,23 +1,58 @@
 import { visit } from 'unist-util-visit';
 
 /**
- * Wraps every table in a horizontally scrollable container.
+ * Wraps every table in a horizontally scrollable container and labels each body
+ * cell with its column header.
  *
- * The design sets `td:first-child` in mono with `white-space: nowrap`, because
- * that column is almost always a path or an identifier and reads badly broken
- * across lines. On a phone that is unsurvivable on its own: a cell like
- * `~/.claude/setup/slashforge/` is roughly 235px, which alone nearly fills a
- * 375px screen once the gutters are taken off — the table would push the whole
- * page sideways.
+ * The first column is set in mono (`td:first-child`) because it is almost
+ * always a path or identifier. A long one like `~/.agents/setup/slashforge/`
+ * is wide enough that on a phone the table would push the whole page sideways;
+ * `.table-wrap` confines any overflow to the one element.
  *
- * Scrolling the table rather than the document keeps the nowrap rule intact and
- * confines the overflow to the one element that needs it.
+ * On narrow screens the CSS stacks each table as label-over-value instead of
+ * scrolling (see the `max-width: 640px` block in site.css). That needs every
+ * body cell to know its column's header, so we copy the header text onto each
+ * `td` as `data-label`; `td::before` renders it. Markdown gives us no per-cell
+ * label, so it is derived here from the header row.
  */
+
+function textOf(node) {
+  if (!node) return '';
+  if (node.type === 'text') return node.value;
+  return (node.children || []).map(textOf).join('');
+}
+
+function elementChild(node, tagName) {
+  return (node.children || []).find((c) => c.type === 'element' && c.tagName === tagName);
+}
+
+function elementChildren(node, tagName) {
+  return (node?.children || []).filter((c) => c.type === 'element' && c.tagName === tagName);
+}
+
+function labelCells(table) {
+  const head = elementChild(table, 'thead');
+  const body = elementChild(table, 'tbody');
+  const headerRow = head && elementChildren(head, 'tr')[0];
+  if (!headerRow || !body) return;
+
+  const labels = elementChildren(headerRow, 'th').map((th) => textOf(th).trim());
+  for (const row of elementChildren(body, 'tr')) {
+    elementChildren(row, 'td').forEach((td, i) => {
+      if (!labels[i]) return;
+      td.properties = td.properties || {};
+      td.properties.dataLabel = labels[i];
+    });
+  }
+}
+
 export function rehypeTableWrap() {
   return (tree) => {
     visit(tree, 'element', (node, index, parent) => {
       if (node.tagName !== 'table' || !parent || index === null) return;
       if (parent.type === 'element' && parent.properties?.class === 'table-wrap') return;
+
+      labelCells(node);
 
       parent.children[index] = {
         type: 'element',

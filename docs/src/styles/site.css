@@ -1380,6 +1380,46 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
 .table-wrap table { margin-bottom: 0; }
 
 @media (max-width: 640px) {
+  /* Stack every table as label-over-value so nothing scrolls sideways on a
+     phone. Each body cell carries its column header as data-label (set by
+     rehype-table-wrap) and sits on its own line; the header row is then
+     redundant and is dropped. */
+  .table-wrap { overflow-x: visible; }
+  .table-wrap table,
+  .table-wrap tbody,
+  .table-wrap tr,
+  .table-wrap td { display: block; width: auto; }
+
+  .table-wrap thead { display: none; }
+
+  .table-wrap tr {
+    border-bottom: 2px solid var(--rule);
+    padding: 12px 0;
+  }
+  .table-wrap tr:last-child { border-bottom: 0; }
+
+  .table-wrap td {
+    border-bottom: 0;
+    padding: 4px 0;
+    line-height: 1.5;
+  }
+
+  /* The column header, shown above its value. Sans even over the mono first
+     cell, to match the header row it replaces. */
+  .table-wrap td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 1px;
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+}
+
+@media (max-width: 640px) {
   /* The header is a fixed-height grid of five controls. At this width brand +
      search + socials + menu + theme measures ~440px against ~343px available,
      so the social row goes; GitHub is still linked from the home hero. */
