@@ -1025,6 +1025,11 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
    come from the tokens, so dark mode follows without a second block. */
 .code__tabs { display: flex; }
 
+/* The same tab strip standing on its own in prose (not in a code bar), beside
+   the content the header selector drives. Reuses .code__tabs for the look so it
+   can never drift from the block tabs; this only gives it room to breathe. */
+.agent-tabs { margin: 0 0 20px; }
+
 .code__tabs button {
   font-family: var(--font);
   font-size: 10.5px;

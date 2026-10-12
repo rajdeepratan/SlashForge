@@ -12,8 +12,14 @@ letting it freewheel from prompt to patch.
 
 ## What gets installed
 
-Two things land on your machine. Where they go depends on your agent — pick yours
-in the header:
+Two things land on your machine. Where they go depends on your agent — switch it
+here (it is the same control as the header):
+
+<div class="code__tabs agent-tabs" role="tablist" aria-label="Coding agent">
+  <button type="button" role="tab" data-target-opt="claude" aria-selected="true">Claude</button>
+  <button type="button" role="tab" data-target-opt="cursor" aria-selected="false">Cursor</button>
+  <button type="button" role="tab" data-target-opt="codex" aria-selected="false">Codex</button>
+</div>
 
 :::agent[claude]
 | What | Where |
@@ -49,7 +55,7 @@ with commands you already have — and it is the same name on every host.
 
 `/slashforge-setup` generates six kinds of file into your repo. They are concepts
 all three agents share rather than SlashForge inventions, though each keeps them
-in its own place — shown here for the agent picked in the header:
+in its own place — shown here for your selected agent:
 
 :::agent[claude]
 | Term | What it is | Where it lives |
