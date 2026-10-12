@@ -3,9 +3,12 @@ title: Troubleshooting
 description: The handful of things that actually go wrong, and what to do about each.
 ---
 
+New here? Start with [Installation](/slashforge/guides/installation/) and the
+first-run walkthrough — this page is the handful of things that go wrong after that.
+
 ## The commands do not appear
 
-==By far the most common one.== You type `/` (`$` in Codex) and see nothing named `slashforge`.
+By far the most common one. You type `/` (`$` in Codex) and see nothing named `slashforge`.
 
 ::::agent[claude]
 ### In Claude Code
@@ -30,7 +33,7 @@ description: The handful of things that actually go wrong, and what to do about 
 :::
 
 :::note
-==`/slashforge-setup` runs here too== — `$slashforge-setup` in Codex. It scaffolds
+`/slashforge-setup` runs here too — `$slashforge-setup` in Codex. It scaffolds
 your host's own layout: `.cursor/rules/*.mdc` and `.cursor/agents/` on Cursor,
 nested `AGENTS.md` and `.codex/agents/*.toml` on Codex. It never writes `.claude/`.
 
@@ -45,7 +48,7 @@ If setup writes the wrong host's files, it guessed the host wrong: tell it
 The files are on disk, but `$slashforge-code` is missing from Codex's skill list, or
 shows with a cut-down description.
 
-==Codex caps the skill list it starts each session with== at roughly 2% of the model's
+Codex caps the skill list it starts each session with at roughly 2% of the model's
 context, or 8,000 characters when it cannot tell. Past that it shortens descriptions
 first, then leaves skills out and shows a warning. SlashForge adds 13 skills — about
 3,000 characters of names and descriptions, plus each skill's file path — so on a machine
@@ -64,7 +67,7 @@ with many other skills installed one of them can fall off the list.
 `npx slashforge` printed a version older than the one on npm, and commands you
 expected are missing.
 
-==`npx` prefers an executable already on your `PATH`.== If `npm install -g
+`npx` prefers an executable already on your `PATH`. If `npm install -g
 slashforge` was ever run, `npx slashforge` runs that copy and never contacts the
 registry, so it keeps installing the old release while reporting success.
 
@@ -80,7 +83,7 @@ tell you whether the copy you just ran is current.
 
 ## A phase is being skipped
 
-==Usually one of two things, and both are working as designed.==
+Usually one of two things, and both are working as designed.
 
 - **`/slashforge-code` classified the task as trivial.** Phase 1 auto-detects
   small changes and skips brainstorming. Say `full flow` to override. See
@@ -90,36 +93,36 @@ tell you whether the copy you just ran is current.
   verification stay.
 
 :::note
-==A skipped skill is always announced.== If a phase vanished with no message, that is
+A skipped skill is always announced. If a phase vanished with no message, that is
 a bug worth reporting.
 :::
 
 ## Setup will not overwrite a file
 
-That is the `generated_by` marker working. ==A file whose marker is missing or has
+That is the `generated_by` marker working. A file whose marker is missing or has
 been edited is treated as yours, and will only ever have gaps filled — never be
-overwritten.==
+overwritten.
 
-==Delete the file if you genuinely want it regenerated from scratch.==
+Delete the file if you genuinely want it regenerated from scratch.
 
 ## Graphify is not being offered
 
 `/slashforge-setup` only offers it when **at least 70% of non-trivial source
 files** are in a supported language. On YAML, shell, or config-only repos it
-skips silently. ==That is intended, not a failure== — see
+skips silently. That is intended, not a failure — see
 [Graphify](/slashforge/guides/graphify/) for the supported languages.
 
 ## Verification fails but the code looks right
 
 Phase 6 runs your repo's own lint, test, and build commands. If they pass
-locally but fail in the run, ==the usual cause is a command that depends on
-environment variables or services that the agent's shell does not have==. ==Fix the
-command, not the workflow== — Phase 6 failing is the feature doing its job.
+locally but fail in the run, the usual cause is a command that depends on
+environment variables or services that the agent's shell does not have. Fix the
+command, not the workflow — Phase 6 failing is the feature doing its job.
 
 ## Still stuck
 
 [Open an issue](https://github.com/rajdeepratan/SlashForge/issues/new/choose)
-and ==**include the output of `npx slashforge status`**==. It is the single most
+and **include the output of `npx slashforge status`**. It is the single most
 useful thing you can attach.
 
 For anything that does not belong in a public issue, email

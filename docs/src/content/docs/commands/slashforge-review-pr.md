@@ -12,11 +12,11 @@ description: Review a pull request against your repo's own rules and conventions
 ```
 
 :::note
-==Using Cursor or Codex? Pick your agent in the header== and every command on this page
+Using Cursor or Codex? Pick your agent in the header and every command on this page
 changes with it. See [Hosts](/slashforge/reference/cli/#hosts) for what else differs.
 :::
 
-==Reviews a pull request against **your repo's** standards== — the entry file, your rules, and the
+Reviews a pull request against **your repo's** standards — the entry file, your rules, and the
 conventions actually in the surrounding code — then posts line-level comments or an approval.
 
 > **It never posts anything without your explicit yes.**
@@ -30,7 +30,7 @@ It searches `review-requested:@me` first, because that is what "waiting on me" m
 `assignee` is a different relationship and is usually empty on review-flow repos — if the first
 search comes back empty, the command widens to assignee and tells you it widened.
 
-==Drafts are skipped.== A draft is explicitly not ready.
+Drafts are skipped. A draft is explicitly not ready.
 
 ### Choosing what it looks for
 
@@ -43,13 +43,13 @@ The three GitHub relationships are genuinely different, and the flags let you pi
 | `--mine` | `author:@me` | Self-review before you ask anyone else |
 | `--all` | all three, in labelled groups | You want the full picture |
 
-Under `--mine`, ==**approve is unavailable** — GitHub does not let anyone approve their own pull
-request==. The command says so when it lists them, not after you have spent time on a review.
+Under `--mine`, **approve is unavailable** — GitHub does not let anyone approve their own pull
+request. The command says so when it lists them, not after you have spent time on a review.
 
 Passing a **PR number** skips discovery entirely, so you can review any PR regardless of your
 relationship to it.
 
-==These are SlashForge's flags, not `gh` flags.== You never pass `gh` syntax to the command.
+These are SlashForge's flags, not `gh` flags. You never pass `gh` syntax to the command.
 
 ### How many it finds
 
@@ -75,20 +75,20 @@ repo says about itself:
 - Conformance to your rules and existing style — `CLAUDE.md` and `.claude/rules/` on Claude Code,
   `AGENTS.md` and `.cursor/rules/` on Cursor, `AGENTS.md` and its nested copies on Codex
 
-==Findings are sorted by severity.== Three that would break production matter more than twenty style
-nits, and ==the review says which are blocking==.
+Findings are sorted by severity. Three that would break production matter more than twenty style
+nits, and the review says which are blocking.
 
 Before reading the diff it also checks **CI status**, **existing review comments** (so it does not
 repeat a point someone already made), and **whether the PR is yours** — GitHub does not allow
 approving your own pull request, so that option is withdrawn when it applies.
 
-**Large PRs.** ==Past roughly 1,500 changed lines a single pass produces generalities.== The command
+**Large PRs.** Past roughly 1,500 changed lines a single pass produces generalities. The command
 says so, then either asks which paths matter or reviews the highest-risk files and states plainly
 what it did and did not cover.
 
 ## The gate
 
-==Nothing reaches GitHub before you see it.== You get the verdict and findings in chat, the full
+Nothing reaches GitHub before you see it. You get the verdict and findings in chat, the full
 review opens in your browser, and then the **exact text that will be posted** — verbatim, not a
 paraphrase, because it is public and attributed to you.
 
@@ -98,15 +98,15 @@ Then one question:
 Post this review?  approve · comment · request-changes · edit · cancel
 ```
 
-==`request-changes` blocks the merge; `comment` does not.== That difference is why the command never
+`request-changes` blocks the merge; `comment` does not. That difference is why the command never
 picks for you. It will recommend — blocking findings make the suggestion obvious — but the choice
 is yours.
 
 ## What it writes
 
 A **Markdown** review document at `docs/slashforge/reviews/pr-<N>-<title-slug>.md` — named by the PR
-number and a kebab slug of its title, no date. ==It stays as your local record whether or not
-anything is posted.==
+number and a kebab slug of its title, no date. It stays as your local record whether or not
+anything is posted.
 
 On GitHub, line comments and the summary go up as **one review** through the reviews API, so the
 PR gets a single notification rather than a stream of them.
@@ -119,11 +119,11 @@ summary body, tells you which moved, and posts again.
 
 ## What it costs
 
-**~15–70k tokens per review**, and ==the diff is almost all of it==. A three-file PR is around 2k tokens of diff; a fourteen-file one around 42k — a twentyfold spread before `CLAUDE.md`, the matching rules, or any surrounding code is read. The instructions themselves are a fixed ~3.6k.
+**~15–70k tokens per review**, and the diff is almost all of it. A three-file PR is around 2k tokens of diff; a fourteen-file one around 42k — a twentyfold spread before `CLAUDE.md`, the matching rules, or any surrounding code is read. The instructions themselves are a fixed ~3.6k.
 
 That is why size appears in the selection list rather than being discovered later, and why past roughly 1,500 changed lines the command says a single pass cannot be thorough instead of producing confident generalities.
 
 ## Requirements
 
-==`gh` installed and authenticated.== The command checks first and stops with instructions rather than
+`gh` installed and authenticated. The command checks first and stops with instructions rather than
 failing halfway.
