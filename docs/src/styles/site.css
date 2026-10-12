@@ -221,7 +221,10 @@ a { color: inherit; text-decoration: none; }
 }
 .sb-group a:hover { color: var(--text); }
 .sb-group a[aria-current='page'] {
-  background: var(--ember);
+  /* The darker ember shade, not --ember: #f3f2f2 on the mid-tone --ember is
+     only 3.78:1 (Claude), below the 4.5:1 WCAG minimum for this 14.5px text.
+     --ember-hover clears 5:1 for every agent and keeps the accent identity. */
+  background: var(--ember-hover);
   color: #f3f2f2;
   font-weight: 600;
 }
