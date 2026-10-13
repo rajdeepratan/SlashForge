@@ -10,7 +10,7 @@ description: Read-only research — reproduce and root-cause a bug, then produce
 
 :::note
 Using Cursor or Codex? Pick your agent in the header and every command on this page
-changes with it. See [Hosts](/slashforge/reference/cli/#hosts) for what else differs.
+changes with it. See [Hosts](/slashforge/reference/cli#hosts) for what else differs.
 :::
 
 Read-only research. Reproduces a suspected bug, finds the root cause, and writes
@@ -29,7 +29,7 @@ without worrying about what it might do to your working tree.
 - You need the reasoning written down for someone else
 
 If you already know the cause and want it fixed, use
-[`/slashforge-code`](/slashforge/commands/slashforge-code/) instead — its Phase 5 runs
+[`/slashforge-code`](/slashforge/commands/slashforge-code) instead — its Phase 5 runs
 systematic debugging as part of shipping the fix.
 
 ## What it produces
@@ -70,7 +70,7 @@ takes the **bare issue slug**, which it resolves to
 That handover is the point. `/slashforge-code` reads the report as its
 requirements document, so the root cause survives into a fresh session instead of
 being retyped from memory — see
-[its Argument section](/slashforge/commands/slashforge-code/#argument).
+[its Argument section](/slashforge/commands/slashforge-code#argument).
 
 The handover skips the retyping, not the confirmation. Every gate still applies,
 and the report's recommended fix arrives as a proposal that Phase 3 still asks

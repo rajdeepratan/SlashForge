@@ -99,7 +99,7 @@ folder per change under `active/` holding its `requirements.md`, `plan.md` and
 `tasks.md`. `/slashforge-code` fills these as it runs and moves each change to
 `archive/` on merge, so the specs stay current and diff in a pull request
 rather than going stale. The same layout on every host — see
-[the spec home](/slashforge/commands/slashforge-setup/#the-spec-home).
+[the spec home](/slashforge/commands/slashforge-setup#the-spec-home).
 
 ## The eight commands
 
@@ -176,7 +176,7 @@ Phase 6 runs lint, tests, and build before anything reaches a PR — so
 "it's done" means it was verified, not asserted.
 
 Want to see it rather than read about it?
-**[What a run looks like](/slashforge/guides/example-run/)** walks one pass from
+**[What a run looks like](/slashforge/guides/example-run)** walks one pass from
 prompt to gate, then one PR review from finding the work to posting it.
 
 ## What a run costs
@@ -199,14 +199,14 @@ to a workflow this heavy.
 
 The range is driven by the size of the feature, not by the tooling — a
 single-module change lands near the bottom, a multi-layer feature near the top.
-[Graphify](/slashforge/guides/graphify/) shaves roughly 4–10% off; it does not
+[Graphify](/slashforge/guides/graphify) shaves roughly 4–10% off; it does not
 change the order of magnitude. If you want a materially cheaper run, the lever
 is `-quick`.
 
 :::caution[Honest limit]
 SlashForge is deliberately heavy. If what you want is a prompt turned into a
 patch as fast as possible, this is the wrong tool. See
-[Plan mode and /init](/slashforge/guides/plan-mode-and-init/) for where the
+[Plan mode and /init](/slashforge/guides/plan-mode-and-init) for where the
 lighter option is the right call.
 :::
 
@@ -214,7 +214,7 @@ lighter option is the right call.
 
 SlashForge ships every discipline skill the workflow uses — brainstorming for
 intake, test-driven development for implementation, and so on. Nothing else needs
-installing. See [Skills](/slashforge/guides/skills/) for what runs at each phase.
+installing. See [Skills](/slashforge/guides/skills) for what runs at each phase.
 
 ## Supported tools
 

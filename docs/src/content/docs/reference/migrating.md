@@ -185,7 +185,7 @@ npx slashforge
 
 `uninstall` and `status` both recognise every earlier layout, so an upgraded
 install can always be cleaned up rather than orphaned. See the
-[CLI reference](/slashforge/reference/cli/) for exactly what each one touches.
+[CLI reference](/slashforge/reference/cli) for exactly what each one touches.
 
 If you have added your own commands under `~/.claude/commands/forge/`,
 uninstall leaves them alone and keeps the directory — only the files SlashForge

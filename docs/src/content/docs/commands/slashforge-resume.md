@@ -10,13 +10,13 @@ description: Resume an interrupted /slashforge-code or /slashforge-fix run from 
 
 :::note
 Using Cursor or Codex? Pick your agent in the header and every command on this page
-changes with it. See [Hosts](/slashforge/reference/cli/#hosts) for what else differs.
+changes with it. See [Hosts](/slashforge/reference/cli#hosts) for what else differs.
 :::
 
 Long runs get interrupted — a closed terminal, a crashed session, a context reset.
 `/slashforge-resume` reads the checkpoint the workflow writes after every phase and continues
-from there, instead of re-running [`/slashforge-code`](/slashforge/commands/slashforge-code/)
-or [`/slashforge-fix`](/slashforge/commands/slashforge-fix/) from Phase 1 and redoing work that
+from there, instead of re-running [`/slashforge-code`](/slashforge/commands/slashforge-code)
+or [`/slashforge-fix`](/slashforge/commands/slashforge-fix) from Phase 1 and redoing work that
 already landed.
 
 > **It only resumes a run. It never starts one, and it never re-does a completed phase.**

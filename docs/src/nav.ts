@@ -90,7 +90,7 @@ export function neighbours(
 ): { prev?: Neighbour; next?: Neighbour } {
   const link = (item: NavItem): Neighbour => ({
     label: item.label,
-    href: `${base}/${item.slug}/`,
+    href: `${base}/${item.slug}`,
   });
   const i = FLAT.findIndex((x) => x.slug === slug);
 

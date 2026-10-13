@@ -13,7 +13,7 @@ description: Review a pull request against your repo's own rules and conventions
 
 :::note
 Using Cursor or Codex? Pick your agent in the header and every command on this page
-changes with it. See [Hosts](/slashforge/reference/cli/#hosts) for what else differs.
+changes with it. See [Hosts](/slashforge/reference/cli#hosts) for what else differs.
 :::
 
 Reviews a pull request against **your repo's** standards — the entry file, your rules, and the
@@ -64,7 +64,7 @@ meaningful at all.
 
 ## What it checks
 
-The [Phase 7 checklist](/slashforge/commands/slashforge-code/) is the standard, plus whatever the
+The [Phase 7 checklist](/slashforge/commands/slashforge-code) is the standard, plus whatever the
 repo says about itself:
 
 - Does it do what the description claims, and nothing else? Scope creep is a finding

@@ -23,7 +23,7 @@ Done! Open Claude Code, Cursor or Codex in any repo:
 ```
 
 If you don't see those `✓` lines, or the commands don't show up, the
-[Troubleshooting](/slashforge/reference/troubleshooting/) page starts with the
+[Troubleshooting](/slashforge/reference/troubleshooting) page starts with the
 exact fixes.
 
 That installs the guide files and the eight commands for Claude Code, Cursor and
@@ -64,7 +64,7 @@ host's own layout, so their guides live in separate folders
 The first thing each command does is work out which host it is running in; if it can't
 tell, it asks you once.
 
-See [the CLI reference](/slashforge/reference/cli/#hosts) for where each host's files land.
+See [the CLI reference](/slashforge/reference/cli#hosts) for where each host's files land.
 
 ## Your first run
 
@@ -73,7 +73,7 @@ Start to finish, for a repo that has never used SlashForge.
 **1. Install SlashForge** — `npx slashforge`, as above.
 
 **2. Nothing else to install.** SlashForge ships every discipline skill the workflow
-uses, so there is no plugin step. See [Skills](/slashforge/guides/skills/) for
+uses, so there is no plugin step. See [Skills](/slashforge/guides/skills) for
 what runs at each phase.
 
 **3. Set up the repo.** Open your coding agent in your project and run:
@@ -104,8 +104,8 @@ npx slashforge status
 ```
 
 That's the whole loop. `/slashforge-setup` once per repo, `/slashforge-code` per
-change, [`/slashforge-review-pr`](/slashforge/commands/slashforge-review-pr/) to review
-someone else's, and [`/slashforge-investigate`](/slashforge/commands/slashforge-investigate/)
+change, [`/slashforge-review-pr`](/slashforge/commands/slashforge-review-pr) to review
+someone else's, and [`/slashforge-investigate`](/slashforge/commands/slashforge-investigate)
 when you need to understand a bug before touching it.
 
 ## Requirements
@@ -117,9 +117,9 @@ That is all SlashForge itself requires.
 
 ## Optional integration
 
-One, [Graphify](/slashforge/guides/graphify/), and **it does not have to be
+One, [Graphify](/slashforge/guides/graphify), and **it does not have to be
 installed first**. `/slashforge-setup` offers it mid-run, on supported languages
-only. Every discipline skill the workflow uses [ships with SlashForge](/slashforge/guides/skills/),
+only. Every discipline skill the workflow uses [ships with SlashForge](/slashforge/guides/skills),
 so there is no plugin to add.
 
 You do not need to prepare anything. Install SlashForge, run a command, and it
@@ -128,7 +128,7 @@ will offer what it needs when it needs it.
 :::note
 Graphify is a Python CLI, so accepting it needs Python 3.10+ and `uv`
 (or `pipx`/`pip`) on your machine. Nothing to do up front — the
-[Graphify page](/slashforge/guides/graphify/) covers the prerequisites and the
+[Graphify page](/slashforge/guides/graphify) covers the prerequisites and the
 optional extras when you get there.
 :::
 
@@ -143,11 +143,11 @@ npx slashforge uninstall        # add --yes to skip the confirmation
 It deletes only the guides and `slashforge-*` commands it wrote to `~/.claude/`
 and `~/.agents/`. Whatever `/slashforge-setup` generated in your repo — your
 `CLAUDE.md`, rules and agents — is yours and is left untouched. See the
-[CLI reference](/slashforge/reference/cli/#uninstall) for `--project` and the
+[CLI reference](/slashforge/reference/cli#uninstall) for `--project` and the
 other flags.
 
 ## More
 
 The package has a small CLI beyond the install command — `status`, `uninstall`,
 project-mode vendoring, and the non-interactive flags for CI. All of it is on the
-[CLI reference](/slashforge/reference/cli/).
+[CLI reference](/slashforge/reference/cli).

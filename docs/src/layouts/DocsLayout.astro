@@ -32,7 +32,7 @@ const editUrl = isGenerated
     : undefined;
 const updated = lastModified(isGenerated ? '../CHANGELOG.md' : filePath);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const href = (s: string) => `${base}/${s}/`;
+const href = (s: string) => `${base}/${s}`;
 
 const { prev, next } = neighbours(slug, base);
 const kicker = groupOf(slug);

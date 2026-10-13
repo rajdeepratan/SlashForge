@@ -3,7 +3,7 @@ title: Troubleshooting
 description: The handful of things that actually go wrong, and what to do about each.
 ---
 
-New here? Start with [Installation](/slashforge/guides/installation/) and the
+New here? Start with [Installation](/slashforge/guides/installation) and the
 first-run walkthrough — this page is the handful of things that go wrong after that.
 
 ## The commands do not appear
@@ -16,7 +16,7 @@ By far the most common one. You type `/` (`$` in Codex) and see nothing named `s
 :::steps
 1. Run `npx slashforge status` — it reports what is installed and where.
 2. **Restart Claude Code.** Command files are read at startup.
-3. **Check the name.** Every version before 5.0 used a different spelling; since 5.0 it is `/slashforge-code`, with a `-`, on every agent. See [Migrating](/slashforge/reference/migrating/).
+3. **Check the name.** Every version before 5.0 used a different spelling; since 5.0 it is `/slashforge-code`, with a `-`, on every agent. See [Migrating](/slashforge/reference/migrating).
 4. If `status` shows nothing installed, re-run `npx slashforge` and watch for a permissions error on `~/.claude/`.
 :::
 ::::
@@ -87,7 +87,7 @@ Usually one of two things, and both are working as designed.
 
 - **`/slashforge-code` classified the task as trivial.** Phase 1 auto-detects
   small changes and skips brainstorming. Say `full flow` to override. See
-  [Skills](/slashforge/guides/skills/) for what runs at each phase.
+  [Skills](/slashforge/guides/skills) for what runs at each phase.
 - **`-quick` is doing what it says.** Lean mode skips brainstorming and swaps
   the agent code review for an inline checklist. Every user gate and all
   verification stay.
@@ -110,7 +110,7 @@ Delete the file if you genuinely want it regenerated from scratch.
 `/slashforge-setup` only offers it when **at least 70% of non-trivial source
 files** are in a supported language. On YAML, shell, or config-only repos it
 skips silently. That is intended, not a failure — see
-[Graphify](/slashforge/guides/graphify/) for the supported languages.
+[Graphify](/slashforge/guides/graphify) for the supported languages.
 
 ## Verification fails but the code looks right
 

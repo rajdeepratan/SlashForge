@@ -23,8 +23,15 @@ const { title, description, rawTitle = false, section, updated } = Astro.props;
 const site = Astro.site?.origin ?? '';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const ogImage = `${site}${base}/og.png`;
-const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
-const home = `${site}${base}/`;
+// build.format: 'file' puts `.html` on Astro.url.pathname; the site serves the
+// slashless, extensionless URL, so strip the extension (and any trailing slash)
+// for the canonical to match the final URL and the in-page links.
+const cleanPath = Astro.url.pathname
+  .replace(/\.html$/, '')
+  .replace(/\/index$/, '')
+  .replace(/(.)\/$/, '$1');
+const canonical = new URL(cleanPath, Astro.site ?? Astro.url).href;
+const home = `${site}${base}`;
 
 /*
  * Structured data.

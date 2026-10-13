@@ -13,7 +13,8 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const base = process.env.DOCS_BASE_PATH ?? '/slashforge';
-const target = base.endsWith('/') ? base : `${base}/`;
+// Slashless, to match trailingSlash: 'never' — the base path is the home URL.
+const target = base.replace(/\/$/, '');
 const dest = join(here, '..', 'dist', 'index.html');
 
 mkdirSync(dirname(dest), { recursive: true });

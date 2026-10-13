@@ -10,13 +10,13 @@ description: Patch a bug straight from a /slashforge-investigate finding — tes
 
 :::note
 Using Cursor or Codex? Pick your agent in the header and every command on this page
-changes with it. See [Hosts](/slashforge/reference/cli/#hosts) for what else differs.
+changes with it. See [Hosts](/slashforge/reference/cli#hosts) for what else differs.
 :::
 
 The bridge from read-only investigation to a shipped patch. It reads the structured
-finding [`/slashforge-investigate`](/slashforge/commands/slashforge-investigate/) left behind,
+finding [`/slashforge-investigate`](/slashforge/commands/slashforge-investigate) left behind,
 writes a regression test, then fixes the root cause — without paying for the full
-feature-planning phases of [`/slashforge-code`](/slashforge/commands/slashforge-code/).
+feature-planning phases of [`/slashforge-code`](/slashforge/commands/slashforge-code).
 
 > **Use it when the bug is already understood.** For a change big enough to need planning,
 > use `/slashforge-code` instead.
@@ -58,7 +58,7 @@ investigation is kept, which is exactly what `/slashforge-fix` reads.
   no test is not a fix.
 
 Everything after that — review (with the security audit), push, PR, PR feedback, and
-post-merge cleanup — runs exactly as [`/slashforge-code`](/slashforge/commands/slashforge-code/).
+post-merge cleanup — runs exactly as [`/slashforge-code`](/slashforge/commands/slashforge-code).
 
 ## Gates
 

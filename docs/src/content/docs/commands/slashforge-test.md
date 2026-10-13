@@ -9,12 +9,12 @@ description: Generate spec-based test coverage for existing files — a light, s
 
 :::note
 Using Cursor or Codex? Pick your agent in the header and every command on this page
-changes with it. See [Hosts](/slashforge/reference/cli/#hosts) for what else differs.
+changes with it. See [Hosts](/slashforge/reference/cli#hosts) for what else differs.
 :::
 
 A light "gear" for one bounded job: raise test coverage for code that already exists,
 without the ten-phase machinery of
-[`/slashforge-code`](/slashforge/commands/slashforge-code/). It discovers how your repo
+[`/slashforge-code`](/slashforge/commands/slashforge-code). It discovers how your repo
 tests, derives each target's *intended* behaviour, writes **spec-based** tests, runs them,
 and reports.
 
@@ -36,7 +36,7 @@ and reports.
 A failing spec test means the code does not meet its intended behaviour. `/slashforge-test`
 never modifies production code to make a test pass. Instead it reports the mismatch and
 writes a complete investigation contract to `.slashforge/latest_investigation.json` — the
-same contract [`/slashforge-fix`](/slashforge/commands/slashforge-fix/) reads — so you can go
+same contract [`/slashforge-fix`](/slashforge/commands/slashforge-fix) reads — so you can go
 straight to a fix:
 
 ```
@@ -49,8 +49,8 @@ straight to a fix:
 
 No branch, no PR, no edits to production code. The new tests are left in your working
 tree to commit or route onward. For a change that should alter behaviour, use
-[`/slashforge-code`](/slashforge/commands/slashforge-code/); for a bug you already understand,
-use [`/slashforge-fix`](/slashforge/commands/slashforge-fix/).
+[`/slashforge-code`](/slashforge/commands/slashforge-code); for a bug you already understand,
+use [`/slashforge-fix`](/slashforge/commands/slashforge-fix).
 
 ## Argument
 

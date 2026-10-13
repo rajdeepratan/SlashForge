@@ -11,7 +11,7 @@ description: End-to-end development workflow — plan, confirm, branch, implemen
 
 :::note
 Using Cursor or Codex? Pick your agent in the header and every command on this page
-changes with it. See [Hosts](/slashforge/reference/cli/#hosts) for what else differs.
+changes with it. See [Hosts](/slashforge/reference/cli#hosts) for what else differs.
 :::
 
 The full development workflow, from an idea to a merged PR. Ten phases, run in
@@ -33,7 +33,7 @@ already answered it. Anything else is treated as a free-form description, and
 no argument at all means it asks.
 
 The main source of those files is
-[`/slashforge-investigate`](/slashforge/commands/slashforge-investigate/), which
+[`/slashforge-investigate`](/slashforge/commands/slashforge-investigate), which
 ends by printing exactly this command with its report filename filled in.
 Pasting it carries the root cause into a fresh session rather than making you
 restate the bug from memory.
@@ -80,7 +80,7 @@ without your answer:
 ## Spec-driven artefacts
 
 Each change keeps a Markdown trail under
-[`docs/slashforge/`](/slashforge/commands/slashforge-setup/#the-spec-home), not a
+[`docs/slashforge/`](/slashforge/commands/slashforge-setup#the-spec-home), not a
 throwaway report:
 
 | Phase | Writes |
@@ -218,4 +218,4 @@ Phases 3, 8 and 10 use no skill — they are user gates and git operations the
 workflow handles directly.
 
 Every one of these ships with SlashForge. No plugin is required, and none is
-checked for. See [Skills](/slashforge/guides/skills/).
+checked for. See [Skills](/slashforge/guides/skills).

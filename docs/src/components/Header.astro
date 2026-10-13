@@ -20,14 +20,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const path = Astro.url.pathname;
 
 const nav = [
-  { label: 'Docs', href: `${base}/guides/introduction/`, match: '/guides/' },
-  { label: 'Commands', href: `${base}/commands/slashforge-setup/`, match: '/commands/' },
-  { label: 'Reference', href: `${base}/reference/cli/`, match: '/reference/' },
+  { label: 'Docs', href: `${base}/guides/introduction`, match: '/guides/' },
+  { label: 'Commands', href: `${base}/commands/slashforge-setup`, match: '/commands/' },
+  { label: 'Reference', href: `${base}/reference/cli`, match: '/reference/' },
 ];
 ---
 
 <header class="hdr">
-  <a class="brand" href={`${base}/`}>
+  <a class="brand" href={base}>
     <svg width="26" height="26" viewBox="0 0 64 64" aria-hidden="true"
       ><path d="M40 6 H48 L52.4 13.2 L30 58 H22 L17.6 50.8 Z" fill="currentColor"></path><path
         d="M16 8 H26 L21 18 H11 Z"

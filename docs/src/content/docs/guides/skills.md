@@ -54,7 +54,7 @@ npx slashforge
 
 ## Graphify
 
-[Graphify](/slashforge/guides/graphify/) is the one optional integration — a **one-time
+[Graphify](/slashforge/guides/graphify) is the one optional integration — a **one-time
 setup-time offer** inside `/slashforge-setup` rather than a per-command check. Once installed it
 surfaces graph context automatically: through a hook on Claude Code, an always-on rule on Cursor,
 and an `AGENTS.md` section on Codex.

@@ -77,7 +77,7 @@ is what makes the output reviewable across a team.
 
 :::agent[cursor]
 Cursor has **no built-in `/init`**. Its nearest equivalent is
-[`/slashforge-setup`](/slashforge/commands/slashforge-setup/), which asks its
+[`/slashforge-setup`](/slashforge/commands/slashforge-setup), which asks its
 questions and then writes `AGENTS.md` plus your `.cursor/` layout — rules, skills,
 agents, commands and hooks — rather than an entry file alone.
 
@@ -103,7 +103,7 @@ And `/init` is fast, unopinionated, and already installed.
 
 :::caution[Honest limit]
 SlashForge is deliberately heavy. A full `/slashforge-code` run costs
-[100–250k tokens](/slashforge/commands/slashforge-code/) and stops to ask you
+[100–250k tokens](/slashforge/commands/slashforge-code) and stops to ask you
 four questions. If what you want is an agent that turns a prompt into a patch as
 fast as possible, this is the wrong tool and it will annoy you.
 :::
@@ -124,5 +124,5 @@ there and fills gaps rather than overwriting.
 
 Files `/slashforge-setup` did not generate carry no `generated_by` marker, so
 they are treated as yours: edited to fill gaps, never overwritten. See
-[`/slashforge-setup`](/slashforge/commands/slashforge-setup/) for how the markers
+[`/slashforge-setup`](/slashforge/commands/slashforge-setup) for how the markers
 work.

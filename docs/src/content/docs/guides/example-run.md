@@ -8,9 +8,9 @@ whole reason to read the docs before installing: you can decide whether the
 process suits you without running it once.
 
 Two runs: shipping a change of your own with
-[`/slashforge-code`](/slashforge/commands/slashforge-code/), then reviewing
+[`/slashforge-code`](/slashforge/commands/slashforge-code), then reviewing
 someone else's with
-[`/slashforge-review-pr`](/slashforge/commands/slashforge-review-pr/).
+[`/slashforge-review-pr`](/slashforge/commands/slashforge-review-pr).
 
 ## The prompt
 
@@ -100,7 +100,7 @@ Phase 6 is not advisory. A failing test stops the run before a PR exists — so
 :::
 
 The full phase-by-phase reference lives on
-[`/slashforge-code`](/slashforge/commands/slashforge-code/), including what each
+[`/slashforge-code`](/slashforge/commands/slashforge-code), including what each
 of the four gates asks and what `-quick` changes.
 
 ## Reviewing someone else's work
@@ -209,4 +209,4 @@ summary body, and the command tells you which moved rather than dropping them.
 :::
 
 The full reference, including `--assigned`, `--mine` and `--all`, lives on
-[`/slashforge-review-pr`](/slashforge/commands/slashforge-review-pr/).
+[`/slashforge-review-pr`](/slashforge/commands/slashforge-review-pr).

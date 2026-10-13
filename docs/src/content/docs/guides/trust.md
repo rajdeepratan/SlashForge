@@ -50,7 +50,7 @@ And, whichever agent you use, these are the same:
 
 Nothing is written outside those paths. Every generated file carries a
 `generated_by` marker; remove or edit it and that file is treated as yours
-permanently. See [`/slashforge-setup`](/slashforge/commands/slashforge-setup/)
+permanently. See [`/slashforge-setup`](/slashforge/commands/slashforge-setup)
 for how the markers decide what may be refreshed.
 
 ## What it runs
@@ -78,7 +78,7 @@ it is the last thing that happens.
 
 | Never | Detail |
 | --- | --- |
-| **Auto-install** | [Graphify](/slashforge/guides/graphify/) is a one-time offer during setup. You see the exact shell command before anything runs |
+| **Auto-install** | [Graphify](/slashforge/guides/graphify) is a one-time offer during setup. You see the exact shell command before anything runs |
 | **Force-push** | Not at any phase |
 | **Merge for you** | Phase 8 opens the PR. Merging is yours |
 | **Post a review unasked** | `/slashforge-review-pr` shows the exact text first and never picks approve vs request-changes for you |
@@ -97,7 +97,7 @@ configuration that lives only on one machine buys you nothing on the second run.
 Phase 1 and Phase 2 write `requirements.md`, `plan.md` and `tasks.md` as Markdown
 into `docs/slashforge/active/<change>/` — living specs that diff and review in a
 pull request. Those paths are baked into SlashForge's own
-[skills](/slashforge/guides/skills/), so nothing writes specs anywhere else in
+[skills](/slashforge/guides/skills), so nothing writes specs anywhere else in
 your repo.
 
 The one directory worth considering for `.gitignore` is `docs/slashforge/investigations/`, if
@@ -109,6 +109,6 @@ status`. SlashForge will not edit your `.gitignore`; adding that line is yours.
 :::note
 `npx slashforge uninstall` removes only what it put in `~/.claude/` and `~/.agents/`.
 A repo's own `.claude/`, `.cursor/` or `.codex/` directory is yours and is never touched. See the
-[CLI reference](/slashforge/reference/cli/).
+[CLI reference](/slashforge/reference/cli).
 :::
 
