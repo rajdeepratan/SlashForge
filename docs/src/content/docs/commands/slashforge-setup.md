@@ -8,18 +8,18 @@ description: One-time repo setup — generates the entry file plus tailored rule
 ```
 
 One-time setup for a repository. Explores the codebase, asks clarifying
-questions, then ==generates a configuration tailored to what it found==, in the layout
+questions, then generates a configuration tailored to what it found, in the layout
 of the agent you run it in.
 
-Handles both fresh repos and partial setups — ==if a setup already exists, it
-fills gaps rather than overwriting==.
+Handles both fresh repos and partial setups — if a setup already exists, it
+fills gaps rather than overwriting.
 
 :::note
-==This command runs on all three hosts== and writes each one's native layout —
+This command runs on all three hosts and writes each one's native layout —
 `.cursor/rules/*.mdc` and `.cursor/agents/` on Cursor, nested `AGENTS.md` and
 `.codex/agents/*.toml` on Codex. It never writes `CLAUDE.md` or `.claude/` in
 Cursor or Codex. See
-[What setup writes on each host](/slashforge/reference/cli/#what-setup-writes-on-each-host).
+[What setup writes on each host](/slashforge/reference/cli#what-setup-writes-on-each-host).
 
 On Cursor and Codex it first works out which host it is running in, then reads
 that host's own setup guide.
@@ -29,7 +29,7 @@ that host's own setup guide.
 
 Six kinds of file, in your agent's own layout — shown here for the agent picked in
 the header. See the CLI reference for
-[all three side by side](/slashforge/reference/cli/#what-setup-writes-on-each-host).
+[all three side by side](/slashforge/reference/cli#what-setup-writes-on-each-host).
 
 :::agent[claude]
 | Output | Purpose | Where |
@@ -84,7 +84,7 @@ docs/slashforge/
 
 The generated rules reference `constitution.md` rather than restate it, so the
 non-negotiables have a single home. See
-[`/slashforge-code`](/slashforge/commands/slashforge-code/) for how the lifecycle
+[`/slashforge-code`](/slashforge/commands/slashforge-code) for how the lifecycle
 fills `active/` and moves each change to `archive/` on merge.
 
 ## Safe re-runs
@@ -100,7 +100,7 @@ what happens:
 | Present, version older | Stale — proposes a refresh, asks before overwriting |
 | Missing or edited | Treated as yours — gaps filled, never overwritten |
 
-==Remove or edit the marker on any file you want left alone permanently.==
+Remove or edit the marker on any file you want left alone permanently.
 
 ## Monorepos
 
@@ -111,20 +111,20 @@ rules, skills, and specialist agents.
 ## Graphify
 
 During exploration, `/slashforge-setup` checks language fit for
-[Graphify](/slashforge/guides/graphify/). If at least 70% of
+[Graphify](/slashforge/guides/graphify). If at least 70% of
 non-trivial source files are in a supported language, it offers to install and
 index. On YAML, shell, or config-only repos it skips silently.
 
-This is a **setup-time offer, not a per-command check**. ==It always shows you the
-exact commands before asking — nothing is installed without your say-so.==
+This is a **setup-time offer, not a per-command check**. It always shows you the
+exact commands before asking — nothing is installed without your say-so.
 
 If you accept, it also synthesises `graphify-out/SUMMARY.html`, a
 browser-readable interpretation of the machine-formatted graph report.
 
 ## What it costs
 
-**~50–120k tokens — once per repo.** ==Unlike the other commands, this is not a
-per-run cost.== You pay it when you adopt SlashForge in a codebase and then not
+**~50–120k tokens — once per repo.** Unlike the other commands, this is not a
+per-run cost. You pay it when you adopt SlashForge in a codebase and then not
 again unless you re-run it.
 
 It carries **the largest fixed instruction load of any command: ~20k tokens**,
@@ -149,6 +149,6 @@ the top.
 
 ## What it does not do
 
-==It does not write application code, create branches, or open PRs. It only
-produces configuration.== Use [`/slashforge-code`](/slashforge/commands/slashforge-code/)
+It does not write application code, create branches, or open PRs. It only
+produces configuration. Use [`/slashforge-code`](/slashforge/commands/slashforge-code)
 for development work.

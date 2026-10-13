@@ -23,6 +23,10 @@ import {
     var dark = root.getAttribute('data-theme') === 'dark';
     document.querySelectorAll('[data-toggle-theme]').forEach(function (b) {
       b.textContent = dark ? 'Light' : 'Dark';
+      // The visible word is the action; the aria-label spells it out so a
+      // screen reader conveys which theme the click switches to (and thus the
+      // current one). The visible word stays inside it, per Label in Name.
+      b.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
     });
   }
   syncLabel();

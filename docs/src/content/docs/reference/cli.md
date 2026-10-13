@@ -3,7 +3,7 @@ title: CLI reference
 description: The three things the npm package itself does, and where it installs for each host.
 ---
 
-==The slash commands run inside your coding agent.== The package has a small CLI of
+The slash commands run inside your coding agent. The package has a small CLI of
 its own for getting them on and off your machine.
 
 | Command | What it does |
@@ -22,8 +22,8 @@ its own for getting them on and off your machine.
 | `--help`, `-h` | Full usage |
 
 `--yes` is also enabled by `SLASHFORGE_YES=1`. When stdin is not a TTY the update
-prompt confirms itself — ==so CI, devcontainers, and anywhere else the install must
-not block on a prompt work without the flag==. Uninstall does not: with no terminal
+prompt confirms itself — so CI, devcontainers, and anywhere else the install must
+not block on a prompt work without the flag. Uninstall does not: with no terminal
 to ask on, it refuses and exits 1 unless `--yes` or `SLASHFORGE_YES=1` is given.
 
 ```bash
@@ -32,7 +32,7 @@ SLASHFORGE_YES=1 npx slashforge
 
 ## Hosts
 
-==One install serves all three hosts.== There is nothing to choose.
+One install serves all three hosts. There is nothing to choose.
 
 | Host | Commands live in | Guides live in | Invoked as |
 | --- | --- | --- | --- |
@@ -40,7 +40,7 @@ SLASHFORGE_YES=1 npx slashforge
 | Cursor | `~/.agents/skills/` | `~/.agents/setup/slashforge/cursor/` | `/slashforge-code` |
 | Codex | `~/.agents/skills/` | `~/.agents/setup/slashforge/codex/` | `$slashforge-code` |
 
-==Cursor and Codex share one set of skills==, because both read `.agents/skills/`.
+Cursor and Codex share one set of skills, because both read `.agents/skills/`.
 Each still has its own guide folder, because `/slashforge-setup` writes each host's
 own layout and those layouts genuinely differ — see
 [What setup writes on each host](#what-setup-writes-on-each-host).
@@ -48,7 +48,7 @@ own layout and those layouts genuinely differ — see
 The first thing each Cursor or Codex command does is work out which of the two it is
 running in and read that host's guides; if it can't tell, it asks you once.
 
-==On Cursor and Codex the eight commands run only when you type them.== Both
+On Cursor and Codex the eight commands run only when you type them. Both
 can otherwise start a skill on their own, so each command skill opts out:
 `disable-model-invocation: true` in its `SKILL.md` for Cursor, and an
 `agents/openai.yaml` beside it for Codex. The nine discipline skills stay available to
@@ -56,7 +56,7 @@ the workflow.
 
 ### Why every name is `slashforge-`
 
-==The same name on every host.== Cursor and Codex name a skill by the folder that
+The same name on every host. Cursor and Codex name a skill by the folder that
 holds its `SKILL.md`, and neither supports a `:` namespace, so the prefix has to live
 in the name — otherwise the commands would install as bare `/code` and `/plan` and
 collide with everything else in your skills directory. Claude Code installs flat
@@ -65,7 +65,7 @@ the cross-references in its guides use `$` too.
 
 ### What setup writes on each host
 
-==`/slashforge-setup` runs on all three hosts== and scaffolds each one's native
+`/slashforge-setup` runs on all three hosts and scaffolds each one's native
 layout. It never writes `CLAUDE.md` or `.claude/` in Cursor or Codex.
 
 | Layer | Claude Code | Cursor | Codex |
@@ -79,13 +79,13 @@ layout. It never writes `CLAUDE.md` or `.claude/` in Cursor or Codex.
 
 Three differences are worth knowing before you run it:
 
-- ==Cursor rules must be `.mdc`.== A plain `.md` file in `.cursor/rules/` is
+- Cursor rules must be `.mdc`. A plain `.md` file in `.cursor/rules/` is
   silently ignored, because the rules system needs frontmatter to know when to
   apply it. Setup writes `.mdc` with `description`, `globs` and `alwaysApply`.
-- ==Codex has no rules directory.== Its equivalent is nested `AGENTS.md`: Codex
+- Codex has no rules directory. Its equivalent is nested `AGENTS.md`: Codex
   loads every one from the repo root down to the file being edited, closest
   first. Setup puts a rule in the directory it governs.
-- ==Codex subagents are TOML==, with the prompt in a `developer_instructions`
+- Codex subagents are TOML, with the prompt in a `developer_instructions`
   string rather than a markdown body.
 
 If setup finds a `CLAUDE.md` in a repo you are setting up for Cursor or Codex, it
@@ -119,8 +119,8 @@ tells you where each one landed.
 npx slashforge
 ```
 
-==Re-running on a machine that already has it prompts to update to the latest
-version.== Worth doing when either optional integration changes upstream — if
+Re-running on a machine that already has it prompts to update to the latest
+version. Worth doing when either optional integration changes upstream — if
 Graphify changes its install commands, or a workflow phase changes, the guide
 files need to catch up.
 
@@ -131,7 +131,7 @@ npx slashforge --project
 ```
 
 Vendors the guides and commands into the repo's `./.claude/` and `./.agents/` with
-repo-relative paths. ==Commit it and your teammates get the commands with no global install.==
+repo-relative paths. Commit it and your teammates get the commands with no global install.
 
 ### The update check
 
@@ -145,12 +145,12 @@ and print one warning if the copy you ran is older:
      npm install -g slashforge@latest
 ```
 
-==`npx` prefers an executable already on your `PATH`.== If you have ever run
+`npx` prefers an executable already on your `PATH`. If you have ever run
 `npm install -g slashforge`, `npx slashforge` runs *that* copy and never
 contacts the registry — so it can keep installing an old release while
 reporting success, which is exactly what this warning is for.
 
-The check has a 1.5 second timeout and ==every failure is silent==: an offline
+The check has a 1.5 second timeout and every failure is silent: an offline
 install, a private registry that does not answer, or a response in an
 unexpected shape all leave the output unchanged. It honours the registry npm is
 configured with, is skipped when `CI` is set, and `SLASHFORGE_NO_UPDATE_CHECK=1`
@@ -211,7 +211,7 @@ slashforge: not installed.
 Run `npx slashforge` to install v5.0.0.
 ```
 
-==`status` recognises the older v2, v3 and 4.x layouts as well as the current one==,
+`status` recognises the older v2, v3 and 4.x layouts as well as the current one,
 listing any old commands under their own heading with what to do about them, so
 an install upgraded across a rename still reports accurately instead of looking
 absent.
@@ -224,20 +224,20 @@ npx slashforge uninstall --project  # from ./.claude/ and ./.agents/
 npx slashforge uninstall --yes      # in a script, where there is no prompt
 ```
 
-==Removes only the files SlashForge installed==, and recognises the v2, v3 and v4
+Removes only the files SlashForge installed, and recognises the v2, v3 and v4
 layouts alongside the current one — so an upgraded install can be cleaned up
 rather than orphaned.
 
 :::note
-==Without `--project`, uninstall touches nothing but `~/.claude/` and `~/.agents/`.== A repo's own
+Without `--project`, uninstall touches nothing but `~/.claude/` and `~/.agents/`. A repo's own
 `.claude/`, `.cursor/` or `.codex/` directory — the configuration `/slashforge-setup` generated — is
 yours and is never read or removed. `--project` is the one case where it acts on
 a repo, and only on the repo you run it in.
 :::
 
-==Your own commands in `~/.claude/commands/` are left alone==, even ones named like
+Your own commands in `~/.claude/commands/` are left alone, even ones named like
 the kit's: uninstall removes only the `slashforge-*.md` files it installed.
 
 The same care applies to `.agents/skills/`, which you likely share with other
-tools: uninstall removes ==only the `slashforge-*` directories it created==, and
+tools: uninstall removes only the `slashforge-*` directories it created, and
 removes the `skills/` directory itself only if nothing else is left in it.

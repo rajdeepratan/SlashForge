@@ -4,7 +4,6 @@ import sitemap from '@astrojs/sitemap';
 import remarkDirective from 'remark-directive';
 import { remarkCallouts } from './src/plugins/remark-callouts.mjs';
 import { remarkChangelog } from './src/plugins/remark-changelog.mjs';
-import { remarkMark } from './src/plugins/remark-mark.mjs';
 import { remarkAgentOnly } from './src/plugins/remark-agent-only.mjs';
 import { rehypeCommandNames } from './src/plugins/rehype-command-names.mjs';
 import { rehypeCodeFrame } from './src/plugins/rehype-code-frame.mjs';
@@ -25,6 +24,12 @@ export default defineConfig({
   site,
   base,
 
+  // Serve slashless URLs with no redirect: emit `foo.html` (not `foo/index.html`)
+  // and build every link and the canonical tag without a trailing slash, so the
+  // link, the canonical and the final served URL all agree.
+  trailingSlash: 'never',
+  build: { format: 'file' },
+
   // Every URL this site has previously served that no longer exists, pointed at
   // where its content went. The site is live at www.rajdeepratan.com/slashforge,
   // so these are real published URLs — a rename without a redirect is a 404 for
@@ -35,16 +40,16 @@ export default defineConfig({
   // target has to carry `base` itself.
   redirects: {
     // Three migration guides merged into one page.
-    '/guides/migrating-to-v4/': `${base}/reference/migrating/`,
-    '/guides/migrating-to-v3/': `${base}/reference/migrating/`,
-    '/guides/migrating-from-claude-setup-kit/': `${base}/reference/migrating/`,
+    '/guides/migrating-to-v4': `${base}/reference/migrating`,
+    '/guides/migrating-to-v3': `${base}/reference/migrating`,
+    '/guides/migrating-from-claude-setup-kit': `${base}/reference/migrating`,
     // Merged page then moved from guides/ to reference/, to match its group.
-    '/guides/migrating/': `${base}/reference/migrating/`,
+    '/guides/migrating': `${base}/reference/migrating`,
     // Retitled: the page is now as much about plan mode as about /init.
-    '/guides/vs-init/': `${base}/guides/plan-mode-and-init/`,
+    '/guides/vs-init': `${base}/guides/plan-mode-and-init`,
     // Retitled in v4.2.0: superpowers stopped being a preflight gate, and the
     // page became the documentation for the skills SlashForge ships itself.
-    '/guides/superpowers/': `${base}/guides/skills/`,
+    '/guides/superpowers': `${base}/guides/skills`,
   },
 
   // Emit into dist/<base>/ so the built paths match the served URLs exactly.
@@ -78,7 +83,7 @@ export default defineConfig({
     // remark-directive parses the `:::note` syntax; remarkCallouts turns it
     // into the design's callout markup. Order matters — the parser has to run
     // first or there are no directive nodes to transform.
-    remarkPlugins: [remarkDirective, remarkCallouts, remarkChangelog, remarkMark, remarkAgentOnly],
+    remarkPlugins: [remarkDirective, remarkCallouts, remarkChangelog, remarkAgentOnly],
     // rehypeCommandNames runs first: the code frame needs blocks already
     // flagged with data-has-cmd when it decides whether to render tabs.
     rehypePlugins: [rehypeCommandNames, rehypeCodeFrame, rehypeTableWrap],

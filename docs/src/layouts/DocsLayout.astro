@@ -32,7 +32,7 @@ const editUrl = isGenerated
     : undefined;
 const updated = lastModified(isGenerated ? '../CHANGELOG.md' : filePath);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const href = (s: string) => `${base}/${s}/`;
+const href = (s: string) => `${base}/${s}`;
 
 const { prev, next } = neighbours(slug, base);
 const kicker = groupOf(slug);
@@ -52,7 +52,7 @@ const toc = headings.filter((h) => h.depth === 2);
   </button>
 
   <div class="shell">
-    <aside class="sidebar" data-sidebar>
+    <aside class="sidebar" data-sidebar aria-label="Documentation">
       {
         NAV.map((group) => (
           <div class="sb-group">
@@ -78,11 +78,26 @@ const toc = headings.filter((h) => h.depth === 2);
       }
     </aside>
 
-    <main class="main">
+    <main class="main" id="main-content">
       {kicker && <div class="kicker">{kicker}</div>}
       <h1>{titleCmd ? <span data-cmd={titleCmd}>{title}</span> : title}</h1>
       {description && <p class="lede">{description}</p>}
       <hr class="rule" />
+
+      {
+        toc.length > 0 && (
+          <details class="toc-mobile">
+            <summary>On this page</summary>
+            <ul>
+              {toc.map((h) => (
+                <li>
+                  <a href={`#${h.slug}`}>{h.text}</a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )
+      }
 
       <slot />
 
@@ -112,7 +127,7 @@ const toc = headings.filter((h) => h.depth === 2);
       </div>
     </main>
 
-    <aside class="toc">
+    <aside class="toc" aria-label="On this page">
       {
         toc.length > 0 && (
           <>

@@ -4,8 +4,8 @@ description: Optional AST-level knowledge graph so agents query the call graph a
 ---
 
 [Graphify](https://github.com/Graphify-Labs/graphify) is a local, AST-level
-knowledge graph engine. Indexed against your repo, ==agents query the call graph,
-blast radius, and dependency surface directly instead of grepping raw files==.
+knowledge graph engine. Indexed against your repo, agents query the call graph,
+blast radius, and dependency surface directly instead of grepping raw files.
 
 > It is entirely optional.
 
@@ -13,25 +13,25 @@ blast radius, and dependency surface directly instead of grepping raw files==.
 
 `/slashforge-setup` detects language fit while exploring. If **at least 70% of
 non-trivial source files** are in a supported language, it offers to install and
-index. ==On YAML, shell, or config-only repos it skips silently — no prompt.==
+index. On YAML, shell, or config-only repos it skips silently — no prompt.
 
 Supported: Python, JS/TS, Go, Rust, Java, C/C++, Ruby, C#, Kotlin, Scala, PHP,
 Swift, Lua, Zig, PowerShell, Elixir, Objective-C, Julia, Verilog, SystemVerilog,
 Vue, Svelte, Dart.
 
 This is a **setup-time offer, not a per-command check**. Once installed,
-==Graphify surfaces graph context automatically==, in each agent's own way: a hook on
+Graphify surfaces graph context automatically, in each agent's own way: a hook on
 Claude Code, an always-applied rule on Cursor, and an `AGENTS.md` section on Codex.
 (Graphify also registers a hook on Codex, but deliberately leaves it as a no-op, because
 Codex rejects hook-injected context.)
 
 ## Prerequisites
 
-Graphify is a Python CLI. ==You need **Python 3.10+** and one of `uv`, `pipx`, or
-`pip`== — nothing more. Its dependencies (`networkx`, `numpy`, `rapidfuzz`, and a
+Graphify is a Python CLI. You need **Python 3.10+** and one of `uv`, `pipx`, or
+`pip` — nothing more. Its dependencies (`networkx`, `numpy`, `rapidfuzz`, and a
 tree-sitter grammar per supported language) come down with the package.
 
-==On Codex, also set `multi_agent = true` under `[features]` in `~/.codex/config.toml`== —
+On Codex, also set `multi_agent = true` under `[features]` in `~/.codex/config.toml` —
 Graphify's parallel extraction needs it. Setup checks for it and tells you if it's
 missing; it never edits your config without asking.
 
@@ -43,14 +43,14 @@ A few features live behind optional extras, which the plain install skips:
 | `svg` | `graphifyy[svg]` | SVG/image export of the graph |
 | `leiden` | `graphifyy[leiden]` | Leiden community detection (Python < 3.13) |
 
-==Only `watch` matters for the workflow this kit describes.== Add it at install
+Only `watch` matters for the workflow this kit describes. Add it at install
 time, or re-run the install command later with the extra — nothing is lost by
 deciding afterwards.
 
 ## Ask first, never auto-install
 
-Every install step is a shell command your agent could run itself. ==It doesn't. You
-are shown the exact commands before anything is authorised:==
+Every install step is a shell command your agent could run itself. It doesn't. You
+are shown the exact commands before anything is authorised:
 
 ```bash
 uv tool install graphifyy        # or: pipx install graphifyy / pip install graphifyy
@@ -66,7 +66,7 @@ graphify codex install           # Codex: AGENTS.md section (plus a hook Graphif
 Each agent runs four of these: the first line, its own `graphify install` line, `graphify .`,
 and its own last line. Setup shows you only the ones for the agent you're in.
 
-==Say `n` and `/slashforge-setup` skips it silently.== Re-run `/slashforge-setup` later and
+Say `n` and `/slashforge-setup` skips it silently. Re-run `/slashforge-setup` later and
 the offer fires again.
 
 ## Token impact
@@ -78,14 +78,14 @@ the offer fires again.
 | `/slashforge-code` trivial auto-detect | no | skipped — overhead exceeds value |
 | `/slashforge-code -quick` | no | skipped — same reason |
 
-==`/slashforge-investigate` is the biggest single win==: blast radius is exactly what the
+`/slashforge-investigate` is the biggest single win: blast radius is exactly what the
 graph is built to answer.
 
 Read those absolutes in proportion. On `/slashforge-code`, 10–25k off a 100–250k
 baseline is roughly **4–10%** — real, but it does not change the order of
 magnitude of a run. On `/slashforge-investigate` the same kind of saving comes off a
-much smaller total, so the proportional win is far larger. ==That is the reason to
-install Graphify: sharper investigations, not dramatically cheaper features.==
+much smaller total, so the proportional win is far larger. That is the reason to
+install Graphify: sharper investigations, not dramatically cheaper features.
 
 ## SUMMARY.html
 
@@ -100,7 +100,7 @@ a one-time ~5–15k tokens, with no second prompt; your yes to Graphify covers i
 
 ## Keeping the graph fresh
 
-==A stale graph is worse than none== — it answers confidently and wrongly. Two
+A stale graph is worse than none — it answers confidently and wrongly. Two
 defences:
 
 **Proactive.** Run `graphify watch .` in a separate terminal tab. The graph
@@ -112,7 +112,7 @@ command. If the graph is more than **7 days** behind your latest source commit,
 or **50+ commits** behind, it warns and offers to re-run `graphify .` and
 re-synthesise SUMMARY.html.
 
-==Decline and the command continues with the stale graph.== Accept and both files
+Decline and the command continues with the stale graph. Accept and both files
 refresh — no second prompt.
 
 The freshness check fires on `/slashforge-code` full flow, `/slashforge-investigate`, and
@@ -124,5 +124,5 @@ trivial, and repos without Graphify — zero overhead there.
 Graphify is pre-1.0 and releases often, so its interfaces can shift. If install
 commands change upstream, re-run `npx slashforge` to pull updated guide content.
 
-==The PyPI package is **`graphifyy`** — double `y`.== Other `graphify*` packages are
+The PyPI package is **`graphifyy`** — double `y`. Other `graphify*` packages are
 unaffiliated.

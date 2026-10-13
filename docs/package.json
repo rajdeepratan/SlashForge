@@ -9,7 +9,7 @@
     "predev": "npm run sync:changelog",
     "dev": "astro dev",
     "start": "astro dev",
-    "prebuild": "npm run sync:changelog",
+    "prebuild": "node scripts/deepen-history.mjs && npm run sync:changelog",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",

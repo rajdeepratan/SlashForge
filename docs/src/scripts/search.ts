@@ -51,6 +51,13 @@ if (modal && input && list && count) {
       .replace(/\.html$/, '');
   }
 
+  /** Pagefind reports the built file's URL (…/foo.html). The site serves
+   *  slashless, extensionless URLs, so normalise before linking — otherwise a
+   *  result would redirect on click. */
+  function hrefOf(url: string) {
+    return url.replace(/\/$/, '').replace(/\.html$/, '') || base;
+  }
+
   function render(results: { title: string; excerpt: string; url: string }[], query: string) {
     count.textContent = results.length === 1 ? '1 result' : `${results.length} results`;
 
@@ -121,7 +128,7 @@ if (modal && input && list && count) {
       data.map((d) => ({
         title: d.meta?.title ?? 'Untitled',
         excerpt: d.excerpt,
-        url: d.url,
+        url: hrefOf(d.url),
       })),
       q
     );

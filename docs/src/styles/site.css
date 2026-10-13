@@ -24,9 +24,6 @@
   --accent-text: #b52309;
   --code-bg: #eae7e5;
   --sel-bg: #fde3de;
-  /* The highlight wash. Its own token rather than --sel-bg: a selection is
-     transient and can be loud, a highlight is permanent and cannot. */
-  --mark-bg: #fbdcd5;
 
   --nav-h: 68px;
   /* The fixed action bar. Everything that sticks to the viewport subtracts it. */
@@ -46,7 +43,6 @@
   --accent-text: #ff6a4d;
   --code-bg: #221f1e;
   --sel-bg: #3a140c;
-  --mark-bg: #4d1a0c;
 }
 
 /* The accent follows the coding agent chosen in the picker, so a switch is
@@ -59,23 +55,23 @@
    the ember above stands. */
 [data-target='claude'] {
   --ember: #c15f3c; --ember-hover: #a54e30; --accent-text: #9e4526;
-  --sel-bg: #f7e1d8; --mark-bg: #f3d5c8;
+  --sel-bg: #f7e1d8;
 }
 [data-target='cursor'] {
   --ember: #8a6a00; --ember-hover: #735800; --accent-text: #735800;
-  --sel-bg: #f5ecc8; --mark-bg: #efe2b0;
+  --sel-bg: #f5ecc8;
 }
 [data-target='codex'] {
   --ember: #5b4ff0; --ember-hover: #4a3fd6; --accent-text: #4a3fd6;
-  --sel-bg: #e3e0fd; --mark-bg: #d8d4fb;
+  --sel-bg: #e3e0fd;
 }
 /* The replay terminals are always dark, so they take each agent's on-dark shades. */
 [data-target='claude'] { --term-cmd: #d97757; --term-phase: #e08a6a; }
 [data-target='cursor'] { --term-cmd: #e0b93a; --term-phase: #f0c850; }
 [data-target='codex']  { --term-cmd: #8b82ff; --term-phase: #a59cff; }
-[data-theme='dark'][data-target='claude'] { --accent-text: #e08a6a; --sel-bg: #3a1a10; --mark-bg: #4a2416; }
-[data-theme='dark'][data-target='cursor'] { --accent-text: #f0c850; --sel-bg: #332a0a; --mark-bg: #42370f; }
-[data-theme='dark'][data-target='codex']  { --accent-text: #a59cff; --sel-bg: #1e1a45; --mark-bg: #28235a; }
+[data-theme='dark'][data-target='claude'] { --accent-text: #e08a6a; --sel-bg: #3a1a10; }
+[data-theme='dark'][data-target='cursor'] { --accent-text: #f0c850; --sel-bg: #332a0a; }
+[data-theme='dark'][data-target='codex']  { --accent-text: #a59cff; --sel-bg: #1e1a45; }
 
 /* Per-agent content blocks, written as `:::agent[claude]` in markdown (see
    src/plugins/remark-agent-only.mjs). Hidden by default; the block whose
@@ -164,11 +160,20 @@ a { color: inherit; text-decoration: none; }
 .socials {
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding-left: 14px;
+  gap: 6px;
+  padding-left: 10px;
   border-left: 2px solid var(--hairline);
 }
-.socials a { color: var(--muted); display: flex; }
+/* A >=24px square so the 17-19px glyphs clear the WCAG 2.2 target-size
+   minimum; the reduced gap above keeps the glyphs about as spaced as before. */
+.socials a {
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  min-height: 26px;
+}
 .socials a:hover { color: var(--text); }
 
 /* The theme control is a bordered text button, not a select. */
@@ -186,12 +191,36 @@ a { color: inherit; text-decoration: none; }
 }
 .theme-btn:hover { background: var(--ember); border-color: var(--ember); color: #f3f2f2; }
 
+/* Skip link: off-screen until focused, then a solid control at the top-left so
+   a keyboard user can jump the header and land on the content. --ember-hover
+   is the darker shade, so white text on it clears the contrast minimum. */
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -56px;
+  z-index: 1000;
+  padding: 10px 16px;
+  background: var(--ember-hover);
+  color: #f3f2f2;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.15s;
+}
+.skip-link:focus { top: 8px; }
+
 /* ---------- Docs shell ---------- */
 
 .shell {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr) 232px;
   align-items: start;
+  /* Cap and centre the whole grid: without this the middle 1fr column grows
+     with the viewport, stranding the TOC against the right edge on wide
+     monitors (a ~1,250px gap at 2,557px). Capped, wide screens look like the
+     ~1,440px layout — the TOC stays beside the text. */
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
 .sidebar {
@@ -225,7 +254,10 @@ a { color: inherit; text-decoration: none; }
 }
 .sb-group a:hover { color: var(--text); }
 .sb-group a[aria-current='page'] {
-  background: var(--ember);
+  /* The darker ember shade, not --ember: #f3f2f2 on the mid-tone --ember is
+     only 3.78:1 (Claude), below the 4.5:1 WCAG minimum for this 14.5px text.
+     --ember-hover clears 5:1 for every agent and keeps the accent identity. */
+  background: var(--ember-hover);
   color: #f3f2f2;
   font-weight: 600;
 }
@@ -296,35 +328,6 @@ a { color: inherit; text-decoration: none; }
   font-size: 15px;
   background: var(--code-bg);
   padding: 1px 5px;
-}
-
-/* Highlight — written as `==text==`, see src/plugins/remark-mark.mjs.
-   An ember wash rather than a yellow one: the palette is three colours, and a
-   highlighter yellow would be the only other hue on the page. Weight is left
-   alone so a highlight can sit inside a sentence without shouting over the
-   bold terms around it, and the box is square like everything else. */
-.main mark {
-  background: var(--mark-bg);
-  color: inherit;
-  padding: 1px 4px;
-  margin: 0 -1px;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-}
-
-/* Inline code and links keep their own treatment inside a highlight — the wash
-   sits behind them, it does not replace them. */
-.main mark :is(code, a) { background: transparent; }
-.main mark a { text-decoration-color: currentColor; }
-
-/* Print and forced-colours: a background that may not render must not be the
-   only signal, so the highlight falls back to an underline. */
-@media print, (forced-colors: active) {
-  .main mark {
-    background: transparent;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
 }
 
 /* Tables: uppercase header over a 2px rule, hairlines between rows, no fill. */
@@ -480,6 +483,54 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
 .toc a { display: block; font-size: 13.5px; line-height: 1.35; padding: 7px 0; color: var(--muted); }
 .toc a:hover { color: var(--text); }
 .toc a[aria-current='true'] { color: var(--accent-text); font-weight: 600; }
+
+/* The on-this-page rail (.toc aside) is hidden below 1180px, so long pages open
+   with screens of prose and no in-page navigation on tablets and phones. The
+   same headings are offered there as a collapsible disclosure at the top of the
+   content. A native <details>, so it needs no script and is accessible. */
+.toc-mobile { display: none; }
+
+@media (max-width: 1180px) {
+  .toc-mobile {
+    display: block;
+    border: 2px solid var(--rule);
+    margin: 0 0 32px;
+  }
+  .toc-mobile > summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .toc-mobile > summary::-webkit-details-marker { display: none; }
+  /* A chevron that points down, and flips up when the list is open. */
+  .toc-mobile > summary::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .toc-mobile[open] > summary::after { transform: rotate(-135deg); }
+  .toc-mobile ul {
+    list-style: none;
+    margin: 0;
+    padding: 2px 16px 12px;
+    border-top: 2px solid var(--hairline);
+    display: flex;
+    flex-direction: column;
+  }
+  .toc-mobile a { display: block; font-size: 14.5px; line-height: 1.3; padding: 8px 0; color: var(--muted); }
+  .toc-mobile a:hover { color: var(--text); }
+}
 
 /* The action bar — fixed, on every page. `body` pays for the space it takes so
    nothing ends up underneath it; the sticky sidebar and TOC lose the same
@@ -798,10 +849,15 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
 
 .cells {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 2px;
   background: var(--hairline);
   border: 2px solid var(--rule);
+}
+/* The eight cost tiles fill a clean 4x2 grid; below the band width they step
+   down to 2-up, then to a single column at the 900px mobile breakpoint. */
+@media (max-width: 1024px) {
+  .cells { grid-template-columns: repeat(2, 1fr); }
 }
 /* Four commands read badly as four ~254px columns inside the 1080px band — the
    descriptions wrap to five lines. Two-up gives each cell ~508px. */
@@ -1032,7 +1088,13 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
 .code__copy {
   border: 0;
   background: transparent;
-  padding: 0;
+  /* Padding grows the tap target to the bar's full height (~30px), clearing the
+     WCAG 2.2 24px minimum; the matching negative margins (the bar's own 9px/14px
+     padding) absorb it so the bar's size and the control's position are
+     unchanged. Only the right margin is negative — it reaches into the bar's
+     padding, with no sibling there to overlap. */
+  padding: 9px 14px;
+  margin: -9px -14px -9px 0;
   font-family: var(--font);
   font-size: 11px;
   font-weight: 600;
@@ -1051,6 +1113,11 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
    control in the header, so the two can never drift apart visually. Colours
    come from the tokens, so dark mode follows without a second block. */
 .code__tabs { display: flex; }
+
+/* The same tab strip standing on its own in prose (not in a code bar), beside
+   the content the header selector drives. Reuses .code__tabs for the look so it
+   can never drift from the block tabs; this only gives it room to breathe. */
+.agent-tabs { margin: 0 0 20px; }
 
 .code__tabs button {
   font-family: var(--font);
@@ -1397,6 +1464,46 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
 }
 
 .table-wrap table { margin-bottom: 0; }
+
+@media (max-width: 640px) {
+  /* Stack every table as label-over-value so nothing scrolls sideways on a
+     phone. Each body cell carries its column header as data-label (set by
+     rehype-table-wrap) and sits on its own line; the header row is then
+     redundant and is dropped. */
+  .table-wrap { overflow-x: visible; }
+  .table-wrap table,
+  .table-wrap tbody,
+  .table-wrap tr,
+  .table-wrap td { display: block; width: auto; }
+
+  .table-wrap thead { display: none; }
+
+  .table-wrap tr {
+    border-bottom: 2px solid var(--rule);
+    padding: 12px 0;
+  }
+  .table-wrap tr:last-child { border-bottom: 0; }
+
+  .table-wrap td {
+    border-bottom: 0;
+    padding: 4px 0;
+    line-height: 1.5;
+  }
+
+  /* The column header, shown above its value. Sans even over the mono first
+     cell, to match the header row it replaces. */
+  .table-wrap td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 1px;
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+}
 
 @media (max-width: 640px) {
   /* The header is a fixed-height grid of five controls. At this width brand +

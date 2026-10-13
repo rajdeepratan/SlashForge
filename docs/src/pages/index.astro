@@ -162,12 +162,12 @@ const costs = [
   description="Spec-driven workflow slash commands for AI coding agents — /slashforge-setup, /slashforge-code, /slashforge-investigate, /slashforge-fix, /slashforge-resume, /slashforge-review-pr, /slashforge-test, /slashforge-refactor. From intake to a merged PR, for Claude Code, Cursor and Codex."
   rawTitle
 >
-  <main>
+  <main id="main-content">
     <section class="hero">
       <div class="band band--full hero__grid">
         <div class="hero__copy">
           <h1 class="hero__title">Workflow slash commands for AI coding agents.</h1>
-          <p class="hero__line hero__line--accent">Spec-driven. Guardrails, not autocomplete.</p>
+          <p class="hero__line hero__line--accent">Plan. Gate. Verify. Ship.</p>
           <div class="hero__controls">
             <div class="hero__agent">
               <div class="label">Your agent</div>
@@ -175,7 +175,7 @@ const costs = [
             </div>
 
             <div class="actions">
-              <a class="btn btn--primary" href={`${base}/guides/introduction/`}>Get Started</a>
+              <a class="btn btn--primary" href={`${base}/guides/introduction`}>Get Started</a>
               <a
                 class="btn btn--ghost"
                 href="https://github.com/rajdeepratan/SlashForge"
@@ -212,7 +212,7 @@ const costs = [
           <div class="replay__head">
             <h2>Two runs, start to finish</h2>
             <div class="replay__controls">
-              <a class="replay__link" href={`${base}/guides/example-run/`}>Read it annotated →</a>
+              <a class="replay__link" href={`${base}/guides/example-run`}>Read it annotated →</a>
             </div>
           </div>
           <div class="terms">
@@ -299,7 +299,7 @@ const costs = [
         <div class="cells cells--quad">
           {
             commands.map((c) => (
-              <a class="cell cell--link" href={`${base}/${c.href}/`}>
+              <a class="cell cell--link" href={`${base}/${c.href}`}>
                 <code>
                   {splitCommandText(c.name).map((p) => (p.cmd ? <span data-cmd={p.cmd}>{p.text}</span> : p.text))}
                 </code>
@@ -345,8 +345,8 @@ const costs = [
 
     <section class="poster">
       <div class="band band--full">
-        <p>It empowers people to do their finest work every single time.</p>
-        <a href={`${base}/guides/introduction/`}>Read the introduction <span aria-hidden="true">→</span></a>
+        <p>Built to make disciplined engineering the default, not an afterthought.</p>
+        <a href={`${base}/guides/introduction`}>Read the introduction <span aria-hidden="true">→</span></a>
       </div>
     </section>
   </main>

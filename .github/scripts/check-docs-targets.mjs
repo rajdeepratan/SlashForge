@@ -10,7 +10,7 @@
  * correct on its own — for readers without JavaScript, and for the moment
  * before the script runs.
  */
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import {
   SWITCHABLE,
@@ -133,7 +133,13 @@ for (const src of sources) {
   if (!COMMAND_RE.test(body)) continue;
   expected += 1;
 
-  const built = join(root, slug, 'index.html');
+  // Resolve either build format: `slug.html` (build.format 'file') or
+  // `slug/index.html` ('directory').
+  const built = [join(root, `${slug}.html`), join(root, slug, 'index.html')].find((p) => existsSync(p));
+  if (!built) {
+    fail(`${slug}: no built HTML found`);
+    continue;
+  }
   const html = readFileSync(built, 'utf8');
   if (!/data-cmd=/.test(html)) {
     fail(`${slug}: source mentions a switchable command but nothing is marked`);

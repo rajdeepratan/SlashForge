@@ -3,11 +3,11 @@ title: Migrating
 description: Every upgrade path in one place. Skip this page unless you installed before v5.
 ---
 
-==Newest first. Find the version you are on, apply that section, and stop== — each
+Newest first. Find the version you are on, apply that section, and stop — each
 one is self-contained, and if you are two hops back you can do both at once.
 
 :::note
-==Your repo's own `.claude/` directory survives every migration on this page.==
+Your repo's own `.claude/` directory survives every migration on this page.
 Only the kit's own files under `~/.claude/` (and, from v5, `~/.agents/`) are replaced. The configuration
 `/slashforge-setup` generated is yours — though after v4 to v5 it may still name the
 old commands; step 3 of that section covers it.
@@ -15,7 +15,7 @@ old commands; step 3 of that section covers it.
 
 ## v4 to v5
 
-==v5.0.0 changes the command names, and installs for Cursor and Codex too.==
+v5.0.0 changes the command names, and installs for Cursor and Codex too.
 
 | v4 (Claude Code) | v5 (Claude Code and Cursor) | v5 (Codex) |
 | --- | --- | --- |
@@ -29,8 +29,8 @@ The nine discipline skills follow the same pattern: `slashforge:plan` becomes
 `slashforge-plan`.
 
 :::steps
-1. Run `npx slashforge`. It installs the new commands and ==removes the v4 ones by
-   name== — the 13 files it put in `~/.claude/commands/slashforge/`, then the folder if
+1. Run `npx slashforge`. It installs the new commands and removes the v4 ones by
+   name — the 13 files it put in `~/.claude/commands/slashforge/`, then the folder if
    nothing else is left. A command of your own in that folder is kept.
 2. Restart Claude Code, so it drops the old `/slashforge:` entries.
 3. In each repo you set up with v4, run `/slashforge-setup` to refresh the files it
@@ -45,14 +45,14 @@ The nine discipline skills follow the same pattern: `slashforge:plan` becomes
 
 ### Why
 
-==The same name on every host.== The `:` only existed because Claude Code turns a
+The same name on every host. The `:` only existed because Claude Code turns a
 commands subfolder into a namespace. Neither Cursor nor Codex supports that, so 5.0
 names every command `slashforge-code` on all three. Claude Code installs flat
 `slashforge-*.md` files and matches them.
 
 ## v3 to v4
 
-==v4.0.0 changes one thing: the command namespace.==
+v4.0.0 changes one thing: the command namespace.
 
 | v3 | v4 |
 | --- | --- |
@@ -61,7 +61,7 @@ names every command `slashforge-code` on all three. Claude Code installs flat
 | `/forge:code -quick` | `/slashforge:code -quick` |
 | `/forge:investigate` | `/slashforge:investigate` |
 
-==Nothing else changed in v4.0.0== — the same three commands, ten phases, gates and
+Nothing else changed in v4.0.0 — the same three commands, ten phases, gates and
 `-quick` mode. (`/slashforge:review-pr` arrived later, in v4.2.0.)
 
 ### Why
@@ -79,12 +79,12 @@ Better to absorb the rename now than after it has spread.
 | Commands | `~/.claude/commands/forge/` | `~/.claude/commands/slashforge/` |
 | Guides | `~/.claude/setup/slashforge/` | unchanged |
 
-==Guide filenames are unchanged. Only the command namespace directory moved.==
+Guide filenames are unchanged. Only the command namespace directory moved.
 
 ## v2 to v3
 
-v3.0.0 renamed every command. ==There is no compatibility shim — the old names
-stop working.==
+v3.0.0 renamed every command. There is no compatibility shim — the old names
+stop working.
 
 | v2 | v3 |
 | --- | --- |
@@ -138,9 +138,9 @@ Both were deprecated in v2.0.0 and removed on schedule:
 ## From claude-setup-kit
 
 If you installed **`claude-setup-kit`**, you are on the original package name.
-==It is deprecated and no longer updated.==
+It is deprecated and no longer updated.
 
-==Do not migrate in stages. Go straight to the current release:==
+Do not migrate in stages. Go straight to the current release:
 
 ```bash
 npm uninstall -g claude-setup-kit
@@ -153,8 +153,8 @@ Or without a global install:
 npx slashforge
 ```
 
-The package name is cosmetic. ==The command names are muscle memory, and they are
-what will actually trip you up:==
+The package name is cosmetic. The command names are muscle memory, and they are
+what will actually trip you up:
 
 | You are typing | Now type |
 | --- | --- |
@@ -174,7 +174,7 @@ npx slashforge
 ```
 
 That installs the current layout and then **lists** any older files still on
-disk. ==It will not delete them== — they are files you did not ask it to touch.
+disk. It will not delete them — they are files you did not ask it to touch.
 
 Remove them yourself, or clear everything and reinstall:
 
@@ -183,9 +183,9 @@ npx slashforge uninstall   # recognises the v2, v3 and v4 layouts
 npx slashforge
 ```
 
-==`uninstall` and `status` both recognise every earlier layout==, so an upgraded
+`uninstall` and `status` both recognise every earlier layout, so an upgraded
 install can always be cleaned up rather than orphaned. See the
-[CLI reference](/slashforge/reference/cli/) for exactly what each one touches.
+[CLI reference](/slashforge/reference/cli) for exactly what each one touches.
 
 If you have added your own commands under `~/.claude/commands/forge/`,
 uninstall leaves them alone and keeps the directory — only the files SlashForge
