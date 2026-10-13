@@ -7,7 +7,7 @@
 
 <p align="center"><strong>Workflow slash commands for AI coding agents.</strong></p>
 
-<p align="center"><em>Guardrails, not autocomplete.</em></p>
+<p align="center"><em>Plan. Gate. Verify. Ship.</em></p>
 
 <p align="center">
 <a href="https://www.npmjs.com/package/slashforge"><img src="https://img.shields.io/npm/v/slashforge.svg?color=EC3013&labelColor=201E1D" alt="npm version"></a>
