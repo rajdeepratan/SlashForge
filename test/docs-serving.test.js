@@ -13,10 +13,17 @@ const read = (rel) => fs.readFileSync(path.join(__dirname, '..', rel), 'utf8');
 // project has Clean URLs enabled. Without it, every nested page 404s while the
 // `.html` path 200s — which is exactly what took the live docs down.
 //
-// So the two layers must agree: if Astro ships file-format output, the Vercel
-// config must turn Clean URLs on (and drop trailing slashes, matching the
-// site's slashless canonical). This test fails the moment that pairing breaks.
-test('file-format output ships with Vercel Clean URLs', () => {
+// A second trap sits right next to it: `trailingSlash: false` must NOT be set.
+// The landing page is the one directory index in the output
+// (`dist/slashforge/index.html`), so `/slashforge` is a directory. Vercel
+// serves a directory with a trailing slash; `trailingSlash: false` forces the
+// slash back off, and the two fight as an infinite `/slashforge -> /slashforge`
+// redirect that takes the landing page down. Clean URLs alone fixes the nested
+// pages without looping the landing.
+//
+// So, when Astro ships file-format output: Clean URLs on, trailing-slash
+// enforcement off. This test fails the moment either half drifts.
+test('file-format output ships with Vercel Clean URLs and no trailing-slash enforcement', () => {
   const astroConfig = read('docs/astro.config.mjs');
   const usesFileFormat = /format:\s*['"]file['"]/.test(astroConfig);
 
@@ -42,9 +49,9 @@ test('file-format output ships with Vercel Clean URLs', () => {
     true,
     'docs/vercel.json must set "cleanUrls": true so file-format pages resolve extensionless'
   );
-  assert.strictEqual(
+  assert.notStrictEqual(
     vercel.trailingSlash,
     false,
-    'docs/vercel.json must set "trailingSlash": false to match the slashless canonical'
+    'docs/vercel.json must NOT set "trailingSlash": false — it loops the landing page (/slashforge -> /slashforge)'
   );
 });
