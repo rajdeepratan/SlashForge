@@ -849,10 +849,15 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
 
 .cells {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 2px;
   background: var(--hairline);
   border: 2px solid var(--rule);
+}
+/* The eight cost tiles fill a clean 4x2 grid; below the band width they step
+   down to 2-up, then to a single column at the 900px mobile breakpoint. */
+@media (max-width: 1024px) {
+  .cells { grid-template-columns: repeat(2, 1fr); }
 }
 /* Four commands read badly as four ~254px columns inside the 1080px band — the
    descriptions wrap to five lines. Two-up gives each cell ~508px. */
