@@ -8,6 +8,12 @@ _None._
 
 ## Recently archived
 
+- **slashless-url-404-on-vercel** — the slashless rewrite's `build.format: 'file'`
+  output 404'd on Vercel because Clean URLs were off; added `docs/vercel.json`
+  (`cleanUrls: true`, no `trailingSlash` — it looped the landing), guarded by
+  `test/docs-serving.test.js`. Investigated and fixed via `/slashforge-investigate`
+  → `/slashforge-fix`. Merged 2026-10-13 (PR #116), docs-only (no release).
+  See `archive/slashless-url-404-on-vercel/`.
 - **fix-command-lists-stop-at-six** — fixed the hand-maintained command
   enumerations that still stopped at six/four (install closing message, the
   `install.js` "four commands" comment, the landing-page cost tiles), guarded by
