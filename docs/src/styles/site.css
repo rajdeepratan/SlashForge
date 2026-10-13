@@ -215,6 +215,12 @@ a { color: inherit; text-decoration: none; }
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr) 232px;
   align-items: start;
+  /* Cap and centre the whole grid: without this the middle 1fr column grows
+     with the viewport, stranding the TOC against the right edge on wide
+     monitors (a ~1,250px gap at 2,557px). Capped, wide screens look like the
+     ~1,440px layout — the TOC stays beside the text. */
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
 .sidebar {
