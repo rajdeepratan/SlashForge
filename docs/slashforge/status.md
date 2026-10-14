@@ -8,6 +8,12 @@ _None._
 
 ## Recently archived
 
+- **steering-committee-section** — added a "Steering Committee" section to the
+  docs home page (after "What it costs") listing two external reviewers (Madhur
+  Ahuja, Stephane Pareilleux), each linking to their LinkedIn profile, plus a
+  `.cells--pair` grid modifier so the two member tiles split the band width.
+  Merged 2026-10-14 (PR #118), docs-only (no release).
+  See `archive/steering-committee-section/`.
 - **slashless-url-404-on-vercel** — the slashless rewrite's `build.format: 'file'`
   output 404'd on Vercel because Clean URLs were off; added `docs/vercel.json`
   (`cleanUrls: true`, no `trailingSlash` — it looped the landing), guarded by
