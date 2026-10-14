@@ -862,6 +862,9 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
 /* Four commands read badly as four ~254px columns inside the 1080px band — the
    descriptions wrap to five lines. Two-up gives each cell ~508px. */
 .cells--quad { grid-template-columns: repeat(2, 1fr); }
+/* Two members read as two half-width tiles rather than two stranded cells in a
+   four-column grid with empty columns to their right. */
+.cells--pair { grid-template-columns: repeat(2, 1fr); }
 .cell { background: var(--surface); padding: 28px 24px 30px; display: flex; flex-direction: column; gap: 14px; }
 /* The command cells are links now, so they need the affordance without turning
    into a wall of underlined blue. */
@@ -989,7 +992,7 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
   .shell { grid-template-columns: minmax(0, 1fr); }
   .sidebar { display: none; }
   .topnav { display: none; }
-  .cells, .cells--quad { grid-template-columns: minmax(0, 1fr); }
+  .cells, .cells--quad, .cells--pair { grid-template-columns: minmax(0, 1fr); }
   .terms { grid-template-columns: minmax(0, 1fr); gap: 40px; }
   .terms__col .term__body { font-size: 14px; }
   .search-btn { min-width: 0; }

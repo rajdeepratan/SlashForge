@@ -154,6 +154,18 @@ const costs = [
     note: 'Zero functional change, gated by the suite passing with identical results before and after.',
   },
 ];
+
+// Practitioners who run SlashForge on real work and shape it with their feedback.
+const committee = [
+  {
+    name: 'Madhur Ahuja',
+    href: 'https://www.linkedin.com/in/ahujamadhur/',
+  },
+  {
+    name: 'Stephane Pareilleux',
+    href: 'https://www.linkedin.com/in/spareilleux/',
+  },
+];
 ---
 
 <Base
@@ -339,6 +351,28 @@ const costs = [
           The range is driven by the size of the work, not by the tooling. SlashForge is
           deliberately heavy — if you want a prompt turned into a patch as fast as possible, this is
           the wrong tool.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="band">
+        <div class="section__head">
+          <h2>Steering Committee</h2>
+          <span class="label">Review and feedback</span>
+        </div>
+        <div class="cells cells--pair">
+          {
+            committee.map((m) => (
+              <a class="cell cell--link" href={m.href} target="_blank" rel="noopener">
+                <div class="cell__value">{m.name}</div>
+                <p>View profile on LinkedIn <span aria-hidden="true">→</span></p>
+              </a>
+            ))
+          }
+        </div>
+        <p class="caveat">
+          Practitioners who run SlashForge on real work and shape it with their feedback.
         </p>
       </div>
     </section>
