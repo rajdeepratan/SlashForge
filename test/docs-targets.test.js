@@ -204,7 +204,7 @@ test('Installation comes before Plan mode and /init in the sidebar', () => {
   const start = nav.indexOf("label: 'Start here'");
   const commands = nav.indexOf("label: 'Commands'");
   const install = nav.indexOf("slug: 'guides/installation'");
-  const planMode = nav.indexOf("slug: 'guides/plan-mode-and-init'");
+  const planMode = nav.indexOf("slug: 'guides/plan-mode'");
   // Both live in the Start here group, and Installation precedes plan mode.
   assert.ok(install > start && install < commands, 'Installation is in Start here');
   assert.ok(planMode > start && planMode < commands, 'plan mode is in Start here');

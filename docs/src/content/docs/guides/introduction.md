@@ -206,7 +206,7 @@ is `-quick`.
 :::caution[Honest limit]
 SlashForge is deliberately heavy. If what you want is a prompt turned into a
 patch as fast as possible, this is the wrong tool. See
-[Plan mode and /init](/slashforge/guides/plan-mode-and-init) for where the
+[Plan mode and /init](/slashforge/guides/plan-mode) for where the
 lighter option is the right call.
 :::
 

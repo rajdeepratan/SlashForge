@@ -7,19 +7,23 @@
  */
 import Base from './Base.astro';
 import { NAV, groupOf, neighbours } from '../nav';
-import { wholeLabelCommand } from '../targets.mjs';
+import { wholeLabelCommand, TARGETS } from '../targets.mjs';
 import { lastModified } from '../lastModified';
 
 interface Props {
   title: string;
   description?: string;
+  /** Optional per-agent lede; when set, the subtitle switches with the target. */
+  descriptions?: Partial<Record<string, string>>;
+  /** Optional per-agent H1; when set, the heading switches with the target. */
+  titles?: Partial<Record<string, string>>;
   slug: string;
   headings: { depth: number; slug: string; text: string }[];
   /** Repo-relative path of the source markdown, for the edit link and date. */
   filePath?: string;
 }
 
-const { title, description, slug, headings, filePath } = Astro.props;
+const { title, description, descriptions, titles, slug, headings, filePath } = Astro.props;
 
 const EDIT_BASE = 'https://github.com/rajdeepratan/SlashForge/edit/main/docs/';
 // The changelog is generated from /CHANGELOG.md, so editing the copy under
@@ -65,9 +69,13 @@ const toc = headings.filter((h) => h.depth === 2);
                     aria-current={item.slug === slug ? 'page' : undefined}
                   >
                     {
-                      wholeLabelCommand(item.label)
-                        ? <span data-cmd={wholeLabelCommand(item.label)}>{item.label}</span>
-                        : item.label
+                      item.labels
+                        ? TARGETS.map((t) => (
+                            <span class="agent-only" data-agent={t}>{item.labels![t] ?? item.label}</span>
+                          ))
+                        : wholeLabelCommand(item.label)
+                          ? <span data-cmd={wholeLabelCommand(item.label)}>{item.label}</span>
+                          : item.label
                     }
                   </a>
                 </li>
@@ -80,8 +88,24 @@ const toc = headings.filter((h) => h.depth === 2);
 
     <main class="main" id="main-content">
       {kicker && <div class="kicker">{kicker}</div>}
-      <h1>{titleCmd ? <span data-cmd={titleCmd}>{title}</span> : title}</h1>
-      {description && <p class="lede">{description}</p>}
+      <h1>
+        {
+          titles
+            ? TARGETS.map((t) => (
+                <span class="agent-only" data-agent={t}>{titles[t] ?? title}</span>
+              ))
+            : titleCmd
+              ? <span data-cmd={titleCmd}>{title}</span>
+              : title
+        }
+      </h1>
+      {
+        descriptions
+          ? TARGETS.map((t) => (
+              <p class="lede agent-only" data-agent={t}>{descriptions[t] ?? description}</p>
+            ))
+          : description && <p class="lede">{description}</p>
+      }
       <hr class="rule" />
 
       {
