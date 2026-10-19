@@ -24,6 +24,7 @@ const { Content, headings } = await render(page);
 <DocsLayout
   title={page.data.title}
   description={page.data.description}
+  descriptions={page.data.descriptions}
   slug={page.id}
   headings={headings}
   filePath={page.filePath}
