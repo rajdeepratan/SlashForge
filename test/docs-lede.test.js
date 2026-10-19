@@ -9,14 +9,14 @@ const path = require('path');
 // as not-for-Cursor, even though the page body already adapts per agent.
 
 const PAGE = path.join(
-  __dirname, '..', 'docs', 'src', 'content', 'docs', 'guides', 'plan-mode-and-init.md',
+  __dirname, '..', 'docs', 'src', 'content', 'docs', 'guides', 'plan-mode.md',
 );
 
 // The YAML frontmatter block, between the first pair of --- fences.
 function frontmatter() {
   const src = fs.readFileSync(PAGE, 'utf8');
   const m = /^---\n([\s\S]*?)\n---/.exec(src);
-  assert.ok(m, 'plan-mode-and-init.md must have frontmatter');
+  assert.ok(m, 'plan-mode.md must have frontmatter');
   return m[1];
 }
 
@@ -43,6 +43,9 @@ test('the plan-mode lede does not exclude Cursor', () => {
   }
 
   // Cursor's lede must tell the truth: a plan mode but no built-in /init.
-  const cursorLine = (new RegExp('^\\s{2,}cursor:\\s*(.+)$', 'm').exec(fm) || [])[1] || '';
+  // Scope to the `descriptions:` block. The frontmatter also carries a `titles:`
+  // map with its own `cursor:` key, which this must not pick up.
+  const descBlock = fm.slice(fm.indexOf('\ndescriptions:'));
+  const cursorLine = (new RegExp('^\\s{2,}cursor:\\s*(.+)$', 'm').exec(descBlock) || [])[1] || '';
   assert.match(cursorLine, /no built-in/i, 'cursor lede should state it has no built-in /init');
 });

@@ -1,5 +1,7 @@
 ---
 title: Plan mode and /init
+titles:
+  cursor: Plan mode
 description: Every agent ships a plan mode, and most ship an /init. Here is the line between those built-ins and SlashForge, and when you need neither.
 descriptions:
   claude: Claude Code ships a plan mode and a built-in /init. Here is the line between those built-ins and SlashForge, and when you need neither.
