@@ -46,7 +46,10 @@ export default defineConfig({
     // Merged page then moved from guides/ to reference/, to match its group.
     '/guides/migrating': `${base}/reference/migrating`,
     // Retitled: the page is now as much about plan mode as about /init.
-    '/guides/vs-init': `${base}/guides/plan-mode-and-init`,
+    '/guides/vs-init': `${base}/guides/plan-mode`,
+    // Slug shortened to /guides/plan-mode (the full title still names /init, but
+    // the URL no longer does). The previous slug was live, so it keeps resolving.
+    '/guides/plan-mode-and-init': `${base}/guides/plan-mode`,
     // Retitled in v4.2.0: superpowers stopped being a preflight gate, and the
     // page became the documentation for the skills SlashForge ships itself.
     '/guides/superpowers': `${base}/guides/skills`,

@@ -10,7 +10,16 @@
  * order, and the flattened order across groups is what the pager walks.
  */
 
-export type NavItem = { label: string; slug: string };
+export type NavItem = {
+  label: string;
+  slug: string;
+  /**
+   * Optional per-agent sidebar label. When set, the sidebar entry switches with
+   * the target (DocsLayout renders one span per agent); `label` stays the
+   * fallback, the pager text, and the search-index label. Keyed by target name.
+   */
+  labels?: Partial<Record<string, string>>;
+};
 export type NavGroup = { label: string; items: NavItem[] };
 
 export const NAV: NavGroup[] = [
@@ -26,7 +35,7 @@ export const NAV: NavGroup[] = [
       { label: 'Installation', slug: 'guides/installation' },
       // A side comparison, so it follows the setup steps rather than sitting
       // ahead of them for a newcomer.
-      { label: 'Plan mode and /init', slug: 'guides/plan-mode-and-init' },
+      { label: 'Plan mode and /init', slug: 'guides/plan-mode', labels: { cursor: 'Plan mode' } },
     ],
   },
   {

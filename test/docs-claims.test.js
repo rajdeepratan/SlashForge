@@ -93,7 +93,7 @@ test('no user-facing doc mentions --target, which never shipped', () => {
 
 test('the plan-mode page states the verified feature matrix', () => {
   const p = fs.readFileSync(
-    path.join(ROOT, 'docs/src/content/docs/guides/plan-mode-and-init.md'), 'utf8');
+    path.join(ROOT, 'docs/src/content/docs/guides/plan-mode.md'), 'utf8');
   // The old opening claimed only Claude Code and Cursor have a plan mode, and
   // split /init as Claude+Codex against a Cursor plan mode. Both are wrong:
   // all three have a plan mode; /init is Claude Code and Codex, not Cursor.

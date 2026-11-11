@@ -18,6 +18,25 @@ export const collections = {
     schema: z.object({
       title: z.string(),
       description: z.string().optional(),
+      /**
+       * Optional per-agent lede. When present, the page subtitle switches with
+       * the header Agent picker (DocsLayout renders one per target); the single
+       * `description` above stays the agent-neutral <meta> string. A partial map
+       * is fine: a missing target falls back to `description`.
+       */
+      descriptions: z
+        .object({ claude: z.string(), cursor: z.string(), codex: z.string() })
+        .partial()
+        .optional(),
+      /**
+       * Optional per-agent H1. When present, the page heading switches with the
+       * target; the single `title` above stays the canonical <title> and routing
+       * source. A partial map is fine: a missing target falls back to `title`.
+       */
+      titles: z
+        .object({ claude: z.string(), cursor: z.string(), codex: z.string() })
+        .partial()
+        .optional(),
       /** Opt a page out of the search index. Nothing uses it yet. */
       noindex: z.boolean().optional(),
     }),
