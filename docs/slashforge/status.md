@@ -8,6 +8,14 @@ _None._
 
 ## Recently archived
 
+- **docs-ux-polish** — closed the actionable findings from the 2026-10-13 docs-site
+  UX audit: removed em-/en-dashes from the home page title, meta description, and
+  marketing copy (token-cost ranges now read "N to M"); raised the mobile header
+  controls (`.menu-toggle`, `.theme-btn`, `.search-btn`) to a 44px touch target at
+  `<=900px`; restored a `:focus-visible` ring on the search-modal input; and added
+  "opens in a new tab" aria-labels to the Steering Committee LinkedIn links.
+  Merged 2026-11-13 (PR #125), docs-only (no release).
+  See `archive/docs-ux-polish/`.
 - **steering-committee-section** — added a "Steering Committee" section to the
   docs home page (after "What it costs") listing two external reviewers (Madhur
   Ahuja, Stephane Pareilleux), each linking to their LinkedIn profile, plus a

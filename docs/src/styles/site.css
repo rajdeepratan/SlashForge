@@ -926,12 +926,19 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
   flex: 1;
   border: 0;
   background: transparent;
-  outline: none;
   font-family: var(--font);
   font-size: 19px;
   font-weight: 500;
   letter-spacing: -0.015em;
   color: var(--text);
+}
+/* Keyboard focus ring for the search field. The base rule used to set
+   `outline: none`, which suppressed the site-wide :focus-visible ring
+   (site.css:102); this inset ring restores a visible indicator without
+   clipping against the 2px modal border. */
+.modal__top input:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: -2px;
 }
 .modal__list { overflow-y: auto; flex: 1; }
 .modal__group { font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); padding: 14px 18px 8px; }
@@ -997,6 +1004,10 @@ td:first-child { font-family: var(--mono); font-size: 14px; overflow-wrap: anywh
   .terms__col .term__body { font-size: 14px; }
   .search-btn { min-width: 0; }
   .search-btn span:first-of-type, .kbd { display: none; }
+  /* Comfortable ~44px touch targets for the header controls on mobile, where
+     Menu is the primary nav control. Desktop is untouched (border-box is global,
+     site.css:87, so 44px is the true rendered height). */
+  .menu-toggle, .theme-btn, .search-btn { min-height: 44px; }
   /* The bar's left side is the first thing to go: it is a credit line, and the
      three controls on the right are the reason the bar exists. */
   .foot__tag { display: none; }
