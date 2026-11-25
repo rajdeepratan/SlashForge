@@ -1353,7 +1353,8 @@ function printHookSnippets(extensions, claude) {
     console.log(`  ${e.manifest.id}:`);
     for (const h of e.hooks) {
       const m = h.matcher ? ` [matcher: ${h.matcher}]` : '';
-      console.log(`    ${h.event}${m} → node ${path.join(extDir, h.script)}`);
+      const d = h.description ? `    # ${h.description}` : '';
+      console.log(`    ${h.event}${m} → node ${path.join(extDir, h.script)}${d}`);
     }
   }
 }

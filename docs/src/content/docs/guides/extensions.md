@@ -77,10 +77,12 @@ enabled per repo**: the host's hook config is where "this repo emits telemetry" 
 is committed with the repo so the team shares it. So the common pattern is to install a pack once,
 then enable its hooks only in the repos that want them.
 
-The installer does not edit your hook config. After a pack installs, it prints the exact
-`event -> node <script>` lines to paste in. And because enabling hooks is a per-repo step,
-`/slashforge-setup` detects installed packs and offers to wire their hooks into the current repo
-for you, recorded under an **Automated Behaviors** section.
+The installer does not edit your hook config. After a pack installs, it prints each hook as
+`<event> → node <script>` (with its matcher and description), showing which script runs on which
+event. That is a readable summary, not host-config JSON: you add it to your host's hook config in
+the format `slashforge-hooks.md` describes. Because enabling hooks is a per-repo step,
+`/slashforge-setup` also detects installed packs and offers to do that wiring for the current repo,
+recorded under an **Automated Behaviors** section.
 
 The installed `slashforge-hooks.md` guide has the per-host hook-config format and scope choices;
 the [CLI reference](/slashforge/reference/cli) documents `--ext`.

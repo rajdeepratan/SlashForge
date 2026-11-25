@@ -201,7 +201,7 @@ npx slashforge --ext ./path/to/pack     # repeatable for several packs
 
 A pack is a local directory with a `slashforge-ext.json` manifest (JSON, so the installer stays dependency-free). The installer validates it with the same checks as the built-ins, installs it atomically into its own `extensions/<id>/` subtree, and records it in `meta.json` so `status` lists it and `uninstall` removes it.
 
-The hook mechanism is **generic**: a pack maps any host lifecycle event (`SessionEnd`, `Stop`, `PostToolUse`, and so on) to any script, for any purpose (telemetry, a Slack ping, a linter, an audit log). SlashForge is installed once per person but hooks are enabled per repo, so the installer prints the paste-in snippet rather than editing host config, and `/slashforge-setup` offers to wire an installed pack's hooks into the current repo for you.
+The hook mechanism is **generic**: a pack maps any host lifecycle event (`SessionEnd`, `Stop`, `PostToolUse`, and so on) to any script, for any purpose (telemetry, a Slack ping, a linter, an audit log). SlashForge is installed once per person but hooks are enabled per repo, so the installer prints a readable `event → node <script>` summary rather than editing host config, and `/slashforge-setup` offers to wire an installed pack's hooks into the current repo for you.
 
 SlashForge ships a first-party **`observability`** pack as the reference example. It emits a usage event on `SessionEnd` and `Stop` (one event per session and per turn, carrying the event name, session id, and working directory) to a webhook (default), an OpenTelemetry (OTLP) collector, or a local JSONL file. It is zero-dependency and fail-open (a telemetry outage never blocks the agent), and reads auth from environment variables only:
 

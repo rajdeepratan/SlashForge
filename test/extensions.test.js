@@ -235,6 +235,14 @@ test('the observability reference pack is valid and secret-free', () => {
 // status lists installed packs
 // ---------------------------------------------------------------------------
 
+test('the install hook snippet shows the event, script path, and description', () => {
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'sfsnip-'));
+  const dir = path.join(__dirname, '..', 'extensions', 'observability');
+  const out = execFileSync('node', [BIN, '--project', '--yes', '--ext', dir], { cwd: repo, encoding: 'utf8' });
+  assert.match(out, /Stop → node .*emit-telemetry\.js/, 'event → node <script>');
+  assert.match(out, /Emit a turn-complete/, 'the hook description is shown');
+});
+
 test('status lists an installed extension pack', () => {
   const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'sfstatus-'));
   const pack = tmpPack({ withHook: true });

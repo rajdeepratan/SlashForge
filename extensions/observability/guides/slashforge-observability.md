@@ -12,7 +12,8 @@ the reference example for SlashForge extension packs — copy it as the starting
 
 It ships a single host hook (`hooks/emit-telemetry.js`) and a config template
 (`config/observability.config.json`). The installer copies both into
-`…/extensions/observability/` and prints the hook snippet to paste into your host hook config.
+`…/extensions/observability/` and prints a summary of which event runs the script, to add to your
+host hook config.
 
 ## What it emits
 
@@ -66,9 +67,10 @@ the person using the agent.
 npx slashforge --ext extensions/observability
 ```
 
-Then paste the printed hook lines into your host's hook config (see `slashforge-hooks.md` for the
-per-host format and scope). Because hooks are enabled per repo, `/slashforge-setup` can also wire
-this pack's hooks into a repo for you and record them under **Automated Behaviors**.
+Then add the printed hooks to your host's hook config in the format `slashforge-hooks.md` describes
+(the printout is a readable summary, not host-config JSON). Because hooks are enabled per repo,
+`/slashforge-setup` can also wire this pack's hooks into a repo for you and record them under
+**Automated Behaviors**.
 
 ## Scope
 

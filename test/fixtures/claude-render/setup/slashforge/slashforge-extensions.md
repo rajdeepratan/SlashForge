@@ -77,14 +77,15 @@ do, a pack can ship.
 | `event` | yes | One of the host events below. |
 | `script` | yes | Path inside the pack, copied verbatim. |
 | `matcher` | no | String passed through to the host (e.g. a tool-name regex). |
-| `description` | no | Shown in the paste-in snippet. |
+| `description` | no | Shown next to the hook in the printed summary. |
 
 **Events:** `SessionStart`, `SessionEnd`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`,
 `Stop`, `SubagentStop`, `Notification`, `PreCompact`, `PostCompact`, `PermissionRequest`.
 
-The installer does **not** edit your host hook config. After install it prints the exact
-`event → node <script path>` lines for each pack; you paste them into your host's hook file
-yourself. See `slashforge-hooks.md` for your host's hook-config format and scope choices.
+The installer does **not** edit your host hook config. After install it prints each hook as
+`<event> → node <script path>` (with its matcher and description) as a readable summary, not
+host-config JSON. You add it to your host's hook file yourself in the format `slashforge-hooks.md`
+describes for your host, and choose the scope.
 
 Example purposes, all just "a script on an event":
 

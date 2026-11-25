@@ -11,8 +11,9 @@ npx slashforge --ext extensions/observability
 ```
 
 The installer validates the pack, copies it into `…/setup/slashforge/extensions/observability/`,
-and prints the host-hook lines to paste into your hook config (`slashforge-hooks.md` has the
-per-host format). Hooks are enabled per repo; `/slashforge-setup` can wire them up for you.
+and prints a summary of which event runs the script, to add to your hook config in the format
+`slashforge-hooks.md` describes. Hooks are enabled per repo; `/slashforge-setup` can wire them up
+for you.
 
 ## Configure
 
