@@ -80,20 +80,20 @@ Once this ships:
 - Publishing extensions to npm or a SlashForge-run marketplace.
 
 ## Success criteria
-- [ ] `bin/install.js` accepts one or more `--ext <dir>` options and installs each validated pack
+- [x] `bin/install.js` accepts one or more `--ext <dir>` options and installs each validated pack
       for the selected host.
-- [ ] A `slashforge-ext.json` manifest is defined, documented, and validated; a malformed manifest
+- [x] A `slashforge-ext.json` manifest is defined, documented, and validated; a malformed manifest
       or over-limit / unbalanced pack file aborts the install before any write (atomicity test).
-- [ ] A pack can contribute at least a guide and a host hook, each landing in the right place for
+- [x] A pack can contribute at least a guide and a host hook, each landing in the right place for
       `claude`, `cursor`, and `codex`. (Extension-provided commands/agents are a deferred follow-up,
       see out of scope.)
-- [ ] Installed packs appear in `meta.json` and in `status`; `uninstall` / `upgrade` remove a pack's
+- [x] Installed packs appear in `meta.json` and in `status`; `uninstall` / `upgrade` remove a pack's
       files and leave the user's unrelated files untouched.
-- [ ] A first-party `observability` pack exists in the repo, installs cleanly via `--ext`, and its
+- [x] A first-party `observability` pack exists in the repo, installs cleanly via `--ext`, and its
       hook emits a usage event on `SessionEnd` + `Stop` by default (webhook transport), with OTLP
       and JSONL transports and a `PostToolUse` opt-in selectable in its config template; the hook is
       fail-open and reads auth from env vars only.
-- [ ] An authoring guide ships in `templates/` and is reachable from the docs site + README.
-- [ ] `npm test` is green (new tests for manifest parsing, validation, atomicity, and `--ext`
+- [x] An authoring guide ships in `templates/` and is reachable from the docs site + README.
+- [x] `npm test` is green (new tests for manifest parsing, validation, atomicity, and `--ext`
       install/uninstall) and the pinned Claude render is regenerated and reviewed.
-- [ ] CHANGELOG `## [Unreleased]`, README, and the docs site are updated for the new capability.
+- [x] CHANGELOG `## [Unreleased]`, README, and the docs site are updated for the new capability.
