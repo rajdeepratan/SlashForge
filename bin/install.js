@@ -252,6 +252,16 @@ function parseExtManifest(raw, label) {
   return m;
 }
 
+// A pack's provided paths are copied/rendered into the install tree, so a path
+// that is absolute or escapes the pack with `..` would let a pack write outside
+// its own extensions/<id>/ subtree. Refuse both — packs are shared third-party
+// content, so this is defence in depth, not just a typo guard.
+function assertSafeRelPath(rel, label) {
+  if (path.isAbsolute(rel) || rel.split(/[\\/]/).includes('..')) {
+    throw new Error(`${label}: path '${rel}' must be relative and stay inside the pack`);
+  }
+}
+
 // Reads and validates every pack dir up front, so a malformed pack throws before
 // install() writes anything (the same atomicity guarantee the built-ins have).
 // Returns one resolved record per pack: { dir, manifest, guides, config, hooks }.
@@ -262,6 +272,10 @@ function resolveExtensions(dirs = []) {
     const label = path.relative(process.cwd(), mf) || mf;
     const manifest = parseExtManifest(fs.readFileSync(mf, 'utf8'), label);
     const p = manifest.provides;
+    // Guard every provided path before it is read or written.
+    for (const rel of [...(p.guides || []), ...(p.hooks || []).map((h) => h.script), ...(p.config ? [p.config] : [])]) {
+      assertSafeRelPath(rel, label);
+    }
     const guides = p.guides || [];
     // Guides are held to the same bar as built-ins: frontmatter, balanced target
     // blocks, line limits. This throws before any write, which is the atomicity.

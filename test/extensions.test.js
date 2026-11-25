@@ -94,6 +94,24 @@ test('resolveExtensions rejects a hook script that is missing', () => {
   assert.throws(() => ext.resolveExtensions([d]), /hooks\/h\.js/);
 });
 
+test('resolveExtensions rejects a path that escapes the pack (traversal)', () => {
+  const d = tmpPack({});
+  const mf = path.join(d, 'slashforge-ext.json');
+  const m = JSON.parse(fs.readFileSync(mf, 'utf8'));
+  m.provides.guides = ['../../../tmp/evil.md'];
+  fs.writeFileSync(mf, JSON.stringify(m));
+  assert.throws(() => ext.resolveExtensions([d]), /\.\.|outside|relative/i);
+});
+
+test('resolveExtensions rejects an absolute provided path', () => {
+  const d = tmpPack({ withConfig: true });
+  const mf = path.join(d, 'slashforge-ext.json');
+  const m = JSON.parse(fs.readFileSync(mf, 'utf8'));
+  m.provides.config = '/etc/passwd';
+  fs.writeFileSync(mf, JSON.stringify(m));
+  assert.throws(() => ext.resolveExtensions([d]), /absolute|relative|\.\./i);
+});
+
 test('resolveExtensions accepts a valid pack', () => {
   const r = ext.resolveExtensions([tmpPack({ withHook: true, withConfig: true })]);
   assert.equal(r[0].manifest.id, 'demo');
