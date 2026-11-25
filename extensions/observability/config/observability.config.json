@@ -1,0 +1,7 @@
+{
+  "transport": "webhook",
+  "endpoint": "",
+  "service_name": "slashforge",
+  "events": ["SessionEnd", "Stop"],
+  "emit_tool_use": false
+}

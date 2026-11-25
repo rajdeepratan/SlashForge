@@ -34,6 +34,7 @@ const GUIDE_FILES = [
   'slashforge-agents-codex.md',
   'slashforge-commands.md',
   'slashforge-hooks.md',
+  'slashforge-extensions.md',
   'slashforge-claude-md.md',
   'slashforge-agents-md.md',
   'slashforge-memory.md',
@@ -208,6 +209,155 @@ function parseFrontmatter(content, label) {
     }
   }
   return fm;
+}
+
+// ---------------------------------------------------------------------------
+// Extension packs (--ext)
+// ---------------------------------------------------------------------------
+
+// The manifest a local extension pack is identified by, at its root.
+const EXT_MANIFEST = 'slashforge-ext.json';
+
+// Host lifecycle events a pack may hang a hook on. Open-ended by design: the
+// installer validates the event name and copies the script, and never assumes
+// what the script does (telemetry, Slack, a linter, an audit log, …).
+const HOST_EVENTS = new Set([
+  'SessionStart', 'SessionEnd', 'UserPromptSubmit', 'PreToolUse', 'PostToolUse',
+  'Stop', 'SubagentStop', 'Notification', 'PreCompact', 'PostCompact', 'PermissionRequest',
+]);
+
+// Parses and validates a pack manifest. JSON, not YAML, so it needs no parser
+// beyond the built-in one — the zero-dependency rule reaches the manifest too.
+// Throws `Error(label + ': …')` on anything malformed, so a bad pack aborts the
+// whole install before a file is written.
+function parseExtManifest(raw, label) {
+  let m;
+  try { m = JSON.parse(raw); } catch (e) { throw new Error(`${label}: invalid JSON (${e.message})`); }
+  if (m.schema !== 1) throw new Error(`${label}: unsupported schema (want 1)`);
+  if (!/^[a-z0-9-]+$/.test(m.id || '')) throw new Error(`${label}: id must match ^[a-z0-9-]+$`);
+  for (const k of ['name', 'version', 'description']) {
+    if (!m[k] || typeof m[k] !== 'string') throw new Error(`${label}: missing '${k}'`);
+  }
+  const p = m.provides || {};
+  if (!p.guides && !p.hooks && !p.config) {
+    throw new Error(`${label}: provides needs one of guides/hooks/config`);
+  }
+  for (const h of p.hooks || []) {
+    if (!HOST_EVENTS.has(h.event)) throw new Error(`${label}: unknown hook event '${h.event}'`);
+    if (!h.script || typeof h.script !== 'string') throw new Error(`${label}: hook missing 'script'`);
+    if (h.matcher !== undefined && typeof h.matcher !== 'string') {
+      throw new Error(`${label}: hook matcher must be a string`);
+    }
+  }
+  return m;
+}
+
+// A pack's provided paths are copied/rendered into the install tree, so a path
+// that is absolute or escapes the pack with `..` would let a pack write outside
+// its own extensions/<id>/ subtree. Refuse both — packs are shared third-party
+// content, so this is defence in depth, not just a typo guard.
+function assertSafeRelPath(rel, label) {
+  if (path.isAbsolute(rel) || rel.split(/[\\/]/).includes('..')) {
+    throw new Error(`${label}: path '${rel}' must be relative and stay inside the pack`);
+  }
+}
+
+// Reads and validates every pack dir up front, so a malformed pack throws before
+// install() writes anything (the same atomicity guarantee the built-ins have).
+// Returns one resolved record per pack: { dir, manifest, guides, config, hooks }.
+function resolveExtensions(dirs = []) {
+  return dirs.map((dir) => {
+    const mf = path.join(dir, EXT_MANIFEST);
+    if (!fs.existsSync(mf)) throw new Error(`${dir}: no ${EXT_MANIFEST}`);
+    const label = path.relative(process.cwd(), mf) || mf;
+    const manifest = parseExtManifest(fs.readFileSync(mf, 'utf8'), label);
+    const p = manifest.provides;
+    // Guard every provided path before it is read or written.
+    for (const rel of [...(p.guides || []), ...(p.hooks || []).map((h) => h.script), ...(p.config ? [p.config] : [])]) {
+      assertSafeRelPath(rel, label);
+    }
+    const guides = p.guides || [];
+    // Guides are held to the same bar as built-ins: frontmatter, balanced target
+    // blocks, line limits. This throws before any write, which is the atomicity.
+    // validateTemplates covers frontmatter + target blocks; the 200-line cap is a
+    // separate rule for built-ins (a render test), so it is checked here for packs.
+    validateTemplates(guides, dir);
+    for (const g of guides) {
+      const n = fs.readFileSync(path.join(dir, g), 'utf8').split(/\r?\n/).length;
+      if (n > 200) throw new Error(`${label}: guide '${g}' is ${n} lines, over the 200-line cap`);
+    }
+    for (const h of p.hooks || []) {
+      if (!fs.existsSync(path.join(dir, h.script))) {
+        throw new Error(`${label}: hook script '${h.script}' not found`);
+      }
+    }
+    if (p.config && !fs.existsSync(path.join(dir, p.config))) {
+      throw new Error(`${label}: config '${p.config}' not found`);
+    }
+    return { dir, manifest, guides, config: p.config || null, hooks: p.hooks || [] };
+  });
+}
+
+// A pack's files live in their own subtree under the guides dir. It is a
+// subdirectory, so the top-level stale-file sweep (which only reads the guides
+// dir itself) never sees — and never deletes — an installed pack.
+function extInstallDir(guidesDir, id) {
+  return path.join(guidesDir, 'extensions', id);
+}
+
+// Writes each resolved pack into guidesDir/extensions/<id>/: guides are rendered
+// like built-in guides (and optionally post-processed per host), config and hook
+// scripts are copied verbatim. Returns [{id, version}] for meta.json.
+function installExtensions(guidesDir, extensions = [], {
+  targetName = 'claude', installPath, version = pkg.version, pkgName = pkg.name, postRender = (s) => s,
+} = {}) {
+  const installed = [];
+  for (const e of extensions) {
+    const extDir = extInstallDir(guidesDir, e.manifest.id);
+    for (const g of e.guides) {
+      const dest = path.join(extDir, g);
+      let out = renderTemplate(fs.readFileSync(path.join(e.dir, g), 'utf8'), {
+        installPath, version, pkgName, targetName,
+      });
+      out = postRender(out);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.writeFileSync(dest, out);
+    }
+    // Several hooks may share one script (e.g. Stop + SessionEnd); copy it once.
+    for (const script of new Set(e.hooks.map((h) => h.script))) {
+      const dest = path.join(extDir, script);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(path.join(e.dir, script), dest);
+    }
+    if (e.config) {
+      const dest = path.join(extDir, e.config);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(path.join(e.dir, e.config), dest);
+    }
+    installed.push({ id: e.manifest.id, version: e.manifest.version });
+  }
+  return installed;
+}
+
+// The extensions a meta.json should record after an install. Packs install into
+// their own subtree and survive an upgrade, so an upgrade that passes no --ext
+// must keep the packs already recorded rather than forgetting them; an --ext run
+// overlays the freshly installed ones (new version wins) without dropping others.
+function mergeExtensionRecords(existing = [], installed = []) {
+  const byId = new Map();
+  for (const e of existing) if (e && e.id) byId.set(e.id, { id: e.id, version: e.version });
+  for (const e of installed) byId.set(e.id, { id: e.id, version: e.version });
+  return [...byId.values()];
+}
+
+// Removes the whole extensions/ subtree under a guides dir. Everything there is
+// kit-installed (no user file ever lands inside extensions/<id>/), so it goes as
+// a unit. Returns the removed dir, or [] when there was nothing to remove.
+function uninstallExtensions(guidesDir) {
+  const dir = path.join(guidesDir, 'extensions');
+  if (!fs.existsSync(dir)) return [];
+  fs.rmSync(dir, { recursive: true, force: true });
+  return [dir];
 }
 
 // Assets carry no frontmatter, so presence is the only thing worth checking.
@@ -442,6 +592,7 @@ function installFiles(target, {
   commandFiles = COMMAND_FILES,
   assetFiles = ASSET_FILES,
   skillFiles = SKILL_FILES,
+  extensions = [],
 } = {}) {
   validateTemplates(guideFiles, templatesDir);
   validateTemplates(commandFiles, templatesDir);
@@ -510,6 +661,13 @@ function installFiles(target, {
     if (writtenGuides.has(entry)) continue;
     fs.rmSync(path.join(target.guidesDir, entry));
   }
+  // Packs install after the sweep, into their own extensions/<id>/ subtree.
+  // Merge with what the previous install recorded so an upgrade without --ext
+  // does not forget packs whose files are still on disk.
+  const priorExtensions = (readMeta(target.metaFile) || {}).extensions;
+  const installedExtensions = mergeExtensionRecords(priorExtensions, installExtensions(target.guidesDir, extensions, {
+    targetName: target.target, installPath: target.installPath, version, pkgName,
+  }));
   const meta = JSON.stringify({
     package: pkgName,
     version,
@@ -519,6 +677,7 @@ function installFiles(target, {
     commands: commandFiles
       .filter((c) => !omit.includes(c))
       .map((c) => commandName(c)),
+    extensions: installedExtensions,
   }, null, 2) + '\n';
   const removedV4 = removeV4Commands(target);
   fs.writeFileSync(target.metaFile, meta);
@@ -635,6 +794,7 @@ function plannedAgentsWrites(agents, {
   commandFiles = COMMAND_FILES,
   assetFiles = ASSET_FILES,
   skillFiles = SKILL_FILES,
+  extensions = [],
 } = {}) {
   const writes = [];
   for (const h of agents.hosts) {
@@ -646,6 +806,7 @@ function plannedAgentsWrites(agents, {
     for (const a of assetFiles) {
       writes.push({ kind: 'asset', src: path.join(templatesDir, a), dest: path.join(h.guidesDir, a) });
     }
+    for (const w of plannedExtWrites(h.guidesDir, extensions)) writes.push(w);
     writes.push({ kind: 'meta', dest: path.join(h.guidesDir, 'meta.json') });
   }
   for (const c of [...commandFiles, ...skillFiles]) {
@@ -665,6 +826,7 @@ function installAgentsFiles(agents, {
   commandFiles = COMMAND_FILES,
   assetFiles = ASSET_FILES,
   skillFiles = SKILL_FILES,
+  extensions = [],
 } = {}) {
   validateTemplates(guideFiles, templatesDir);
   validateTemplates(commandFiles, templatesDir);
@@ -703,12 +865,19 @@ function installAgentsFiles(agents, {
     for (const entry of fs.readdirSync(h.guidesDir)) {
       if (isStaleKitFile(entry) && !keep.has(entry)) fs.rmSync(path.join(h.guidesDir, entry));
     }
+    // Packs install into this host's own extensions/<id>/ subtree, after its sweep,
+    // rendered for the host (command sigils rewritten) like its guides.
+    installExtensions(h.guidesDir, extensions, {
+      targetName: h.host, installPath: h.installPath, version, pkgName,
+      postRender: (s) => toHostCommandRefs(s, h.host),
+    });
   }
   for (const c of [...commandFiles, ...skillFiles]) {
     const src = c === SETUP_COMMAND ? SETUP_DISPATCH : c;
     write(skillFilePath(agents, c), renderSkill(src, c, agents, { ...opts, commandFiles }));
     if (commandFiles.includes(c)) write(policyPath(agents, c), INVOCATION_POLICY_YAML);
   }
+  const priorExtensions = (readMeta(agents.metaFile) || {}).extensions;
   const meta = JSON.stringify({
     package: pkgName,
     version,
@@ -716,6 +885,7 @@ function installAgentsFiles(agents, {
     mode: agents.mode,
     hosts: AGENT_HOSTS,
     commands: commandFiles.map((c) => '/' + skillDirName(c, 'slashforge-')),
+    extensions: mergeExtensionRecords(priorExtensions, extensions.map((e) => ({ id: e.manifest.id, version: e.manifest.version }))),
   }, null, 2) + '\n';
   // One at the root for status and uninstall, and one in each host folder, where
   // setup's guides read it ("meta.json … same folder as this file").
@@ -759,6 +929,8 @@ function uninstallFiles(target, {
       removed.push(nsDir);
     }
   }
+  // Installed packs go first, as a subtree, before the dir is pruned.
+  removed.push(...uninstallExtensions(target.guidesDir));
   removed.push(...removeKitFiles(target.guidesDir, guideFiles));
   // setup/ only: ~/.claude itself and commands/ belong to Claude Code, not the kit.
   removed.push(...pruneEmptyDirs([path.dirname(target.guidesDir)]));
@@ -781,7 +953,10 @@ function uninstallAgentsFiles(agents, { guideFiles = GUIDE_FILES, commandFiles =
     fs.rmdirSync(agents.skillsDir);
     removed.push(agents.skillsDir);
   }
-  for (const h of agents.hosts) removed.push(...removeKitFiles(h.guidesDir, [...guideFiles, SETUP_FLOW]));
+  for (const h of agents.hosts) {
+    removed.push(...uninstallExtensions(h.guidesDir));
+    removed.push(...removeKitFiles(h.guidesDir, [...guideFiles, SETUP_FLOW]));
+  }
   removed.push(...removeKitFiles(agents.root, guideFiles));
   // The folders the install created, once nothing else is in them.
   removed.push(...pruneEmptyDirs([path.dirname(agents.root), agents.base]));
@@ -1041,6 +1216,14 @@ function printOlderClaudeCommands(old, claude) {
   }
 }
 
+// Lists the extension packs a meta.json records, if any.
+function printExtensionStatus(meta) {
+  const packs = (meta && meta.extensions) || [];
+  if (!packs.length) return;
+  console.log(`    Extension packs:    ${packs.length}`);
+  for (const p of packs) console.log(`      • ${p.id}@${p.version}`);
+}
+
 async function printStatus({ project = false } = {}) {
   const claude = resolveTarget({ project });
   const agents = resolveAgents({ project });
@@ -1070,6 +1253,7 @@ async function printStatus({ project = false } = {}) {
     console.log(`    Guide files:        ${guides.length} (${claude.guidesDir})`);
     console.log(`    Installed commands: ${commands.length}`);
     for (const c of commands) console.log(`      • ${commandName(c)}`);
+    printExtensionStatus(readMeta(claude.metaFile));
     printOlderClaudeCommands(old, claude);
   } else {
     console.log(`\n  Claude Code:     not installed — run \`npx ${pkg.name}\` to add it.`);
@@ -1090,6 +1274,7 @@ async function printStatus({ project = false } = {}) {
       const name = skillDirName(c, 'slashforge-');
       console.log(`      • /${name} (Cursor), $${name} (Codex)`);
     }
+    printExtensionStatus(readMeta(agents.metaFile));
   } else {
     console.log(`\n  Cursor + Codex:  not installed — run \`npx ${pkg.name}\` to add it.`);
   }
@@ -1106,6 +1291,7 @@ function plannedWrites(target, {
   commandFiles = COMMAND_FILES,
   assetFiles = ASSET_FILES,
   skillFiles = SKILL_FILES,
+  extensions = [],
 } = {}) {
   const omit = target.omit || [];
   const writes = [];
@@ -1122,14 +1308,58 @@ function plannedWrites(target, {
   for (const asset of assetFiles) {
     writes.push({ kind: 'asset', src: path.join(templatesDir, asset), dest: path.join(target.guidesDir, asset) });
   }
+  for (const w of plannedExtWrites(target.guidesDir, extensions)) writes.push(w);
   writes.push({ kind: 'meta', dest: target.metaFile });
+  return writes;
+}
+
+// The extension files a pack would write into a guides dir, as dry-run rows.
+function plannedExtWrites(guidesDir, extensions = []) {
+  const writes = [];
+  for (const e of extensions) {
+    const extDir = extInstallDir(guidesDir, e.manifest.id);
+    for (const g of e.guides) writes.push({ kind: 'ext', src: path.join(e.dir, g), dest: path.join(extDir, g) });
+    for (const script of new Set(e.hooks.map((h) => h.script))) {
+      writes.push({ kind: 'ext', src: path.join(e.dir, script), dest: path.join(extDir, script) });
+    }
+    if (e.config) writes.push({ kind: 'ext', src: path.join(e.dir, e.config), dest: path.join(extDir, e.config) });
+  }
   return writes;
 }
 
 
 
 
-async function install({ dryRun, assumeYes, project = false }) {
+// Collects every --ext value, accepting both `--ext dir` and `--ext=dir`.
+function parseExtArgs(args) {
+  const dirs = [];
+  for (let i = 0; i < args.length; i += 1) {
+    if (args[i] === '--ext' && args[i + 1]) { dirs.push(args[i + 1]); i += 1; }
+    else if (args[i].startsWith('--ext=')) dirs.push(args[i].slice('--ext='.length));
+  }
+  return dirs;
+}
+
+// Prints the host-hook snippet for each installed pack. The installer does not
+// edit settings.json / hooks.json itself — it hands the team the exact lines to
+// paste (see slashforge-hooks.md), because that config is the host's, not ours.
+function printHookSnippets(extensions, claude) {
+  const withHooks = extensions.filter((e) => e.hooks.length);
+  if (!withHooks.length) return;
+  console.log('\nHooks shipped by these packs — add them to your host hook config');
+  console.log('(see slashforge-hooks.md; paths shown for the Claude install):');
+  for (const e of withHooks) {
+    const extDir = extInstallDir(claude.guidesDir, e.manifest.id);
+    console.log(`  ${e.manifest.id}:`);
+    for (const h of e.hooks) {
+      const m = h.matcher ? ` [matcher: ${h.matcher}]` : '';
+      const d = h.description ? `    # ${h.description}` : '';
+      console.log(`    ${h.event}${m} → node ${path.join(extDir, h.script)}${d}`);
+    }
+  }
+}
+
+async function install({ dryRun, assumeYes, project = false, extDirs = [] }) {
   const claude = resolveTarget({ project });
   const agents = resolveAgents({ project });
 
@@ -1138,6 +1368,8 @@ async function install({ dryRun, assumeYes, project = false }) {
   validateTemplates(SKILL_FILES, TEMPLATES_DIR);
   validateTemplates([SETUP_DISPATCH], TEMPLATES_DIR);
   assertTemplatesExist(ASSET_FILES, TEMPLATES_DIR);
+  // Resolve + validate packs before anything is written: a bad pack aborts here.
+  const extensions = resolveExtensions(extDirs);
 
   const alreadyInstalled = hasKitFiles(claude.guidesDir) || hasKitFiles(agents.root);
   if (!dryRun && alreadyInstalled) {
@@ -1154,8 +1386,8 @@ async function install({ dryRun, assumeYes, project = false }) {
 
   if (dryRun) {
     console.log(`\nDry-run (no files written) — would install v${pkg.version}:\n`);
-    for (const w of [...plannedWrites(claude, {}), ...plannedAgentsWrites(agents)]) {
-      const label = w.kind === 'asset' ? 'copy  ' : w.kind === 'meta' ? 'write ' : 'render';
+    for (const w of [...plannedWrites(claude, { extensions }), ...plannedAgentsWrites(agents, { extensions })]) {
+      const label = w.kind === 'asset' ? 'copy  ' : w.kind === 'meta' ? 'write ' : w.kind === 'ext' ? 'ext   ' : 'render';
       const base = w.src ? path.basename(w.src) : path.basename(w.dest);
       console.log(`  ${label} ${base.padEnd(36)} → ${w.dest}`);
     }
@@ -1174,8 +1406,8 @@ async function install({ dryRun, assumeYes, project = false }) {
   const ok = {};
   let claudeResult = null;
   for (const [key, label, run] of [
-    ['claude', 'Claude Code', () => { claudeResult = installFiles(claude, {}); }],
-    ['agents', 'Cursor + Codex', () => installAgentsFiles(agents, {})],
+    ['claude', 'Claude Code', () => { claudeResult = installFiles(claude, { extensions }); }],
+    ['agents', 'Cursor + Codex', () => installAgentsFiles(agents, { extensions })],
   ]) {
     try { run(); ok[key] = true; } catch (err) { failures.push(`${label}: ${err.message}`); }
   }
@@ -1212,6 +1444,11 @@ async function install({ dryRun, assumeYes, project = false }) {
   if (ok.agents) {
     if (!ok.claude) console.log('\nIn Cursor the commands are /slashforge-setup, /slashforge-code, …');
     console.log('In Codex they are $slashforge-setup, $slashforge-code, …');
+  }
+
+  if (extensions.length && (ok.claude || ok.agents)) {
+    console.log(`\n✓ Extension packs: ${extensions.map((e) => `${e.manifest.id}@${e.manifest.version}`).join(', ')}`);
+    if (ok.claude) printHookSnippets(extensions, claude);
   }
 
   warnIfShadowed(claude, agents);
@@ -1287,6 +1524,7 @@ function printHelp() {
   console.log('');
   console.log('Options:');
   console.log('  --project    Install into ./.claude/ and ./.agents/ of the current repo');
+  console.log('  --ext <dir>  Install a local extension pack (repeatable); see slashforge-extensions.md');
   console.log('  --dry-run    Print planned file writes without touching the filesystem');
   console.log('  --yes, -y    Non-interactive mode — auto-confirm the prompts');
   console.log('               (SLASHFORGE_YES=1 does the same; without a TTY the update prompt');
@@ -1329,7 +1567,7 @@ async function main() {
   }
 
   try {
-    await install({ dryRun, assumeYes, project });
+    await install({ dryRun, assumeYes, project, extDirs: parseExtArgs(args) });
   } finally {
     closeRl();
   }
@@ -1350,6 +1588,15 @@ if (require.main === module) {
 module.exports = {
   isNewerVersion,
   parseFrontmatter,
+  parseExtManifest,
+  resolveExtensions,
+  installExtensions,
+  uninstallExtensions,
+  extInstallDir,
+  parseExtArgs,
+  plannedExtWrites,
+  EXT_MANIFEST,
+  HOST_EVENTS,
   validateTemplates,
   assertTemplatesExist,
   renderTemplate,

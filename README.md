@@ -43,7 +43,7 @@ Installs a collection of guide files plus eight commands that cover the full lif
 
 **Commands installed** (Claude Code and Cursor · Codex):
 
-- **`/slashforge-setup`** · **`$slashforge-setup`**: one-time repo setup. Explores the repo, asks clarifying questions, then creates the entry file, agents, rules, skills, commands, and hooks tailored to the codebase, in your agent's own layout: `CLAUDE.md` and `.claude/` on Claude Code, `AGENTS.md` and `.cursor/` on Cursor, `AGENTS.md` and `.codex/` on Codex. Handles both fresh repos and partial setups. ~50 to 120k tokens, paid once: it has the largest fixed instruction load of any command (~20k before it reads a line of your code) and writes a dozen or more files.
+- **`/slashforge-setup`** · **`$slashforge-setup`**: one-time repo setup. Explores the repo, asks clarifying questions, then creates the entry file, agents, rules, skills, commands, and hooks tailored to the codebase, in your agent's own layout: `CLAUDE.md` and `.claude/` on Claude Code, `AGENTS.md` and `.cursor/` on Cursor, `AGENTS.md` and `.codex/` on Codex. Handles both fresh repos and partial setups. ~50 to 120k tokens, paid once: it has the largest fixed instruction load of any command (~21k before it reads a line of your code) and writes a dozen or more files.
 - **`/slashforge-code`** · **`$slashforge-code`**: freeform end-to-end development workflow. Ten phases: plan → confirm → branch → implement → verify → review → push → PR → PR feedback → post-merge cleanup. ~100 to 250k tokens per feature without Graphify; ~75 to 225k with it indexed.
 - **`/slashforge-code -quick`** · **`$slashforge-code -quick`**: lean version of `/slashforge-code` for small changes. Skips brainstorming, uses a minimal plan (Changes + Test strategy only), and replaces the agent-driven code review with an inline self-review checklist. Keeps every user gate (plan, branch, PR, cleanup) and Phase 6 lint/test/build verification. ~40 to 70k tokens per change. Use for typo fixes, copy changes, config tweaks, renames, single-file refactors.
 - **`/slashforge-investigate [symptom]`** · **`$slashforge-investigate [symptom]`**: read-only research. Reproduces and root-causes a suspected bug, produces a Markdown findings report saved to `docs/slashforge/active/<issue-slug>/investigation.md` plus a structured `.slashforge/latest_investigation.json` hand-off, then offers `/slashforge-fix` (or `/slashforge-code`) so the fix starts with the diagnosis already loaded. ~15 to 60k tokens, set by how far the trail runs: it writes one report, not code.
@@ -72,7 +72,7 @@ Each command is shown as Claude Code and Cursor type it, then as Codex does. The
 | **`/slashforge-review-pr`** · **`$slashforge-review-pr`** | 15 to 70k per review, driven almost entirely by diff size |
 | **`/slashforge-test`** · **`$slashforge-test`** | Light: discovers the framework, writes and runs tests for the targeted files, then reports. No branch, no PR, no production-code changes |
 | **`/slashforge-refactor`** · **`$slashforge-refactor`** | Tracks the base workflow: gated by the test suite passing with identical results before and after, with a test net auto-built first when coverage is thin |
-| **`/slashforge-setup`** · **`$slashforge-setup`** | 50 to 120k, **once per repo.** Reads ~20k of its own instructions, then explores and writes your agent's setup |
+| **`/slashforge-setup`** · **`$slashforge-setup`** | 50 to 120k, **once per repo.** Reads ~21k of its own instructions, then explores and writes your agent's setup |
 | **What you get for it** | Nothing ships that was not planned, gated, verified and reviewed |
 
 These are rough totals, measured on Claude Code, that don't separate prompt cache reads from fresh input. Cursor and Codex run the same phases and read the same guides, but the exact count depends on the model you pick there. Most of what a run reads is the same guides and files again on each turn, and the prompt cache serves those re-reads at a reduced price. The range is driven by the size of the work, not the tooling. A single-file copy change lands near the bottom; a multi-layer feature near the top.
@@ -108,6 +108,7 @@ slashforge --yes        # Non-interactive: auto-confirm the update prompt
 slashforge status       # Show installed version, guide count, and available update
 slashforge --help       # Full usage
 slashforge --project    # Install into ./.claude/ and ./.agents/ in the current repo (committable, no global install needed)
+slashforge --ext <dir>  # Install a local extension pack (repeatable); see Extension packs below
 slashforge uninstall    # Remove the kit from ~/.claude/ and ~/.agents/ (add --project for the repo copy)
 ```
 
@@ -187,6 +188,28 @@ Three names are deliberately distinct: `slashforge-request-review` reviews **you
 They are adapted from [superpowers](https://github.com/obra/superpowers) under the MIT licence, © 2025 Jesse Vincent, with the notice carried in each skill file.
 
 **Graphify is the one optional integration**: a one-time setup-time offer inside `/slashforge-setup`, not re-checked per command. See the Graphify section below.
+
+---
+
+## Extension packs
+
+A team can package its own guides, host hooks, and config into a shareable **extension pack** and install it with:
+
+```bash
+npx slashforge --ext ./path/to/pack     # repeatable for several packs
+```
+
+A pack is a local directory with a `slashforge-ext.json` manifest (JSON, so the installer stays dependency-free). The installer validates it with the same checks as the built-ins, installs it atomically into its own `extensions/<id>/` subtree, and records it in `meta.json` so `status` lists it and `uninstall` removes it.
+
+The hook mechanism is **generic**: a pack maps any host lifecycle event (`SessionEnd`, `Stop`, `PostToolUse`, and so on) to any script, for any purpose (telemetry, a Slack ping, a linter, an audit log). SlashForge is installed once per person but hooks are enabled per repo, so the installer prints a readable `event → node <script>` summary rather than editing host config, and `/slashforge-setup` offers to wire an installed pack's hooks into the current repo for you.
+
+SlashForge ships a first-party **`observability`** pack as the reference example. It emits a usage event on `SessionEnd` and `Stop` (one event per session and per turn, carrying the event name, session id, and working directory) to a webhook (default), an OpenTelemetry (OTLP) collector, or a local JSONL file. It is zero-dependency and fail-open (a telemetry outage never blocks the agent), and reads auth from environment variables only:
+
+```bash
+npx slashforge --ext extensions/observability
+```
+
+See the extension packs guide on the docs site, or the installed `slashforge-extensions.md`, for the manifest format and how to author your own.
 
 ---
 

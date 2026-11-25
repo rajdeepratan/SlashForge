@@ -25,6 +25,7 @@ Then read all of the following files in full — together they are your complete
 - {{INSTALL_PATH}}/slashforge-agents.md
 - {{INSTALL_PATH}}/slashforge-commands.md
 - {{INSTALL_PATH}}/slashforge-hooks.md
+- {{INSTALL_PATH}}/slashforge-extensions.md
 - {{INSTALL_PATH}}/slashforge-claude-md.md
 - {{INSTALL_PATH}}/slashforge-memory.md
 <!--/target-->
@@ -32,12 +33,14 @@ Then read all of the following files in full — together they are your complete
 - {{INSTALL_PATH}}/slashforge-agents.md
 - {{INSTALL_PATH}}/slashforge-commands.md
 - {{INSTALL_PATH}}/slashforge-hooks.md
+- {{INSTALL_PATH}}/slashforge-extensions.md
 - {{INSTALL_PATH}}/slashforge-agents-md.md
 <!--/target-->
 <!--target:codex-->
 - {{INSTALL_PATH}}/slashforge-agents-codex.md
 - {{INSTALL_PATH}}/slashforge-commands.md
 - {{INSTALL_PATH}}/slashforge-hooks.md
+- {{INSTALL_PATH}}/slashforge-extensions.md
 - {{INSTALL_PATH}}/slashforge-agents-md.md
 <!--/target-->
 
@@ -70,6 +73,28 @@ nothing to it without an answer.
 
 - If they **do not exist** → follow the **Fresh Setup** flow below
 - If they **already exist** → follow the **Update Existing Setup** flow below
+
+---
+
+**Extension packs and hooks (all flows):** SlashForge is usually installed once for the person,
+but hooks are enabled **per repo**. In Phase 1, after the other decisions, ask the user plainly:
+**"Set up extension packs or hooks for this repo now, or later?"** Read
+`{{INSTALL_PATH}}/meta.json` first so you can name the packs already installed (its `extensions`
+array).
+
+- **Now →** If installed packs provide hooks, list them and ask which to enable **for this repo**
+  (none is a valid answer). If the user wants a pack that is not installed yet, tell them to run
+  `npx {{KIT_PACKAGE}} --ext <dir>` first (see `{{INSTALL_PATH}}/slashforge-extensions.md`), then
+  continue. In the file-writing phase, wire each chosen hook into this repo's project hook config
+  per `{{INSTALL_PATH}}/slashforge-hooks.md` (project scope, committed so the team shares it),
+  pointing at the pack's installed script, and record what now runs automatically under an
+  **Automated Behaviors** section in the repo's agent entry file.
+- **Later →** change nothing for hooks now. At the very end of setup, print the steps to do it
+  later: install a pack with `npx {{KIT_PACKAGE}} --ext <dir>`, then re-run this setup command (or
+  edit the project hook config yourself per `{{INSTALL_PATH}}/slashforge-hooks.md`) to enable its
+  hooks; see `{{INSTALL_PATH}}/slashforge-extensions.md` to author your own pack.
+
+Never enable a hook without asking.
 
 ---
 

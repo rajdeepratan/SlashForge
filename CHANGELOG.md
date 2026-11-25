@@ -6,6 +6,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **Extension packs (`--ext`).** A team can package reusable guides, host hooks, and config into a local extension pack (a directory with a `slashforge-ext.json` manifest) and install it with `npx slashforge --ext <dir>` (repeatable) on any host. Packs are validated with the same frontmatter, target-block, and line-limit checks as the built-ins, install atomically into their own `extensions/<id>/` subtree, and are tracked in `meta.json` so `status` lists them and `uninstall` removes them. The hook mechanism is generic: any host lifecycle event mapped to any script (telemetry, Slack, a linter, an audit log), with the installer printing the paste-in snippet rather than editing host config. Because hooks are enabled per repo, `/slashforge-setup` now offers to wire an installed pack's hooks into the current repo under an Automated Behaviors section. Ships a first-party `observability` reference pack that emits a usage event on `SessionEnd` and `Stop` to a webhook (default), an OpenTelemetry (OTLP) collector, or a local JSONL file: zero-dependency, fail-open, with auth from environment variables only. A new authoring guide (`slashforge-extensions.md`) and docs page document the format.
+
 ## [5.3.1] - 2026-10-09
 
 ### Fixed

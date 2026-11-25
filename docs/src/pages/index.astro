@@ -155,6 +155,19 @@ const costs = [
   },
 ];
 
+// Extensibility: packs a team installs locally, and the generic hook mechanism
+// they carry. Each cell links to the extension packs guide.
+const extensionCells = [
+  {
+    title: 'Extension packs',
+    desc: 'Package reusable guides, host hooks, and config into a directory and install it with npx slashforge --ext <dir>. Validated and tracked like the built-ins, removed cleanly on uninstall.',
+  },
+  {
+    title: 'Generic hooks',
+    desc: 'Map any host event (SessionEnd, Stop, PostToolUse) to any script: telemetry, a Slack ping, a linter, an audit log. Installed once for you, enabled per repo by /slashforge-setup.',
+  },
+];
+
 // Practitioners who run SlashForge on real work and shape it with their feedback.
 const committee = [
   {
@@ -326,6 +339,30 @@ const committee = [
           <code>setup</code> writes each host's own layout, so on Cursor you get{' '}
           <code>.cursor/rules/*.mdc</code> and on Codex nested <code>AGENTS.md</code> plus{' '}
           <code>.codex/agents/*.toml</code>, never <code>.claude/</code>.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="band">
+        <div class="section__head">
+          <h2>Extensions and hooks</h2>
+          <span class="label">Make it yours, per repo</span>
+        </div>
+        <div class="cells cells--pair">
+          {
+            extensionCells.map((c) => (
+              <a class="cell cell--link" href={`${base}/guides/extensions`}>
+                <div class="cell__value">{c.title}</div>
+                <p>{c.desc}</p>
+              </a>
+            ))
+          }
+        </div>
+        <p class="caveat">
+          SlashForge is installed once for you, but hooks are enabled per repo, so a company can
+          add its own tooling without forking the kit. See the{' '}
+          <a href={`${base}/guides/extensions`}>extension packs guide</a>.
         </p>
       </div>
     </section>

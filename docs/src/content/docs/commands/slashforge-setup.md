@@ -121,14 +121,30 @@ exact commands before asking — nothing is installed without your say-so.
 If you accept, it also synthesises `graphify-out/SUMMARY.html`, a
 browser-readable interpretation of the machine-formatted graph report.
 
+## Extension packs and hooks
+
+SlashForge is usually installed once for you but **hooks are enabled per repo**, so
+setup also asks whether to set up [extension packs](/slashforge/guides/extensions)
+or hooks for this repo **now or later**:
+
+- **Now:** it lists any installed packs' hooks and asks which to enable for this
+  repo, then wires them into the project hook config and records them under an
+  **Automated Behaviors** section. If you want a pack that is not installed yet, it
+  points you at `npx slashforge --ext <dir>` first.
+- **Later:** it changes nothing, and at the end prints the steps to install a pack
+  (`npx slashforge --ext <dir>`) and enable its hooks afterward (re-run setup, or
+  edit the hook config yourself).
+
+Nothing is enabled without your say-so.
+
 ## What it costs
 
 **~50–120k tokens — once per repo.** Unlike the other commands, this is not a
 per-run cost. You pay it when you adopt SlashForge in a codebase and then not
 again unless you re-run it.
 
-It carries **the largest fixed instruction load of any command: ~20k tokens**,
-before it has read a single line of your code. That is the command plus thirteen
+It carries **the largest fixed instruction load of any command: ~21k tokens**,
+before it has read a single line of your code. That is the command plus fourteen
 guide files, and it is the price of the output being tailored rather than
 templated — the guides are what let it write rules that match your conventions
 instead of generic ones.
