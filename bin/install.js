@@ -34,6 +34,7 @@ const GUIDE_FILES = [
   'slashforge-agents-codex.md',
   'slashforge-commands.md',
   'slashforge-hooks.md',
+  'slashforge-extensions.md',
   'slashforge-claude-md.md',
   'slashforge-agents-md.md',
   'slashforge-memory.md',

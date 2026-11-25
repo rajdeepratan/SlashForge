@@ -16,6 +16,7 @@ Then read all of the following files in full — together they are your complete
 - /HOME/.claude/setup/slashforge/slashforge-agents.md
 - /HOME/.claude/setup/slashforge/slashforge-commands.md
 - /HOME/.claude/setup/slashforge/slashforge-hooks.md
+- /HOME/.claude/setup/slashforge/slashforge-extensions.md
 - /HOME/.claude/setup/slashforge/slashforge-claude-md.md
 - /HOME/.claude/setup/slashforge/slashforge-memory.md
 
@@ -30,6 +31,19 @@ Check whether `.claude/` and `CLAUDE.md` already exist in the repo.
 
 - If they **do not exist** → follow the **Fresh Setup** flow below
 - If they **already exist** → follow the **Update Existing Setup** flow below
+
+---
+
+**Extension packs (all flows, optional):** SlashForge is usually installed once for the
+person, but hooks are enabled **per repo**. Read `/HOME/.claude/setup/slashforge/meta.json`: if its
+`extensions` array is non-empty, some packs are installed. In Phase 1, after the other
+decisions, list each installed pack and ask the user which of its hooks to enable **for this
+repo** (none is a valid answer). In the file-writing phase, for each hook the user chose, wire
+it into this repo's project hook config as described in `/HOME/.claude/setup/slashforge/slashforge-hooks.md`
+(project scope, committed so the team shares it), pointing at the pack's installed script, and
+record what now runs automatically under an **Automated Behaviors** section in the repo's agent
+entry file. If `extensions` is empty or the user declines, skip this — and never enable a hook
+without asking. See `/HOME/.claude/setup/slashforge/slashforge-extensions.md` for the pack layout.
 
 ---
 

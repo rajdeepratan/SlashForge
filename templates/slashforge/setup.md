@@ -25,6 +25,7 @@ Then read all of the following files in full — together they are your complete
 - {{INSTALL_PATH}}/slashforge-agents.md
 - {{INSTALL_PATH}}/slashforge-commands.md
 - {{INSTALL_PATH}}/slashforge-hooks.md
+- {{INSTALL_PATH}}/slashforge-extensions.md
 - {{INSTALL_PATH}}/slashforge-claude-md.md
 - {{INSTALL_PATH}}/slashforge-memory.md
 <!--/target-->
@@ -32,12 +33,14 @@ Then read all of the following files in full — together they are your complete
 - {{INSTALL_PATH}}/slashforge-agents.md
 - {{INSTALL_PATH}}/slashforge-commands.md
 - {{INSTALL_PATH}}/slashforge-hooks.md
+- {{INSTALL_PATH}}/slashforge-extensions.md
 - {{INSTALL_PATH}}/slashforge-agents-md.md
 <!--/target-->
 <!--target:codex-->
 - {{INSTALL_PATH}}/slashforge-agents-codex.md
 - {{INSTALL_PATH}}/slashforge-commands.md
 - {{INSTALL_PATH}}/slashforge-hooks.md
+- {{INSTALL_PATH}}/slashforge-extensions.md
 - {{INSTALL_PATH}}/slashforge-agents-md.md
 <!--/target-->
 
@@ -70,6 +73,19 @@ nothing to it without an answer.
 
 - If they **do not exist** → follow the **Fresh Setup** flow below
 - If they **already exist** → follow the **Update Existing Setup** flow below
+
+---
+
+**Extension packs (all flows, optional):** SlashForge is usually installed once for the
+person, but hooks are enabled **per repo**. Read `{{INSTALL_PATH}}/meta.json`: if its
+`extensions` array is non-empty, some packs are installed. In Phase 1, after the other
+decisions, list each installed pack and ask the user which of its hooks to enable **for this
+repo** (none is a valid answer). In the file-writing phase, for each hook the user chose, wire
+it into this repo's project hook config as described in `{{INSTALL_PATH}}/slashforge-hooks.md`
+(project scope, committed so the team shares it), pointing at the pack's installed script, and
+record what now runs automatically under an **Automated Behaviors** section in the repo's agent
+entry file. If `extensions` is empty or the user declines, skip this — and never enable a hook
+without asking. See `{{INSTALL_PATH}}/slashforge-extensions.md` for the pack layout.
 
 ---
 
