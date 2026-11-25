@@ -1187,6 +1187,14 @@ function printOlderClaudeCommands(old, claude) {
   }
 }
 
+// Lists the extension packs a meta.json records, if any.
+function printExtensionStatus(meta) {
+  const packs = (meta && meta.extensions) || [];
+  if (!packs.length) return;
+  console.log(`    Extension packs:    ${packs.length}`);
+  for (const p of packs) console.log(`      • ${p.id}@${p.version}`);
+}
+
 async function printStatus({ project = false } = {}) {
   const claude = resolveTarget({ project });
   const agents = resolveAgents({ project });
@@ -1216,6 +1224,7 @@ async function printStatus({ project = false } = {}) {
     console.log(`    Guide files:        ${guides.length} (${claude.guidesDir})`);
     console.log(`    Installed commands: ${commands.length}`);
     for (const c of commands) console.log(`      • ${commandName(c)}`);
+    printExtensionStatus(readMeta(claude.metaFile));
     printOlderClaudeCommands(old, claude);
   } else {
     console.log(`\n  Claude Code:     not installed — run \`npx ${pkg.name}\` to add it.`);
@@ -1236,6 +1245,7 @@ async function printStatus({ project = false } = {}) {
       const name = skillDirName(c, 'slashforge-');
       console.log(`      • /${name} (Cursor), $${name} (Codex)`);
     }
+    printExtensionStatus(readMeta(agents.metaFile));
   } else {
     console.log(`\n  Cursor + Codex:  not installed — run \`npx ${pkg.name}\` to add it.`);
   }

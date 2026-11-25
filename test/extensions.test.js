@@ -5,7 +5,10 @@ const assert = require('node:assert');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const ext = require('../bin/install.js');
+
+const BIN = path.join(__dirname, '..', 'bin', 'install.js');
 
 // ---------------------------------------------------------------------------
 // Task 1: manifest parser
@@ -198,4 +201,16 @@ test('the observability reference pack is valid and secret-free', () => {
   const cfg = fs.readFileSync(path.join(dir, 'config/observability.config.json'), 'utf8');
   assert.equal(JSON.parse(cfg).transport, 'webhook', 'defaults to webhook transport');
   assert.ok(!/(sk-|bearer\s+\w|["']?token["']?\s*:\s*["']\w)/i.test(cfg), 'no secrets in config template');
+});
+
+// ---------------------------------------------------------------------------
+// status lists installed packs
+// ---------------------------------------------------------------------------
+
+test('status lists an installed extension pack', () => {
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'sfstatus-'));
+  const pack = tmpPack({ withHook: true });
+  execFileSync('node', [BIN, '--project', '--yes', '--ext', pack], { cwd: repo });
+  const out = execFileSync('node', [BIN, 'status', '--project'], { cwd: repo, encoding: 'utf8' });
+  assert.match(out, /demo@0\.0\.1/, 'status names the installed pack and version');
 });
