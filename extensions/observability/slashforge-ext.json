@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "observability",
+  "name": "Observability",
+  "version": "0.1.0",
+  "description": "Emit SlashForge usage telemetry to a webhook, an OTLP collector, or a local JSONL file via a host hook.",
+  "provides": {
+    "guides": ["guides/slashforge-observability.md"],
+    "config": "config/observability.config.json",
+    "hooks": [
+      { "event": "SessionEnd", "script": "hooks/emit-telemetry.js", "description": "Emit a session-complete usage event" },
+      { "event": "Stop", "script": "hooks/emit-telemetry.js", "description": "Emit a turn-complete usage event" }
+    ]
+  }
+}

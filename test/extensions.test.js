@@ -183,3 +183,19 @@ test('parseExtArgs collects repeated --ext values in both forms', () => {
   assert.deepEqual(ext.parseExtArgs(['--ext=c']), ['c']);
   assert.deepEqual(ext.parseExtArgs(['status']), []);
 });
+
+// ---------------------------------------------------------------------------
+// Task 8: the observability reference pack ships and is valid
+// ---------------------------------------------------------------------------
+
+test('the observability reference pack is valid and secret-free', () => {
+  const dir = path.join(__dirname, '..', 'extensions', 'observability');
+  const r = ext.resolveExtensions([dir]); // throws if manifest/guide/hooks/config invalid
+  assert.equal(r[0].manifest.id, 'observability');
+  assert.ok(r[0].hooks.some((h) => h.event === 'Stop'), 'emits on Stop');
+  assert.ok(r[0].hooks.some((h) => h.event === 'SessionEnd'), 'emits on SessionEnd');
+  assert.ok(fs.existsSync(path.join(dir, 'hooks/emit-telemetry.js')), 'emitter present');
+  const cfg = fs.readFileSync(path.join(dir, 'config/observability.config.json'), 'utf8');
+  assert.equal(JSON.parse(cfg).transport, 'webhook', 'defaults to webhook transport');
+  assert.ok(!/(sk-|bearer\s+\w|["']?token["']?\s*:\s*["']\w)/i.test(cfg), 'no secrets in config template');
+});

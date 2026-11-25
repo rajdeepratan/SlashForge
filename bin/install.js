@@ -309,10 +309,11 @@ function installExtensions(guidesDir, extensions = [], {
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       fs.writeFileSync(dest, out);
     }
-    for (const h of e.hooks) {
-      const dest = path.join(extDir, h.script);
+    // Several hooks may share one script (e.g. Stop + SessionEnd); copy it once.
+    for (const script of new Set(e.hooks.map((h) => h.script))) {
+      const dest = path.join(extDir, script);
       fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.copyFileSync(path.join(e.dir, h.script), dest);
+      fs.copyFileSync(path.join(e.dir, script), dest);
     }
     if (e.config) {
       const dest = path.join(extDir, e.config);
@@ -1279,7 +1280,9 @@ function plannedExtWrites(guidesDir, extensions = []) {
   for (const e of extensions) {
     const extDir = extInstallDir(guidesDir, e.manifest.id);
     for (const g of e.guides) writes.push({ kind: 'ext', src: path.join(e.dir, g), dest: path.join(extDir, g) });
-    for (const h of e.hooks) writes.push({ kind: 'ext', src: path.join(e.dir, h.script), dest: path.join(extDir, h.script) });
+    for (const script of new Set(e.hooks.map((h) => h.script))) {
+      writes.push({ kind: 'ext', src: path.join(e.dir, script), dest: path.join(extDir, script) });
+    }
     if (e.config) writes.push({ kind: 'ext', src: path.join(e.dir, e.config), dest: path.join(extDir, e.config) });
   }
   return writes;
