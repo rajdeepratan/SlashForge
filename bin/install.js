@@ -210,6 +210,47 @@ function parseFrontmatter(content, label) {
   return fm;
 }
 
+// ---------------------------------------------------------------------------
+// Extension packs (--ext)
+// ---------------------------------------------------------------------------
+
+// The manifest a local extension pack is identified by, at its root.
+const EXT_MANIFEST = 'slashforge-ext.json';
+
+// Host lifecycle events a pack may hang a hook on. Open-ended by design: the
+// installer validates the event name and copies the script, and never assumes
+// what the script does (telemetry, Slack, a linter, an audit log, …).
+const HOST_EVENTS = new Set([
+  'SessionStart', 'SessionEnd', 'UserPromptSubmit', 'PreToolUse', 'PostToolUse',
+  'Stop', 'SubagentStop', 'Notification', 'PreCompact', 'PostCompact', 'PermissionRequest',
+]);
+
+// Parses and validates a pack manifest. JSON, not YAML, so it needs no parser
+// beyond the built-in one — the zero-dependency rule reaches the manifest too.
+// Throws `Error(label + ': …')` on anything malformed, so a bad pack aborts the
+// whole install before a file is written.
+function parseExtManifest(raw, label) {
+  let m;
+  try { m = JSON.parse(raw); } catch (e) { throw new Error(`${label}: invalid JSON (${e.message})`); }
+  if (m.schema !== 1) throw new Error(`${label}: unsupported schema (want 1)`);
+  if (!/^[a-z0-9-]+$/.test(m.id || '')) throw new Error(`${label}: id must match ^[a-z0-9-]+$`);
+  for (const k of ['name', 'version', 'description']) {
+    if (!m[k] || typeof m[k] !== 'string') throw new Error(`${label}: missing '${k}'`);
+  }
+  const p = m.provides || {};
+  if (!p.guides && !p.hooks && !p.config) {
+    throw new Error(`${label}: provides needs one of guides/hooks/config`);
+  }
+  for (const h of p.hooks || []) {
+    if (!HOST_EVENTS.has(h.event)) throw new Error(`${label}: unknown hook event '${h.event}'`);
+    if (!h.script || typeof h.script !== 'string') throw new Error(`${label}: hook missing 'script'`);
+    if (h.matcher !== undefined && typeof h.matcher !== 'string') {
+      throw new Error(`${label}: hook matcher must be a string`);
+    }
+  }
+  return m;
+}
+
 // Assets carry no frontmatter, so presence is the only thing worth checking.
 // Missing one still refuses the install — a half-installed kit is worse than none.
 function assertTemplatesExist(files, dir) {
@@ -1350,6 +1391,9 @@ if (require.main === module) {
 module.exports = {
   isNewerVersion,
   parseFrontmatter,
+  parseExtManifest,
+  EXT_MANIFEST,
+  HOST_EVENTS,
   validateTemplates,
   assertTemplatesExist,
   renderTemplate,
