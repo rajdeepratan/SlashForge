@@ -87,8 +87,9 @@ the [CLI reference](/slashforge/reference/cli) documents `--ext`.
 
 ## The observability example
 
-SlashForge ships a reference pack that emits a usage event on `SessionEnd` and `Stop` (session and
-turn counts, durations, which command ran) to one of three sinks, selected in its config:
+SlashForge ships a reference pack that emits a usage event on `SessionEnd` and `Stop` (one event
+per session and per turn, carrying the event name, session id, and working directory) to one of
+three sinks, selected in its config:
 
 - **webhook** (default): POST JSON to any HTTP endpoint.
 - **otlp**: POST an OpenTelemetry log record to a collector.
@@ -105,7 +106,19 @@ Copy that pack as the starting point for your own.
 
 ## Security
 
-Extension packs run code on your machine with the agent's permissions. Review a pack's scripts
-before installing it, as you would any third-party code. The installer copies scripts verbatim and
-never runs them at install time, but a hook you wire into your host config runs on every matching
-event.
+Extension packs run code on your machine with the agent's permissions, so treat a pack as
+third-party code:
+
+- **Review the scripts before installing.** The installer copies hook scripts verbatim and never
+  runs them at install time, but a hook you wire into your host config runs on every matching
+  event, with the same access you have.
+- **The installer stays inside the pack.** A manifest may only reference files inside the pack
+  with relative paths; an absolute path or one containing `..` is refused, so a pack cannot write
+  outside its own `extensions/<id>/` subtree.
+- **Keep secrets in the environment, never in the pack.** Tokens and credentials belong in
+  environment variables read at runtime, not in the manifest or a config file (the observability
+  pack reads its auth from `SLASHFORGE_TELEMETRY_TOKEN` / `OTEL_EXPORTER_OTLP_HEADERS`). A config
+  committed with the repo is visible to everyone who can read it.
+- **Project hooks are committed, so review them like any change.** Enabling a pack's hooks writes
+  into the repo's committed hook config, which means the team sees them in a pull request. Write
+  hooks to be **fail-open** so a crash or outage never blocks the agent.

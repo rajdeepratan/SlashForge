@@ -35,8 +35,8 @@ Auth is read from environment variables only, never the config file:
 
 - **Zero dependencies**: Node built-ins only.
 - **Fail-open**: any error or timeout emits nothing and never blocks the agent.
-- **No sensitive data**: only counts, durations, event names, cwd, and tool name. No prompts,
-  file contents, or code.
+- **No sensitive data**: only the event name, session id, working directory, and (for tool
+  events) the tool name. No prompts, file contents, or code.
 
 See `guides/slashforge-observability.md` for the full guide, and `slashforge-extensions.md` for
 how to author your own pack.

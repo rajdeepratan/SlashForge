@@ -6,9 +6,9 @@ description: A SlashForge extension pack that emits a usage event when the agent
 # Observability
 
 This pack emits a small **usage event** each time the agent finishes a turn (`Stop`) or a
-session (`SessionEnd`), so a team can see how SlashForge is being used: session and turn counts,
-durations, which command ran, and which project. It is the reference example for SlashForge
-extension packs — copy it as the starting point for your own.
+session (`SessionEnd`), so a team can see how often SlashForge is used and where: one event per
+turn and per session, carrying the event name, the session id, and the working directory. It is
+the reference example for SlashForge extension packs — copy it as the starting point for your own.
 
 It ships a single host hook (`hooks/emit-telemetry.js`) and a config template
 (`config/observability.config.json`). The installer copies both into
