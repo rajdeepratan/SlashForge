@@ -98,3 +98,30 @@ test('resolveExtensions accepts a valid pack', () => {
   assert.equal(r[0].config, 'config/demo.config.json');
   assert.equal(r[0].hooks[0].event, 'Stop');
 });
+
+// ---------------------------------------------------------------------------
+// Task 3: install a pack into the Claude target + meta tracking
+// ---------------------------------------------------------------------------
+
+test('installFiles places a pack and records it in meta', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'sfhome-'));
+  const target = ext.resolveTarget({ homeDir: home });
+  const packs = ext.resolveExtensions([tmpPack({ withHook: true, withConfig: true })]);
+  ext.installFiles(target, { extensions: packs });
+  const base = path.join(target.guidesDir, 'extensions', 'demo');
+  assert.ok(fs.existsSync(path.join(base, 'guides/slashforge-demo.md')), 'guide installed');
+  assert.ok(fs.existsSync(path.join(base, 'config/demo.config.json')), 'config copied');
+  assert.ok(fs.existsSync(path.join(base, 'hooks/h.js')), 'hook script copied');
+  const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
+  assert.deepEqual(meta.extensions, [{ id: 'demo', version: '0.0.1' }]);
+});
+
+test('a plain re-install does not eat the extensions subtree', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'sfhome2-'));
+  const target = ext.resolveTarget({ homeDir: home });
+  ext.installFiles(target, { extensions: ext.resolveExtensions([tmpPack({})]) });
+  const guide = path.join(target.guidesDir, 'extensions', 'demo', 'guides/slashforge-demo.md');
+  assert.ok(fs.existsSync(guide));
+  ext.installFiles(target, {}); // built-in-only install, stale sweep runs
+  assert.ok(fs.existsSync(guide), 'subtree survives the top-level stale sweep');
+});

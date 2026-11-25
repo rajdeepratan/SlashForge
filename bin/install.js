@@ -283,6 +283,46 @@ function resolveExtensions(dirs = []) {
   });
 }
 
+// A pack's files live in their own subtree under the guides dir. It is a
+// subdirectory, so the top-level stale-file sweep (which only reads the guides
+// dir itself) never sees — and never deletes — an installed pack.
+function extInstallDir(guidesDir, id) {
+  return path.join(guidesDir, 'extensions', id);
+}
+
+// Writes each resolved pack into guidesDir/extensions/<id>/: guides are rendered
+// like built-in guides (and optionally post-processed per host), config and hook
+// scripts are copied verbatim. Returns [{id, version}] for meta.json.
+function installExtensions(guidesDir, extensions = [], {
+  targetName = 'claude', installPath, version = pkg.version, pkgName = pkg.name, postRender = (s) => s,
+} = {}) {
+  const installed = [];
+  for (const e of extensions) {
+    const extDir = extInstallDir(guidesDir, e.manifest.id);
+    for (const g of e.guides) {
+      const dest = path.join(extDir, g);
+      let out = renderTemplate(fs.readFileSync(path.join(e.dir, g), 'utf8'), {
+        installPath, version, pkgName, targetName,
+      });
+      out = postRender(out);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.writeFileSync(dest, out);
+    }
+    for (const h of e.hooks) {
+      const dest = path.join(extDir, h.script);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(path.join(e.dir, h.script), dest);
+    }
+    if (e.config) {
+      const dest = path.join(extDir, e.config);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(path.join(e.dir, e.config), dest);
+    }
+    installed.push({ id: e.manifest.id, version: e.manifest.version });
+  }
+  return installed;
+}
+
 // Assets carry no frontmatter, so presence is the only thing worth checking.
 // Missing one still refuses the install — a half-installed kit is worse than none.
 function assertTemplatesExist(files, dir) {
@@ -515,6 +555,7 @@ function installFiles(target, {
   commandFiles = COMMAND_FILES,
   assetFiles = ASSET_FILES,
   skillFiles = SKILL_FILES,
+  extensions = [],
 } = {}) {
   validateTemplates(guideFiles, templatesDir);
   validateTemplates(commandFiles, templatesDir);
@@ -583,6 +624,10 @@ function installFiles(target, {
     if (writtenGuides.has(entry)) continue;
     fs.rmSync(path.join(target.guidesDir, entry));
   }
+  // Packs install after the sweep, into their own extensions/<id>/ subtree.
+  const installedExtensions = installExtensions(target.guidesDir, extensions, {
+    targetName: target.target, installPath: target.installPath, version, pkgName,
+  });
   const meta = JSON.stringify({
     package: pkgName,
     version,
@@ -592,6 +637,7 @@ function installFiles(target, {
     commands: commandFiles
       .filter((c) => !omit.includes(c))
       .map((c) => commandName(c)),
+    extensions: installedExtensions,
   }, null, 2) + '\n';
   const removedV4 = removeV4Commands(target);
   fs.writeFileSync(target.metaFile, meta);
@@ -1425,6 +1471,8 @@ module.exports = {
   parseFrontmatter,
   parseExtManifest,
   resolveExtensions,
+  installExtensions,
+  extInstallDir,
   EXT_MANIFEST,
   HOST_EVENTS,
   validateTemplates,
