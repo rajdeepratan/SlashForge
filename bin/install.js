@@ -784,6 +784,7 @@ function installAgentsFiles(agents, {
   commandFiles = COMMAND_FILES,
   assetFiles = ASSET_FILES,
   skillFiles = SKILL_FILES,
+  extensions = [],
 } = {}) {
   validateTemplates(guideFiles, templatesDir);
   validateTemplates(commandFiles, templatesDir);
@@ -822,6 +823,12 @@ function installAgentsFiles(agents, {
     for (const entry of fs.readdirSync(h.guidesDir)) {
       if (isStaleKitFile(entry) && !keep.has(entry)) fs.rmSync(path.join(h.guidesDir, entry));
     }
+    // Packs install into this host's own extensions/<id>/ subtree, after its sweep,
+    // rendered for the host (command sigils rewritten) like its guides.
+    installExtensions(h.guidesDir, extensions, {
+      targetName: h.host, installPath: h.installPath, version, pkgName,
+      postRender: (s) => toHostCommandRefs(s, h.host),
+    });
   }
   for (const c of [...commandFiles, ...skillFiles]) {
     const src = c === SETUP_COMMAND ? SETUP_DISPATCH : c;
@@ -835,6 +842,7 @@ function installAgentsFiles(agents, {
     mode: agents.mode,
     hosts: AGENT_HOSTS,
     commands: commandFiles.map((c) => '/' + skillDirName(c, 'slashforge-')),
+    extensions: extensions.map((e) => ({ id: e.manifest.id, version: e.manifest.version })),
   }, null, 2) + '\n';
   // One at the root for status and uninstall, and one in each host folder, where
   // setup's guides read it ("meta.json … same folder as this file").

@@ -125,3 +125,27 @@ test('a plain re-install does not eat the extensions subtree', () => {
   ext.installFiles(target, {}); // built-in-only install, stale sweep runs
   assert.ok(fs.existsSync(guide), 'subtree survives the top-level stale sweep');
 });
+
+// ---------------------------------------------------------------------------
+// Task 4: install a pack into the Cursor/Codex hosts
+// ---------------------------------------------------------------------------
+
+test('installAgentsFiles places a pack per host and records it in meta', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'sfagents-'));
+  const agents = ext.resolveAgents({ homeDir: home });
+  ext.installAgentsFiles(agents, { extensions: ext.resolveExtensions([tmpPack({ withHook: true })]) });
+  for (const h of agents.hosts) {
+    assert.ok(
+      fs.existsSync(path.join(h.guidesDir, 'extensions/demo/guides/slashforge-demo.md')),
+      `guide installed for ${h.host}`,
+    );
+    assert.ok(
+      fs.existsSync(path.join(h.guidesDir, 'extensions/demo/hooks/h.js')),
+      `hook installed for ${h.host}`,
+    );
+  }
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(agents.metaFile, 'utf8')).extensions,
+    [{ id: 'demo', version: '0.0.1' }],
+  );
+});
