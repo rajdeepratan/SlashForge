@@ -44,3 +44,57 @@ test('parseExtManifest rejects an unknown hook event and a non-string matcher', 
   const badMatcher = { ...JSON.parse(good), provides: { hooks: [{ event: 'Stop', script: 'h.js', matcher: 7 }] } };
   assert.throws(() => ext.parseExtManifest(JSON.stringify(badMatcher), 'lbl'), /lbl:.*matcher/);
 });
+
+// ---------------------------------------------------------------------------
+// Shared fixture: a minimal on-disk pack with a guide (and optional hook+config)
+// ---------------------------------------------------------------------------
+
+// Builds a temp pack dir. `lines` controls guide body length (to trip the limit).
+function tmpPack({ lines = 3, withHook = false, withConfig = false } = {}) {
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), 'sfpack-'));
+  const provides = { guides: ['guides/slashforge-demo.md'] };
+  fs.mkdirSync(path.join(d, 'guides'));
+  const body = '---\nname: demo\ndescription: d\n---\n' + 'x\n'.repeat(lines);
+  fs.writeFileSync(path.join(d, 'guides/slashforge-demo.md'), body);
+  if (withHook) {
+    fs.mkdirSync(path.join(d, 'hooks'));
+    fs.writeFileSync(path.join(d, 'hooks/h.js'), 'process.exit(0)\n');
+    provides.hooks = [{ event: 'Stop', script: 'hooks/h.js' }];
+  }
+  if (withConfig) {
+    fs.mkdirSync(path.join(d, 'config'));
+    fs.writeFileSync(path.join(d, 'config/demo.config.json'), '{"transport":"webhook"}\n');
+    provides.config = 'config/demo.config.json';
+  }
+  fs.writeFileSync(path.join(d, 'slashforge-ext.json'), JSON.stringify({
+    schema: 1, id: 'demo', name: 'Demo', version: '0.0.1', description: 'd', provides,
+  }));
+  return d;
+}
+
+// ---------------------------------------------------------------------------
+// Task 2: resolve a pack directory (validate before any write)
+// ---------------------------------------------------------------------------
+
+test('resolveExtensions rejects an over-limit guide', () => {
+  assert.throws(() => ext.resolveExtensions([tmpPack({ lines: 300 })]), /200|line/i);
+});
+
+test('resolveExtensions rejects a dir with no manifest', () => {
+  const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'sfnomf-'));
+  assert.throws(() => ext.resolveExtensions([empty]), new RegExp(ext.EXT_MANIFEST));
+});
+
+test('resolveExtensions rejects a hook script that is missing', () => {
+  const d = tmpPack({ withHook: true });
+  fs.rmSync(path.join(d, 'hooks/h.js'));
+  assert.throws(() => ext.resolveExtensions([d]), /hooks\/h\.js/);
+});
+
+test('resolveExtensions accepts a valid pack', () => {
+  const r = ext.resolveExtensions([tmpPack({ withHook: true, withConfig: true })]);
+  assert.equal(r[0].manifest.id, 'demo');
+  assert.equal(r[0].guides[0], 'guides/slashforge-demo.md');
+  assert.equal(r[0].config, 'config/demo.config.json');
+  assert.equal(r[0].hooks[0].event, 'Stop');
+});

@@ -251,6 +251,38 @@ function parseExtManifest(raw, label) {
   return m;
 }
 
+// Reads and validates every pack dir up front, so a malformed pack throws before
+// install() writes anything (the same atomicity guarantee the built-ins have).
+// Returns one resolved record per pack: { dir, manifest, guides, config, hooks }.
+function resolveExtensions(dirs = []) {
+  return dirs.map((dir) => {
+    const mf = path.join(dir, EXT_MANIFEST);
+    if (!fs.existsSync(mf)) throw new Error(`${dir}: no ${EXT_MANIFEST}`);
+    const label = path.relative(process.cwd(), mf) || mf;
+    const manifest = parseExtManifest(fs.readFileSync(mf, 'utf8'), label);
+    const p = manifest.provides;
+    const guides = p.guides || [];
+    // Guides are held to the same bar as built-ins: frontmatter, balanced target
+    // blocks, line limits. This throws before any write, which is the atomicity.
+    // validateTemplates covers frontmatter + target blocks; the 200-line cap is a
+    // separate rule for built-ins (a render test), so it is checked here for packs.
+    validateTemplates(guides, dir);
+    for (const g of guides) {
+      const n = fs.readFileSync(path.join(dir, g), 'utf8').split(/\r?\n/).length;
+      if (n > 200) throw new Error(`${label}: guide '${g}' is ${n} lines, over the 200-line cap`);
+    }
+    for (const h of p.hooks || []) {
+      if (!fs.existsSync(path.join(dir, h.script))) {
+        throw new Error(`${label}: hook script '${h.script}' not found`);
+      }
+    }
+    if (p.config && !fs.existsSync(path.join(dir, p.config))) {
+      throw new Error(`${label}: config '${p.config}' not found`);
+    }
+    return { dir, manifest, guides, config: p.config || null, hooks: p.hooks || [] };
+  });
+}
+
 // Assets carry no frontmatter, so presence is the only thing worth checking.
 // Missing one still refuses the install — a half-installed kit is worse than none.
 function assertTemplatesExist(files, dir) {
@@ -1392,6 +1424,7 @@ module.exports = {
   isNewerVersion,
   parseFrontmatter,
   parseExtManifest,
+  resolveExtensions,
   EXT_MANIFEST,
   HOST_EVENTS,
   validateTemplates,
