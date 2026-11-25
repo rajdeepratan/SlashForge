@@ -137,6 +137,16 @@ test('installFiles places a pack and records it in meta', () => {
   assert.deepEqual(meta.extensions, [{ id: 'demo', version: '0.0.1' }]);
 });
 
+test('a plain upgrade keeps previously installed packs in meta', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'sfupg-'));
+  const target = ext.resolveTarget({ homeDir: home });
+  ext.installFiles(target, { extensions: ext.resolveExtensions([tmpPack({})]) });
+  ext.installFiles(target, {}); // plain upgrade, no --ext
+  const meta = JSON.parse(fs.readFileSync(target.metaFile, 'utf8'));
+  assert.deepEqual(meta.extensions, [{ id: 'demo', version: '0.0.1' }],
+    'an upgrade without --ext must not forget installed packs');
+});
+
 test('a plain re-install does not eat the extensions subtree', () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'sfhome2-'));
   const target = ext.resolveTarget({ homeDir: home });

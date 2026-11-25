@@ -339,6 +339,17 @@ function installExtensions(guidesDir, extensions = [], {
   return installed;
 }
 
+// The extensions a meta.json should record after an install. Packs install into
+// their own subtree and survive an upgrade, so an upgrade that passes no --ext
+// must keep the packs already recorded rather than forgetting them; an --ext run
+// overlays the freshly installed ones (new version wins) without dropping others.
+function mergeExtensionRecords(existing = [], installed = []) {
+  const byId = new Map();
+  for (const e of existing) if (e && e.id) byId.set(e.id, { id: e.id, version: e.version });
+  for (const e of installed) byId.set(e.id, { id: e.id, version: e.version });
+  return [...byId.values()];
+}
+
 // Removes the whole extensions/ subtree under a guides dir. Everything there is
 // kit-installed (no user file ever lands inside extensions/<id>/), so it goes as
 // a unit. Returns the removed dir, or [] when there was nothing to remove.
@@ -651,9 +662,12 @@ function installFiles(target, {
     fs.rmSync(path.join(target.guidesDir, entry));
   }
   // Packs install after the sweep, into their own extensions/<id>/ subtree.
-  const installedExtensions = installExtensions(target.guidesDir, extensions, {
+  // Merge with what the previous install recorded so an upgrade without --ext
+  // does not forget packs whose files are still on disk.
+  const priorExtensions = (readMeta(target.metaFile) || {}).extensions;
+  const installedExtensions = mergeExtensionRecords(priorExtensions, installExtensions(target.guidesDir, extensions, {
     targetName: target.target, installPath: target.installPath, version, pkgName,
-  });
+  }));
   const meta = JSON.stringify({
     package: pkgName,
     version,
@@ -863,6 +877,7 @@ function installAgentsFiles(agents, {
     write(skillFilePath(agents, c), renderSkill(src, c, agents, { ...opts, commandFiles }));
     if (commandFiles.includes(c)) write(policyPath(agents, c), INVOCATION_POLICY_YAML);
   }
+  const priorExtensions = (readMeta(agents.metaFile) || {}).extensions;
   const meta = JSON.stringify({
     package: pkgName,
     version,
@@ -870,7 +885,7 @@ function installAgentsFiles(agents, {
     mode: agents.mode,
     hosts: AGENT_HOSTS,
     commands: commandFiles.map((c) => '/' + skillDirName(c, 'slashforge-')),
-    extensions: extensions.map((e) => ({ id: e.manifest.id, version: e.manifest.version })),
+    extensions: mergeExtensionRecords(priorExtensions, extensions.map((e) => ({ id: e.manifest.id, version: e.manifest.version }))),
   }, null, 2) + '\n';
   // One at the root for status and uninstall, and one in each host folder, where
   // setup's guides read it ("meta.json … same folder as this file").
