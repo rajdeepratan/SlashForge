@@ -166,10 +166,6 @@ const extensionCells = [
     title: 'Generic hooks',
     desc: 'Map any host event (SessionEnd, Stop, PostToolUse) to any script: telemetry, a Slack ping, a linter, an audit log. Installed once for you, enabled per repo by /slashforge-setup.',
   },
-  {
-    title: 'A worked example',
-    desc: 'The shipped observability pack is one example: it emits a usage event to a webhook, an OpenTelemetry collector, or a local file. Zero dependencies and fail-open. Copy it as the start of your own.',
-  },
 ];
 
 // Practitioners who run SlashForge on real work and shape it with their feedback.
@@ -353,7 +349,7 @@ const committee = [
           <h2>Extensions and hooks</h2>
           <span class="label">Make it yours, per repo</span>
         </div>
-        <div class="cells">
+        <div class="cells cells--pair">
           {
             extensionCells.map((c) => (
               <a class="cell cell--link" href={`${base}/guides/extensions`}>
