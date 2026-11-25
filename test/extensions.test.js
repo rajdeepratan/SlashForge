@@ -173,3 +173,13 @@ test('uninstallAgentsFiles removes each host extensions subtree', () => {
     assert.ok(!fs.existsSync(path.join(h.guidesDir, 'extensions')), `subtree gone for ${h.host}`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Task 6: --ext CLI flag parsing
+// ---------------------------------------------------------------------------
+
+test('parseExtArgs collects repeated --ext values in both forms', () => {
+  assert.deepEqual(ext.parseExtArgs(['--ext', 'a', '--project', '--ext', 'b']), ['a', 'b']);
+  assert.deepEqual(ext.parseExtArgs(['--ext=c']), ['c']);
+  assert.deepEqual(ext.parseExtArgs(['status']), []);
+});

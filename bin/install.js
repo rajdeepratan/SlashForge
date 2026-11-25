@@ -764,6 +764,7 @@ function plannedAgentsWrites(agents, {
   commandFiles = COMMAND_FILES,
   assetFiles = ASSET_FILES,
   skillFiles = SKILL_FILES,
+  extensions = [],
 } = {}) {
   const writes = [];
   for (const h of agents.hosts) {
@@ -775,6 +776,7 @@ function plannedAgentsWrites(agents, {
     for (const a of assetFiles) {
       writes.push({ kind: 'asset', src: path.join(templatesDir, a), dest: path.join(h.guidesDir, a) });
     }
+    for (const w of plannedExtWrites(h.guidesDir, extensions)) writes.push(w);
     writes.push({ kind: 'meta', dest: path.join(h.guidesDir, 'meta.json') });
   }
   for (const c of [...commandFiles, ...skillFiles]) {
@@ -1248,6 +1250,7 @@ function plannedWrites(target, {
   commandFiles = COMMAND_FILES,
   assetFiles = ASSET_FILES,
   skillFiles = SKILL_FILES,
+  extensions = [],
 } = {}) {
   const omit = target.omit || [];
   const writes = [];
@@ -1264,14 +1267,55 @@ function plannedWrites(target, {
   for (const asset of assetFiles) {
     writes.push({ kind: 'asset', src: path.join(templatesDir, asset), dest: path.join(target.guidesDir, asset) });
   }
+  for (const w of plannedExtWrites(target.guidesDir, extensions)) writes.push(w);
   writes.push({ kind: 'meta', dest: target.metaFile });
+  return writes;
+}
+
+// The extension files a pack would write into a guides dir, as dry-run rows.
+function plannedExtWrites(guidesDir, extensions = []) {
+  const writes = [];
+  for (const e of extensions) {
+    const extDir = extInstallDir(guidesDir, e.manifest.id);
+    for (const g of e.guides) writes.push({ kind: 'ext', src: path.join(e.dir, g), dest: path.join(extDir, g) });
+    for (const h of e.hooks) writes.push({ kind: 'ext', src: path.join(e.dir, h.script), dest: path.join(extDir, h.script) });
+    if (e.config) writes.push({ kind: 'ext', src: path.join(e.dir, e.config), dest: path.join(extDir, e.config) });
+  }
   return writes;
 }
 
 
 
 
-async function install({ dryRun, assumeYes, project = false }) {
+// Collects every --ext value, accepting both `--ext dir` and `--ext=dir`.
+function parseExtArgs(args) {
+  const dirs = [];
+  for (let i = 0; i < args.length; i += 1) {
+    if (args[i] === '--ext' && args[i + 1]) { dirs.push(args[i + 1]); i += 1; }
+    else if (args[i].startsWith('--ext=')) dirs.push(args[i].slice('--ext='.length));
+  }
+  return dirs;
+}
+
+// Prints the host-hook snippet for each installed pack. The installer does not
+// edit settings.json / hooks.json itself — it hands the team the exact lines to
+// paste (see slashforge-hooks.md), because that config is the host's, not ours.
+function printHookSnippets(extensions, claude) {
+  const withHooks = extensions.filter((e) => e.hooks.length);
+  if (!withHooks.length) return;
+  console.log('\nHooks shipped by these packs — add them to your host hook config');
+  console.log('(see slashforge-hooks.md; paths shown for the Claude install):');
+  for (const e of withHooks) {
+    const extDir = extInstallDir(claude.guidesDir, e.manifest.id);
+    console.log(`  ${e.manifest.id}:`);
+    for (const h of e.hooks) {
+      const m = h.matcher ? ` [matcher: ${h.matcher}]` : '';
+      console.log(`    ${h.event}${m} → node ${path.join(extDir, h.script)}`);
+    }
+  }
+}
+
+async function install({ dryRun, assumeYes, project = false, extDirs = [] }) {
   const claude = resolveTarget({ project });
   const agents = resolveAgents({ project });
 
@@ -1280,6 +1324,8 @@ async function install({ dryRun, assumeYes, project = false }) {
   validateTemplates(SKILL_FILES, TEMPLATES_DIR);
   validateTemplates([SETUP_DISPATCH], TEMPLATES_DIR);
   assertTemplatesExist(ASSET_FILES, TEMPLATES_DIR);
+  // Resolve + validate packs before anything is written: a bad pack aborts here.
+  const extensions = resolveExtensions(extDirs);
 
   const alreadyInstalled = hasKitFiles(claude.guidesDir) || hasKitFiles(agents.root);
   if (!dryRun && alreadyInstalled) {
@@ -1296,8 +1342,8 @@ async function install({ dryRun, assumeYes, project = false }) {
 
   if (dryRun) {
     console.log(`\nDry-run (no files written) — would install v${pkg.version}:\n`);
-    for (const w of [...plannedWrites(claude, {}), ...plannedAgentsWrites(agents)]) {
-      const label = w.kind === 'asset' ? 'copy  ' : w.kind === 'meta' ? 'write ' : 'render';
+    for (const w of [...plannedWrites(claude, { extensions }), ...plannedAgentsWrites(agents, { extensions })]) {
+      const label = w.kind === 'asset' ? 'copy  ' : w.kind === 'meta' ? 'write ' : w.kind === 'ext' ? 'ext   ' : 'render';
       const base = w.src ? path.basename(w.src) : path.basename(w.dest);
       console.log(`  ${label} ${base.padEnd(36)} → ${w.dest}`);
     }
@@ -1316,8 +1362,8 @@ async function install({ dryRun, assumeYes, project = false }) {
   const ok = {};
   let claudeResult = null;
   for (const [key, label, run] of [
-    ['claude', 'Claude Code', () => { claudeResult = installFiles(claude, {}); }],
-    ['agents', 'Cursor + Codex', () => installAgentsFiles(agents, {})],
+    ['claude', 'Claude Code', () => { claudeResult = installFiles(claude, { extensions }); }],
+    ['agents', 'Cursor + Codex', () => installAgentsFiles(agents, { extensions })],
   ]) {
     try { run(); ok[key] = true; } catch (err) { failures.push(`${label}: ${err.message}`); }
   }
@@ -1354,6 +1400,11 @@ async function install({ dryRun, assumeYes, project = false }) {
   if (ok.agents) {
     if (!ok.claude) console.log('\nIn Cursor the commands are /slashforge-setup, /slashforge-code, …');
     console.log('In Codex they are $slashforge-setup, $slashforge-code, …');
+  }
+
+  if (extensions.length && (ok.claude || ok.agents)) {
+    console.log(`\n✓ Extension packs: ${extensions.map((e) => `${e.manifest.id}@${e.manifest.version}`).join(', ')}`);
+    if (ok.claude) printHookSnippets(extensions, claude);
   }
 
   warnIfShadowed(claude, agents);
@@ -1429,6 +1480,7 @@ function printHelp() {
   console.log('');
   console.log('Options:');
   console.log('  --project    Install into ./.claude/ and ./.agents/ of the current repo');
+  console.log('  --ext <dir>  Install a local extension pack (repeatable); see slashforge-extensions.md');
   console.log('  --dry-run    Print planned file writes without touching the filesystem');
   console.log('  --yes, -y    Non-interactive mode — auto-confirm the prompts');
   console.log('               (SLASHFORGE_YES=1 does the same; without a TTY the update prompt');
@@ -1471,7 +1523,7 @@ async function main() {
   }
 
   try {
-    await install({ dryRun, assumeYes, project });
+    await install({ dryRun, assumeYes, project, extDirs: parseExtArgs(args) });
   } finally {
     closeRl();
   }
@@ -1497,6 +1549,8 @@ module.exports = {
   installExtensions,
   uninstallExtensions,
   extInstallDir,
+  parseExtArgs,
+  plannedExtWrites,
   EXT_MANIFEST,
   HOST_EVENTS,
   validateTemplates,
