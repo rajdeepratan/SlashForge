@@ -1,4 +1,4 @@
-# Observability — SlashForge extension pack
+# Observability (SlashForge extension pack)
 
 Emits a SlashForge usage event when the agent finishes a turn (`Stop`) or a session
 (`SessionEnd`), to a webhook, an OpenTelemetry (OTLP) collector, or a local JSONL file. It is the
@@ -33,9 +33,9 @@ Auth is read from environment variables only, never the config file:
 
 ## Guarantees
 
-- **Zero dependencies** — Node built-ins only.
-- **Fail-open** — any error or timeout emits nothing and never blocks the agent.
-- **No sensitive data** — only counts, durations, event names, cwd, and tool name. No prompts,
+- **Zero dependencies**: Node built-ins only.
+- **Fail-open**: any error or timeout emits nothing and never blocks the agent.
+- **No sensitive data**: only counts, durations, event names, cwd, and tool name. No prompts,
   file contents, or code.
 
 See `guides/slashforge-observability.md` for the full guide, and `slashforge-extensions.md` for

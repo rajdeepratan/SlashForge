@@ -17,6 +17,7 @@ its own for getting them on and off your machine.
 | Flag | Effect |
 | --- | --- |
 | `--project` | Install into the current repo (`./.claude/` and `./.agents/`) instead of your home directory |
+| `--ext <dir>` | Install a local [extension pack](/slashforge/guides/extensions) from that directory; repeatable |
 | `--dry-run` | Print planned file writes without touching the filesystem |
 | `--yes`, `-y` | Non-interactive; auto-confirm the update and uninstall prompts |
 | `--help`, `-h` | Full usage |

@@ -108,6 +108,7 @@ slashforge --yes        # Non-interactive: auto-confirm the update prompt
 slashforge status       # Show installed version, guide count, and available update
 slashforge --help       # Full usage
 slashforge --project    # Install into ./.claude/ and ./.agents/ in the current repo (committable, no global install needed)
+slashforge --ext <dir>  # Install a local extension pack (repeatable); see Extension packs below
 slashforge uninstall    # Remove the kit from ~/.claude/ and ~/.agents/ (add --project for the repo copy)
 ```
 
@@ -187,6 +188,28 @@ Three names are deliberately distinct: `slashforge-request-review` reviews **you
 They are adapted from [superpowers](https://github.com/obra/superpowers) under the MIT licence, © 2025 Jesse Vincent, with the notice carried in each skill file.
 
 **Graphify is the one optional integration**: a one-time setup-time offer inside `/slashforge-setup`, not re-checked per command. See the Graphify section below.
+
+---
+
+## Extension packs
+
+A team can package its own guides, host hooks, and config into a shareable **extension pack** and install it with:
+
+```bash
+npx slashforge --ext ./path/to/pack     # repeatable for several packs
+```
+
+A pack is a local directory with a `slashforge-ext.json` manifest (JSON, so the installer stays dependency-free). The installer validates it with the same checks as the built-ins, installs it atomically into its own `extensions/<id>/` subtree, and records it in `meta.json` so `status` lists it and `uninstall` removes it.
+
+The hook mechanism is **generic**: a pack maps any host lifecycle event (`SessionEnd`, `Stop`, `PostToolUse`, and so on) to any script, for any purpose (telemetry, a Slack ping, a linter, an audit log). SlashForge is installed once per person but hooks are enabled per repo, so the installer prints the paste-in snippet rather than editing host config, and `/slashforge-setup` offers to wire an installed pack's hooks into the current repo for you.
+
+SlashForge ships a first-party **`observability`** pack as the reference example. It emits a usage event on `SessionEnd` and `Stop` (session and turn counts, durations, which command ran) to a webhook (default), an OpenTelemetry (OTLP) collector, or a local JSONL file. It is zero-dependency and fail-open (a telemetry outage never blocks the agent), and reads auth from environment variables only:
+
+```bash
+npx slashforge --ext extensions/observability
+```
+
+See the extension packs guide on the docs site, or the installed `slashforge-extensions.md`, for the manifest format and how to author your own.
 
 ---
 

@@ -55,6 +55,7 @@ export const NAV: NavGroup[] = [
     label: 'Integrations',
     items: [
       { label: 'Skills', slug: 'guides/skills' },
+      { label: 'Extension packs', slug: 'guides/extensions' },
       { label: 'Graphify', slug: 'guides/graphify' },
     ],
   },
