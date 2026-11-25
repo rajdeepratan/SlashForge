@@ -149,3 +149,27 @@ test('installAgentsFiles places a pack per host and records it in meta', () => {
     [{ id: 'demo', version: '0.0.1' }],
   );
 });
+
+// ---------------------------------------------------------------------------
+// Task 5: uninstall removes the pack subtree, keeps user files
+// ---------------------------------------------------------------------------
+
+test('uninstallFiles removes the extensions subtree but keeps user files', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'sfun-'));
+  const target = ext.resolveTarget({ homeDir: home });
+  ext.installFiles(target, { extensions: ext.resolveExtensions([tmpPack({})]) });
+  fs.writeFileSync(path.join(target.guidesDir, 'my-notes.md'), 'mine');
+  ext.uninstallFiles(target, {});
+  assert.ok(!fs.existsSync(path.join(target.guidesDir, 'extensions')), 'subtree gone');
+  assert.ok(fs.existsSync(path.join(target.guidesDir, 'my-notes.md')), 'user file kept');
+});
+
+test('uninstallAgentsFiles removes each host extensions subtree', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'sfunagents-'));
+  const agents = ext.resolveAgents({ homeDir: home });
+  ext.installAgentsFiles(agents, { extensions: ext.resolveExtensions([tmpPack({})]) });
+  ext.uninstallAgentsFiles(agents, {});
+  for (const h of agents.hosts) {
+    assert.ok(!fs.existsSync(path.join(h.guidesDir, 'extensions')), `subtree gone for ${h.host}`);
+  }
+});

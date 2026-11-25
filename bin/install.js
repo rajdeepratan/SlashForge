@@ -323,6 +323,16 @@ function installExtensions(guidesDir, extensions = [], {
   return installed;
 }
 
+// Removes the whole extensions/ subtree under a guides dir. Everything there is
+// kit-installed (no user file ever lands inside extensions/<id>/), so it goes as
+// a unit. Returns the removed dir, or [] when there was nothing to remove.
+function uninstallExtensions(guidesDir) {
+  const dir = path.join(guidesDir, 'extensions');
+  if (!fs.existsSync(dir)) return [];
+  fs.rmSync(dir, { recursive: true, force: true });
+  return [dir];
+}
+
 // Assets carry no frontmatter, so presence is the only thing worth checking.
 // Missing one still refuses the install — a half-installed kit is worse than none.
 function assertTemplatesExist(files, dir) {
@@ -886,6 +896,8 @@ function uninstallFiles(target, {
       removed.push(nsDir);
     }
   }
+  // Installed packs go first, as a subtree, before the dir is pruned.
+  removed.push(...uninstallExtensions(target.guidesDir));
   removed.push(...removeKitFiles(target.guidesDir, guideFiles));
   // setup/ only: ~/.claude itself and commands/ belong to Claude Code, not the kit.
   removed.push(...pruneEmptyDirs([path.dirname(target.guidesDir)]));
@@ -908,7 +920,10 @@ function uninstallAgentsFiles(agents, { guideFiles = GUIDE_FILES, commandFiles =
     fs.rmdirSync(agents.skillsDir);
     removed.push(agents.skillsDir);
   }
-  for (const h of agents.hosts) removed.push(...removeKitFiles(h.guidesDir, [...guideFiles, SETUP_FLOW]));
+  for (const h of agents.hosts) {
+    removed.push(...uninstallExtensions(h.guidesDir));
+    removed.push(...removeKitFiles(h.guidesDir, [...guideFiles, SETUP_FLOW]));
+  }
   removed.push(...removeKitFiles(agents.root, guideFiles));
   // The folders the install created, once nothing else is in them.
   removed.push(...pruneEmptyDirs([path.dirname(agents.root), agents.base]));
@@ -1480,6 +1495,7 @@ module.exports = {
   parseExtManifest,
   resolveExtensions,
   installExtensions,
+  uninstallExtensions,
   extInstallDir,
   EXT_MANIFEST,
   HOST_EVENTS,
